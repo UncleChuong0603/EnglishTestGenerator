@@ -52,3 +52,13 @@ docs/
 ## Why this is a modular monolith
 
 The first release uses one Next.js application for the user interface and future server endpoints. One deployable app is much easier to understand than separate frontend and backend services. We will add PostgreSQL/Supabase only when the application needs persistent learner data.
+
+## Supabase foundation (Milestone 2)
+
+This project is prepared for future Supabase authentication, but it does not make any Supabase requests yet.
+
+* `src/lib/supabase/client.ts` creates a browser client for future interactive React components.
+* `src/lib/supabase/server.ts` creates a server client with Next.js cookie support for future server components, route handlers, and server actions.
+* `src/lib/supabase/config.ts` reads and validates the two public environment variables in one place.
+
+Both clients use `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Copy `.env.example` to `.env.local` and use your project settings. Never put a Supabase service-role key in a `NEXT_PUBLIC_` variable or commit it to Git.

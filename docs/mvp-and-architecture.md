@@ -296,3 +296,14 @@ The Supabase variables are a placeholder only. Keeping the integration out of th
 ### Not implemented yet
 
 Authentication, Supabase/PostgreSQL access, database migrations, test content, scoring, recommendations, AI features, payments, and advanced interface components are all intentionally deferred.
+
+## 10. Milestone 2: Supabase foundation status
+
+The project now has the smallest useful Supabase integration boundary, without adding a database schema or an authentication flow.
+
+* `@supabase/supabase-js` supplies the base Supabase JavaScript client and `@supabase/ssr` supplies the Next.js-compatible browser/server client helpers.
+* `src/lib/supabase/client.ts` is for future interactive browser components. `src/lib/supabase/server.ts` is for future server components, route handlers, and server actions, where session cookies must be read and written on the server.
+* `src/lib/supabase/config.ts` reads `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` from the environment and fails clearly if either is missing.
+* `.env.example` names the required values but contains no credentials. Local project values belong only in the Git-ignored `.env.local` file.
+
+No authentication calls, database tables, learner profile, dashboard, test data, or authorization policies have been introduced. Those belong to later, separately testable milestones.
