@@ -319,3 +319,14 @@ Authentication uses Google OAuth through Supabase Auth instead of email/password
 * The existing Next.js 16 proxy remains responsible for session refresh only; it is not the application’s only authorization check.
 
 Google OAuth credentials are configured in Google Cloud and the Supabase provider configuration. The Next.js project continues to use only the public Supabase URL and publishable key. There is still no learner profile, application table, database migration, or RLS policy in this milestone.
+## 11. Milestone 3: Authentication status
+
+Basic Supabase email-and-password authentication is now implemented without an application database schema.
+
+* `/sign-up` validates email, password length, and confirmation in the browser, then calls Supabase Auth. If the Supabase project requires confirmation, the user is told to check their email; otherwise they are sent to the protected page.
+* `/auth/callback` receives Supabase's confirmation redirect and exchanges its temporary code for the session stored in cookies.
+* `/sign-in` creates a Supabase session, then redirects to `/dashboard`.
+* `/dashboard` is protected on the server by checking Supabase claims. Unauthenticated visitors are redirected to `/sign-in`; it is not protected by client-side state alone.
+* `src/proxy.ts` refreshes existing Supabase sessions and preserves refreshed cookies between requests. The dashboard server action signs the user out and redirects home.
+
+There is still no `profiles` table because Supabase Auth owns account identity and password handling. The future application-specific profile is a separate concern that will be added only when learner attributes are needed.

@@ -12,6 +12,9 @@ function redirectToSignIn(requestUrl: URL) {
 /**
  * Supabase redirects here after Google approves the sign-in request.
  * Exchanging the temporary code stores the resulting session in cookies.
+/**
+ * Supabase redirects here after a user confirms an email address.
+ * Exchanging the code stores the session in the user's cookies.
  */
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
@@ -26,6 +29,9 @@ export async function GET(request: NextRequest) {
 
   if (error) {
     return redirectToSignIn(requestUrl);
+  if (code) {
+    const supabase = await createClient();
+    await supabase.auth.exchangeCodeForSession(code);
   }
 
   return NextResponse.redirect(new URL("/dashboard", requestUrl.origin));

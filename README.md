@@ -107,6 +107,28 @@ OAuth has two separate configuration layers. The Google client secret belongs in
 * **Supabase project URL:** identifies your Supabase project for this application.
 * **Supabase publishable key:** lets browser code use the public Supabase API for this project; it is not a service-role key.
 * **Supabase user and session:** a user is the account created after Google authentication; a session is the cookie-backed proof that the user is currently signed in.
+## Authentication (Milestone 3)
+
+This milestone adds email-and-password authentication through Supabase Auth. It intentionally does **not** add a learner-profile table, application database schema, test data, or a real learner dashboard.
+
+### Before testing sign-up
+
+In your Supabase dashboard, open **Authentication → URL Configuration** and add this local redirect URL:
+
+```text
+http://localhost:3000/auth/callback
+```
+
+This lets Supabase return a learner to the application after email confirmation. If email confirmation is enabled in your Supabase project, a new user must click the confirmation link before they can sign in.
+
+### Authentication flow
+
+1. A learner submits `/sign-up`; the browser client sends the email and password to Supabase Auth. Supabase manages password storage—this application never stores passwords itself.
+2. If email confirmation is required, Supabase sends the confirmation email and redirects the click back through `/auth/callback`. That route exchanges Supabase's temporary code for a session cookie.
+3. `/sign-in` uses the browser client to ask Supabase Auth to create a session, then sends the learner to `/dashboard`.
+4. `/dashboard` is a Server Component. It checks Supabase claims on the server and redirects unauthenticated visitors to `/sign-in`.
+5. `src/proxy.ts` runs on requests to refresh an existing session and copy refreshed Supabase cookies to the response.
+6. The dashboard sign-out form runs a server action that tells Supabase to end the session and redirects to the landing page.
 
 ### Important authentication files
 
@@ -122,3 +144,15 @@ src/lib/supabase/proxy.ts             Copies refreshed session cookies to respon
 ```
 
 The browser client starts OAuth from the interactive button. The server client is used by the callback, protected dashboard, and sign-out action because those operations need Next.js cookie access.
+src/app/sign-up/page.tsx                 Sign-up route.
+src/app/sign-in/page.tsx                 Sign-in route.
+src/components/auth/sign-up-form.tsx     Client-side sign-up validation and Supabase call.
+src/components/auth/sign-in-form.tsx     Client-side sign-in validation and Supabase call.
+src/app/auth/callback/route.ts           Handles the email-confirmation redirect.
+src/app/dashboard/page.tsx               Server-protected placeholder page.
+src/app/dashboard/actions.ts             Server-side sign-out action.
+src/proxy.ts                             Runs the Supabase session refresh logic.
+src/lib/supabase/proxy.ts                Copies refreshed session cookies to responses.
+```
+
+The browser client is for interactive form submissions. The server client is for protected pages, route handlers, and server actions where Next.js can read or write cookies. Using the server client on `/dashboard` means a user cannot gain access merely by changing browser-side UI state.
