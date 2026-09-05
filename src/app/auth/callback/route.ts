@@ -1,0 +1,32 @@
+import { type NextRequest, NextResponse } from "next/server";
+
+import { createClient } from "@/lib/supabase/server";
+
+function redirectToSignIn(requestUrl: URL) {
+  const signInUrl = new URL("/sign-in", requestUrl.origin);
+  signInUrl.searchParams.set("error", "oauth_callback_failed");
+
+  return NextResponse.redirect(signInUrl);
+}
+
+/**
+ * Supabase redirects here after Google approves the sign-in request.
+ * Exchanging the temporary code stores the resulting session in cookies.
+ */
+export async function GET(request: NextRequest) {
+  const requestUrl = new URL(request.url);
+  const code = requestUrl.searchParams.get("code");
+
+  if (!code) {
+    return redirectToSignIn(requestUrl);
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+  if (error) {
+    return redirectToSignIn(requestUrl);
+  }
+
+  return NextResponse.redirect(new URL("/dashboard", requestUrl.origin));
+}
