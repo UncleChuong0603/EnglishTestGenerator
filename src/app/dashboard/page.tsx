@@ -40,6 +40,15 @@ export default async function DashboardPage() {
   const { profile } = profileResult;
   const signedInWithGoogle = user.app_metadata.provider === "google";
   const welcomeName = profile.full_name ?? user.email ?? "learner";
+  const { data, error } = await supabase.auth.getClaims();
+  const claims = data?.claims;
+
+  if (error || !claims) {
+    redirect("/sign-in");
+  }
+
+  const email = typeof claims.email === "string" ? claims.email : "your account";
+  const signedInWithGoogle = claims.app_metadata?.provider === "google";
 
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-12 text-slate-900 sm:px-10">
@@ -52,6 +61,15 @@ export default async function DashboardPage() {
         {signedInWithGoogle ? <p className="mt-3 text-sm font-medium text-teal-700">Authenticated with Google</p> : null}
         <p className="mt-3 leading-7 text-slate-600">
           This is only a profile and authentication placeholder. The learner dashboard will be built in a later milestone.
+        <h1 className="mt-3 text-3xl font-bold tracking-tight">Welcome to VSTEP Practice</h1>
+        <p className="mt-4 leading-7 text-slate-600">
+          You are signed in as <strong className="font-semibold text-slate-900">{email}</strong>.
+        </p>
+        {signedInWithGoogle ? (
+          <p className="mt-3 text-sm font-medium text-teal-700">Authenticated with Google</p>
+        ) : null}
+        <p className="mt-3 leading-7 text-slate-600">
+          This is only an authentication placeholder. The learner dashboard will be built in a later milestone.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <form action={signOut}>
