@@ -17,6 +17,7 @@ export default async function DashboardPage() {
   }
 
   const email = typeof claims.claims.email === "string" ? claims.claims.email : "your account";
+  const signedInWithGoogle = claims.claims.app_metadata?.provider === "google";
 
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-12 text-slate-900 sm:px-10">
@@ -26,6 +27,9 @@ export default async function DashboardPage() {
         <p className="mt-4 leading-7 text-slate-600">
           You are signed in as <strong className="font-semibold text-slate-900">{email}</strong>.
         </p>
+        {signedInWithGoogle ? (
+          <p className="mt-3 text-sm font-medium text-teal-700">Authenticated with Google</p>
+        ) : null}
         <p className="mt-3 leading-7 text-slate-600">
           This is only an authentication placeholder. The learner dashboard will be built in a later milestone.
         </p>

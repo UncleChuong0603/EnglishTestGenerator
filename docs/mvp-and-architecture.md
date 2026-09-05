@@ -308,6 +308,17 @@ The project now has the smallest useful Supabase integration boundary, without a
 
 No authentication calls, database tables, learner profile, dashboard, test data, or authorization policies have been introduced. Those belong to later, separately testable milestones.
 
+## 11. Google OAuth authentication status
+
+Authentication uses Google OAuth through Supabase Auth instead of email/password accounts.
+
+* `/sign-in` has one Google OAuth action. Supabase creates the user automatically on the first successful Google sign-in.
+* `/sign-up` redirects to `/sign-in` because it is no longer a separate product flow.
+* `/auth/callback` exchanges the OAuth authorization code for the cookie-backed Supabase session. On failure it returns to sign-in with a generic error code, not provider details.
+* `/dashboard` remains protected on the server by Supabase claims and can show a Google-provider label when the claim reports that provider.
+* The existing Next.js 16 proxy remains responsible for session refresh only; it is not the application’s only authorization check.
+
+Google OAuth credentials are configured in Google Cloud and the Supabase provider configuration. The Next.js project continues to use only the public Supabase URL and publishable key. There is still no learner profile, application table, database migration, or RLS policy in this milestone.
 ## 11. Milestone 3: Authentication status
 
 Basic Supabase email-and-password authentication is now implemented without an application database schema.
