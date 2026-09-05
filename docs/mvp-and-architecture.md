@@ -273,3 +273,26 @@ Add Listening first (curated audio, player, deterministic questions), then Speak
 7. AI API integration, structured outputs, cost controls, and evaluation with a small set of reviewed learner answers.
 
 The most important learning habit is to keep each change small: write the user-visible behaviour first, implement one vertical slice, test it, deploy it, and record what you learned before moving on.
+
+## 9. Milestone 1 implementation status
+
+The initial application foundation is now in place.
+
+### Implemented
+
+* A Next.js App Router project using TypeScript and the `src/` directory layout.
+* Tailwind CSS v4 for utility-first styling; the landing page uses Tailwind classes directly.
+* ESLint configuration using the Next.js core web-vitals and TypeScript rule sets.
+* A responsive static landing page that explains the learning loop and clearly states that the product is not an official VSTEP examination service.
+* An `.env.example` template with empty `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` variables. No database client, schema, authentication, or secret is included yet.
+* A README with local setup, commands, and an explanation of the simple single-application architecture.
+
+### Intentional decisions
+
+Tailwind is included because it lets a beginner build responsive, consistent screens without designing a separate CSS architecture first. shadcn/ui is intentionally deferred: it is a collection of copied, owned components rather than a requirement for Next.js. Add individual shadcn components only when a real feature needs them, so the project does not begin with unused dependencies and generated files.
+
+The Supabase variables are a placeholder only. Keeping the integration out of this milestone means the landing page remains simple and runnable without an external account, while its future configuration names are established without risking secrets in Git.
+
+### Not implemented yet
+
+Authentication, Supabase/PostgreSQL access, database migrations, test content, scoring, recommendations, AI features, payments, and advanced interface components are all intentionally deferred.
