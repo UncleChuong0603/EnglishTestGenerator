@@ -7,17 +7,15 @@ import { signOut } from "./actions";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
-  const {
-    data: { claims },
-    error,
-  } = await supabase.auth.getClaims();
+  const { data, error } = await supabase.auth.getClaims();
+  const claims = data?.claims;
 
   if (error || !claims) {
     redirect("/sign-in");
   }
 
-  const email = typeof claims.claims.email === "string" ? claims.claims.email : "your account";
-  const signedInWithGoogle = claims.claims.app_metadata?.provider === "google";
+  const email = typeof claims.email === "string" ? claims.email : "your account";
+  const signedInWithGoogle = claims.app_metadata?.provider === "google";
 
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-12 text-slate-900 sm:px-10">

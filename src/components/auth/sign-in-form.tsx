@@ -1,9 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { type FormEvent, useState } from "react";
 
 import { createClient } from "@/lib/supabase/client";
@@ -40,9 +38,9 @@ export function SignInForm() {
     }
 
     window.location.assign(data.url);
+  }
+
   const router = useRouter();
-  const [errorMessage, setErrorMessage] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -97,9 +95,7 @@ export function SignInForm() {
         >
           {isSubmitting ? "Connecting to Google…" : "Continue with Google"}
         </button>
-        <Link className="text-sm font-semibold text-teal-700 hover:text-teal-800" href="/">← Back to home</Link>
-        <h1 className="mt-6 text-3xl font-bold tracking-tight">Sign in</h1>
-        <p className="mt-2 text-slate-600">Use the email address and password from your VSTEP Practice account.</p>
+        <p className="mt-6 text-slate-600">Or use the email address and password from your VSTEP Practice account.</p>
         <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
           <label className="block text-sm font-semibold" htmlFor="email">
             Email address
