@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const learningSteps = [
   {
     number: "01",
@@ -23,6 +25,10 @@ export default function Home() {
         <a className="text-lg font-bold tracking-tight" href="#top">
           VSTEP Practice
         </a>
+        <div className="flex items-center gap-3">
+          <Link className="text-sm font-semibold text-slate-700 hover:text-teal-700" href="/sign-in">Sign in</Link>
+          <Link className="rounded-lg bg-teal-700 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-800" href="/sign-up">Create account</Link>
+        </div>
         <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-sm font-medium text-slate-600">
           Coming soon
         </span>

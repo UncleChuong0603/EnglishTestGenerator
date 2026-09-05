@@ -307,3 +307,15 @@ The project now has the smallest useful Supabase integration boundary, without a
 * `.env.example` names the required values but contains no credentials. Local project values belong only in the Git-ignored `.env.local` file.
 
 No authentication calls, database tables, learner profile, dashboard, test data, or authorization policies have been introduced. Those belong to later, separately testable milestones.
+
+## 11. Milestone 3: Authentication status
+
+Basic Supabase email-and-password authentication is now implemented without an application database schema.
+
+* `/sign-up` validates email, password length, and confirmation in the browser, then calls Supabase Auth. If the Supabase project requires confirmation, the user is told to check their email; otherwise they are sent to the protected page.
+* `/auth/callback` receives Supabase's confirmation redirect and exchanges its temporary code for the session stored in cookies.
+* `/sign-in` creates a Supabase session, then redirects to `/dashboard`.
+* `/dashboard` is protected on the server by checking Supabase claims. Unauthenticated visitors are redirected to `/sign-in`; it is not protected by client-side state alone.
+* `src/proxy.ts` refreshes existing Supabase sessions and preserves refreshed cookies between requests. The dashboard server action signs the user out and redirects home.
+
+There is still no `profiles` table because Supabase Auth owns account identity and password handling. The future application-specific profile is a separate concern that will be added only when learner attributes are needed.

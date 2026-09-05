@@ -5,6 +5,7 @@ import { getSupabaseConfig } from "./config";
 
 /**
  * Creates a Supabase client for server components, route handlers, and server actions.
+ * The proxy refreshes sessions; server actions can write the updated cookies.
  * Cookie support is prepared now so a later authentication milestone can persist sessions.
  */
 export async function createClient() {
@@ -17,6 +18,13 @@ export async function createClient() {
         return cookieStore.getAll();
       },
       setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options);
+          });
+        } catch {
+          // Server Components cannot change cookies. The proxy handles refreshes there.
+        }
         cookiesToSet.forEach(({ name, value, options }) => {
           cookieStore.set(name, value, options);
         });
