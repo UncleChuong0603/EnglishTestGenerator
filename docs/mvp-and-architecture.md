@@ -318,6 +318,18 @@ Authentication uses Google OAuth through Supabase Auth instead of email/password
 * `/dashboard` remains protected on the server by Supabase claims and can show a Google-provider label when the claim reports that provider.
 * The existing Next.js 16 proxy remains responsible for session refresh only; it is not the application’s only authorization check.
 
+Google OAuth credentials are configured in Google Cloud and the Supabase provider configuration. The Next.js project continues to use only the public Supabase URL and publishable key. The learner-profile database work is documented in the following milestone status.
+
+## 12. Learner profile and RLS status
+
+The first application data table is `public.profiles`, defined in `supabase/migrations/20260905130000_create_profiles_table.sql`.
+
+* `profiles.id` is both the primary key and a foreign key to `auth.users(id)`, creating one profile per authenticated Supabase user without duplicating credentials.
+* RLS is enabled. Authenticated learners can select, insert, and update only a row where `auth.uid() = profiles.id`; there are no broad `using (true)` policies.
+* `/dashboard` retrieves the authenticated user on the server and reads only that user’s profile. If it is missing, the learner is redirected to protected `/onboarding`.
+* The onboarding server action validates the name, retrieves the user server-side, and uses an idempotent upsert keyed by the authenticated user ID. It only accepts known Google metadata fields for an optional HTTPS avatar URL.
+
+No other application tables, roles, test data, scoring, AI functionality, or recommendations are included.
 Google OAuth credentials are configured in Google Cloud and the Supabase provider configuration. The Next.js project continues to use only the public Supabase URL and publishable key. There is still no learner profile, application table, database migration, or RLS policy in this milestone.
 ## 11. Milestone 3: Authentication status
 

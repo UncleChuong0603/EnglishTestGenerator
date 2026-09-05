@@ -144,6 +144,40 @@ src/lib/supabase/proxy.ts             Copies refreshed session cookies to respon
 ```
 
 The browser client starts OAuth from the interactive button. The server client is used by the callback, protected dashboard, and sign-out action because those operations need Next.js cookie access.
+
+## Learner profile and onboarding (current milestone)
+
+This milestone adds one application table: `public.profiles`. It stores learner-facing information only; Supabase Auth continues to own the Google account identity and session.
+
+```text
+auth.users.id  =  public.profiles.id
+```
+
+The matching IDs create a one-to-one relationship. The application never accepts a profile ID from a browser form: server code gets the authenticated user from Supabase and uses that user’s ID.
+
+### Apply the database migration
+
+The version-controlled migration is at:
+
+```text
+supabase/migrations/20260905130000_create_profiles_table.sql
+```
+
+Apply it to your Supabase project through your normal Supabase migration workflow (for example, `supabase db push` after linking the Supabase CLI to the project). Do not copy the schema into an unrelated migration or create a different profiles table manually.
+
+### Row Level Security ownership rule
+
+RLS is enabled on `public.profiles`. An authenticated learner may select, insert, or update a row only when its `id` equals `auth.uid()`—their own Supabase user ID. The policies do not allow access to another learner’s row.
+
+### Profile flow
+
+1. A learner signs in with Google.
+2. `/dashboard` checks the authenticated user on the server.
+3. If that user has no profile row, the app redirects to `/onboarding`.
+4. The onboarding server action validates the full name, gets the authenticated user on the server, and upserts one profile row using that user’s ID.
+5. The dashboard reads only the current learner’s profile and displays their name. A Google avatar URL is saved only when known user metadata contains a valid HTTPS URL.
+
+The learner profile is intentionally minimal: full name and avatar URL only. There are no tests, learner level, preferences, scores, recommendations, or AI features yet.
 src/app/sign-up/page.tsx                 Sign-up route.
 src/app/sign-in/page.tsx                 Sign-in route.
 src/components/auth/sign-up-form.tsx     Client-side sign-up validation and Supabase call.
