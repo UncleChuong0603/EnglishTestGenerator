@@ -2,6 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { submitAttempt } from "@/app/practice/actions";
+import type { AnswerKey, ReadingQuestion } from "@/lib/tests/types";
+
+export function TestRunner({ attemptId, questions, title }: { attemptId: string; questions: ReadingQuestion[]; title: string }) {
 import { submitAttempt } from "@/app/tests/actions";
 import type { AnswerKey, ReadingQuestion } from "@/lib/tests/types";
 
@@ -10,6 +14,7 @@ export function TestRunner({ attemptId, passage, questions, title }: { attemptId
   const [answers, setAnswers] = useState<Record<string, AnswerKey>>({});
   const [submitting, setSubmitting] = useState(false); const [error, setError] = useState("");
   const answered = useMemo(() => Object.keys(answers).length, [answers]);
+  const passages = useMemo(() => [...new Map(questions.map((question) => [question.passage_id, { id: question.passage_id, title: question.passage_title, content: question.passage_content }])).values()], [questions]);
 
   async function submit() {
     const unanswered = questions.length - answered;
@@ -24,6 +29,8 @@ export function TestRunner({ attemptId, passage, questions, title }: { attemptId
   return <main className="min-h-screen bg-slate-50 px-4 py-8 text-slate-900 sm:px-8">
     <div className="mx-auto max-w-5xl">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3"><div><p className="text-sm font-bold uppercase tracking-wider text-teal-700">VSTEP-style Reading</p><h1 className="text-2xl font-bold">{title}</h1></div><p className="rounded-full bg-white px-4 py-2 text-sm font-semibold shadow-sm">Answered {answered}/{questions.length}</p></header>
+      <div className="space-y-5">{passages.map((passage, index) => <article className="rounded-2xl border border-slate-200 bg-white p-6 leading-8 shadow-sm sm:p-8" key={passage.id}><p className="text-sm font-bold uppercase tracking-wider text-teal-700">Passage {index + 1}</p><h2 className="mb-4 mt-2 text-lg font-bold">{passage.title}</h2><div className="whitespace-pre-wrap text-slate-700">{passage.content}</div></article>)}</div>
+      <div className="mt-7 space-y-5">{questions.map((q) => <fieldset className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" key={q.id}><legend className="px-1 font-bold">{q.question_order}. {q.question}</legend><p className="mt-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Refer to: {q.passage_title}</p><div className="mt-4 space-y-3">{q.options.map((option) => <label className={`flex cursor-pointer gap-3 rounded-xl border p-4 ${answers[q.id] === option.key ? "border-teal-600 bg-teal-50" : "border-slate-200 hover:bg-slate-50"}`} key={option.key}><input checked={answers[q.id] === option.key} name={q.id} onChange={() => setAnswers((current) => ({ ...current, [q.id]: option.key }))} type="radio" value={option.key}/><span><strong>{option.key}.</strong> {option.text}</span></label>)}</div></fieldset>)}</div>
       <article className="rounded-2xl border border-slate-200 bg-white p-6 leading-8 shadow-sm sm:p-8"><h2 className="mb-4 text-lg font-bold">Reading passage</h2><div className="whitespace-pre-wrap text-slate-700">{passage}</div></article>
       <div className="mt-7 space-y-5">{questions.map((q) => <fieldset className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" key={q.id}><legend className="px-1 font-bold">{q.question_order}. {q.question}</legend><div className="mt-4 space-y-3">{q.options.map((option) => <label className={`flex cursor-pointer gap-3 rounded-xl border p-4 ${answers[q.id] === option.key ? "border-teal-600 bg-teal-50" : "border-slate-200 hover:bg-slate-50"}`} key={option.key}><input checked={answers[q.id] === option.key} name={q.id} onChange={() => setAnswers((current) => ({ ...current, [q.id]: option.key }))} type="radio" value={option.key}/><span><strong>{option.key}.</strong> {option.text}</span></label>)}</div></fieldset>)}</div>
       {error ? <p className="mt-6 rounded-xl bg-red-50 p-4 text-red-700" role="alert">{error}</p> : null}

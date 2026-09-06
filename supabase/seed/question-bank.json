@@ -1,0 +1,928 @@
+{
+  "passages": [
+    {
+      "id": "10000000-0000-4000-8000-000000000001",
+      "title": "Community Garden",
+      "content": "Residents in Green Street turned an empty piece of land into a community garden. At first, only six people volunteered, but the group soon grew as neighbours saw vegetables and flowers appearing. The garden now supplies fresh food to a local kitchen and gives children a safe place to learn about nature. Members meet every Saturday morning, although watering duties are shared throughout the week.",
+      "difficulty": "B1",
+      "topic": "community",
+      "questions": [
+        {
+          "id": "20000000-0000-4000-8000-000000000001",
+          "order": 1,
+          "question": "What is the main purpose of the passage?",
+          "options": [
+            {
+              "key": "A",
+              "text": "To explain how a community garden developed"
+            },
+            {
+              "key": "B",
+              "text": "To advertise vegetables for sale"
+            },
+            {
+              "key": "C",
+              "text": "To complain about an empty street"
+            },
+            {
+              "key": "D",
+              "text": "To describe a school building"
+            }
+          ],
+          "correctAnswer": "A",
+          "explanation": "The passage explains the garden's beginning, growth, and current benefits.",
+          "skill": "main_idea",
+          "subSkill": "identifying the central message",
+          "difficulty": "B1",
+          "topic": "community"
+        },
+        {
+          "id": "20000000-0000-4000-8000-000000000002",
+          "order": 2,
+          "question": "What does the garden provide to the local kitchen?",
+          "options": [
+            {
+              "key": "A",
+              "text": "Tools"
+            },
+            {
+              "key": "B",
+              "text": "Fresh food"
+            },
+            {
+              "key": "C",
+              "text": "Teachers"
+            },
+            {
+              "key": "D",
+              "text": "Land"
+            }
+          ],
+          "correctAnswer": "B",
+          "explanation": "The passage directly states that the garden supplies fresh food.",
+          "skill": "detail",
+          "subSkill": "locating stated information",
+          "difficulty": "B1",
+          "topic": "community"
+        },
+        {
+          "id": "20000000-0000-4000-8000-000000000003",
+          "order": 3,
+          "question": "The word 'supplies' is closest in meaning to...",
+          "options": [
+            {
+              "key": "A",
+              "text": "hides"
+            },
+            {
+              "key": "B",
+              "text": "provides"
+            },
+            {
+              "key": "C",
+              "text": "buys"
+            },
+            {
+              "key": "D",
+              "text": "wastes"
+            }
+          ],
+          "correctAnswer": "B",
+          "explanation": "In context, the garden provides fresh food to the kitchen.",
+          "skill": "vocabulary",
+          "subSkill": "meaning from context",
+          "difficulty": "B1",
+          "topic": "community"
+        },
+        {
+          "id": "20000000-0000-4000-8000-000000000004",
+          "order": 4,
+          "question": "Why did more neighbours probably join?",
+          "options": [
+            {
+              "key": "A",
+              "text": "They were paid"
+            },
+            {
+              "key": "B",
+              "text": "They saw visible progress"
+            },
+            {
+              "key": "C",
+              "text": "Saturday meetings stopped"
+            },
+            {
+              "key": "D",
+              "text": "The kitchen closed"
+            }
+          ],
+          "correctAnswer": "B",
+          "explanation": "The growing vegetables and flowers showed that the project was succeeding.",
+          "skill": "inference",
+          "subSkill": "drawing a supported conclusion",
+          "difficulty": "B1",
+          "topic": "community"
+        },
+        {
+          "id": "20000000-0000-4000-8000-000000000005",
+          "order": 5,
+          "question": "What does 'the group' refer to?",
+          "options": [
+            {
+              "key": "A",
+              "text": "The children"
+            },
+            {
+              "key": "B",
+              "text": "The vegetables"
+            },
+            {
+              "key": "C",
+              "text": "The volunteers"
+            },
+            {
+              "key": "D",
+              "text": "The duties"
+            }
+          ],
+          "correctAnswer": "C",
+          "explanation": "The previous clause introduces the six people who volunteered.",
+          "skill": "reference",
+          "subSkill": "tracking noun references",
+          "difficulty": "B1",
+          "topic": "community"
+        }
+      ]
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000002",
+      "title": "A Different Commute",
+      "content": "Mai used to travel to work by motorbike every day. When a new bus route opened near her apartment, she decided to try it for one month. The bus journey takes ten minutes longer, but Mai can read during the trip and spends less money on fuel. She still uses her motorbike when she needs to travel late because the last bus leaves at nine o'clock.",
+      "difficulty": "B1",
+      "topic": "transport",
+      "questions": [
+        {
+          "id": "20000000-0000-4000-8000-000000000006",
+          "order": 1,
+          "question": "What change did Mai make?",
+          "options": [
+            {
+              "key": "A",
+              "text": "She moved closer to work"
+            },
+            {
+              "key": "B",
+              "text": "She began trying a new bus route"
+            },
+            {
+              "key": "C",
+              "text": "She sold her apartment"
+            },
+            {
+              "key": "D",
+              "text": "She started working at night"
+            }
+          ],
+          "correctAnswer": "B",
+          "explanation": "Mai decided to try the new bus route for one month.",
+          "skill": "detail",
+          "subSkill": "locating stated information",
+          "difficulty": "B1",
+          "topic": "transport"
+        },
+        {
+          "id": "20000000-0000-4000-8000-000000000007",
+          "order": 2,
+          "question": "What is the passage mainly about?",
+          "options": [
+            {
+              "key": "A",
+              "text": "Why buses are always late"
+            },
+            {
+              "key": "B",
+              "text": "Mai's experience with a new way to commute"
+            },
+            {
+              "key": "C",
+              "text": "How to repair a motorbike"
+            },
+            {
+              "key": "D",
+              "text": "Rules for reading on buses"
+            }
+          ],
+          "correctAnswer": "B",
+          "explanation": "The passage compares Mai's bus commute with her previous motorbike journey.",
+          "skill": "main_idea",
+          "subSkill": "identifying the central message",
+          "difficulty": "B1",
+          "topic": "transport"
+        },
+        {
+          "id": "20000000-0000-4000-8000-000000000008",
+          "order": 3,
+          "question": "The word 'route' most nearly means...",
+          "options": [
+            {
+              "key": "A",
+              "text": "a path followed by transport"
+            },
+            {
+              "key": "B",
+              "text": "a monthly payment"
+            },
+            {
+              "key": "C",
+              "text": "a type of book"
+            },
+            {
+              "key": "D",
+              "text": "a fuel station"
+            }
+          ],
+          "correctAnswer": "A",
+          "explanation": "A bus route is the path or service line followed by the bus.",
+          "skill": "vocabulary",
+          "subSkill": "meaning from context",
+          "difficulty": "B1",
+          "topic": "transport"
+        },
+        {
+          "id": "20000000-0000-4000-8000-000000000009",
+          "order": 4,
+          "question": "Why does Mai keep using her motorbike sometimes?",
+          "options": [
+            {
+              "key": "A",
+              "text": "The bus costs more"
+            },
+            {
+              "key": "B",
+              "text": "She dislikes reading"
+            },
+            {
+              "key": "C",
+              "text": "Bus service ends before some late trips"
+            },
+            {
+              "key": "D",
+              "text": "Her apartment is far from the bus"
+            }
+          ],
+          "correctAnswer": "C",
+          "explanation": "The last bus leaves at nine, so it cannot serve every late journey.",
+          "skill": "inference",
+          "subSkill": "connecting stated facts",
+          "difficulty": "B1",
+          "topic": "transport"
+        },
+        {
+          "id": "20000000-0000-4000-8000-000000000010",
+          "order": 5,
+          "question": "What does 'it' in 'decided to try it' refer to?",
+          "options": [
+            {
+              "key": "A",
+              "text": "her apartment"
+            },
+            {
+              "key": "B",
+              "text": "the new bus route"
+            },
+            {
+              "key": "C",
+              "text": "one month"
+            },
+            {
+              "key": "D",
+              "text": "her motorbike"
+            }
+          ],
+          "correctAnswer": "B",
+          "explanation": "The nearest logical idea is the new bus route.",
+          "skill": "reference",
+          "subSkill": "tracking pronouns",
+          "difficulty": "B1",
+          "topic": "transport"
+        }
+      ]
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000003",
+      "title": "Libraries of Things",
+      "content": "Several cities have opened libraries that lend tools, kitchen equipment, and camping supplies instead of books. Supporters argue that many expensive objects are used only a few times each year, so sharing them reduces waste and saves money. Members usually attend a short safety lesson before borrowing complex equipment. Critics note that repairs and storage can be costly, yet most programmes report growing membership.",
+      "difficulty": "B2",
+      "topic": "community services",
+      "questions": [
+        {
+          "id": "20000000-0000-4000-8000-000000000011",
+          "order": 1,
+          "question": "What is the main idea?",
+          "options": [
+            {
+              "key": "A",
+              "text": "Traditional libraries should close"
+            },
+            {
+              "key": "B",
+              "text": "Sharing rarely used objects can benefit communities"
+            },
+            {
+              "key": "C",
+              "text": "Camping equipment is unsafe"
+            },
+            {
+              "key": "D",
+              "text": "Cities should sell used books"
+            }
+          ],
+          "correctAnswer": "B",
+          "explanation": "The passage presents object-lending libraries and their community benefits and challenges.",
+          "skill": "main_idea",
+          "subSkill": "synthesising the text",
+          "difficulty": "B2",
+          "topic": "community services"
+        },
+        {
+          "id": "20000000-0000-4000-8000-000000000012",
+          "order": 2,
+          "question": "Why are safety lessons offered?",
+          "options": [
+            {
+              "key": "A",
+              "text": "To advertise membership"
+            },
+            {
+              "key": "B",
+              "text": "To teach book repair"
+            },
+            {
+              "key": "C",
+              "text": "To prepare members to use complex equipment"
+            },
+            {
+              "key": "D",
+              "text": "To reduce storage space"
+            }
+          ],
+          "correctAnswer": "C",
+          "explanation": "The lesson occurs before members borrow complex equipment.",
+          "skill": "detail",
+          "subSkill": "locating purpose details",
+          "difficulty": "B2",
+          "topic": "community services"
+        },
+        {
+          "id": "20000000-0000-4000-8000-000000000013",
+          "order": 3,
+          "question": "The word 'complex' is closest in meaning to...",
+          "options": [
+            {
+              "key": "A",
+              "text": "difficult to operate"
+            },
+            {
+              "key": "B",
+              "text": "cheap to replace"
+            },
+            {
+              "key": "C",
+              "text": "small enough to carry"
+            },
+            {
+              "key": "D",
+              "text": "popular with children"
+            }
+          ],
+          "correctAnswer": "A",
+          "explanation": "Safety instruction is needed because the equipment may be difficult to operate.",
+          "skill": "vocabulary",
+          "subSkill": "inferring contextual meaning",
+          "difficulty": "B2",
+          "topic": "community services"
+        },
+        {
+          "id": "20000000-0000-4000-8000-000000000014",
+          "order": 4,
+          "question": "What can be inferred about demand for these programmes?",
+          "options": [
+            {
+              "key": "A",
+              "text": "It is disappearing"
+            },
+            {
+              "key": "B",
+              "text": "It is limited to critics"
+            },
+            {
+              "key": "C",
+              "text": "It is increasing"
+            },
+            {
+              "key": "D",
+              "text": "It exists only in villages"
+            }
+          ],
+          "correctAnswer": "C",
+          "explanation": "Growing membership indicates increasing demand.",
+          "skill": "inference",
+          "subSkill": "using evidence for conclusions",
+          "difficulty": "B2",
+          "topic": "community services"
+        },
+        {
+          "id": "20000000-0000-4000-8000-000000000015",
+          "order": 5,
+          "question": "What does 'them' in 'sharing them' refer to?",
+          "options": [
+            {
+              "key": "A",
+              "text": "supporters"
+            },
+            {
+              "key": "B",
+              "text": "cities"
+            },
+            {
+              "key": "C",
+              "text": "expensive objects"
+            },
+            {
+              "key": "D",
+              "text": "books"
+            }
+          ],
+          "correctAnswer": "C",
+          "explanation": "The pronoun refers to the expensive objects mentioned immediately before it.",
+          "skill": "reference",
+          "subSkill": "resolving pronouns",
+          "difficulty": "B2",
+          "topic": "community services"
+        }
+      ]
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000004",
+      "title": "Restoring Urban Rivers",
+      "content": "For decades, many urban rivers were forced into concrete channels to control flooding and make room for roads. Some cities are now removing those channels and restoring more natural riverbanks. The change creates habitats for wildlife and public spaces for residents. It can also slow storm water, although engineers must study each location carefully because nearby buildings may remain vulnerable to floods.",
+      "difficulty": "B2",
+      "topic": "environment",
+      "questions": [
+        {
+          "id": "20000000-0000-4000-8000-000000000016",
+          "order": 1,
+          "question": "What is the passage mainly discussing?",
+          "options": [
+            {
+              "key": "A",
+              "text": "The construction of new highways"
+            },
+            {
+              "key": "B",
+              "text": "The restoration of natural features in city rivers"
+            },
+            {
+              "key": "C",
+              "text": "Ways to move buildings"
+            },
+            {
+              "key": "D",
+              "text": "The decline of urban wildlife"
+            }
+          ],
+          "correctAnswer": "B",
+          "explanation": "The text focuses on cities returning channelled rivers to a more natural state.",
+          "skill": "main_idea",
+          "subSkill": "identifying topic and purpose",
+          "difficulty": "B2",
+          "topic": "environment"
+        },
+        {
+          "id": "20000000-0000-4000-8000-000000000017",
+          "order": 2,
+          "question": "Why were rivers placed in concrete channels?",
+          "options": [
+            {
+              "key": "A",
+              "text": "To support wildlife"
+            },
+            {
+              "key": "B",
+              "text": "To control flooding and create road space"
+            },
+            {
+              "key": "C",
+              "text": "To improve fishing"
+            },
+            {
+              "key": "D",
+              "text": "To provide parks"
+            }
+          ],
+          "correctAnswer": "B",
+          "explanation": "Both reasons are stated in the first sentence.",
+          "skill": "detail",
+          "subSkill": "combining stated details",
+          "difficulty": "B2",
+          "topic": "environment"
+        },
+        {
+          "id": "20000000-0000-4000-8000-000000000018",
+          "order": 3,
+          "question": "The word 'vulnerable' most nearly means...",
+          "options": [
+            {
+              "key": "A",
+              "text": "protected"
+            },
+            {
+              "key": "B",
+              "text": "likely to be harmed"
+            },
+            {
+              "key": "C",
+              "text": "newly constructed"
+            },
+            {
+              "key": "D",
+              "text": "far away"
+            }
+          ],
+          "correctAnswer": "B",
+          "explanation": "Buildings vulnerable to floods are at risk of being harmed by them.",
+          "skill": "vocabulary",
+          "subSkill": "meaning from context",
+          "difficulty": "B2",
+          "topic": "environment"
+        },
+        {
+          "id": "20000000-0000-4000-8000-000000000019",
+          "order": 4,
+          "question": "Why must engineers study each site?",
+          "options": [
+            {
+              "key": "A",
+              "text": "Restoration has no benefits"
+            },
+            {
+              "key": "B",
+              "text": "Every river is made of concrete"
+            },
+            {
+              "key": "C",
+              "text": "Flood risk may still affect nearby buildings"
+            },
+            {
+              "key": "D",
+              "text": "Residents oppose public spaces"
+            }
+          ],
+          "correctAnswer": "C",
+          "explanation": "The final clause identifies remaining flood risk as a reason for careful study.",
+          "skill": "inference",
+          "subSkill": "explaining a stated caution",
+          "difficulty": "B2",
+          "topic": "environment"
+        },
+        {
+          "id": "20000000-0000-4000-8000-000000000020",
+          "order": 5,
+          "question": "What does 'It' at the start of the final sentence refer to?",
+          "options": [
+            {
+              "key": "A",
+              "text": "the restoration change"
+            },
+            {
+              "key": "B",
+              "text": "wildlife"
+            },
+            {
+              "key": "C",
+              "text": "a road"
+            },
+            {
+              "key": "D",
+              "text": "each building"
+            }
+          ],
+          "correctAnswer": "A",
+          "explanation": "It refers to the change of restoring natural riverbanks.",
+          "skill": "reference",
+          "subSkill": "tracking ideas across sentences",
+          "difficulty": "B2",
+          "topic": "environment"
+        }
+      ]
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000005",
+      "title": "The Value of Productive Friction",
+      "content": "Digital services are often designed to remove every possible obstacle from a transaction. Yet a small amount of deliberate friction can improve decisions. A confirmation screen may prevent an accidental purchase, while a pause before sharing an article can encourage readers to examine its source. Such measures should not make essential services inaccessible; rather, they should create brief moments for reflection where speed would otherwise encourage error.",
+      "difficulty": "C1",
+      "topic": "technology",
+      "questions": [
+        {
+          "id": "20000000-0000-4000-8000-000000000021",
+          "order": 1,
+          "question": "Which idea best summarises the passage?",
+          "options": [
+            {
+              "key": "A",
+              "text": "All digital transactions should be slow"
+            },
+            {
+              "key": "B",
+              "text": "Carefully designed pauses can improve digital decisions"
+            },
+            {
+              "key": "C",
+              "text": "Confirmation screens prevent access"
+            },
+            {
+              "key": "D",
+              "text": "Online articles are unreliable"
+            }
+          ],
+          "correctAnswer": "B",
+          "explanation": "The author argues for purposeful, limited friction that supports better decisions.",
+          "skill": "main_idea",
+          "subSkill": "identifying a qualified argument",
+          "difficulty": "C1",
+          "topic": "technology"
+        },
+        {
+          "id": "20000000-0000-4000-8000-000000000022",
+          "order": 2,
+          "question": "Which example is given of productive friction?",
+          "options": [
+            {
+              "key": "A",
+              "text": "Removing a password"
+            },
+            {
+              "key": "B",
+              "text": "Adding a pause before sharing an article"
+            },
+            {
+              "key": "C",
+              "text": "Hiding the source of an article"
+            },
+            {
+              "key": "D",
+              "text": "Making services inaccessible"
+            }
+          ],
+          "correctAnswer": "B",
+          "explanation": "The passage explicitly uses a pause before sharing as an example.",
+          "skill": "detail",
+          "subSkill": "locating supporting examples",
+          "difficulty": "C1",
+          "topic": "technology"
+        },
+        {
+          "id": "20000000-0000-4000-8000-000000000023",
+          "order": 3,
+          "question": "The word 'friction' is used to mean...",
+          "options": [
+            {
+              "key": "A",
+              "text": "physical heat"
+            },
+            {
+              "key": "B",
+              "text": "minor resistance or delay"
+            },
+            {
+              "key": "C",
+              "text": "public disagreement"
+            },
+            {
+              "key": "D",
+              "text": "equipment damage"
+            }
+          ],
+          "correctAnswer": "B",
+          "explanation": "Here friction means a deliberate obstacle or pause in a digital process.",
+          "skill": "vocabulary",
+          "subSkill": "interpreting figurative meaning",
+          "difficulty": "C1",
+          "topic": "technology"
+        },
+        {
+          "id": "20000000-0000-4000-8000-000000000024",
+          "order": 4,
+          "question": "What position would the author most likely support?",
+          "options": [
+            {
+              "key": "A",
+              "text": "Adding obstacles only when they reduce likely errors"
+            },
+            {
+              "key": "B",
+              "text": "Delaying every essential service"
+            },
+            {
+              "key": "C",
+              "text": "Removing all confirmation screens"
+            },
+            {
+              "key": "D",
+              "text": "Preventing people from sharing articles"
+            }
+          ],
+          "correctAnswer": "A",
+          "explanation": "The passage supports limited friction where speed encourages mistakes, not universal delay.",
+          "skill": "inference",
+          "subSkill": "inferring author position",
+          "difficulty": "C1",
+          "topic": "technology"
+        },
+        {
+          "id": "20000000-0000-4000-8000-000000000025",
+          "order": 5,
+          "question": "What does 'Such measures' refer to?",
+          "options": [
+            {
+              "key": "A",
+              "text": "Essential services"
+            },
+            {
+              "key": "B",
+              "text": "Accidental purchases"
+            },
+            {
+              "key": "C",
+              "text": "Deliberate pauses and confirmation steps"
+            },
+            {
+              "key": "D",
+              "text": "Article sources"
+            }
+          ],
+          "correctAnswer": "C",
+          "explanation": "The phrase refers back to the examples of deliberate friction.",
+          "skill": "reference",
+          "subSkill": "resolving a phrase reference",
+          "difficulty": "C1",
+          "topic": "technology"
+        }
+      ]
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000006",
+      "title": "Citizen Science and Data Quality",
+      "content": "Research projects increasingly invite members of the public to collect observations about birds, weather, or air quality. The scale of these contributions can reveal patterns that a small professional team might miss. However, quantity alone does not guarantee reliable evidence. Strong projects provide clear protocols, training, and statistical checks, treating volunteers not as inexpensive labour but as partners whose local knowledge can also refine the research questions.",
+      "difficulty": "C1",
+      "topic": "science",
+      "questions": [
+        {
+          "id": "20000000-0000-4000-8000-000000000026",
+          "order": 1,
+          "question": "What central claim does the author make?",
+          "options": [
+            {
+              "key": "A",
+              "text": "Volunteer data is always inaccurate"
+            },
+            {
+              "key": "B",
+              "text": "Citizen science is valuable when supported by sound methods and partnership"
+            },
+            {
+              "key": "C",
+              "text": "Professional researchers should work alone"
+            },
+            {
+              "key": "D",
+              "text": "Local knowledge replaces statistics"
+            }
+          ],
+          "correctAnswer": "B",
+          "explanation": "The passage balances the scale benefit with the need for protocols, checks, and respectful partnership.",
+          "skill": "main_idea",
+          "subSkill": "synthesising a nuanced claim",
+          "difficulty": "C1",
+          "topic": "science"
+        },
+        {
+          "id": "20000000-0000-4000-8000-000000000027",
+          "order": 2,
+          "question": "What can large public contributions reveal?",
+          "options": [
+            {
+              "key": "A",
+              "text": "Patterns small teams might miss"
+            },
+            {
+              "key": "B",
+              "text": "Only errors in protocols"
+            },
+            {
+              "key": "C",
+              "text": "The cost of professional labour"
+            },
+            {
+              "key": "D",
+              "text": "Why weather never changes"
+            }
+          ],
+          "correctAnswer": "A",
+          "explanation": "This benefit is stated directly in the second sentence.",
+          "skill": "detail",
+          "subSkill": "locating supporting evidence",
+          "difficulty": "C1",
+          "topic": "science"
+        },
+        {
+          "id": "20000000-0000-4000-8000-000000000028",
+          "order": 3,
+          "question": "The word 'refine' most nearly means...",
+          "options": [
+            {
+              "key": "A",
+              "text": "discard completely"
+            },
+            {
+              "key": "B",
+              "text": "make more precise"
+            },
+            {
+              "key": "C",
+              "text": "publish quickly"
+            },
+            {
+              "key": "D",
+              "text": "simplify financially"
+            }
+          ],
+          "correctAnswer": "B",
+          "explanation": "Local knowledge can make research questions more precise and useful.",
+          "skill": "vocabulary",
+          "subSkill": "meaning from context",
+          "difficulty": "C1",
+          "topic": "science"
+        },
+        {
+          "id": "20000000-0000-4000-8000-000000000029",
+          "order": 4,
+          "question": "What is implied about poorly designed citizen-science projects?",
+          "options": [
+            {
+              "key": "A",
+              "text": "Large data volume may not make their findings reliable"
+            },
+            {
+              "key": "B",
+              "text": "They always employ too many professionals"
+            },
+            {
+              "key": "C",
+              "text": "Their volunteers lack local knowledge"
+            },
+            {
+              "key": "D",
+              "text": "They cannot collect weather data"
+            }
+          ],
+          "correctAnswer": "A",
+          "explanation": "The warning that quantity alone is insufficient implies that scale without safeguards can be unreliable.",
+          "skill": "inference",
+          "subSkill": "drawing implications",
+          "difficulty": "C1",
+          "topic": "science"
+        },
+        {
+          "id": "20000000-0000-4000-8000-000000000030",
+          "order": 5,
+          "question": "What does 'whose' refer to?",
+          "options": [
+            {
+              "key": "A",
+              "text": "research questions"
+            },
+            {
+              "key": "B",
+              "text": "statistical checks"
+            },
+            {
+              "key": "C",
+              "text": "volunteers"
+            },
+            {
+              "key": "D",
+              "text": "professional teams"
+            }
+          ],
+          "correctAnswer": "C",
+          "explanation": "The possessive relative pronoun describes the volunteers' local knowledge.",
+          "skill": "reference",
+          "subSkill": "resolving relative pronouns",
+          "difficulty": "C1",
+          "topic": "science"
+        }
+      ]
+    }
+  ]
+}
