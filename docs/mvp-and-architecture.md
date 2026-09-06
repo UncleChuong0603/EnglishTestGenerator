@@ -350,3 +350,15 @@ Recommendations and skill statistics are deliberately derived rather than persis
 OpenAI receives only level, focus, and question-count instructions. Its JSON must pass Zod checks for passage length, question count/order, four unique A–D choices, correct-answer membership, supported skill/difficulty values, and non-empty explanations. Invalid output is retried once and never saved.
 
 The browser sends only question IDs and selected choices. An authenticated Server Action verifies attempt ownership, then the server-only submission function reads protected answer keys, locks the attempt, writes correctness and totals, and returns the existing result on repeated submission. AI never calculates scores or recommendations.
+Google OAuth credentials are configured in Google Cloud and the Supabase provider configuration. The Next.js project continues to use only the public Supabase URL and publishable key. There is still no learner profile, application table, database migration, or RLS policy in this milestone.
+## 11. Milestone 3: Authentication status
+
+Basic Supabase email-and-password authentication is now implemented without an application database schema.
+
+* `/sign-up` validates email, password length, and confirmation in the browser, then calls Supabase Auth. If the Supabase project requires confirmation, the user is told to check their email; otherwise they are sent to the protected page.
+* `/auth/callback` receives Supabase's confirmation redirect and exchanges its temporary code for the session stored in cookies.
+* `/sign-in` creates a Supabase session, then redirects to `/dashboard`.
+* `/dashboard` is protected on the server by checking Supabase claims. Unauthenticated visitors are redirected to `/sign-in`; it is not protected by client-side state alone.
+* `src/proxy.ts` refreshes existing Supabase sessions and preserves refreshed cookies between requests. The dashboard server action signs the user out and redirects home.
+
+There is still no `profiles` table because Supabase Auth owns account identity and password handling. The future application-specific profile is a separate concern that will be added only when learner attributes are needed.

@@ -9,3 +9,8 @@ export default function SignInPage() {
     </Suspense>
   );
 }
+    <Suspense fallback={null}>
+      <SignInForm />
+    </Suspense>
+  );
+}

@@ -22,6 +22,10 @@ export async function getCurrentProfile(userId: string): Promise<ProfileLookupRe
   if (error) {
     return { profile: null, status: "error" };
   }
+  console.error("getCurrentProfile error:", error);
+
+  return { profile: null, status: "error" };
+}
 
   if (!data) {
     return { profile: null, status: "missing" };
