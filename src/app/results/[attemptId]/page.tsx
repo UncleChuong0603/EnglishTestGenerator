@@ -1,0 +1,29 @@
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
+import { aggregateStoredAnswers, formatSkill, getPerformanceInsights } from "@/lib/tests/analysis";
+import type { AnswerKey, QuestionOption, Skill } from "@/lib/tests/types";
+
+export default async function ResultPage({ params }: { params: Promise<{ attemptId: string }> }) {
+  const { attemptId } = await params; const supabase = await createClient(); const { data: { user } } = await supabase.auth.getUser(); if (!user) redirect("/sign-in");
+  const { data: attempt } = await supabase.from("attempts").select("id, test_id, status, correct_answers, total_questions, score_percent, submitted_at").eq("id", attemptId).eq("user_id", user.id).maybeSingle();
+  if (!attempt) notFound(); if (attempt.status !== "submitted") redirect(`/attempts/${attemptId}`);
+  const [{ data: test }, { data: questions }, { data: answers }] = await Promise.all([
+    supabase.from("tests").select("title, difficulty").eq("id", attempt.test_id).single(),
+    supabase.from("questions").select("id, question_order, question, options, skill, sub_skill").eq("test_id", attempt.test_id).order("question_order"),
+    supabase.from("attempt_answers").select("question_id, selected_answer, is_correct").eq("attempt_id", attemptId),
+  ]);
+  if (!test || !questions || !answers) notFound();
+  const admin = createAdminClient(); const { data: keys } = await admin.from("question_answer_keys").select("question_id, correct_answer, explanation").in("question_id", questions.map((q) => q.id));
+  if (!keys) notFound();
+  const answerMap = new Map(answers.map((a) => [a.question_id, a])); const keyMap = new Map(keys.map((k) => [k.question_id, { answer: k.correct_answer as AnswerKey, explanation: k.explanation as string }]));
+  const skills = aggregateStoredAnswers(questions.map((q) => ({ skill: q.skill as Skill, isCorrect: Boolean(answerMap.get(q.id)?.is_correct) })));
+  const insights = getPerformanceInsights(skills);
+  return <main className="min-h-screen bg-slate-50 px-4 py-8 text-slate-900 sm:px-8"><div className="mx-auto max-w-5xl">
+    <div className="flex flex-wrap items-center justify-between gap-3"><Link className="font-semibold text-teal-700" href="/dashboard">← Dashboard</Link><Link className="rounded-xl bg-teal-700 px-4 py-2 font-bold text-white" href="/tests/new">Practise again</Link></div>
+    <section className="mt-8 rounded-3xl bg-slate-900 p-8 text-white"><p className="text-sm font-bold uppercase tracking-wider text-teal-300">Results · {test.difficulty}</p><h1 className="mt-2 text-3xl font-bold">{test.title}</h1><p className="mt-6 text-5xl font-black">{attempt.correct_answers} / {attempt.total_questions}</p><p className="mt-2 text-xl text-slate-300">{Math.round(Number(attempt.score_percent))}% correct</p></section>
+    <section className="mt-7 grid gap-4 md:grid-cols-2"><div className="rounded-2xl border border-slate-200 bg-white p-6"><h2 className="text-xl font-bold">Skill breakdown</h2><div className="mt-4 space-y-4">{skills.map((skill) => <div key={skill.skill}><div className="flex justify-between text-sm"><span>{formatSkill(skill.skill)}</span><strong>{skill.correct}/{skill.total} · {skill.percent}%</strong></div><div className="mt-2 h-2 rounded-full bg-slate-100"><div className="h-2 rounded-full bg-teal-600" style={{ width: `${skill.percent}%` }}/></div></div>)}</div></div><div className="rounded-2xl border border-slate-200 bg-white p-6"><h2 className="text-xl font-bold">Next practice</h2><p className="mt-4 text-slate-600">{insights.recommendation.message}</p>{insights.strengths.length ? <p className="mt-5 text-sm text-emerald-700"><strong>Current strengths:</strong> {insights.strengths.map((s) => formatSkill(s.skill)).join(", ")}</p> : null}{insights.areasToImprove.length ? <p className="mt-2 text-sm text-amber-800"><strong>Current areas to improve:</strong> {insights.areasToImprove.map((s) => formatSkill(s.skill)).join(", ")}</p> : null}</div></section>
+    <section className="mt-8"><h2 className="text-2xl font-bold">Answer review</h2><div className="mt-5 space-y-5">{questions.map((q) => { const answer=answerMap.get(q.id); const answerKey=keyMap.get(q.id); const correctKey=answerKey?.answer; const options=q.options as QuestionOption[]; const optionText=(key: string | null | undefined) => options.find((o) => o.key===key)?.text ?? "No answer"; return <article className={`rounded-2xl border bg-white p-6 ${answer?.is_correct ? "border-emerald-200" : "border-red-200"}`} key={q.id}><p className="text-sm font-bold uppercase tracking-wider text-slate-500">Question {q.question_order} · {formatSkill(q.skill as Skill)}</p><h3 className="mt-2 font-bold">{q.question}</h3><p className={`mt-4 ${answer?.is_correct ? "text-emerald-700" : "text-red-700"}`}><strong>Your answer:</strong> {answer?.selected_answer ?? "—"}. {optionText(answer?.selected_answer)}</p>{!answer?.is_correct ? <p className="mt-2 text-emerald-700"><strong>Correct answer:</strong> {correctKey}. {optionText(correctKey)}</p> : null}<p className="mt-4 rounded-xl bg-slate-50 p-4 text-sm leading-6 text-slate-700"><strong>Explanation:</strong> {answerKey?.explanation}</p></article>; })}</div></section>
+  </div></main>;
+}
