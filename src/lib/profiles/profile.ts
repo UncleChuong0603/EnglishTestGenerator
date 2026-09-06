@@ -13,6 +13,11 @@ type ProfileLookupResult =
  */
 export async function getCurrentProfile(userId: string): Promise<ProfileLookupResult> {
   const supabase = await createClient();
+export async function getCurrentProfile(
+  userId: string,
+): Promise<ProfileLookupResult> {
+  const supabase = await createClient();
+
   const { data, error } = await supabase
     .from("profiles")
     .select("id, full_name, avatar_url, created_at, updated_at")
@@ -28,4 +33,24 @@ export async function getCurrentProfile(userId: string): Promise<ProfileLookupRe
   }
 
   return { profile: data as Profile, status: "found" };
+}
+    console.error("getCurrentProfile error:", error);
+
+    return {
+      profile: null,
+      status: "error",
+    };
+  }
+
+  if (!data) {
+    return {
+      profile: null,
+      status: "missing",
+    };
+  }
+
+  return {
+    profile: data as Profile,
+    status: "found",
+  };
 }

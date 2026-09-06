@@ -44,6 +44,7 @@ const guidance: Record<Skill, string> = {
   detail: "Underline names, dates, and qualifying words, then match them carefully to the question.",
   inference: "Practise separating what the passage states from what it reasonably implies.",
   reference: "Trace pronouns and reference words back to the nearest logical noun or idea.",
+  purpose_tone: "Notice the writer’s word choice and ask what response the text is trying to create.",
 };
 
 export function getPerformanceInsights(results: SkillResult[]) {
