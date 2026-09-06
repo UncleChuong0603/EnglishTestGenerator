@@ -330,6 +330,26 @@ The first application data table is `public.profiles`, defined in `supabase/migr
 * The onboarding server action validates the name, retrieves the user server-side, and uses an idempotent upsert keyed by the authenticated user ID. It only accepts known Google metadata fields for an optional HTTPS avatar URL.
 
 No other application tables, roles, test data, scoring, AI functionality, or recommendations are included.
+
+## 13. Complete Reading MVP implementation
+
+The shipped MVP remains a modular Next.js + Supabase application and focuses only on VSTEP-style Reading practice.
+
+### Persisted model
+
+* `tests` stores an owner, passage, generation settings, and metadata.
+* `questions` stores learner-readable prompts, four choices, and skill tags.
+* `question_answer_keys` separates correct answers and explanations from learner-readable rows and grants no learner access.
+* `attempts` stores private attempt lifecycle and deterministic score totals.
+* `attempt_answers` stores the learner selection and server-calculated correctness.
+
+Recommendations and skill statistics are deliberately derived rather than persisted. A skill is called a current strength only after at least two samples and at least 75% accuracy. Results below 60% are presented as current areas to improve, not permanent weaknesses. The lowest current area selects a documented, deterministic recommendation.
+
+### Trusted generation and scoring
+
+OpenAI receives only level, focus, and question-count instructions. Its JSON must pass Zod checks for passage length, question count/order, four unique A–D choices, correct-answer membership, supported skill/difficulty values, and non-empty explanations. Invalid output is retried once and never saved.
+
+The browser sends only question IDs and selected choices. An authenticated Server Action verifies attempt ownership, then the server-only submission function reads protected answer keys, locks the attempt, writes correctness and totals, and returns the existing result on repeated submission. AI never calculates scores or recommendations.
 Google OAuth credentials are configured in Google Cloud and the Supabase provider configuration. The Next.js project continues to use only the public Supabase URL and publishable key. There is still no learner profile, application table, database migration, or RLS policy in this milestone.
 ## 11. Milestone 3: Authentication status
 

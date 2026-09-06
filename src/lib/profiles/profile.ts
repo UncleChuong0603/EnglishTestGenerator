@@ -20,6 +20,8 @@ export async function getCurrentProfile(userId: string): Promise<ProfileLookupRe
     .maybeSingle();
 
   if (error) {
+    return { profile: null, status: "error" };
+  }
   console.error("getCurrentProfile error:", error);
 
   return { profile: null, status: "error" };
