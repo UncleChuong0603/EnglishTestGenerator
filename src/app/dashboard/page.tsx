@@ -2,7 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { getCurrentProfile } from "@/lib/profiles/profile";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import {
   aggregateStoredAnswers,
@@ -67,7 +66,6 @@ export default async function DashboardPage() {
       `
         id,
         test_id,
-        difficulty,
         correct_answers,
         total_questions,
         score_percent,
@@ -97,10 +95,10 @@ export default async function DashboardPage() {
   }
 
   const questionIds = [
-    ...new Set(
-      (storedAnswers ?? []).map((answer) => answer.question_id),
-    ),
-  ];
+  ...new Set(
+    (storedAnswers ?? []).map((answer) => answer.question_id),
+  ),
+];
 
   /*
    * Questions belong to the curated question bank.
@@ -111,14 +109,13 @@ export default async function DashboardPage() {
    * This file is a Server Component, so the service-role client remains
    * server-side.
    */
-  const admin = createAdminClient();
 
   const { data: questions, error: questionsError } = questionIds.length
-    ? await admin
-        .from("questions")
-        .select("id, skill")
-        .in("id", questionIds)
-    : { data: [], error: null };
+  ? await supabase
+      .from("questions")
+      .select("id, skill")
+      .in("id", questionIds)
+  : { data: [], error: null };
 
   if (questionsError) {
     console.error("Failed to load question skills:", questionsError);
@@ -264,7 +261,7 @@ export default async function DashboardPage() {
                     </p>
 
                     <p className="mt-1 text-sm text-slate-500">
-                      {attempt.difficulty ?? "Reading"} ·{" "}
+                      Adaptive Reading·{" "}
                       {attempt.submitted_at
                         ? new Date(
                             attempt.submitted_at,
