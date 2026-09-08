@@ -11,8 +11,6 @@ type ProfileLookupResult =
  * Reads only the currently authenticated learner's profile.
  * RLS also enforces this ownership rule in the database.
  */
-export async function getCurrentProfile(userId: string): Promise<ProfileLookupResult> {
-  const supabase = await createClient();
 export async function getCurrentProfile(
   userId: string,
 ): Promise<ProfileLookupResult> {
@@ -25,15 +23,6 @@ export async function getCurrentProfile(
     .maybeSingle();
 
   if (error) {
-    return { profile: null, status: "error" };
-  }
-
-  if (!data) {
-    return { profile: null, status: "missing" };
-  }
-
-  return { profile: data as Profile, status: "found" };
-}
     console.error("getCurrentProfile error:", error);
 
     return {
