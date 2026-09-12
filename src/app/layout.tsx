@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "VSTEP Practice | English practice made clear",
-  description: "A practical English practice platform for Vietnamese VSTEP learners.",
+  title: "TOEIC Practice | Focused practice for Vietnamese learners",
+  description: "Curated TOEIC Listening and Reading practice for Vietnamese learners.",
 };
 
 export default function RootLayout({
