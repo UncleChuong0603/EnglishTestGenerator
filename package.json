@@ -11,7 +11,10 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "validate:part5": "node scripts/validate-part5-seed.mjs",
+    "seed:part5": "node --env-file=.env.local scripts/seed-part5.mjs",
+    "verify:part5": "node --env-file=.env.local scripts/seed-part5.mjs --verify-only"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",

@@ -11,8 +11,9 @@ This milestone provides:
 - a curated question-bank schema for TOEIC Parts 1–7
 - published-content RLS and a server-only answer-key boundary
 - TypeScript question-bank types and a learner-safe server query
+- 80 original, bilingual, validated Part 5 development questions
 
-It intentionally does **not** provide practice selection, adaptive learning, test generation, AI tutoring, payments, or an administration UI yet.
+It currently provides authenticated TOEIC Part 5 practice with trusted server-side grading and basic answer review. Adaptive learning, skill analytics, test generation, AI tutoring, payments, and an administration UI are intentionally out of scope.
 
 ## Local setup
 
@@ -33,9 +34,12 @@ Set these environment variables:
 | --- | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | Browser and server | Supabase project URL. |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Browser and server | Public client key governed by RLS. |
-| `SUPABASE_SECRET_KEY` | Server only | Future trusted grading and content-management access. |
+| `SUPABASE_SECRET_KEY` | Server only | Trusted grading and content-management access. |
 
 Never expose `SUPABASE_SECRET_KEY` in browser code or prefix it with `NEXT_PUBLIC_`.
+
+The Part 5 seed script also accepts the legacy server-only variable name
+`SUPABASE_SERVICE_ROLE_KEY` to support older local environments.
 
 ## Database
 
@@ -44,8 +48,9 @@ Migrations in `supabase/migrations` are the source of truth:
 1. `20260905130000_create_profiles_table.sql` creates private learner profiles without changing Supabase Auth.
 2. The two `20260906...` migrations are retained migration history for the old prototype.
 3. `20260912120000_create_toeic_question_bank.sql` removes that obsolete prototype data model and creates `passages`, `questions`, `question_options`, and protected `question_solutions`. It never modifies `auth.users` or `profiles`.
+4. `20260912150000_create_part5_practice.sql` adds owned practice sessions, assigned questions, server-graded answers, RLS, and transactional start/submission functions.
 
-Authenticated learners can select only published passages, questions, and their options. Browser roles cannot insert, update, or delete bank content and cannot read `question_solutions`. Service-role server code manages content and will eventually grade an owned attempt before returning a review.
+Authenticated learners can select only published passages, questions, and their options. Browser roles cannot insert, update, or delete bank content and cannot read `question_solutions`. Service-role server code manages content and grades an authenticated learner's owned attempt before returning a review.
 
 ### Content model
 
@@ -76,6 +81,29 @@ npm test
 npm run build
 ```
 
+## Part 5 development seed
+
+The seed is an explicit development/admin operation; it is not included in a
+production migration. It uses deterministic question and option UUIDs plus
+upserts, so rerunning it updates the same 80 records instead of adding copies.
+
+Apply the Task 1 schema to the intended development project, then validate,
+seed, and verify:
+
+```bash
+npx supabase link --project-ref YOUR_DEVELOPMENT_PROJECT_REF
+npx supabase db push
+npm run validate:part5
+npm run seed:part5
+npm run verify:part5
+```
+
+`seed:part5` and `verify:part5` load `.env.local` and require
+`NEXT_PUBLIC_SUPABASE_URL` plus either `SUPABASE_SECRET_KEY` or the legacy
+`SUPABASE_SERVICE_ROLE_KEY`. The seed records are published so the next
+milestone can exercise the existing learner-safe query; answer keys and both
+explanations remain in the server-only `question_solutions` table.
+
 ## Next task
 
-Seed and validate the initial Part 5 question bank.
+Task 4 — Results + Skill Analytics. The stored Task 3 attempt data is the source of truth; do not add analytics until explicitly approved.

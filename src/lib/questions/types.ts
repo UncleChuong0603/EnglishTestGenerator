@@ -1,5 +1,7 @@
 import type {
   difficulties,
+  part5Skills,
+  part5SubSkills,
   passageTypes,
   questionStatuses,
   toeicParts,
@@ -9,6 +11,8 @@ export type ToeicPart = (typeof toeicParts)[number];
 export type Difficulty = (typeof difficulties)[number];
 export type QuestionStatus = (typeof questionStatuses)[number];
 export type PassageType = (typeof passageTypes)[number];
+export type Part5Skill = (typeof part5Skills)[number];
+export type Part5SubSkill = (typeof part5SubSkills)[number];
 export type JsonObject = Record<string, unknown>;
 
 export type Passage = {
