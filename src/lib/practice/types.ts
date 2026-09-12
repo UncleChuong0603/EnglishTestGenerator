@@ -10,6 +10,8 @@ export type PracticeQuestion = {
   number: number;
   part: 5;
   text: string;
+  skill: string;
+  subSkill: string;
   options: PracticeOption[];
 };
 

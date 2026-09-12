@@ -20,6 +20,8 @@ type SessionRow = {
 type QuestionRow = {
   id: string;
   question_text: string;
+  skill: string;
+  sub_skill: string;
   toeic_part: number;
 };
 
@@ -54,7 +56,7 @@ async function getSafeQuestions(sessionId: string): Promise<PracticeQuestion[]> 
 
   const [{ data: questions, error: questionsError }, { data: options, error: optionsError }] =
     await Promise.all([
-      admin.from("questions").select("id, question_text, toeic_part").in("id", questionIds),
+      admin.from("questions").select("id, question_text, skill, sub_skill, toeic_part").in("id", questionIds),
       admin
         .from("question_options")
         .select("id, question_id, option_key, option_text, display_order")
@@ -78,6 +80,8 @@ async function getSafeQuestions(sessionId: string): Promise<PracticeQuestion[]> 
       number: assignment.display_order,
       part: 5,
       text: question.question_text,
+      skill: question.skill,
+      subSkill: question.sub_skill,
       options: (options ?? [])
         .filter((option) => option.question_id === question.id)
         .map((option) => ({ id: option.id, key: option.option_key, text: option.option_text })),

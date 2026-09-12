@@ -26,7 +26,8 @@ export function SignInForm() {
     });
 
     if (error) {
-      setErrorMessage(error.message);
+      console.error("Google sign-in could not be started", error);
+      setErrorMessage("Google sign-in could not be started. Please try again.");
       setIsSubmitting(false);
       return;
     }

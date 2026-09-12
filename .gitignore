@@ -11,6 +11,7 @@
 # Test output
 /coverage/
 /.npm-cache/
+/supabase/.temp/
 
 # Local environment files and secrets
 .env*.local
