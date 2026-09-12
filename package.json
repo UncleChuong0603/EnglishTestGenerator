@@ -11,9 +11,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "seed:questions": "node scripts/import-question-bank.mjs",
-    "seed:validate": "node scripts/import-question-bank.mjs --validate-only"
+    "test": "vitest run"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
