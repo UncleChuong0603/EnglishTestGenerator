@@ -10,6 +10,7 @@
 
 # Test output
 /coverage/
+/.npm-cache/
 
 # Local environment files and secrets
 .env*.local

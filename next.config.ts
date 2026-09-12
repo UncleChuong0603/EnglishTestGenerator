@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Keep this file small until the application needs framework configuration.
+  // Avoid treating an unrelated lockfile higher in the user profile as the
+  // application root.
+  turbopack: {
+    root: process.cwd(),
+  },
 };
 
 export default nextConfig;
