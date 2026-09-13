@@ -15,6 +15,9 @@ export async function getCurrentProfile(userId: string): Promise<ProfileLookupRe
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("profiles")
+    // Keep the core profile lookup independent from optional preference columns.
+    // This prevents a pending localization migration from hiding an otherwise
+    // valid learner profile and breaking protected pages such as Dashboard.
     .select("id, full_name, avatar_url, created_at, updated_at")
     .eq("id", userId)
     .maybeSingle();

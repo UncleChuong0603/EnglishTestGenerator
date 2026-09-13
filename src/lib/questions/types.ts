@@ -3,7 +3,9 @@ import type {
   part5Skills,
   part5SubSkills,
   passageTypes,
+  passageSetTypes,
   questionStatuses,
+  readingDocumentTypes,
   toeicParts,
 } from "./constants";
 
@@ -13,7 +15,20 @@ export type QuestionStatus = (typeof questionStatuses)[number];
 export type PassageType = (typeof passageTypes)[number];
 export type Part5Skill = (typeof part5Skills)[number];
 export type Part5SubSkill = (typeof part5SubSkills)[number];
+export type PassageSetType = (typeof passageSetTypes)[number];
+export type ReadingDocumentType = (typeof readingDocumentTypes)[number];
 export type JsonObject = Record<string, unknown>;
+
+export type PassageSet = {
+  id: string;
+  toeic_part: 6 | 7;
+  set_type: PassageSetType;
+  title: string;
+  metadata: JsonObject;
+  status: QuestionStatus;
+  created_at: string;
+  updated_at: string;
+};
 
 export type Passage = {
   id: string;
@@ -27,6 +42,9 @@ export type Passage = {
   status: QuestionStatus;
   created_at: string;
   updated_at: string;
+  passage_set_id: string | null;
+  position: number | null;
+  document_type: ReadingDocumentType | null;
 };
 
 export type Question = {
@@ -44,6 +62,8 @@ export type Question = {
   status: QuestionStatus;
   created_at: string;
   updated_at: string;
+  passage_set_id: string | null;
+  question_order: number;
 };
 
 export type QuestionOption = {
@@ -68,4 +88,10 @@ export type QuestionSolution = {
 export type LearnerQuestion = Question & {
   options: QuestionOption[];
   passage?: Passage | null;
+};
+
+/** Complete learner-safe Part 6/7 group. Solutions are intentionally absent. */
+export type LearnerPassageSet = PassageSet & {
+  passages: Passage[];
+  questions: LearnerQuestion[];
 };

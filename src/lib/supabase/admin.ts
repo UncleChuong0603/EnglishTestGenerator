@@ -5,8 +5,11 @@ import { createClient } from "@supabase/supabase-js";
 /** Creates a trusted server-only client for question-bank management and grading. */
 export function createAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  // Prefer the explicitly configured service-role variable. This also avoids a
+  // stale SUPABASE_SECRET_KEY inherited by a long-running dev process masking
+  // the current credential in .env.local.
   const secretKey =
-    process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY;
 
   if (!url || !secretKey) {
     throw new Error("Missing server-side Supabase configuration.");

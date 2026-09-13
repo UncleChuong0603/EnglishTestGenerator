@@ -1,64 +1,26 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-
+import { startReadingPractice } from "@/app/practice/actions";
+import { RecommendationCard } from "@/components/analytics/recommendation-card";
 import { PerformanceList } from "@/components/analytics/performance-list";
 import { LearnerNav } from "@/components/learner-nav";
 import { getLearnerAnalytics } from "@/lib/analytics/queries";
+import type { PerformanceMetric } from "@/lib/analytics/types";
+import type { InterfaceLanguage } from "@/lib/i18n/config";
+import { formatMessage, getPreferences, getTranslations } from "@/lib/i18n/get-translations";
+import { partTitle, statusLabel, taxonomyLabel } from "@/lib/i18n/labels";
+import { getReadingRecommendation } from "@/lib/practice/recommendation";
+import type { ReadingPart } from "@/lib/practice/types";
 import { createClient } from "@/lib/supabase/server";
 
+function PracticeFocusButton({ part, skill, subSkill, locale }: { part: ReadingPart; skill: string; subSkill?: string; locale: InterfaceLanguage }) { const t = getTranslations(locale); return <form action={startReadingPractice}><input name="mode" type="hidden" value={`part_${part}`} /><input name="skill" type="hidden" value={skill} /><input name="subSkill" type="hidden" value={subSkill ?? ""} /><input name="questionCount" type="hidden" value="15" /><input name="source" type="hidden" value="custom" /><button className="rounded-lg border border-teal-700 px-3 py-2 text-xs font-bold text-teal-800" type="submit">{subSkill ? t.progress.practiceSubskill : t.progress.practiceSkill}</button></form>; }
+function MetricNumbers({ metric, locale }: { metric: PerformanceMetric; locale: InterfaceLanguage }) { const t = getTranslations(locale); return <dl className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4"><div className="rounded-xl bg-slate-50 p-4"><dt className="text-xs text-slate-500">{t.progress.overall}</dt><dd className="mt-1 text-2xl font-black">{metric.attempted ? `${metric.accuracy}%` : "—"}</dd></div><div className="rounded-xl bg-slate-50 p-4"><dt className="text-xs text-slate-500">{t.progress.recent20}</dt><dd className="mt-1 text-2xl font-black">{metric.recentAccuracy === null ? "—" : `${metric.recentAccuracy}%`}</dd></div><div className="rounded-xl bg-slate-50 p-4"><dt className="text-xs text-slate-500">{t.progress.questions}</dt><dd className="mt-1 text-2xl font-black">{metric.attempted}</dd></div><div className="rounded-xl bg-slate-50 p-4"><dt className="text-xs text-slate-500">{t.progress.trend}</dt><dd className="mt-2 font-black">{statusLabel(metric.trend, locale)}</dd></div></dl>; }
+
 export default async function ProgressPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/sign-in");
-
-  let analytics;
-  try {
-    analytics = await getLearnerAnalytics(user.id);
-  } catch (error) {
-    console.error("Could not load progress page", error);
-    return (
-      <main className="min-h-screen bg-slate-50 px-4 py-6 sm:px-6 sm:py-8">
-        <div className="mx-auto max-w-6xl"><LearnerNav /><section className="mt-10 rounded-2xl border border-red-100 bg-white p-8 text-center"><h1 className="text-2xl font-black">We couldn&apos;t load your progress</h1><p className="mt-2 text-slate-600">Please try again in a moment.</p><Link className="mt-6 inline-flex rounded-xl bg-teal-700 px-5 py-3 font-bold text-white" href="/progress">Try again</Link></section></div>
-      </main>
-    );
-  }
-
-  return (
-    <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 sm:px-6 sm:py-8">
-      <div className="mx-auto max-w-6xl">
-        <LearnerNav />
-        <header className="mt-10">
-          <p className="text-sm font-bold uppercase tracking-wider text-teal-700">Your progress</p>
-          <h1 className="mt-2 text-3xl font-black sm:text-4xl">TOEIC Part 5 progress</h1>
-          <p className="mt-3 max-w-2xl leading-7 text-slate-600">Accuracy is calculated from every answer in your completed practice sessions.</p>
-        </header>
-
-        {analytics.totalAttempted === 0 ? (
-          <section className="mt-8 rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center sm:p-12">
-            <h2 className="text-2xl font-black">Complete your first practice</h2>
-            <p className="mx-auto mt-3 max-w-xl leading-7 text-slate-600">We need a little practice data before we can show your strengths and areas to improve.</p>
-            <Link className="mt-6 inline-flex rounded-xl bg-teal-700 px-5 py-3 font-bold text-white" href="/practice/part-5">Start practice</Link>
-          </section>
-        ) : (
-          <>
-            <section className="mt-8 grid gap-4 sm:grid-cols-3">
-              <article className="rounded-2xl bg-slate-900 p-6 text-white"><p className="text-sm text-slate-300">Overall accuracy</p><p className="mt-2 text-4xl font-black">{analytics.overallAccuracy}%</p></article>
-              <article className="rounded-2xl border border-slate-200 bg-white p-6"><p className="text-sm text-slate-500">Questions answered</p><p className="mt-2 text-4xl font-black">{analytics.totalAttempted}</p></article>
-              <article className="rounded-2xl border border-slate-200 bg-white p-6"><p className="text-sm text-slate-500">Practice sessions</p><p className="mt-2 text-4xl font-black">{analytics.sessionCount}</p></article>
-            </section>
-            <div className="mt-8 grid gap-6 lg:grid-cols-2">
-              <section className="rounded-2xl border border-slate-200 bg-white p-6"><h2 className="mb-6 text-xl font-black">Skills</h2><PerformanceList metrics={analytics.skills} /></section>
-              <section className="rounded-2xl border border-slate-200 bg-white p-6"><h2 className="text-xl font-black">Subskills</h2><p className="mb-6 mt-2 text-sm text-slate-500">A classification appears after at least 5 answers in a subskill.</p><PerformanceList metrics={analytics.subskills} /></section>
-            </div>
-            <section className="mt-8 pb-12">
-              <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-2xl font-black">Recent practice</h2><Link className="font-bold text-teal-700" href="/practice/part-5">Practice again</Link></div>
-              <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white">
-                {analytics.recentSessions.map((session, index) => <Link className={`flex items-center justify-between gap-4 p-5 hover:bg-slate-50 ${index ? "border-t border-slate-100" : ""}`} href={`/practice/part-5/${session.id}/results`} key={session.id}><div><p className="font-bold">{new Date(session.submittedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</p><p className="mt-1 text-sm text-slate-500">TOEIC Part 5</p></div><div className="text-right"><p className="font-black">{session.correct}/{session.total}</p><p className="text-sm text-slate-500">{session.accuracy}%</p></div></Link>)}
-              </div>
-            </section>
-          </>
-        )}
-      </div>
-    </main>
-  );
+  const supabase = await createClient(); const { data: { user } } = await supabase.auth.getUser(); if (!user) redirect("/sign-in"); const preferences = await getPreferences(user.id); const locale = preferences.interfaceLanguage; const t = getTranslations(locale);
+  let analytics; try { analytics = await getLearnerAnalytics(user.id); } catch (error) { console.error("Could not load progress page", error); return <main className="min-h-screen bg-slate-50 px-4 py-6 sm:px-6 sm:py-8"><div className="mx-auto max-w-6xl"><LearnerNav locale={locale} /><section className="mt-10 rounded-2xl border border-red-100 bg-white p-8 text-center"><h1 className="text-2xl font-black">{t.progress.loadError}</h1><p className="mt-2 text-slate-600">{t.progress.tryAgain}</p><Link className="mt-6 inline-flex rounded-xl bg-teal-700 px-5 py-3 font-bold text-white" href="/progress">{t.common.retry}</Link></section></div></main>; }
+  let recommendation = null; try { recommendation = await getReadingRecommendation(user.id, analytics); } catch (error) { console.error("Could not load progress recommendation", error); }
+  return <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 sm:px-6 sm:py-8"><div className="mx-auto max-w-6xl"><LearnerNav locale={locale} /><header className="mt-10"><p className="text-sm font-bold uppercase tracking-wider text-teal-700">{t.progress.eyebrow}</p><h1 className="mt-2 text-3xl font-black sm:text-4xl">{t.progress.title}</h1><p className="mt-3 max-w-3xl leading-7 text-slate-600">{t.progress.intro}</p></header>
+    {analytics.totalAttempted === 0 ? <><section className="mt-8 rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center sm:p-12"><h2 className="text-2xl font-black">{t.progress.firstTitle}</h2><p className="mx-auto mt-3 max-w-xl leading-7 text-slate-600">{t.progress.firstBody}</p></section>{recommendation ? <div className="mt-7"><RecommendationCard locale={locale} recommendation={recommendation} /></div> : null}</> : <><nav className="mt-7 flex gap-2 overflow-x-auto pb-2" aria-label={t.progress.sections}><a className="shrink-0 rounded-full bg-slate-900 px-4 py-2 text-sm font-bold text-white" href="#overall">{t.progress.overall}</a>{analytics.partDetails.map(({ part }) => <a className="shrink-0 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-bold" href={`#part-${part}`} key={part}>Part {part}</a>)}</nav><section className="mt-5" id="overall"><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">{[[t.progress.overallAccuracy, `${analytics.overallAccuracy}%`], [t.progress.recentAccuracy, `${analytics.recentAccuracy}%`], [t.progress.correctAnswers, analytics.totalCorrect], [t.progress.questionsAnswered, analytics.totalAttempted], [t.progress.sessions, analytics.sessionCount]].map(([label, value]) => <article className="rounded-2xl border border-slate-200 bg-white p-5" key={label}><p className="text-sm text-slate-500">{label}</p><p className="mt-2 text-3xl font-black">{value}</p></article>)}</div></section>{recommendation ? <div className="mt-7"><RecommendationCard locale={locale} recommendation={recommendation} /></div> : null}<section className="mt-7 rounded-2xl border border-slate-200 bg-white p-6"><h2 className="text-xl font-black">{t.progress.partComparison}</h2><PerformanceList locale={locale} metrics={analytics.parts} showRecent /></section>
+      <div className="mt-8 space-y-8">{analytics.partDetails.map(({ part, metric, skills }) => <section className="scroll-mt-5 rounded-3xl border border-slate-200 bg-white p-5 sm:p-8" id={`part-${part}`} key={part}><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-sm font-bold uppercase tracking-wider text-teal-700">Part {part}</p><h2 className="mt-1 text-2xl font-black">{partTitle(part, locale)}</h2></div><span className="rounded-full bg-slate-100 px-3 py-1.5 text-sm font-bold text-slate-700">{statusLabel(metric.status, locale)}</span></div><MetricNumbers locale={locale} metric={metric} />{skills.length ? <div className="mt-8 space-y-7">{skills.map((skill) => <article className="border-t border-slate-100 pt-6" key={skill.name}><div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-lg font-black">{taxonomyLabel(skill.name, locale)}</h3><p className="mt-1 text-sm text-slate-500">{skill.correct}/{skill.attempted} {t.progress.correct} · {skill.accuracy}% · {statusLabel(skill.status, locale)}</p></div><PracticeFocusButton locale={locale} part={part} skill={skill.name} /></div><div className="mt-4 grid gap-3 md:grid-cols-2">{skill.subskills.map((subskill) => <div className="rounded-xl bg-slate-50 p-4" key={subskill.name}><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="font-bold">{taxonomyLabel(subskill.name, locale)}</p><p className="mt-1 text-sm text-slate-500">{subskill.accuracy}% {t.progress.overall.toLowerCase()} · {subskill.recentAccuracy === null ? "—" : `${subskill.recentAccuracy}%`} {t.progress.recent.toLowerCase()}</p><p className="mt-1 text-xs font-semibold text-slate-500">{subskill.attempted} {t.progress.answered} · {statusLabel(subskill.status, locale)}{subskill.trend !== "Not enough data" ? ` · ${statusLabel(subskill.trend, locale)}` : ""}</p></div><PracticeFocusButton locale={locale} part={part} skill={skill.name} subSkill={subskill.name} /></div><div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200"><div className="h-full bg-teal-600" style={{ width: `${subskill.accuracy}%` }} /></div></div>)}</div></article>)}</div> : <p className="mt-6 rounded-xl bg-slate-50 p-4 text-slate-600">{formatMessage(t.progress.noPart, { part })}</p>}</section>)}</div></>}<div className="pb-12" /></div></main>;
 }

@@ -12,9 +12,13 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "validate:i18n": "vitest run src/lib/i18n/translations.test.ts",
     "validate:part5": "node scripts/validate-part5-seed.mjs",
     "seed:part5": "node --env-file=.env.local scripts/seed-part5.mjs",
-    "verify:part5": "node --env-file=.env.local scripts/seed-part5.mjs --verify-only"
+    "verify:part5": "node --env-file=.env.local scripts/seed-part5.mjs --verify-only",
+    "validate:reading": "node scripts/validate-reading-seed.mjs",
+    "seed:reading": "node --env-file=.env.local scripts/seed-reading.mjs",
+    "verify:reading": "node --env-file=.env.local scripts/seed-reading.mjs --verify-only"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
