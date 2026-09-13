@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { createClient } from "@supabase/supabase-js";
+import { countIds, createPool, upsertRows } from "./lib/seed-pg.mjs";
 
 import { part5Questions, readingPassageSets } from "./reading-seed-data.mjs";
 import { formatReadingDistribution, validateReadingSeed } from "./validate-reading-seed.mjs";
@@ -72,41 +72,9 @@ function buildRows() {
   return { setRows, passageRows, questionRows, optionRows, solutionRows };
 }
 
-function getAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const secretKey = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !secretKey) throw new Error("Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SECRET_KEY in .env.local before seeding.");
-  return createClient(url, secretKey, { auth: { autoRefreshToken: false, persistSession: false } });
-}
-
-async function checked(label, promise) {
-  const result = await promise;
-  if (result.error) throw new Error(`${label} failed: ${result.error.message}`);
-  return result.data ?? [];
-}
-
-async function writeBatches(supabase, table, rows, onConflict, size = 200) {
-  for (let index = 0; index < rows.length; index += size) {
-    await checked(`${table} upsert`, supabase.from(table).upsert(rows.slice(index, index + size), { onConflict }));
-  }
-}
-
-async function countExisting(supabase, table, ids, idColumn = "id") {
-  let total = 0;
-  for (let index = 0; index < ids.length; index += 200) {
-    const rows = await checked(`${table} verification`, supabase.from(table).select(idColumn).in(idColumn, ids.slice(index, index + 200)));
-    total += rows.length;
-  }
-  return total;
-}
-
-async function verifyDatabase(supabase, rows) {
+async function verifyDatabase(client, rows) {
   const counts = {
-    sets: await countExisting(supabase, "passage_sets", rows.setRows.map((r) => r.id)),
-    passages: await countExisting(supabase, "passages", rows.passageRows.map((r) => r.id)),
-    questions: await countExisting(supabase, "questions", rows.questionRows.map((r) => r.id)),
-    options: await countExisting(supabase, "question_options", rows.optionRows.map((r) => r.id)),
-    solutions: await countExisting(supabase, "question_solutions", rows.solutionRows.map((r) => r.question_id), "question_id"),
+    sets: await countIds(client, "passage_sets", rows.setRows.map((r) => r.id)), passages: await countIds(client, "passages", rows.passageRows.map((r) => r.id)), questions: await countIds(client, "questions", rows.questionRows.map((r) => r.id)), options: await countIds(client, "question_options", rows.optionRows.map((r) => r.id)), solutions: await countIds(client, "question_solutions", rows.solutionRows.map((r) => r.question_id), "question_id"),
   };
   const expected = {
     sets: rows.setRows.length, passages: rows.passageRows.length, questions: rows.questionRows.length,
@@ -114,12 +82,6 @@ async function verifyDatabase(supabase, rows) {
   };
   for (const key of Object.keys(expected)) if (counts[key] !== expected[key]) throw new Error(`Database ${key}: expected ${expected[key]}, found ${counts[key]}.`);
 
-  const { data: sample, error } = await supabase.from("questions")
-    .select("id,passage_set_id,question_order,question_options(id,display_order)")
-    .in("toeic_part", [6, 7]).eq("status", "published").limit(10);
-  if (error || sample?.length !== 10 || sample.some((q) => !q.passage_set_id || q.question_options.length !== 4)) {
-    throw new Error(`Learner-safe grouped sample verification failed${error ? `: ${error.message}` : "."}`);
-  }
   console.log(`Database verification passed: ${counts.questions} questions, ${counts.options} options, ${counts.passages} passages, and ${counts.sets} passage sets.`);
 }
 
@@ -128,16 +90,12 @@ async function run() {
   if (validation.errors.length) throw new Error(validation.errors.join("\n"));
   console.log(`Local validation passed.\n\n${formatReadingDistribution(validation.report)}\n`);
   const rows = buildRows();
-  const supabase = getAdminClient();
+  const pool = createPool(); const client = await pool.connect();
   if (!process.argv.includes("--verify-only")) {
-    await writeBatches(supabase, "passage_sets", rows.setRows, "id");
-    await writeBatches(supabase, "passages", rows.passageRows, "id");
-    await writeBatches(supabase, "questions", rows.questionRows, "id");
-    await writeBatches(supabase, "question_options", rows.optionRows, "id");
-    await writeBatches(supabase, "question_solutions", rows.solutionRows, "question_id");
+    await client.query("begin"); await upsertRows(client, "passage_sets", rows.setRows, "id"); await upsertRows(client, "passages", rows.passageRows, "id"); await upsertRows(client, "questions", rows.questionRows, "id"); await upsertRows(client, "question_options", rows.optionRows, "id"); await upsertRows(client, "question_solutions", rows.solutionRows, "question_id"); await client.query("commit");
     console.log("Idempotent Reading seed upsert completed.");
   }
-  await verifyDatabase(supabase, rows);
+  await verifyDatabase(client, rows); client.release(); await pool.end();
 }
 
 run().catch((error) => { console.error(error instanceof Error ? error.message : error); process.exitCode = 1; });

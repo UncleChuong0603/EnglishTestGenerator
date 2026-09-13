@@ -2,7 +2,9 @@ import "server-only";
 
 import { getLearnerAnalytics } from "@/lib/analytics/queries";
 import type { LearnerAnalytics, PerformanceMetric } from "@/lib/analytics/types";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { and, eq, inArray } from "drizzle-orm";
+import { db } from "@/db";
+import { questions } from "@/db/schema";
 
 import { MIN_RECOMMENDATION_ATTEMPTS, MIN_RECOMMENDATION_QUESTIONS_AVAILABLE } from "./constants";
 import { recommendationScore } from "./selection";
@@ -20,37 +22,11 @@ type Candidate = {
 };
 type AvailableRow = { toeic_part: number; skill: string; sub_skill: string };
 
-type RecommendationQueryError = {
-  code?: string;
-  message?: string;
-};
-
 async function loadAvailableRows(): Promise<AvailableRow[] | null> {
-  let admin: ReturnType<typeof createAdminClient>;
-  try {
-    admin = createAdminClient();
-  } catch (error) {
-    console.error("Could not initialize recommendation data access", {
-      message: error instanceof Error ? error.message : "Unknown error",
-    });
-    return null;
-  }
-
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {
-      const { data, error } = await admin.from("questions")
-        .select("toeic_part, skill, sub_skill")
-        .in("toeic_part", [5, 6, 7])
-        .eq("status", "published");
-
-      if (!error) return (data ?? []) as AvailableRow[];
-
-      const safeError = error as RecommendationQueryError;
-      console.error("Could not load published questions for recommendation", {
-        attempt: attempt + 1,
-        code: safeError.code ?? "unknown",
-        message: safeError.message ?? "Unknown Supabase error",
-      });
+      const rows = await db.select({ toeic_part: questions.toeicPart, skill: questions.skill, sub_skill: questions.subSkill }).from(questions).where(and(inArray(questions.toeicPart, [5, 6, 7]), eq(questions.status, "published")));
+      return rows as AvailableRow[];
     } catch (error) {
       console.error("Recommendation query request failed", {
         attempt: attempt + 1,
@@ -83,7 +59,7 @@ export async function getReadingRecommendation(
   }
 
   // A recommendation is helpful but must never make the dashboard unavailable.
-  // Retry one transient Supabase failure, then degrade to balanced practice.
+  // Retry one transient database failure, then degrade to balanced practice.
   const available = await loadAvailableRows();
   if (!available) return defaultRecommendation();
 

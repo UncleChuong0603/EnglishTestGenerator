@@ -5,13 +5,12 @@ import { LearnerNav } from "@/components/learner-nav";
 import { getPreferences, getTranslations } from "@/lib/i18n/get-translations";
 import { getCurrentProfile } from "@/lib/profiles/profile";
 import { getReadingRecommendation } from "@/lib/practice/recommendation";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { PracticeConfigurator } from "./practice-configurator";
 
 type Props = { searchParams: Promise<{ error?: string }> };
 export default async function ReadingPracticePage({ searchParams }: Props) {
-  const [{ error }, supabase] = await Promise.all([searchParams, createClient()]);
-  const { data: { user } } = await supabase.auth.getUser();
+  const [{ error }, user] = await Promise.all([searchParams, getCurrentUser()]);
   if (!user) redirect("/sign-in");
   const [profile, preferences] = await Promise.all([getCurrentProfile(user.id), getPreferences(user.id)]);
   if (profile.status === "missing") redirect("/onboarding");

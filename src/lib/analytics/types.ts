@@ -1,4 +1,4 @@
-import type { ReadingPart, ReadingPracticeMode } from "@/lib/practice/types";
+import type { ReadingPart, ReadingSessionMode } from "@/lib/practice/types";
 
 export type PerformanceStatus = "No data" | "Early data" | "Needs Focus" | "Needs Improvement" | "Good" | "Strong";
 export type Trend = "Improving" | "Stable" | "Declining" | "Not enough data";
@@ -24,7 +24,7 @@ export type RecentSession = {
   correct: number;
   total: number;
   accuracy: number;
-  mode: ReadingPracticeMode;
+  mode: ReadingSessionMode;
 };
 
 export type LearnerAnalytics = {

@@ -1,4 +1,14 @@
 export const en = {
+  demoTest: {
+    title: "TOEIC Reading Demo Test", shortTitle: "TOEIC Reading Demo", questions: "100 Questions", duration: "75 Minutes",
+    intro: "Once you start, the 75-minute timer will begin. Your answers are automatically saved as you work.", disclaimer: "This is an original practice test designed to simulate the TOEIC Reading format. It is not an official ETS test.",
+    start: "Start Demo Test", resume: "Resume Demo Test", resumeBody: "You have an unfinished demo test.", creating: "Building your demo test…", dashboardTitle: "Take a Reading Demo Test", dashboardBody: "100 questions · 75 minutes. Test your Reading performance under timed conditions.",
+    contentError: "We couldn't create a complete Reading demo test right now. Please try again later.", migrationError: "The demo test database update has not been applied yet.", loading: "Loading your demo test…",
+    timeRemaining: "Time remaining", questionNavigator: "Question navigator", openNavigator: "Open question navigator", closeNavigator: "Close navigator", current: "Current", answered: "Answered", unanswered: "Unanswered", saved: "Saved", saving: "Saving…", saveError: "Your answer could not be saved. Choose it again.",
+    partRange: "Questions {from}–{to}", leave: "Leave test", submit: "Submit test", submitting: "Submitting…", confirmTitle: "Submit Demo Test?", confirmBody: "You will not be able to change your answers after submitting.", continueTest: "Continue test", expired: "Time is up. Your saved answers are being submitted.", submitError: "We could not submit your demo test. Please try again.",
+    resultTitle: "TOEIC Reading Demo Result", practicePerformance: "Practice performance", accuracy: "{accuracy}% accuracy", timeUsed: "Time used", strongest: "Strongest part", improve: "Area to improve", recommendedNext: "Recommended next practice", practiceFocus: "Practice recommended focus", partBreakdown: "Part breakdown", skillBreakdown: "Skill breakdown", review: "Answer review", all: "All", incorrect: "Incorrect", unansweredFilter: "Unanswered",
+    timedOut: "Submitted when time expired", submittedManually: "Submitted by you", retake: "Take another demo test", viewResult: "View result", historyTitle: "Reading Demo Test", noOfficialScore: "Raw practice result only. This is not an official TOEIC scaled score.",
+  },
   common: { brand: "TOEIC Practice", loading: "Loading…", retry: "Try again", backHome: "Back to home", unavailable: "Unavailable", document: "Document" },
   metadata: { title: "TOEIC Practice | Focused Reading practice", description: "Focused TOEIC Reading practice with bilingual explanations and skill progress for Vietnamese learners." },
   navigation: { mainLabel: "Main navigation", dashboard: "Dashboard", practice: "Practice", progress: "Progress", settings: "Settings", signOut: "Sign out" },

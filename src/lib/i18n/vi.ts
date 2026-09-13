@@ -1,6 +1,16 @@
 import type { TranslationShape } from "./types";
 
 export const vi = {
+  demoTest: {
+    title: "Bài thi thử TOEIC Reading", shortTitle: "Thi thử TOEIC Reading", questions: "100 câu hỏi", duration: "75 phút",
+    intro: "Thời gian 75 phút sẽ bắt đầu tính ngay khi bạn bắt đầu bài thi. Câu trả lời được tự động lưu trong quá trình làm bài.", disclaimer: "Đây là bài luyện tập nguyên bản mô phỏng định dạng TOEIC Reading, không phải bài thi chính thức của ETS.",
+    start: "Bắt đầu thi thử", resume: "Tiếp tục bài thi thử", resumeBody: "Bạn có một bài thi thử chưa hoàn thành.", creating: "Đang tạo bài thi thử…", dashboardTitle: "Làm bài thi thử Reading", dashboardBody: "100 câu · 75 phút. Kiểm tra năng lực Reading trong điều kiện có giới hạn thời gian.",
+    contentError: "Hiện không thể tạo một bài thi thử Reading hoàn chỉnh. Vui lòng thử lại sau.", migrationError: "Bản cập nhật cơ sở dữ liệu cho bài thi thử chưa được áp dụng.", loading: "Đang tải bài thi thử…",
+    timeRemaining: "Thời gian còn lại", questionNavigator: "Điều hướng câu hỏi", openNavigator: "Mở điều hướng câu hỏi", closeNavigator: "Đóng điều hướng", current: "Hiện tại", answered: "Đã trả lời", unanswered: "Chưa trả lời", saved: "Đã lưu", saving: "Đang lưu…", saveError: "Không thể lưu câu trả lời. Vui lòng chọn lại.",
+    partRange: "Câu {from}–{to}", leave: "Rời bài thi", submit: "Nộp bài", submitting: "Đang nộp…", confirmTitle: "Nộp bài thi thử?", confirmBody: "Bạn sẽ không thể thay đổi câu trả lời sau khi nộp bài.", continueTest: "Tiếp tục làm bài", expired: "Đã hết giờ. Các câu trả lời đã lưu đang được nộp.", submitError: "Không thể nộp bài thi thử. Vui lòng thử lại.",
+    resultTitle: "Kết quả thi thử TOEIC Reading", practicePerformance: "Kết quả luyện tập", accuracy: "Độ chính xác {accuracy}%", timeUsed: "Thời gian làm bài", strongest: "Part tốt nhất", improve: "Nội dung cần cải thiện", recommendedNext: "Bài luyện tập đề xuất tiếp theo", practiceFocus: "Luyện nội dung được đề xuất", partBreakdown: "Kết quả theo Part", skillBreakdown: "Kết quả theo kỹ năng", review: "Xem lại đáp án", all: "Tất cả", incorrect: "Sai", unansweredFilter: "Chưa trả lời",
+    timedOut: "Nộp bài khi hết giờ", submittedManually: "Bạn đã nộp bài", retake: "Làm bài thi thử khác", viewResult: "Xem kết quả", historyTitle: "Bài thi thử Reading", noOfficialScore: "Chỉ là kết quả luyện tập thô, không phải điểm TOEIC quy đổi chính thức.",
+  },
   common: { brand: "TOEIC Practice", loading: "Đang tải…", retry: "Thử lại", backHome: "Về trang chủ", unavailable: "Không có dữ liệu", document: "Văn bản" },
   metadata: { title: "TOEIC Practice | Luyện Reading đúng trọng tâm", description: "Luyện TOEIC Reading với giải thích song ngữ và theo dõi tiến độ theo kỹ năng dành cho người Việt." },
   navigation: { mainLabel: "Điều hướng chính", dashboard: "Trang chủ", practice: "Luyện tập", progress: "Tiến độ", settings: "Cài đặt", signOut: "Đăng xuất" },

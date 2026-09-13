@@ -1,15 +1,10 @@
 import { redirect } from "next/navigation";
-
+import { signOutAllAction } from "@/app/auth/actions";
+import { signOut } from "@/app/dashboard/actions";
+import { AccountSecurity } from "@/components/auth/account-security";
 import { LearnerNav } from "@/components/learner-nav";
+import { getUserAuthMethods } from "@/lib/auth/service";
+import { getCurrentUser } from "@/lib/auth/session";
 import { getPreferences, getTranslations } from "@/lib/i18n/get-translations";
-import { createClient } from "@/lib/supabase/server";
 import { PreferencesForm } from "./preferences-form";
-
-export default async function SettingsPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/sign-in");
-  const preferences = await getPreferences(user.id);
-  const t = getTranslations(preferences.interfaceLanguage);
-  return <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 sm:px-6 sm:py-8"><div className="mx-auto max-w-6xl"><LearnerNav locale={preferences.interfaceLanguage} /><section className="mx-auto mt-10 max-w-2xl rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-9"><p className="text-sm font-bold uppercase tracking-wider text-teal-700">{t.settings.eyebrow}</p><h1 className="mt-2 text-3xl font-black">{t.settings.title}</h1><p className="mt-3 leading-7 text-slate-600">{t.settings.intro}</p><PreferencesForm preferences={preferences} t={t} /></section></div></main>;
-}
+export default async function SettingsPage() { const user = await getCurrentUser(); if (!user) redirect("/sign-in"); const [preferences, methods] = await Promise.all([getPreferences(user.id), getUserAuthMethods(user.id)]); const t = getTranslations(preferences.interfaceLanguage); const vi = preferences.interfaceLanguage === "vi"; return <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 sm:px-6 sm:py-8"><div className="mx-auto max-w-6xl"><LearnerNav locale={preferences.interfaceLanguage} /><div className="mx-auto mt-10 grid max-w-2xl gap-6"><section className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-9"><p className="text-sm font-bold uppercase text-teal-700">{t.settings.eyebrow}</p><h1 className="mt-2 text-3xl font-black">{t.settings.title}</h1><p className="mt-3 text-slate-600">{t.settings.intro}</p><PreferencesForm preferences={preferences} t={t} /></section><section className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-9"><h2 className="text-xl font-black">{vi ? "Tài khoản" : "Account"}</h2><p className="mt-3 text-sm text-slate-500">{vi ? "Email đăng nhập" : "Sign-in email"}</p><p className="mt-1 break-all font-semibold">{user.email}</p><div className="mt-4 flex flex-wrap gap-2 text-sm"><span className="rounded-full bg-slate-100 px-3 py-1">Google: {methods.google ? "Connected" : "Not connected"}</span><span className="rounded-full bg-slate-100 px-3 py-1">Password: {methods.password ? "Enabled" : "Not enabled"}</span></div>{!methods.google ? <a className="mt-4 inline-flex rounded-lg border border-teal-700 px-4 py-2 font-bold text-teal-800" href="/api/auth/google?mode=link&next=/settings">{vi ? "Kết nối Google" : "Connect Google"}</a> : null}<AccountSecurity hasPassword={methods.password} vi={vi} /><div className="mt-6 flex flex-wrap gap-3"><form action={signOut}><button className="min-h-11 rounded-xl border border-red-200 px-5 font-bold text-red-700">{t.navigation.signOut}</button></form><form action={signOutAllAction}><button className="min-h-11 rounded-xl border border-slate-300 px-5 font-bold">{vi ? "Đăng xuất mọi thiết bị" : "Sign out all devices"}</button></form></div></section></div></div></main>; }

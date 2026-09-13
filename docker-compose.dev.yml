@@ -1,0 +1,10 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment: { POSTGRES_DB: english_test, POSTGRES_USER: english_test, POSTGRES_PASSWORD: local_development_only }
+    ports: ["127.0.0.1:5432:5432"]
+    volumes: [postgres_dev_data:/var/lib/postgresql/data]
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports: ["127.0.0.1:1025:1025", "127.0.0.1:8025:8025"]
+volumes: { postgres_dev_data: {} }

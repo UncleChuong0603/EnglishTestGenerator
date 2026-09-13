@@ -10,7 +10,7 @@ import { formatMessage, getPreferences, getTranslations } from "@/lib/i18n/get-t
 import { modeLabel, taxonomyLabel } from "@/lib/i18n/labels";
 import { getPracticeResult } from "@/lib/practice/queries";
 import type { ReviewQuestion } from "@/lib/practice/types";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth/session";
 
 function ReviewCard({ question, locale, explanationLanguage }: { question: ReviewQuestion; locale: InterfaceLanguage; explanationLanguage: ExplanationLanguage }) {
   const t = getTranslations(locale); const selected = question.options.find((option) => option.id === question.selectedOptionId); const correct = question.options.find((option) => option.id === question.correctOptionId);
@@ -18,7 +18,7 @@ function ReviewCard({ question, locale, explanationLanguage }: { question: Revie
 }
 
 export default async function PracticeResultsPage({ params }: PageProps<"/practice/[sessionId]/results">) {
-  const [{ sessionId }, supabase] = await Promise.all([params, createClient()]); const { data: { user } } = await supabase.auth.getUser(); if (!user) redirect("/sign-in");
+  const [{ sessionId }, user] = await Promise.all([params, getCurrentUser()]); if (!user) redirect("/sign-in");
   const [result, preferences] = await Promise.all([getPracticeResult(sessionId, user.id), getPreferences(user.id)]); if (!result) notFound(); if (result === "in_progress") redirect(`/practice/${sessionId}`);
   const locale = preferences.interfaceLanguage; const t = getTranslations(locale); const accuracy = percentage(result.scoreCorrect, result.scoreTotal);
   const attempts = result.questions.map((question) => ({ isCorrect: question.isCorrect, skill: question.skill, subSkill: question.subSkill, part: question.part, answeredAt: result.submittedAt, sessionId: result.id }));

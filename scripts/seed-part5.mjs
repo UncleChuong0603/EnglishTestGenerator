@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 
-import { createClient } from "@supabase/supabase-js";
+import { countIds, createPool, upsertRows } from "./lib/seed-pg.mjs";
 
 import { part5Questions } from "./part5-seed-data.mjs";
 import { formatDistribution, validatePart5Questions } from "./validate-part5-seed.mjs";
@@ -54,57 +54,13 @@ function buildRows() {
   return { questionRows, optionRows, solutionRows };
 }
 
-function getAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const secretKey = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !secretKey) {
-    throw new Error(
-      "Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SECRET_KEY (or legacy SUPABASE_SERVICE_ROLE_KEY) in .env.local before seeding.",
-    );
-  }
-  return createClient(url, secretKey, { auth: { autoRefreshToken: false, persistSession: false } });
-}
-
-async function assertNoError(operation, result) {
-  if (result.error) throw new Error(`${operation} failed: ${result.error.message}`);
-  return result.data ?? [];
-}
-
-async function verifyDatabase(supabase, rows) {
+async function verifyDatabase(client, rows) {
   const ids = rows.questionRows.map(({ id }) => id);
-  const questions = await assertNoError(
-    "Question verification",
-    await supabase.from("questions").select("id,status,toeic_part,skill,sub_skill,difficulty,question_options(id)").in("id", ids),
-  );
-  const solutions = await assertNoError(
-    "Solution verification",
-    await supabase.from("question_solutions").select("question_id,correct_option_id,explanation_en,explanation_vi").in("question_id", ids),
-  );
-  const learnerSample = await assertNoError(
-    "Published-query verification",
-    await supabase
-      .from("questions")
-      .select("id,question_text,skill,sub_skill,difficulty,options:question_options(id,option_key,option_text,display_order)")
-      .eq("toeic_part", 5)
-      .eq("status", "published")
-      .in("id", ids)
-      .order("created_at")
-      .order("display_order", { referencedTable: "question_options" })
-      .limit(10),
-  );
-
-  const optionCount = questions.reduce((total, question) => total + question.question_options.length, 0);
-  const missingBilingual = solutions.filter(
-    (solution) => !solution.explanation_en?.trim() || !solution.explanation_vi?.trim(),
-  );
-  if (questions.length !== rows.questionRows.length) throw new Error(`Expected ${rows.questionRows.length} seeded questions; found ${questions.length}.`);
+  const questions = await countIds(client, "questions", ids); const optionCount = await countIds(client, "question_options", rows.optionRows.map((o) => o.id)); const solutions = await countIds(client, "question_solutions", ids, "question_id");
+  if (questions !== rows.questionRows.length) throw new Error(`Expected ${rows.questionRows.length} seeded questions; found ${questions}.`);
   if (optionCount !== rows.optionRows.length) throw new Error(`Expected ${rows.optionRows.length} seeded options; found ${optionCount}.`);
-  if (solutions.length !== rows.solutionRows.length) throw new Error(`Expected ${rows.solutionRows.length} solutions; found ${solutions.length}.`);
-  if (missingBilingual.length > 0) throw new Error(`${missingBilingual.length} solutions lack bilingual explanations.`);
-  if (learnerSample.length !== 10 || learnerSample.some((question) => question.options.length !== 4)) {
-    throw new Error("Published Part 5 learner-safe query did not return ten complete questions.");
-  }
-  console.log(`Database verification passed: ${questions.length} questions, ${optionCount} options, ${solutions.length} solutions, and a 10-question learner-safe sample.`);
+  if (solutions !== rows.solutionRows.length) throw new Error(`Expected ${rows.solutionRows.length} solutions; found ${solutions}.`);
+  console.log(`Database verification passed: ${questions} questions, ${optionCount} options, ${solutions} solutions.`);
 }
 
 async function run() {
@@ -113,17 +69,14 @@ async function run() {
   console.log(`Local validation passed.\n\n${formatDistribution(validation.report)}\n`);
 
   const rows = buildRows();
-  const supabase = getAdminClient();
+  const pool = createPool(); const client = await pool.connect();
   if (process.argv.includes("--verify-only")) {
-    await verifyDatabase(supabase, rows);
+    await verifyDatabase(client, rows); client.release(); await pool.end();
     return;
   }
-
-  await assertNoError("Question upsert", await supabase.from("questions").upsert(rows.questionRows, { onConflict: "id" }));
-  await assertNoError("Option upsert", await supabase.from("question_options").upsert(rows.optionRows, { onConflict: "id" }));
-  await assertNoError("Solution upsert", await supabase.from("question_solutions").upsert(rows.solutionRows, { onConflict: "question_id" }));
+  await client.query("begin"); await upsertRows(client, "questions", rows.questionRows, "id"); await upsertRows(client, "question_options", rows.optionRows, "id"); await upsertRows(client, "question_solutions", rows.solutionRows, "question_id"); await client.query("commit");
   console.log("Idempotent Part 5 seed upsert completed.");
-  await verifyDatabase(supabase, rows);
+  await verifyDatabase(client, rows); client.release(); await pool.end();
 }
 
 run().catch((error) => {

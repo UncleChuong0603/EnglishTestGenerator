@@ -1,34 +1,14 @@
-import { createClient } from "@/lib/supabase/server";
-
+import "server-only";
+import { eq } from "drizzle-orm";
+import { db } from "@/db";
+import { profiles } from "@/db/schema";
 import type { Profile } from "./types";
 
-type ProfileLookupResult =
-  | { profile: Profile; status: "found" }
-  | { profile: null; status: "missing" }
-  | { profile: null; status: "error" };
-
-/**
- * Reads only the currently authenticated learner's profile.
- * RLS also enforces this ownership rule in the database.
- */
+type ProfileLookupResult = { profile: Profile; status: "found" } | { profile: null; status: "missing" | "error" };
 export async function getCurrentProfile(userId: string): Promise<ProfileLookupResult> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("profiles")
-    // Keep the core profile lookup independent from optional preference columns.
-    // This prevents a pending localization migration from hiding an otherwise
-    // valid learner profile and breaking protected pages such as Dashboard.
-    .select("id, full_name, avatar_url, created_at, updated_at")
-    .eq("id", userId)
-    .maybeSingle();
-
-  if (error) {
-    return { profile: null, status: "error" };
-  }
-
-  if (!data) {
-    return { profile: null, status: "missing" };
-  }
-
-  return { profile: data as Profile, status: "found" };
+  try {
+    const [row] = await db.select().from(profiles).where(eq(profiles.id, userId)).limit(1);
+    if (!row || !row.fullName) return { profile: null, status: "missing" };
+    return { profile: { id: row.id, full_name: row.fullName, avatar_url: row.avatarUrl, created_at: row.createdAt.toISOString(), updated_at: row.updatedAt.toISOString() }, status: "found" };
+  } catch { return { profile: null, status: "error" }; }
 }

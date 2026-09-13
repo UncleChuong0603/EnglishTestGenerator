@@ -1,14 +1,13 @@
 import { notFound, redirect } from "next/navigation";
 
 import { getPracticeSession } from "@/lib/practice/queries";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { getPreferences } from "@/lib/i18n/get-translations";
 
 import { ReadingPracticeClient } from "./practice-client";
 
 export default async function PracticeSessionPage({ params }: PageProps<"/practice/[sessionId]">) {
-  const [{ sessionId }, supabase] = await Promise.all([params, createClient()]);
-  const { data: { user } } = await supabase.auth.getUser();
+  const [{ sessionId }, user] = await Promise.all([params, getCurrentUser()]);
   if (!user) redirect("/sign-in");
   const session = await getPracticeSession(sessionId, user.id);
   if (!session) notFound();

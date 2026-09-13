@@ -6,6 +6,7 @@ export type PracticeOption = {
 
 export type ReadingPart = 5 | 6 | 7;
 export type ReadingPracticeMode = "part_5" | "part_6" | "part_7" | "mixed_reading";
+export type ReadingSessionMode = ReadingPracticeMode | "demo_test";
 export type PracticeSource = "recommended" | "custom";
 
 export type PracticePassage = {

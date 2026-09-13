@@ -1,0 +1,7 @@
+import Link from "next/link";
+import { PublicFooter } from "@/components/public-footer";
+import { PublicHeader } from "@/components/public-header";
+import type { InterfaceLanguage } from "@/lib/i18n/config";
+import { getMarketingTranslations } from "@/lib/i18n/marketing";
+
+export function LegalPage({ locale, signedIn, type }: { locale: InterfaceLanguage; signedIn: boolean; type: "privacy" | "terms" }) { const t = getMarketingTranslations(locale).legal; const title = type === "privacy" ? t.privacyTitle : t.termsTitle; const intro = type === "privacy" ? t.privacyIntro : t.termsIntro; const sections = type === "privacy" ? t.privacySections : t.termsSections; return <main className="min-h-screen bg-slate-50 text-slate-900"><PublicHeader locale={locale} signedIn={signedIn} /><article className="mx-auto max-w-3xl px-5 py-14 sm:px-6 sm:py-20"><Link className="font-bold text-teal-700" href="/">← {t.back}</Link><p className="mt-10 text-sm font-black uppercase tracking-wider text-teal-700">{t.beta}</p><h1 className="mt-3 text-4xl font-black tracking-tight">{title}</h1><p className="mt-3 text-sm text-slate-500">{t.updated}</p><p className="mt-6 text-lg leading-8 text-slate-600">{intro}</p><div className="mt-10 space-y-8">{sections.map((section) => <section key={section.title}><h2 className="text-xl font-black">{section.title}</h2><p className="mt-3 leading-7 text-slate-600">{section.body}</p></section>)}</div></article><PublicFooter locale={locale} /></main>; }

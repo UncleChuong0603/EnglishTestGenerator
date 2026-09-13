@@ -1,109 +1,66 @@
-# TOEIC Practice
+# English Test Generator
 
-A Next.js 16 and Supabase foundation for a curated TOEIC Listening & Reading practice platform for Vietnamese learners.
+Ứng dụng Next.js 16 tự host dành cho luyện TOEIC Reading. PostgreSQL là nguồn dữ liệu duy nhất; Google chỉ là nhà cung cấp danh tính OAuth.
 
-## Current scope
+## Chạy local
 
-This milestone provides:
-
-- Google OAuth through Supabase Auth
-- learner profiles and protected onboarding/dashboard routes
-- a curated question-bank schema for TOEIC Parts 1–7
-- published-content RLS and a server-only answer-key boundary
-- TypeScript question-bank types and a learner-safe server query
-- 80 original, bilingual, validated Part 5 development questions
-
-It currently provides authenticated TOEIC Part 5 practice with trusted server-side grading and basic answer review. Adaptive learning, skill analytics, test generation, AI tutoring, payments, and an administration UI are intentionally out of scope.
-
-## Local setup
-
-Requirements: Node.js 20.9+, npm, a Supabase project, and the Supabase CLI.
+Yêu cầu Node.js 20.9+, Docker và Docker Compose.
 
 ```bash
-npm install
+docker compose -f docker-compose.dev.yml up -d
 cp .env.example .env.local
-supabase login
-supabase link --project-ref YOUR_PROJECT_REF
-supabase db push
+npm install
+npm run db:migrate
+npm run seed:reading
 npm run dev
 ```
 
-Set these environment variables:
+Khi chạy app trực tiếp trên máy, đặt `DATABASE_URL` trỏ tới `127.0.0.1:5432`, `SMTP_HOST=127.0.0.1`, `APP_URL=http://localhost:3000`. Mailpit UI chỉ nghe local tại `http://127.0.0.1:8025`.
 
-| Variable | Scope | Purpose |
-| --- | --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | Browser and server | Supabase project URL. |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Browser and server | Public client key governed by RLS. |
-| `SUPABASE_SECRET_KEY` | Server only | Trusted grading and content-management access. |
+## Xác thực
 
-Never expose `SUPABASE_SECRET_KEY` in browser code or prefix it with `NEXT_PUBLIC_`.
+- Email/mật khẩu: mật khẩu tối thiểu 10 ký tự, Argon2id; đăng ký phải xác minh email.
+- Google OAuth: callback `/auth/callback`, dùng state + PKCE; Google không giữ session ứng dụng.
+- Session: token opaque 256-bit trong cookie HttpOnly, hash HMAC-SHA-256 trong PostgreSQL, hết hạn sau 30 ngày.
+- Khi trùng email giữa Google và tài khoản mật khẩu, hệ thống không tự gộp. Người dùng đăng nhập trước rồi chọn **Kết nối Google** trong Settings.
+- Đổi mật khẩu giữ phiên hiện tại và thu hồi các phiên khác. Reset mật khẩu thu hồi toàn bộ phiên.
 
-The Part 5 seed script also accepts the legacy server-only variable name
-`SUPABASE_SERVICE_ROLE_KEY` to support older local environments.
-
-## Database
-
-Migrations in `supabase/migrations` are the source of truth:
-
-1. `20260905130000_create_profiles_table.sql` creates private learner profiles without changing Supabase Auth.
-2. The two `20260906...` migrations are retained migration history for the old prototype.
-3. `20260912120000_create_toeic_question_bank.sql` removes that obsolete prototype data model and creates `passages`, `questions`, `question_options`, and protected `question_solutions`. It never modifies `auth.users` or `profiles`.
-4. `20260912150000_create_part5_practice.sql` adds owned practice sessions, assigned questions, server-graded answers, RLS, and transactional start/submission functions.
-
-Authenticated learners can select only published passages, questions, and their options. Browser roles cannot insert, update, or delete bank content and cannot read `question_solutions`. Service-role server code manages content and grades an authenticated learner's owned attempt before returning a review.
-
-### Content model
-
-- `questions.toeic_part` supports Parts 1–7.
-- `skill` and `sub_skill` are intentionally flexible text fields for an MVP taxonomy.
-- Difficulty is `easy`, `medium`, or `hard`, a simple product-relative scale suited to filtering and future selection.
-- Choices use relational rows rather than JSONB, allowing three or four options (or future formats) without rewriting a whole question document.
-- A nullable `passage_id` lets multiple questions share Part 3/4 audio or Part 6/7 content.
-- `audio_url` and `image_url` exist on both passages and questions: shared media belongs on the passage, while question-specific media (for example a Part 1 photo or Part 2 recording) belongs on the question.
-- Draft, published, and archived statuses provide a content-review lifecycle.
-
-## Google OAuth
-
-Keep the Google client credentials in Google Cloud and Supabase—not in this repository.
-
-1. Enable Google under **Supabase Dashboard → Authentication → Providers**.
-2. Add the Supabase provider callback URL to the Google OAuth client's authorized redirect URIs.
-3. Add `http://localhost:3000/auth/callback` (and the production equivalent) to Supabase Authentication URL Configuration.
-
-The application callback exchanges the temporary code for a cookie-backed session. Existing profile and onboarding behavior remains unchanged.
-
-## Quality checks
+## Database và seed
 
 ```bash
-npm run lint
-npm run typecheck
-npm test
-npm run build
+npm run db:generate
+npm run db:migrate
+npm run db:studio
+npm run validate:reading
+npm run seed:reading
+npm run verify:reading
 ```
 
-## Part 5 development seed
+Seed dùng `DATABASE_URL`, được validate và upsert theo UUID ổn định. Đáp án đúng chỉ được đọc trong DAL server sau khi nộp bài.
 
-The seed is an explicit development/admin operation; it is not included in a
-production migration. It uses deterministic question and option UUIDs plus
-upserts, so rerunning it updates the same 80 records instead of adding copies.
+## Production một VPS
 
-Apply the Task 1 schema to the intended development project, then validate,
-seed, and verify:
+1. Cài Docker Engine/Compose; clone repo và tạo `.env.production` với secrets thật.
+2. Thay `example.com` trong `docker/nginx/default.conf`; cấp chứng thư Let's Encrypt vào `./certbot/conf` trước khi bật cấu hình HTTPS.
+3. `docker compose build`; service `migrate` sẽ chạy Drizzle migration một lần trước khi app khởi động.
+4. Chạy production seed từ checkout bằng `npm ci && npm run seed:reading` với `DATABASE_URL` nội bộ/an toàn.
+5. `docker compose up -d` và kiểm tra `https://DOMAIN/api/health`.
+
+Chỉ Nginx publish 80/443. App và PostgreSQL không publish port ra host. Firewall chỉ mở SSH, 80, 443. Google Console phải khai báo redirect URI chính xác `https://DOMAIN/auth/callback`.
+
+Nâng cấp: backup, pull, build image mới, chạy migration tương thích tiến, rồi `docker compose up -d`. Rollback code chỉ an toàn khi migration tương thích ngược; nếu cần rollback dữ liệu, dừng app và restore backup đã kiểm chứng.
+
+## Backup và restore
 
 ```bash
-npx supabase link --project-ref YOUR_DEVELOPMENT_PROJECT_REF
-npx supabase db push
-npm run validate:part5
-npm run seed:part5
-npm run verify:part5
+POSTGRES_DB=english_test POSTGRES_USER=english_test BACKUP_DIR=/srv/backups/english-test ./scripts/backup-db.sh
+POSTGRES_DB=english_test POSTGRES_USER=english_test ./scripts/restore-db.sh /srv/backups/english-test/english-test-YYYYMMDDTHHMMSSZ.dump
 ```
 
-`seed:part5` and `verify:part5` load `.env.local` and require
-`NEXT_PUBLIC_SUPABASE_URL` plus either `SUPABASE_SECRET_KEY` or the legacy
-`SUPABASE_SERVICE_ROLE_KEY`. The seed records are published so the next
-milestone can exercise the existing learner-safe query; answer keys and both
-explanations remain in the server-only `question_solutions` table.
+Backup có password hash/session và phải có quyền thư mục hạn chế, không đặt trong web root. Nên sao chép định kỳ sang nơi lưu trữ ngoài VPS đã mã hóa.
 
-## Next task
+## Biến môi trường
 
-Task 4 — Results + Skill Analytics. The stored Task 3 attempt data is the source of truth; do not add analytics until explicitly approved.
+Bắt buộc: `DATABASE_URL`, `SESSION_SECRET`, `APP_URL`, `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`. Google cần cặp `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`. Email dùng `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `SMTP_SECURE`. Production nhiều build/instance nên đặt `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY`.
+
+Xem [hướng dẫn migration dữ liệu](docs/self-hosted-migration.md) trước khi tắt hệ thống cũ. Không deploy production tự động từ repo này.

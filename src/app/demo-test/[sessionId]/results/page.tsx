@@ -1,0 +1,50 @@
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+import { RecommendationCard } from "@/components/analytics/recommendation-card";
+import { PerformanceList } from "@/components/analytics/performance-list";
+import { LearnerNav } from "@/components/learner-nav";
+import { PassageDocuments } from "@/components/practice/passage-documents";
+import { aggregatePerformance, percentage } from "@/lib/analytics/calculate";
+import { getDemoTestResult } from "@/lib/demo-test/queries";
+import type { ExplanationLanguage, InterfaceLanguage } from "@/lib/i18n/config";
+import { formatMessage, getPreferences, getTranslations } from "@/lib/i18n/get-translations";
+import { modeLabel, taxonomyLabel } from "@/lib/i18n/labels";
+import { getReadingRecommendation } from "@/lib/practice/recommendation";
+import type { ReviewQuestion } from "@/lib/practice/types";
+import { getCurrentUser } from "@/lib/auth/session";
+import { startDemoTest } from "../../actions";
+
+function formatDuration(seconds: number, locale: InterfaceLanguage) {
+  const minutes = Math.floor(seconds / 60); const rest = seconds % 60;
+  return locale === "vi" ? `${minutes} phút ${rest} giây` : `${minutes} min ${rest} sec`;
+}
+
+function ReviewCard({ question, locale, explanationLanguage }: { question: ReviewQuestion; locale: InterfaceLanguage; explanationLanguage: ExplanationLanguage }) {
+  const t = getTranslations(locale); const selected = question.options.find((option) => option.id === question.selectedOptionId); const correct = question.options.find((option) => option.id === question.correctOptionId);
+  const state = !question.selectedOptionId ? t.results.unanswered : question.isCorrect ? t.results.correct : t.results.incorrect;
+  return <article className={`rounded-2xl border bg-white p-5 sm:p-7 ${question.isCorrect ? "border-emerald-200" : "border-red-200"}`} id={`review-${question.number}`}><div className="flex flex-wrap justify-between gap-2"><p className={`text-sm font-black ${question.isCorrect ? "text-emerald-700" : "text-red-700"}`}>{t.practice.question} {question.number} · {state}</p><p className="text-xs font-semibold text-slate-500">{taxonomyLabel(question.skill, locale)} · {taxonomyLabel(question.subSkill, locale)}</p></div><h3 className="mt-3 text-lg font-bold leading-7" lang="en">{question.text}</h3><dl className="mt-5 grid gap-3 sm:grid-cols-2"><div className="rounded-xl bg-slate-50 p-4"><dt className="text-sm text-slate-600">{t.results.yourAnswer}</dt><dd className="mt-1 font-bold" lang={selected ? "en" : locale}>{selected ? `${selected.key}. ${selected.text}` : t.results.unanswered}</dd></div><div className="rounded-xl bg-emerald-50 p-4"><dt className="text-sm text-emerald-700">{t.results.correctAnswer}</dt><dd className="mt-1 font-bold" lang="en">{correct ? `${correct.key}. ${correct.text}` : t.common.unavailable}</dd></div></dl>{explanationLanguage !== "vi" ? <div className="mt-5 border-t border-slate-100 pt-5"><h4 className="font-black">{explanationLanguage === "both" ? t.results.englishExplanation : t.results.explanation}</h4><p className="mt-1 leading-7 text-slate-600" lang="en">{question.explanationEn ?? t.results.noEnglish}</p></div> : null}{explanationLanguage !== "en" ? <div className={explanationLanguage === "vi" ? "mt-5 border-t border-slate-100 pt-5" : "mt-4"}><h4 className="font-black">{explanationLanguage === "both" ? t.results.vietnameseExplanation : t.results.explanation}</h4><p className="mt-1 leading-7 text-slate-600" lang="vi">{question.explanationVi ?? t.results.noVietnamese}</p></div> : null}</article>;
+}
+
+export default async function DemoResultsPage({ params, searchParams }: { params: Promise<{ sessionId: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const [{ sessionId }, filters, user] = await Promise.all([params, searchParams, getCurrentUser()]);
+  if (!user) redirect("/sign-in");
+  const [result, preferences] = await Promise.all([getDemoTestResult(sessionId, user.id), getPreferences(user.id)]);
+  if (!result) notFound(); if (result === "in_progress") redirect(`/demo-test/${sessionId}`);
+  const locale = preferences.interfaceLanguage; const t = getTranslations(locale); const accuracy = percentage(result.scoreCorrect, result.scoreTotal);
+  const attempts = result.questions.map((question) => ({ isCorrect: question.isCorrect, skill: question.skill, subSkill: question.subSkill, part: question.part, answeredAt: result.submittedAt, sessionId: result.id }));
+  const skills = aggregatePerformance(attempts, "skill"); const strongest = [...result.partResults].sort((a, b) => b.accuracy - a.accuracy)[0]; const weakest = [...result.partResults].sort((a, b) => a.accuracy - b.accuracy)[0];
+  let recommendation = null; try { recommendation = await getReadingRecommendation(user.id); } catch (error) { console.error("Could not load demo result recommendation", error); }
+  const reviewFilter = filters.review === "incorrect" || filters.review === "unanswered" ? filters.review : "all";
+  const partFilter = ["5", "6", "7"].includes(String(filters.part)) ? Number(filters.part) : null;
+  const include = (question: ReviewQuestion) => (!partFilter || question.part === partFilter)
+    && (reviewFilter === "all" || reviewFilter === "incorrect" && !question.isCorrect || reviewFilter === "unanswered" && !question.selectedOptionId);
+  const queryLink = (review: string, part: number | null = partFilter) => `?review=${review}${part ? `&part=${part}` : ""}#review`;
+  return <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 sm:px-6 sm:py-8"><div className="mx-auto max-w-6xl"><LearnerNav locale={locale} />
+    <section className="mt-8 rounded-3xl bg-slate-900 p-7 text-white sm:p-10"><p className="text-sm font-bold uppercase tracking-wider text-teal-300">{t.demoTest.practicePerformance}</p><h1 className="mt-3 text-3xl font-black sm:text-4xl">{t.demoTest.resultTitle}</h1><div className="mt-6 flex flex-wrap items-end gap-8"><p className="text-5xl font-black">{result.scoreCorrect} / 100</p><p className="pb-1 text-xl font-bold text-teal-300">{formatMessage(t.demoTest.accuracy, { accuracy })}</p></div><div className="mt-5 flex flex-wrap gap-x-8 gap-y-2 text-slate-300"><p>{t.demoTest.timeUsed}: <strong className="text-white">{formatDuration(result.timeUsedSeconds, locale)}</strong></p><p>{result.submissionReason === "time_expired" ? t.demoTest.timedOut : t.demoTest.submittedManually}</p></div><p className="mt-4 text-sm text-slate-400">{t.demoTest.noOfficialScore}</p><div className="mt-7 flex flex-wrap gap-3"><form action={startDemoTest}><button className="min-h-12 rounded-xl bg-teal-400 px-5 py-3 font-bold text-slate-950" type="submit">{t.demoTest.retake}</button></form><Link className="inline-flex min-h-12 items-center rounded-xl border border-slate-600 px-5 py-3 font-bold" href="/progress">{t.results.progress}</Link></div></section>
+    <section className="mt-7"><h2 className="text-2xl font-black">{t.demoTest.partBreakdown}</h2><div className="mt-4 grid gap-4 md:grid-cols-3">{result.partResults.map((part) => <article className="rounded-2xl border border-slate-200 bg-white p-5" key={part.part}><p className="font-black">Part {part.part}</p><p className="mt-2 text-3xl font-black">{part.correct}/{part.total}</p><p className="mt-1 text-slate-500">{part.accuracy}%</p><div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full bg-teal-600" style={{ width: `${part.accuracy}%` }} /></div></article>)}</div></section>
+    <div className="mt-7 grid gap-6 lg:grid-cols-2"><section className="rounded-2xl border border-slate-200 bg-white p-6"><dl className="grid gap-5 sm:grid-cols-2"><div><dt className="text-sm text-slate-500">{t.demoTest.strongest}</dt><dd className="mt-1 text-xl font-black">Part {strongest.part} · {strongest.accuracy}%</dd></div><div><dt className="text-sm text-slate-500">{t.demoTest.improve}</dt><dd className="mt-1 text-xl font-black">Part {weakest.part} · {weakest.accuracy}%</dd></div></dl></section><section className="rounded-2xl border border-slate-200 bg-white p-6"><h2 className="mb-4 text-xl font-black">{t.demoTest.skillBreakdown}</h2><PerformanceList locale={locale} metrics={skills} /></section></div>
+    {recommendation ? <div className="mt-7"><RecommendationCard locale={locale} recommendation={recommendation} /></div> : null}
+    <section className="mt-10 scroll-mt-6" id="review"><h2 className="text-2xl font-black">{t.demoTest.review}</h2><div className="mt-4 flex flex-wrap gap-2" aria-label={t.demoTest.review}>{[["all", t.demoTest.all], ["incorrect", t.demoTest.incorrect], ["unanswered", t.demoTest.unansweredFilter]].map(([value, label]) => <Link className={`rounded-full border px-4 py-2 text-sm font-bold ${reviewFilter === value ? "border-slate-900 bg-slate-900 text-white" : "border-slate-300 bg-white"}`} href={queryLink(value)} key={value}>{label}</Link>)}</div><div className="mt-3 flex flex-wrap gap-2">{[null, 5, 6, 7].map((part) => <Link className={`rounded-full border px-4 py-2 text-sm font-bold ${partFilter === part ? "border-teal-700 bg-teal-50 text-teal-900" : "border-slate-300 bg-white"}`} href={queryLink(reviewFilter, part)} key={part ?? "all"}>{part ? `Part ${part}` : t.demoTest.all}</Link>)}</div></section>
+    <div className="mt-6 space-y-8 pb-12">{result.groups.flatMap((group) => { const questions = group.questions.filter(include); if (!questions.length) return []; return [<section className="rounded-3xl border border-slate-200 bg-white/50 p-4 sm:p-6" key={group.id}><div className="mb-5"><p className="text-sm font-black uppercase tracking-wider text-teal-700">Part {group.part} · {modeLabel(group.setType, locale)}</p>{group.title ? <h3 className="mt-1 text-xl font-black" lang="en">{group.title}</h3> : null}</div>{group.passages.length ? <div className="mb-5" lang="en"><PassageDocuments passages={group.passages} /></div> : null}<div className="space-y-4">{questions.map((question) => <ReviewCard explanationLanguage={preferences.explanationLanguage} key={question.id} locale={locale} question={question} />)}</div></section>]; })}</div>
+  </div></main>;
+}
