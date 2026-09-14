@@ -14,8 +14,11 @@
 /supabase/.temp/
 
 # Local environment files and secrets
-.env*.local
-.env
+.env*
+!.env.example
+/certbot/
+/backups/
+/migration-export/
 
 # Logs and operating-system files
 npm-debug.log*

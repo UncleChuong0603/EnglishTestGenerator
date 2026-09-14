@@ -16,13 +16,17 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "db:migrate:legacy": "node --env-file=.env.local scripts/migrate-supabase-data.mjs",
+    "db:migrate:legacy:production": "node scripts/migrate-supabase-data.mjs",
     "validate:i18n": "vitest run src/lib/i18n/translations.test.ts",
     "validate:part5": "node scripts/validate-part5-seed.mjs",
     "seed:part5": "node --env-file=.env.local scripts/seed-part5.mjs",
     "verify:part5": "node --env-file=.env.local scripts/seed-part5.mjs --verify-only",
     "validate:reading": "node scripts/validate-reading-seed.mjs",
     "seed:reading": "node --env-file=.env.local scripts/seed-reading.mjs",
-    "verify:reading": "node --env-file=.env.local scripts/seed-reading.mjs --verify-only"
+    "verify:reading": "node --env-file=.env.local scripts/seed-reading.mjs --verify-only",
+    "seed:reading:production": "node scripts/seed-reading.mjs",
+    "verify:reading:production": "node scripts/seed-reading.mjs --verify-only",
+    "verify:production-db": "node scripts/verify-production-db.mjs"
   },
   "dependencies": {
     "argon2": "^0.45.1",

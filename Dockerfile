@@ -17,6 +17,14 @@ COPY drizzle ./drizzle
 COPY src/db ./src/db
 CMD ["npm", "run", "db:migrate"]
 
+FROM deps AS database-tools
+WORKDIR /app
+COPY package.json package-lock.json ./
+COPY drizzle.config.ts ./
+COPY drizzle ./drizzle
+COPY scripts ./scripts
+COPY src/db ./src/db
+
 FROM node:22-bookworm-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0

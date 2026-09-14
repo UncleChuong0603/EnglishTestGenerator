@@ -40,21 +40,14 @@ Seed dùng `DATABASE_URL`, được validate và upsert theo UUID ổn định. 
 
 ## Production một VPS
 
-1. Cài Docker Engine/Compose; clone repo và tạo `.env.production` với secrets thật.
-2. Thay `example.com` trong `docker/nginx/default.conf`; cấp chứng thư Let's Encrypt vào `./certbot/conf` trước khi bật cấu hình HTTPS.
-3. `docker compose build`; service `migrate` sẽ chạy Drizzle migration một lần trước khi app khởi động.
-4. Chạy production seed từ checkout bằng `npm ci && npm run seed:reading` với `DATABASE_URL` nội bộ/an toàn.
-5. `docker compose up -d` và kiểm tra `https://DOMAIN/api/health`.
-
-Chỉ Nginx publish 80/443. App và PostgreSQL không publish port ra host. Firewall chỉ mở SSH, 80, 443. Google Console phải khai báo redirect URI chính xác `https://DOMAIN/auth/callback`.
-
-Nâng cấp: backup, pull, build image mới, chạy migration tương thích tiến, rồi `docker compose up -d`. Rollback code chỉ an toàn khi migration tương thích ngược; nếu cần rollback dữ liệu, dừng app và restore backup đã kiểm chứng.
+Quy trình production đầy đủ nằm tại [docs/production-deployment.md](docs/production-deployment.md), thao tác thường ngày tại [docs/operator-runbook.md](docs/operator-runbook.md). Dùng `/opt/toeic-app`, tạo `.env.production` permission `600`, sau đó chạy `./scripts/deploy-production.sh`. Nginx bootstrap qua HTTP để cấp Let's Encrypt rồi chuyển sang template HTTPS; app và PostgreSQL không publish port ra host.
 
 ## Backup và restore
 
 ```bash
-POSTGRES_DB=english_test POSTGRES_USER=english_test BACKUP_DIR=/srv/backups/english-test sh scripts/backup-db.sh
-POSTGRES_DB=english_test POSTGRES_USER=english_test sh scripts/restore-db.sh /srv/backups/english-test/english-test-YYYYMMDDTHHMMSSZ.dump
+./scripts/backup-db.sh /opt/toeic-app/backups
+./scripts/test-restore-db.sh /opt/toeic-app/backups/english-test-YYYYMMDDTHHMMSSZ.dump
+./scripts/restore-db.sh /opt/toeic-app/backups/english-test-YYYYMMDDTHHMMSSZ.dump
 ```
 
 Backup có password hash/session và phải có quyền thư mục hạn chế, không đặt trong web root. Nên sao chép định kỳ sang nơi lưu trữ ngoài VPS đã mã hóa.
