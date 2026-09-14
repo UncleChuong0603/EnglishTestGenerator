@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq, gt, isNull, ne, sql } from "drizzle-orm";
+import { and, eq, gt, isNotNull, isNull, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { accountActivationTokens, authIdentities, emailVerificationTokens, passwordResetTokens, profiles, securityEvents, userSessions, users } from "@/db/schema";
 import { getServerEnv } from "@/lib/env";
@@ -9,34 +9,43 @@ import { createToken, hashPassword, hashToken, normalizeEmail, verifyPassword } 
 const VERIFICATION_HOURS = 24;
 const RESET_MINUTES = 60;
 
+type RegistrationOutcome = "created" | "verification_resent" | "ignored";
+
+async function sendVerificationEmail(user: { email: string }, rawToken: string) {
+  await sendAuthEmail({ to: user.email, subject: "Verify your English Test account", text: `Verify your account: ${getServerEnv().APP_URL}/verify-email?token=${encodeURIComponent(rawToken)}` });
+}
+
 async function issueVerificationEmail(user: { id: string; email: string }) {
   const rawToken = createToken();
   await db.transaction(async (tx) => {
     await tx.update(emailVerificationTokens).set({ usedAt: new Date() }).where(and(eq(emailVerificationTokens.userId, user.id), isNull(emailVerificationTokens.usedAt)));
     await tx.insert(emailVerificationTokens).values({ userId: user.id, tokenHash: hashToken(rawToken), expiresAt: new Date(Date.now() + VERIFICATION_HOURS * 3_600_000) });
   });
-  await sendAuthEmail({ to: user.email, subject: "Verify your English Test account", text: `Verify your account: ${getServerEnv().APP_URL}/verify-email?token=${encodeURIComponent(rawToken)}` });
+  await sendVerificationEmail(user, rawToken);
 }
 
 async function logEvent(userId: string | null, eventType: string, metadata: Record<string, unknown> = {}) {
   await db.insert(securityEvents).values({ userId, eventType, metadata });
 }
 
-export async function registerPasswordUser(emailInput: string, password: string) {
-  const email = emailInput.trim(); const emailNormalized = normalizeEmail(email); const passwordHash = await hashPassword(password);
-  const user = await db.transaction(async (tx) => {
+export async function registerPasswordUser(emailInput: string, password: string): Promise<RegistrationOutcome> {
+  const email = emailInput.trim(); const emailNormalized = normalizeEmail(email); const passwordHash = await hashPassword(password); const rawToken = createToken();
+  const createdUser = await db.transaction(async (tx) => {
     const [created] = await tx.insert(users).values({ email, emailNormalized, passwordHash }).onConflictDoNothing({ target: users.emailNormalized }).returning({ id: users.id, email: users.email });
     if (!created) return null;
     await tx.insert(profiles).values({ id: created.id });
+    await tx.insert(emailVerificationTokens).values({ userId: created.id, tokenHash: hashToken(rawToken), expiresAt: new Date(Date.now() + VERIFICATION_HOURS * 3_600_000) });
     await tx.insert(securityEvents).values({ userId: created.id, eventType: "account_created", metadata: { method: "password" } });
     return created;
   });
-  if (user) await issueVerificationEmail(user);
-  else {
-    const [pendingUser] = await db.select({ id: users.id, email: users.email }).from(users).where(and(eq(users.emailNormalized, emailNormalized), eq(users.status, "pending_verification"), isNull(users.emailVerifiedAt))).limit(1);
-    if (pendingUser) await issueVerificationEmail(pendingUser);
+  if (createdUser) {
+    await sendVerificationEmail(createdUser, rawToken);
+    return "created";
   }
-  return Boolean(user);
+  const [pendingPasswordUser] = await db.select({ id: users.id, email: users.email }).from(users).where(and(eq(users.emailNormalized, emailNormalized), eq(users.status, "pending_verification"), isNull(users.emailVerifiedAt), isNotNull(users.passwordHash))).limit(1);
+  if (!pendingPasswordUser) return "ignored";
+  await issueVerificationEmail(pendingPasswordUser);
+  return "verification_resent";
 }
 
 export async function verifyEmailToken(rawToken: string) {
