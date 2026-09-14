@@ -59,6 +59,7 @@ export async function GET(request: NextRequest) {
     await createSession(userId); return NextResponse.redirect(new URL(oauthState.returnTo, appUrl));
   } catch (error) {
     const collision = error instanceof Error && error.message === "EXPLICIT_LINK_REQUIRED";
+    if (!collision) console.error("[auth:google_callback]", error);
     return NextResponse.redirect(new URL(collision ? "/sign-in?error=link_required" : "/sign-in?error=oauth_callback_failed", appUrl));
   }
 }

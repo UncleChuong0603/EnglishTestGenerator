@@ -17,7 +17,11 @@ export async function enforceRateLimit(action: RateLimitAction, identifier: stri
     on conflict (key_hash) do update set
       attempts = case when ${authRateLimits.windowStartedAt} < now() - (${config.windowMs} * interval '1 millisecond') then 1 else ${authRateLimits.attempts} + 1 end,
       window_started_at = case when ${authRateLimits.windowStartedAt} < now() - (${config.windowMs} * interval '1 millisecond') then now() else ${authRateLimits.windowStartedAt} end,
-      blocked_until = case when ${authRateLimits.attempts} + 1 > ${config.attempts} then now() + (${config.windowMs} * interval '1 millisecond') else ${authRateLimits.blockedUntil} end,
+      blocked_until = case
+        when ${authRateLimits.windowStartedAt} < now() - (${config.windowMs} * interval '1 millisecond') then null
+        when ${authRateLimits.attempts} + 1 > ${config.attempts} then coalesce(${authRateLimits.blockedUntil}, ${authRateLimits.windowStartedAt} + (${config.windowMs} * interval '1 millisecond'))
+        else ${authRateLimits.blockedUntil}
+      end,
       updated_at = now()
     returning attempts, blocked_until`);
   const row = result.rows[0];
