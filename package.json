@@ -26,7 +26,8 @@
     "verify:reading": "node --env-file=.env.local scripts/seed-reading.mjs --verify-only",
     "seed:reading:production": "node scripts/seed-reading.mjs",
     "verify:reading:production": "node scripts/seed-reading.mjs --verify-only",
-    "verify:production-db": "node scripts/verify-production-db.mjs"
+    "verify:production-db": "node scripts/verify-production-db.mjs",
+    "verify:smtp": "node scripts/verify-smtp.mjs"
   },
   "dependencies": {
     "argon2": "^0.45.1",

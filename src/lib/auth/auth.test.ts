@@ -17,4 +17,5 @@ describe("auth flow contracts", () => {
   it("resends verification for a pending duplicate and fails when email delivery is unavailable", () => { expect(service).toContain("if (pendingUser) await issueVerificationEmail(pendingUser)"); expect(mailer).toContain('throw new Error("SMTP_HOST is not configured'); });
   it("does not extend a rate-limit block on every retry", () => { expect(rateLimit).toContain("then null"); expect(rateLimit).toContain("coalesce(${authRateLimits.blockedUntil}, ${authRateLimits.windowStartedAt}"); expect(rateLimit).not.toContain("then now() +"); });
   it("logs unexpected Google OAuth failures", () => { expect(googleStart).toContain("[auth:google_start]"); expect(callback).toContain("[auth:google_callback]"); });
+  it("requires SMTP to accept at least one recipient", () => { expect(mailer).toContain("accepted === 0"); expect(mailer).toContain("[auth:email]"); });
 });

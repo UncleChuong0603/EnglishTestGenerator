@@ -31,7 +31,7 @@ export async function signInAction(_state: AuthActionState, formData: FormData):
 
 export async function forgotPasswordAction(_state: AuthActionState, formData: FormData): Promise<AuthActionState> {
   const email = emailSchema.safeParse(formData.get("email")); if (!email.success) return { ok: true, message: "Nếu tài khoản tồn tại, hướng dẫn đặt lại mật khẩu đã được gửi." };
-  try { await enforceRateLimit("forgot_password", await clientKey(email.data)); await requestPasswordReset(email.data); } catch { /* Always generic. */ }
+  try { await enforceRateLimit("forgot_password", await clientKey(email.data)); await requestPasswordReset(email.data); } catch (error) { if (!(error instanceof Error && error.message === "RATE_LIMITED")) logAuthFailure("forgot_password", error); /* Always generic. */ }
   return { ok: true, message: "Nếu tài khoản tồn tại, hướng dẫn đặt lại mật khẩu đã được gửi." };
 }
 
