@@ -127,17 +127,22 @@ https://toeicgym.net/auth/callback
 
 ## Backup, restore và kiểm thử restore
 
-Chạy từ checkout Compose trên VPS. Các biến sau buộc scripts dùng đúng file
-Dokploy; lệnh `exec postgres` chỉ target PostgreSQL của project TOEICGym:
+Chạy từ checkout Compose trên VPS. Đặt `COMPOSE_PROJECT_NAME` bằng **App Name**
+Dokploy hiển thị cho Compose (không phải tên project giao diện). Các biến sau
+buộc scripts dùng đúng project/file Dokploy; lệnh `exec postgres` chỉ target
+PostgreSQL của project TOEICGym:
 
 ```sh
-COMPOSE_ENV_FILE=.env COMPOSE_FILE_PATH=docker-compose.dokploy.yml \
+COMPOSE_PROJECT_NAME=TEN_APP_COMPOSE_DOKPLOY \
+  COMPOSE_ENV_FILE=.env COMPOSE_FILE_PATH=docker-compose.dokploy.yml \
   ./scripts/backup-db.sh /opt/toeicgym/backups
 
-COMPOSE_ENV_FILE=.env COMPOSE_FILE_PATH=docker-compose.dokploy.yml \
+COMPOSE_PROJECT_NAME=TEN_APP_COMPOSE_DOKPLOY \
+  COMPOSE_ENV_FILE=.env COMPOSE_FILE_PATH=docker-compose.dokploy.yml \
   ./scripts/test-restore-db.sh /opt/toeicgym/backups/english-test-TIMESTAMP.dump
 
-COMPOSE_ENV_FILE=.env COMPOSE_FILE_PATH=docker-compose.dokploy.yml \
+COMPOSE_PROJECT_NAME=TEN_APP_COMPOSE_DOKPLOY \
+  COMPOSE_ENV_FILE=.env COMPOSE_FILE_PATH=docker-compose.dokploy.yml \
   BACKUP_DIR=/opt/toeicgym/backups \
   ./scripts/restore-db.sh /opt/toeicgym/backups/english-test-TIMESTAMP.dump
 ```
