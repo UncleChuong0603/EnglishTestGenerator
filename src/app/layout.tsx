@@ -1,8 +1,16 @@
 import type { Metadata } from "next";
+import { Be_Vietnam_Pro } from "next/font/google";
 import { LocaleProvider } from "@/components/locale-provider";
 import { getCookieLanguage } from "@/lib/i18n/get-translations";
 import { getTranslations } from "@/lib/i18n/runtime";
 import "./globals.css";
+
+const beVietnamPro = Be_Vietnam_Pro({
+  subsets: ["latin", "vietnamese"],
+  weight: ["400", "600", "700", "900"],
+  display: "swap",
+  variable: "--font-be-vietnam-pro",
+});
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getTranslations(await getCookieLanguage());
@@ -16,7 +24,7 @@ export default async function RootLayout({
 }>) {
   const locale = await getCookieLanguage();
   return (
-    <html lang={locale}>
+    <html className={beVietnamPro.variable} lang={locale}>
       <body><LocaleProvider locale={locale}>{children}</LocaleProvider></body>
     </html>
   );
