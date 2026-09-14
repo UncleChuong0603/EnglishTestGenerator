@@ -11,7 +11,7 @@ export function getCanonicalUrl(requestUrl: string, host: string | null) {
 }
 
 export function proxy(request: NextRequest) {
-  const canonicalUrl = getCanonicalUrl(request.url, request.headers.get("host"));
+  const forwardedHost = request.headers.get("x-forwarded-host")?.split(",", 1)[0].trim();
+  const canonicalUrl = getCanonicalUrl(request.url, forwardedHost ?? request.headers.get("host"));
   return canonicalUrl ? NextResponse.redirect(canonicalUrl, 308) : NextResponse.next();
 }
-
