@@ -53,8 +53,8 @@ Nâng cấp: backup, pull, build image mới, chạy migration tương thích ti
 ## Backup và restore
 
 ```bash
-POSTGRES_DB=english_test POSTGRES_USER=english_test BACKUP_DIR=/srv/backups/english-test ./scripts/backup-db.sh
-POSTGRES_DB=english_test POSTGRES_USER=english_test ./scripts/restore-db.sh /srv/backups/english-test/english-test-YYYYMMDDTHHMMSSZ.dump
+POSTGRES_DB=english_test POSTGRES_USER=english_test BACKUP_DIR=/srv/backups/english-test sh scripts/backup-db.sh
+POSTGRES_DB=english_test POSTGRES_USER=english_test sh scripts/restore-db.sh /srv/backups/english-test/english-test-YYYYMMDDTHHMMSSZ.dump
 ```
 
 Backup có password hash/session và phải có quyền thư mục hạn chế, không đặt trong web root. Nên sao chép định kỳ sang nơi lưu trữ ngoài VPS đã mã hóa.

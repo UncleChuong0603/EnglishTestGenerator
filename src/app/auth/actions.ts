@@ -15,7 +15,7 @@ async function clientKey(email = "") { const h = await headers(); return `${h.ge
 export async function signUpAction(_state: AuthActionState, formData: FormData): Promise<AuthActionState> {
   const parsed = z.object({ email: emailSchema, password: passwordSchema, confirmPassword: z.string() }).safeParse(Object.fromEntries(formData));
   if (!parsed.success || parsed.data.password !== parsed.data.confirmPassword) return { ok: false, error: "Thông tin đăng ký không hợp lệ hoặc mật khẩu xác nhận không khớp." };
-  try { await enforceRateLimit("signup", await clientKey(parsed.data.email)); const created = await registerPasswordUser(parsed.data.email, parsed.data.password); return { ok: true, message: created ? "Hãy kiểm tra email để xác minh tài khoản." : "Nếu địa chỉ này có thể đăng ký, hướng dẫn xác minh đã được gửi." }; }
+  try { await enforceRateLimit("signup", await clientKey(parsed.data.email)); await registerPasswordUser(parsed.data.email, parsed.data.password); return { ok: true, message: "Nếu địa chỉ này có thể đăng ký, hướng dẫn xác minh đã được gửi." }; }
   catch (error) { return { ok: false, error: error instanceof Error && error.message === "RATE_LIMITED" ? "Bạn thao tác quá nhanh. Vui lòng thử lại sau." : "Không thể tạo tài khoản lúc này." }; }
 }
 

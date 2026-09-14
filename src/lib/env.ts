@@ -18,6 +18,7 @@ export function getServerEnv() {
   const parsed = serverEnvSchema.safeParse(process.env);
   if (!parsed.success) throw new Error(`Invalid server environment: ${parsed.error.issues.map((issue) => issue.path.join(".")).join(", ")}`);
   if (Boolean(parsed.data.GOOGLE_CLIENT_ID) !== Boolean(parsed.data.GOOGLE_CLIENT_SECRET)) throw new Error("GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be configured together");
+  if (process.env.NODE_ENV === "production" && (!parsed.data.GOOGLE_CLIENT_ID || !parsed.data.GOOGLE_CLIENT_SECRET)) throw new Error("Google OAuth credentials are required in production");
+  if (process.env.NODE_ENV === "production" && new URL(parsed.data.APP_URL).protocol !== "https:") throw new Error("APP_URL must use HTTPS in production");
   return parsed.data;
 }
-

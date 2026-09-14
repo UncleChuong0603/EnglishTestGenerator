@@ -13,8 +13,12 @@ export type CurrentUser = { id: string; email: string; emailNormalized: string; 
 
 export async function createSession(userId: string) {
   const raw = createToken(); const expiresAt = new Date(Date.now() + SESSION_DAYS * 86_400_000);
-  await db.insert(userSessions).values({ userId, sessionTokenHash: hashToken(raw), expiresAt });
-  (await cookies()).set(SESSION_COOKIE, raw, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", expires: expiresAt });
+  const cookieStore = await cookies(); const previous = cookieStore.get(SESSION_COOKIE)?.value;
+  await db.transaction(async (tx) => {
+    if (previous) await tx.update(userSessions).set({ revokedAt: new Date() }).where(and(eq(userSessions.sessionTokenHash, hashToken(previous)), isNull(userSessions.revokedAt)));
+    await tx.insert(userSessions).values({ userId, sessionTokenHash: hashToken(raw), expiresAt });
+  });
+  cookieStore.set(SESSION_COOKIE, raw, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", expires: expiresAt });
 }
 
 export async function getCurrentSession() {

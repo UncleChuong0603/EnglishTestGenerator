@@ -7,7 +7,7 @@
 ## Nhập dữ liệu hiện có từ Supabase
 
 1. Đóng ghi hoặc đặt maintenance window; tạo backup đầy đủ trước khi export.
-2. Export `auth.users` thành `migration-export/users.json` với các trường đã chuẩn hóa: `id`, `email`, `email_verified_at`, tùy chọn `google_subject`, `full_name`, `avatar_url`, `interface_language`, `explanation_language`. Export các bảng ứng dụng thành file JSON cùng tên bảng trong thư mục đó.
+2. Export `auth.users` thành `migration-export/users.json` với các trường đã chuẩn hóa: `id`, `email`, `email_verified_at`, tùy chọn `google_subject`. Export `profiles` và các bảng ứng dụng thành file JSON cùng tên bảng trong thư mục đó; tool tự ghép profile/preference theo UUID.
 3. Nhập `users` trước, giữ UUID. Nhập profile/content/history theo thứ tự khóa ngoại. Đổi mọi FK trước đây trỏ `auth.users` sang `users`.
 4. Google user: nếu export có Google subject đáng tin cậy, nhập vào `auth_identities`. Nếu không có, không suy đoán/merge. Người dùng đăng nhập bằng phương thức hiện hữu hoặc qua quy trình hỗ trợ đã xác minh, rồi kết nối Google rõ ràng trong Settings.
 5. Cấu hình SMTP và chạy `npm run db:migrate:legacy -- migration-export`. Tool chạy transaction, giữ UUID, không nhập password/provider token; Google subject đã xác minh được liên kết, còn user email đã xác minh không có Google subject nhận activation token 24 giờ (DB chỉ lưu hash).
@@ -30,3 +30,5 @@ Không log token raw/provider token. File export và backup chứa dữ liệu n
 ## SMTP
 
 Ứng dụng dùng SMTP chuẩn và không phụ thuộc nhà cung cấp. Local dùng Mailpit chỉ bind loopback. Production có thể dùng mail server tự host hoặc relay; cần SPF/DKIM/DMARC nếu gửi Internet. Không public Mailpit.
+
+Việc ngắt riêng một phương thức đăng nhập được hoãn: Settings không cho xóa password hoặc Google identity, nên không thể vô tình xóa phương thức đăng nhập cuối cùng. Có thể bổ sung disconnect sau khi có luồng recent-auth và kiểm thử recovery riêng.

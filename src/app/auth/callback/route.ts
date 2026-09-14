@@ -6,6 +6,7 @@ import { OAuth2Client } from "google-auth-library";
 import { db } from "@/db";
 import { authIdentities, oauthStates, profiles, securityEvents, users } from "@/db/schema";
 import { hashToken, normalizeEmail } from "@/lib/auth/crypto";
+import { decideGoogleAccount } from "@/lib/auth/policy";
 import { createSession, getCurrentUser } from "@/lib/auth/session";
 import { getServerEnv } from "@/lib/env";
 
@@ -31,14 +32,17 @@ export async function GET(request: NextRequest) {
     const googleEmail = payload.email; const normalized = normalizeEmail(googleEmail); const current = await getCurrentUser();
     const userId = await db.transaction(async (tx) => {
       const [identity] = await tx.select().from(authIdentities).where(and(eq(authIdentities.provider, "google"), eq(authIdentities.providerAccountId, payload.sub))).limit(1);
-      if (identity) { if (oauthState.linkUserId && identity.userId !== oauthState.linkUserId) throw new Error("GOOGLE_ALREADY_LINKED"); return identity.userId; }
-      if (oauthState.linkUserId) {
-        if (!current || current.id !== oauthState.linkUserId || current.emailNormalized !== normalized) throw new Error("LINK_AUTH_REQUIRED");
-        await tx.insert(authIdentities).values({ userId: current.id, provider: "google", providerAccountId: payload.sub, providerEmail: googleEmail });
-        await tx.insert(securityEvents).values({ userId: current.id, eventType: "google_linked", metadata: {} }); return current.id;
+      const [emailOwner] = identity ? [] : await tx.select({ id: users.id }).from(users).where(eq(users.emailNormalized, normalized)).limit(1);
+      const decision = decideGoogleAccount({ identityUserId: identity?.userId, emailOwnerUserId: emailOwner?.id, linkUserId: oauthState.linkUserId ?? undefined, currentUserId: current?.id, currentUserEmail: current?.emailNormalized, googleEmail: normalized });
+      if (decision === "login_linked_identity") return identity!.userId;
+      if (decision === "reject_identity_owned_by_another_user") throw new Error("GOOGLE_ALREADY_LINKED");
+      if (decision === "link_to_authenticated_user") {
+        const linkedUser = current!;
+        await tx.insert(authIdentities).values({ userId: linkedUser.id, provider: "google", providerAccountId: payload.sub, providerEmail: googleEmail });
+        await tx.insert(securityEvents).values({ userId: linkedUser.id, eventType: "google_linked", metadata: {} }); return linkedUser.id;
       }
-      const [emailOwner] = await tx.select({ id: users.id }).from(users).where(eq(users.emailNormalized, normalized)).limit(1);
-      if (emailOwner) throw new Error("EXPLICIT_LINK_REQUIRED");
+      if (decision === "require_explicit_link") throw new Error("EXPLICIT_LINK_REQUIRED");
+      if (decision === "reject_link_context") throw new Error("LINK_AUTH_REQUIRED");
       const [created] = await tx.insert(users).values({ email: googleEmail, emailNormalized: normalized, emailVerifiedAt: new Date(), status: "active" }).returning({ id: users.id });
       await tx.insert(profiles).values({ id: created.id, avatarUrl: typeof payload.picture === "string" && payload.picture.startsWith("https://") ? payload.picture : null });
       await tx.insert(authIdentities).values({ userId: created.id, provider: "google", providerAccountId: payload.sub, providerEmail: googleEmail });
@@ -46,7 +50,10 @@ export async function GET(request: NextRequest) {
     });
     const [localUser] = await db.select({ status: users.status }).from(users).where(eq(users.id, userId)).limit(1);
     if (!localUser || localUser.status !== "active") throw new Error("ACCOUNT_DISABLED");
-    await db.update(users).set({ lastLoginAt: new Date(), updatedAt: new Date() }).where(eq(users.id, userId));
+    await db.transaction(async (tx) => {
+      await tx.update(users).set({ lastLoginAt: new Date(), updatedAt: new Date() }).where(eq(users.id, userId));
+      await tx.insert(securityEvents).values({ userId, eventType: "login_success", metadata: { method: "google" } });
+    });
     await createSession(userId); return NextResponse.redirect(new URL(oauthState.returnTo, request.url));
   } catch (error) {
     const collision = error instanceof Error && error.message === "EXPLICIT_LINK_REQUIRED";
