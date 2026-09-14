@@ -94,6 +94,23 @@ services:
       postgres: { condition: service_healthy }
       migrate: { condition: service_completed_successfully }
     expose: ["3000"]
+    labels:
+      traefik.enable: "true"
+      traefik.http.middlewares.toeicgym-www-canonical.redirectregex.regex: "^https?://www\\.toeicgym\\.net/(.*)"
+      traefik.http.middlewares.toeicgym-www-canonical.redirectregex.replacement: "https://toeicgym.net/$${1}"
+      traefik.http.middlewares.toeicgym-www-canonical.redirectregex.permanent: "true"
+      traefik.http.routers.toeicgym-www-canonical-web.rule: "Host(`www.toeicgym.net`)"
+      traefik.http.routers.toeicgym-www-canonical-web.entrypoints: "web"
+      traefik.http.routers.toeicgym-www-canonical-web.middlewares: "toeicgym-www-canonical"
+      traefik.http.routers.toeicgym-www-canonical-web.service: "noop@internal"
+      traefik.http.routers.toeicgym-www-canonical-web.priority: "100"
+      traefik.http.routers.toeicgym-www-canonical-websecure.rule: "Host(`www.toeicgym.net`)"
+      traefik.http.routers.toeicgym-www-canonical-websecure.entrypoints: "websecure"
+      traefik.http.routers.toeicgym-www-canonical-websecure.middlewares: "toeicgym-www-canonical"
+      traefik.http.routers.toeicgym-www-canonical-websecure.service: "noop@internal"
+      traefik.http.routers.toeicgym-www-canonical-websecure.priority: "100"
+      traefik.http.routers.toeicgym-www-canonical-websecure.tls: "true"
+      traefik.http.routers.toeicgym-www-canonical-websecure.tls.certresolver: "letsencrypt"
     networks: [frontend, database]
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
