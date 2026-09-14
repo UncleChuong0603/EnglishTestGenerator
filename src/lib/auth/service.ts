@@ -9,21 +9,33 @@ import { createToken, hashPassword, hashToken, normalizeEmail, verifyPassword } 
 const VERIFICATION_HOURS = 24;
 const RESET_MINUTES = 60;
 
+async function issueVerificationEmail(user: { id: string; email: string }) {
+  const rawToken = createToken();
+  await db.transaction(async (tx) => {
+    await tx.update(emailVerificationTokens).set({ usedAt: new Date() }).where(and(eq(emailVerificationTokens.userId, user.id), isNull(emailVerificationTokens.usedAt)));
+    await tx.insert(emailVerificationTokens).values({ userId: user.id, tokenHash: hashToken(rawToken), expiresAt: new Date(Date.now() + VERIFICATION_HOURS * 3_600_000) });
+  });
+  await sendAuthEmail({ to: user.email, subject: "Verify your English Test account", text: `Verify your account: ${getServerEnv().APP_URL}/verify-email?token=${encodeURIComponent(rawToken)}` });
+}
+
 async function logEvent(userId: string | null, eventType: string, metadata: Record<string, unknown> = {}) {
   await db.insert(securityEvents).values({ userId, eventType, metadata });
 }
 
 export async function registerPasswordUser(emailInput: string, password: string) {
-  const email = emailInput.trim(); const emailNormalized = normalizeEmail(email); const rawToken = createToken(); const passwordHash = await hashPassword(password);
+  const email = emailInput.trim(); const emailNormalized = normalizeEmail(email); const passwordHash = await hashPassword(password);
   const user = await db.transaction(async (tx) => {
     const [created] = await tx.insert(users).values({ email, emailNormalized, passwordHash }).onConflictDoNothing({ target: users.emailNormalized }).returning({ id: users.id, email: users.email });
     if (!created) return null;
     await tx.insert(profiles).values({ id: created.id });
-    await tx.insert(emailVerificationTokens).values({ userId: created.id, tokenHash: hashToken(rawToken), expiresAt: new Date(Date.now() + VERIFICATION_HOURS * 3_600_000) });
     await tx.insert(securityEvents).values({ userId: created.id, eventType: "account_created", metadata: { method: "password" } });
     return created;
   });
-  if (user) await sendAuthEmail({ to: user.email, subject: "Verify your English Test account", text: `Verify your account: ${getServerEnv().APP_URL}/verify-email?token=${encodeURIComponent(rawToken)}` });
+  if (user) await issueVerificationEmail(user);
+  else {
+    const [pendingUser] = await db.select({ id: users.id, email: users.email }).from(users).where(and(eq(users.emailNormalized, emailNormalized), eq(users.status, "pending_verification"), isNull(users.emailVerifiedAt))).limit(1);
+    if (pendingUser) await issueVerificationEmail(pendingUser);
+  }
   return Boolean(user);
 }
 
@@ -45,12 +57,7 @@ export async function verifyEmailToken(rawToken: string) {
 export async function resendVerification(emailInput: string) {
   const [user] = await db.select().from(users).where(eq(users.emailNormalized, normalizeEmail(emailInput))).limit(1);
   if (!user || user.emailVerifiedAt || user.status === "disabled") return;
-  const rawToken = createToken();
-  await db.transaction(async (tx) => {
-    await tx.update(emailVerificationTokens).set({ usedAt: new Date() }).where(and(eq(emailVerificationTokens.userId, user.id), isNull(emailVerificationTokens.usedAt)));
-    await tx.insert(emailVerificationTokens).values({ userId: user.id, tokenHash: hashToken(rawToken), expiresAt: new Date(Date.now() + VERIFICATION_HOURS * 3_600_000) });
-  });
-  await sendAuthEmail({ to: user.email, subject: "Verify your English Test account", text: `Verify your account: ${getServerEnv().APP_URL}/verify-email?token=${encodeURIComponent(rawToken)}` });
+  await issueVerificationEmail(user);
 }
 
 export async function authenticatePassword(email: string, password: string) {

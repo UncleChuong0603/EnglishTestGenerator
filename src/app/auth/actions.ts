@@ -11,12 +11,15 @@ export type AuthActionState = { ok: boolean; error?: string; message?: string };
 const passwordSchema = z.string().min(PASSWORD_MIN_LENGTH).max(1024);
 const emailSchema = z.email().max(320);
 async function clientKey(email = "") { const h = await headers(); return `${h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? h.get("x-real-ip") ?? "unknown"}:${email}`; }
+function logAuthFailure(action: string, error: unknown) {
+  console.error(`[auth:${action}]`, error instanceof Error ? { name: error.name, message: error.message, stack: error.stack } : error);
+}
 
 export async function signUpAction(_state: AuthActionState, formData: FormData): Promise<AuthActionState> {
   const parsed = z.object({ email: emailSchema, password: passwordSchema, confirmPassword: z.string() }).safeParse(Object.fromEntries(formData));
   if (!parsed.success || parsed.data.password !== parsed.data.confirmPassword) return { ok: false, error: "Thông tin đăng ký không hợp lệ hoặc mật khẩu xác nhận không khớp." };
   try { await enforceRateLimit("signup", await clientKey(parsed.data.email)); await registerPasswordUser(parsed.data.email, parsed.data.password); return { ok: true, message: "Nếu địa chỉ này có thể đăng ký, hướng dẫn xác minh đã được gửi." }; }
-  catch (error) { return { ok: false, error: error instanceof Error && error.message === "RATE_LIMITED" ? "Bạn thao tác quá nhanh. Vui lòng thử lại sau." : "Không thể tạo tài khoản lúc này." }; }
+  catch (error) { if (!(error instanceof Error && error.message === "RATE_LIMITED")) logAuthFailure("signup", error); return { ok: false, error: error instanceof Error && error.message === "RATE_LIMITED" ? "Bạn thao tác quá nhanh. Vui lòng thử lại sau." : "Không thể tạo tài khoản lúc này." }; }
 }
 
 export async function signInAction(_state: AuthActionState, formData: FormData): Promise<AuthActionState> {
@@ -49,5 +52,5 @@ export async function changePasswordAction(_state: AuthActionState, formData: Fo
 export async function signOutAction() { await revokeCurrentSession(); redirect("/"); }
 export async function signOutAllAction() { const user = await requireUser(); await revokeAllUserSessions(user.id); (await cookies()).delete("etg_session"); redirect("/"); }
 export async function verifyEmailAction(formData: FormData) { const token = String(formData.get("token") ?? ""); if (token.length >= 20 && await verifyEmailToken(token)) redirect("/sign-in?verified=1"); redirect("/verify-email?error=invalid"); }
-export async function resendVerificationAction(formData: FormData) { const parsed = emailSchema.safeParse(formData.get("email")); if (parsed.success) { try { await enforceRateLimit("resend_verification", await clientKey(parsed.data)); await resendVerification(parsed.data); } catch { /* Generic response prevents enumeration. */ } } redirect("/verify-email?resent=1"); }
+export async function resendVerificationAction(formData: FormData) { const parsed = emailSchema.safeParse(formData.get("email")); if (parsed.success) { try { await enforceRateLimit("resend_verification", await clientKey(parsed.data)); await resendVerification(parsed.data); } catch (error) { if (!(error instanceof Error && error.message === "RATE_LIMITED")) logAuthFailure("resend_verification", error); /* Generic response prevents enumeration. */ } } redirect("/verify-email?resent=1"); }
 export async function activateAccountAction(_state: AuthActionState, formData: FormData): Promise<AuthActionState> { const parsed = z.object({ token: z.string().min(20), password: passwordSchema, confirmPassword: z.string() }).safeParse(Object.fromEntries(formData)); if (!parsed.success || parsed.data.password !== parsed.data.confirmPassword) return { ok: false, error: "Mật khẩu không hợp lệ hoặc không khớp." }; return await consumeActivationToken(parsed.data.token, parsed.data.password) ? { ok: true, message: "Tài khoản đã được kích hoạt. Hãy đăng nhập." } : { ok: false, error: "Liên kết không hợp lệ, đã hết hạn hoặc đã được dùng." }; }
