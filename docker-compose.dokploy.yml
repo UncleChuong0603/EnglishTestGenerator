@@ -1,0 +1,132 @@
+name: toeicgym
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+x-app-environment: &app-environment
+  DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+  SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET is required}
+  APP_URL: ${APP_URL:?APP_URL is required}
+  GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?GOOGLE_CLIENT_ID is required}
+  GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:?GOOGLE_CLIENT_SECRET is required}
+  SMTP_HOST: ${SMTP_HOST:-}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_USER: ${SMTP_USER:-}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  SMTP_FROM: ${SMTP_FROM:-TOEICGym <noreply@toeicgym.net>}
+  SMTP_SECURE: ${SMTP_SECURE:-false}
+
+services:
+  preflight:
+    image: alpine:3.22
+    restart: "no"
+    environment:
+      POSTGRES_ADMIN_USER: ${POSTGRES_ADMIN_USER:?POSTGRES_ADMIN_USER is required}
+      POSTGRES_ADMIN_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:?POSTGRES_ADMIN_PASSWORD is required}
+      APP_DATABASE_USER: ${APP_DATABASE_USER:?APP_DATABASE_USER is required}
+      APP_DATABASE_PASSWORD: ${APP_DATABASE_PASSWORD:?APP_DATABASE_PASSWORD is required}
+      NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: ${NEXT_SERVER_ACTIONS_ENCRYPTION_KEY:?NEXT_SERVER_ACTIONS_ENCRYPTION_KEY is required}
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        test "$${POSTGRES_ADMIN_USER}" != "$${APP_DATABASE_USER}"
+        test "$${POSTGRES_ADMIN_PASSWORD}" != "$${APP_DATABASE_PASSWORD}"
+        test "$${#POSTGRES_ADMIN_PASSWORD}" -ge 24
+        test "$${#APP_DATABASE_PASSWORD}" -ge 24
+        key_bytes="$$(printf '%s' "$${NEXT_SERVER_ACTIONS_ENCRYPTION_KEY}" | base64 -d | wc -c)"
+        case "$${key_bytes}" in 16|24|32) ;; *) exit 1 ;; esac
+    security_opt: [no-new-privileges:true]
+    logging: *default-logging
+
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    depends_on:
+      preflight: { condition: service_completed_successfully }
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+      POSTGRES_USER: ${POSTGRES_ADMIN_USER:?POSTGRES_ADMIN_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:?POSTGRES_ADMIN_PASSWORD is required}
+      APP_DATABASE_USER: ${APP_DATABASE_USER:?APP_DATABASE_USER is required}
+      APP_DATABASE_PASSWORD: ${APP_DATABASE_PASSWORD:?APP_DATABASE_PASSWORD is required}
+      TZ: UTC
+      PGTZ: UTC
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-app-user.sh:/docker-entrypoint-initdb.d/10-init-app-user.sh:ro
+    networks: [database]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    security_opt: [no-new-privileges:true]
+    logging: *default-logging
+
+  migrate:
+    build:
+      context: .
+      target: migrator
+    restart: "no"
+    environment: *app-environment
+    depends_on:
+      postgres: { condition: service_healthy }
+    networks: [database]
+    security_opt: [no-new-privileges:true]
+    logging: *default-logging
+
+  app:
+    build:
+      context: .
+      target: runner
+      secrets:
+        - next_server_actions_encryption_key
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 30s
+    environment: *app-environment
+    depends_on:
+      postgres: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+    expose: ["3000"]
+    networks: [frontend, database]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    security_opt: [no-new-privileges:true]
+    logging: *default-logging
+
+  db-tools:
+    build:
+      context: .
+      target: database-tools
+    profiles: [tools]
+    environment: *app-environment
+    depends_on:
+      postgres: { condition: service_healthy }
+    networks: [database]
+    restart: "no"
+    security_opt: [no-new-privileges:true]
+
+networks:
+  frontend:
+    name: dokploy-network
+    external: true
+  database:
+    internal: true
+
+volumes:
+  postgres_data:
+    name: toeicgym_postgres_data
+
+secrets:
+  next_server_actions_encryption_key:
+    environment: NEXT_SERVER_ACTIONS_ENCRYPTION_KEY

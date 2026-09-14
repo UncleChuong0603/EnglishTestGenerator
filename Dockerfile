@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1.7
+
 FROM node:22-bookworm-slim AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
@@ -8,7 +10,11 @@ WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npm run build
+# Next.js embeds the Server Actions encryption key in the build output. BuildKit
+# mounts it for this command only, so it is not copied into an image layer.
+RUN --mount=type=secret,id=next_server_actions_encryption_key,required=true \
+    export NEXT_SERVER_ACTIONS_ENCRYPTION_KEY="$(cat /run/secrets/next_server_actions_encryption_key)"; \
+    npm run build
 
 FROM deps AS migrator
 WORKDIR /app
