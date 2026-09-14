@@ -11,18 +11,20 @@ import { createSession, getCurrentUser } from "@/lib/auth/session";
 import { getServerEnv } from "@/lib/env";
 
 export async function GET(request: NextRequest) {
+  const env = getServerEnv();
+  const appUrl = new URL(env.APP_URL);
   const code = request.nextUrl.searchParams.get("code"); const state = request.nextUrl.searchParams.get("state");
-  if (!code || !state) return NextResponse.redirect(new URL("/sign-in?error=oauth_callback_failed", request.url));
+  if (!code || !state) return NextResponse.redirect(new URL("/sign-in?error=oauth_callback_failed", appUrl));
   const cookieStore = await cookies(); const stateCookie = cookieStore.get("etg_oauth_state")?.value;
-  if (!stateCookie || stateCookie.length !== state.length || !timingSafeEqual(Buffer.from(stateCookie), Buffer.from(state))) return NextResponse.redirect(new URL("/sign-in?error=oauth_callback_failed", request.url));
+  if (!stateCookie || stateCookie.length !== state.length || !timingSafeEqual(Buffer.from(stateCookie), Buffer.from(state))) return NextResponse.redirect(new URL("/sign-in?error=oauth_callback_failed", appUrl));
   cookieStore.delete("etg_oauth_state");
-  const env = getServerEnv(); if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) return NextResponse.redirect(new URL("/sign-in?error=google_unavailable", request.url));
+  if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) return NextResponse.redirect(new URL("/sign-in?error=google_unavailable", appUrl));
   const oauthState = await db.transaction(async (tx) => {
     const [row] = await tx.select().from(oauthStates).where(and(eq(oauthStates.stateHash, hashToken(state)), gt(oauthStates.expiresAt, new Date()))).for("update").limit(1);
     if (row) await tx.delete(oauthStates).where(eq(oauthStates.stateHash, row.stateHash));
     return row;
   });
-  if (!oauthState) return NextResponse.redirect(new URL("/sign-in?error=oauth_callback_failed", request.url));
+  if (!oauthState) return NextResponse.redirect(new URL("/sign-in?error=oauth_callback_failed", appUrl));
   try {
     const client = new OAuth2Client(env.GOOGLE_CLIENT_ID, env.GOOGLE_CLIENT_SECRET, `${env.APP_URL}/auth/callback`);
     const { tokens } = await client.getToken({ code, codeVerifier: oauthState.codeVerifier });
@@ -54,9 +56,9 @@ export async function GET(request: NextRequest) {
       await tx.update(users).set({ lastLoginAt: new Date(), updatedAt: new Date() }).where(eq(users.id, userId));
       await tx.insert(securityEvents).values({ userId, eventType: "login_success", metadata: { method: "google" } });
     });
-    await createSession(userId); return NextResponse.redirect(new URL(oauthState.returnTo, request.url));
+    await createSession(userId); return NextResponse.redirect(new URL(oauthState.returnTo, appUrl));
   } catch (error) {
     const collision = error instanceof Error && error.message === "EXPLICIT_LINK_REQUIRED";
-    return NextResponse.redirect(new URL(collision ? "/sign-in?error=link_required" : "/sign-in?error=oauth_callback_failed", request.url));
+    return NextResponse.redirect(new URL(collision ? "/sign-in?error=link_required" : "/sign-in?error=oauth_callback_failed", appUrl));
   }
 }

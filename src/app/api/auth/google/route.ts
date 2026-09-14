@@ -10,8 +10,9 @@ import { getServerEnv } from "@/lib/env";
 
 export async function GET(request: NextRequest) {
   const env = getServerEnv();
-  if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) return NextResponse.redirect(new URL("/sign-in?error=google_unavailable", request.url));
-  try { await enforceRateLimit("google_oauth", request.headers.get("x-forwarded-for")?.split(",")[0] ?? "unknown"); } catch { return NextResponse.redirect(new URL("/sign-in?error=rate_limited", request.url)); }
+  const appUrl = new URL(env.APP_URL);
+  if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) return NextResponse.redirect(new URL("/sign-in?error=google_unavailable", appUrl));
+  try { await enforceRateLimit("google_oauth", request.headers.get("x-forwarded-for")?.split(",")[0] ?? "unknown"); } catch { return NextResponse.redirect(new URL("/sign-in?error=rate_limited", appUrl)); }
   const linkUser = request.nextUrl.searchParams.get("mode") === "link" ? await getCurrentUser() : null;
   const returnParam = request.nextUrl.searchParams.get("next");
   const returnTo = returnParam?.startsWith("/") && !returnParam.startsWith("//") ? returnParam : "/dashboard";
