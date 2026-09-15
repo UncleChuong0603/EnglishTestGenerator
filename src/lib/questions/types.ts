@@ -6,10 +6,10 @@ import type {
   passageSetTypes,
   questionStatuses,
   readingDocumentTypes,
-  toeicParts,
 } from "./constants";
+import type { ToeicPart } from "@/lib/toeic/domain";
 
-export type ToeicPart = (typeof toeicParts)[number];
+export type { ToeicPart } from "@/lib/toeic/domain";
 export type Difficulty = (typeof difficulties)[number];
 export type QuestionStatus = (typeof questionStatuses)[number];
 export type PassageType = (typeof passageTypes)[number];
@@ -22,6 +22,7 @@ export type JsonObject = Record<string, unknown>;
 export type PassageSet = {
   id: string;
   toeic_part: 6 | 7;
+  skill_area: "READING";
   set_type: PassageSetType;
   title: string;
   metadata: JsonObject;
@@ -50,6 +51,8 @@ export type Passage = {
 export type Question = {
   id: string;
   toeic_part: ToeicPart;
+  skill_area: "LISTENING" | "READING";
+  response_type: "MULTIPLE_CHOICE" | "TEXT" | "AUDIO";
   question_type: string;
   skill: string;
   sub_skill: string;

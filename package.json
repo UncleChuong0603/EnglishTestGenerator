@@ -22,6 +22,7 @@
     "seed:part5": "node --env-file=.env.local scripts/seed-part5.mjs",
     "verify:part5": "node --env-file=.env.local scripts/seed-part5.mjs --verify-only",
     "validate:reading": "node scripts/validate-reading-seed.mjs",
+    "validate:listening": "node scripts/validate-listening-seed.mjs",
     "seed:reading": "node --env-file=.env.local scripts/seed-reading.mjs",
     "verify:reading": "node --env-file=.env.local scripts/seed-reading.mjs --verify-only",
     "seed:reading:production": "node scripts/seed-reading.mjs",
@@ -30,9 +31,12 @@
     "verify:smtp": "node scripts/verify-smtp.mjs"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1132.0",
+    "@aws-sdk/s3-request-presigner": "^3.1132.0",
     "argon2": "^0.45.1",
     "drizzle-orm": "^0.45.2",
     "google-auth-library": "^11.0.2",
+    "image-size": "^2.0.4",
     "next": "^16.0.0",
     "nodemailer": "^10.0.9",
     "pg": "^8.23.0",

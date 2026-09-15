@@ -1,0 +1,61 @@
+import { readFileSync } from "node:fs";
+import { PGlite } from "@electric-sql/pglite";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
+const database = new PGlite();
+
+async function applyMigration(path: string) {
+  const migration = readFileSync(path, "utf8");
+  for (const statement of migration.split("--> statement-breakpoint").map((value) => value.trim()).filter(Boolean)) await database.exec(statement);
+}
+
+beforeAll(async () => {
+  await applyMigration("drizzle/0000_lively_mordo.sql");
+  await database.query("insert into passage_sets (id,toeic_part,set_type,title,status) values ('00000000-0000-4000-8000-000000000101',6,'part6','Existing Reading set','draft')");
+  await applyMigration("drizzle/0001_icy_queen_noir.sql");
+  await applyMigration("drizzle/0002_abandoned_mac_gargan.sql");
+  await applyMigration("drizzle/0003_late_strong_guy.sql");
+}, 30_000);
+
+afterAll(async () => database.close());
+
+describe("TOEIC domain migration", () => {
+  it("backfills existing Reading data without changing its identity", async () => {
+    const result = await database.query<{ id: string; skill_area: string }>("select id, skill_area from passage_sets where id='00000000-0000-4000-8000-000000000101'");
+    expect(result.rows).toEqual([{ id: "00000000-0000-4000-8000-000000000101", skill_area: "READING" }]);
+  });
+
+  it("accepts a structurally valid Listening group and rejects invalid skill/part pairs", async () => {
+    await expect(database.query("insert into passage_sets (toeic_part,skill_area,set_type,title) values (3,'LISTENING','conversation','Part 3 group')")).resolves.toBeDefined();
+    await expect(database.query("insert into passage_sets (toeic_part,skill_area,set_type,title) values (7,'LISTENING','triple','Invalid')")).rejects.toThrow();
+  });
+
+  it("defaults current questions and responses to multiple choice", async () => {
+    const columns = await database.query<{ column_name: string; column_default: string | null }>("select column_name,column_default from information_schema.columns where table_name='questions' and column_name in ('skill_area','response_type') order by column_name");
+    expect(columns.rows.map((row) => row.column_name)).toEqual(["response_type", "skill_area"]);
+    expect(columns.rows.every((row) => row.column_default !== null)).toBe(true);
+  });
+
+  it("adds media storage append-only without changing existing Reading rows", async () => {
+    const tables = await database.query<{ table_name: string }>("select table_name from information_schema.tables where table_schema='public'");
+    expect(tables.rows.map((row) => row.table_name)).toEqual(expect.arrayContaining(["media_assets", "question_group_media", "stimulus_media", "listening_transcripts"]));
+    const existing = await database.query("select id from passage_sets where id='00000000-0000-4000-8000-000000000101'");
+    expect(existing.rows).toHaveLength(1);
+  });
+
+  it("represents Listening Parts 1-4 media groups and internal transcripts", async () => {
+    for (const [part, count] of [[1,1],[2,1],[3,3],[4,3]] as const) {
+      const groupId = `00000000-0000-4000-800${part}-00000000000${part}`;
+      const setType = part === 1 ? "part1" : part === 2 ? "part2" : part === 3 ? "conversation" : "talk";
+      await database.query(`insert into passage_sets (id,toeic_part,skill_area,set_type,title) values ('${groupId}',${part},'LISTENING','${setType}','Part ${part}')`);
+      const audioId = `10000000-0000-4000-800${part}-00000000000${part}`;
+      await database.query(`insert into media_assets (id,kind,access_scope,storage_key,mime_type,byte_size,checksum,status) values ('${audioId}','AUDIO','CONTENT','content/listening/audio/${audioId}.mp3','audio/mpeg',10,'sha','READY')`);
+      await database.query(`insert into question_group_media (question_group_id,media_asset_id,role) values ('${groupId}','${audioId}','AUDIO')`);
+      if (part === 1 || part === 3 || part === 4) { const imageId = `20000000-0000-4000-800${part}-00000000000${part}`; await database.query(`insert into media_assets (id,kind,access_scope,storage_key,mime_type,byte_size,checksum,status) values ('${imageId}','IMAGE','CONTENT','content/listening/images/${imageId}.webp','image/webp',10,'sha','READY')`); await database.query(`insert into question_group_media (question_group_id,media_asset_id,role) values ('${groupId}','${imageId}','IMAGE')`); }
+      await database.query(`insert into listening_transcripts (question_group_id,content) values ('${groupId}','internal transcript')`);
+      for (let questionOrder = 1; questionOrder <= count; questionOrder++) await database.query(`insert into questions (toeic_part,skill_area,question_type,response_type,skill,sub_skill,difficulty,question_text,passage_set_id,question_order) values (${part},'LISTENING','multiple_choice','MULTIPLE_CHOICE','listening','comprehension','medium','Question','${groupId}',${questionOrder})`);
+      const questions = await database.query(`select id from questions where passage_set_id='${groupId}'`);
+      expect(questions.rows).toHaveLength(count);
+    }
+  });
+});

@@ -4,8 +4,11 @@ export type PracticeOption = {
   text: string;
 };
 
-export type ReadingPart = 5 | 6 | 7;
+export type { ReadingPart } from "@/lib/toeic/domain";
+import type { ListeningPart, ReadingPart } from "@/lib/toeic/domain";
 export type ReadingPracticeMode = "part_5" | "part_6" | "part_7" | "mixed_reading";
+export type ListeningPracticeMode = "listening_part_1" | "listening_part_2";
+export type PracticeMode = ReadingPracticeMode | ListeningPracticeMode;
 export type ReadingSessionMode = ReadingPracticeMode | "demo_test";
 export type PracticeSource = "recommended" | "custom";
 
@@ -21,18 +24,19 @@ export type PracticePassage = {
 export type PracticeQuestion = {
   id: string;
   number: number;
-  part: ReadingPart;
+  part: ReadingPart | Extract<ListeningPart, 1 | 2>;
   text: string;
   skill: string;
   subSkill: string;
   options: PracticeOption[];
   passageSetId: string | null;
+  media?: { id: string; kind: "AUDIO" | "IMAGE"; url: string; alt: string }[];
 };
 
 export type PracticeGroup = {
   id: string;
-  part: ReadingPart;
-  setType: "standalone" | "part6" | "single" | "double" | "triple";
+  part: ReadingPart | 1 | 2;
+  setType: "standalone" | "part6" | "single" | "double" | "triple" | "photographs" | "question_response";
   title: string | null;
   passages: PracticePassage[];
   questions: PracticeQuestion[];
@@ -40,6 +44,7 @@ export type PracticeGroup = {
 
 export type SubmittedAnswer = {
   questionId: string;
+  responseType?: "MULTIPLE_CHOICE";
   selectedOptionId: string | null;
   responseTimeMs?: number;
 };
@@ -49,7 +54,8 @@ export type PracticeSession = {
   status: "in_progress";
   questionCount: number;
   requestedQuestionCount: number;
-  mode: ReadingPracticeMode;
+  mode: PracticeMode;
+  skillArea: "READING" | "LISTENING";
   source: PracticeSource;
   requestedSkill: string | null;
   requestedSubSkill: string | null;
@@ -63,11 +69,13 @@ export type ReviewQuestion = PracticeQuestion & {
   isCorrect: boolean;
   explanationEn: string | null;
   explanationVi: string | null;
+  transcript?: string;
 };
 
 export type PracticeResult = {
   id: string;
-  mode: ReadingPracticeMode;
+  mode: PracticeMode;
+  skillArea: "READING" | "LISTENING";
   source: PracticeSource;
   requestedSkill: string | null;
   requestedSubSkill: string | null;

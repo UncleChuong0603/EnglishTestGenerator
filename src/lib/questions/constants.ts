@@ -1,4 +1,5 @@
 export const toeicParts = [1, 2, 3, 4, 5, 6, 7] as const;
+export { RESPONSE_TYPES, TOEIC_PARTS_BY_SKILL, TOEIC_SKILL_AREAS } from "../toeic/domain";
 export const difficulties = ["easy", "medium", "hard"] as const;
 export const questionStatuses = ["draft", "published", "archived"] as const;
 

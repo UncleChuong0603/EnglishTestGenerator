@@ -1,6 +1,7 @@
 import type { TranslationShape } from "./types";
 
 export const vi = {
+  listening: { title: "Nghe", photographs: "Hình ảnh", questionResponse: "Câu hỏi–Phản hồi", choose: "Chọn đáp án", imageUnavailable: "Không thể tải hình ảnh. Hãy thử lại; câu hỏi sẽ không tự động được nộp.", notEnough: "Chưa có đủ câu hỏi Listening phù hợp.", transcript: "Nội dung nghe", audio: { play: "Phát âm thanh", pause: "Tạm dừng", replay: "Phát lại", loading: "Đang tải âm thanh", unavailable: "Không thể phát âm thanh", retry: "Thử lại" } },
   demoTest: {
     title: "Bài thi thử TOEIC Reading", shortTitle: "Thi thử TOEIC Reading", questions: "100 câu hỏi", duration: "75 phút",
     intro: "Thời gian 75 phút sẽ bắt đầu tính ngay khi bạn bắt đầu bài thi. Câu trả lời được tự động lưu trong quá trình làm bài.", disclaimer: "Đây là bài luyện tập nguyên bản mô phỏng định dạng TOEIC Reading, không phải bài thi chính thức của ETS.",

@@ -1,0 +1,1 @@
+ALTER TABLE "practice_sessions" ADD CONSTRAINT "practice_sessions_skill_part_check" CHECK (("practice_sessions"."skill_area" = 'READING' and ("practice_sessions"."part" is null or "practice_sessions"."part" between 5 and 7)) or ("practice_sessions"."skill_area" = 'LISTENING' and ("practice_sessions"."part" is null or "practice_sessions"."part" between 1 and 4)));

@@ -12,6 +12,7 @@ import { modeLabel, taxonomyLabel } from "@/lib/i18n/labels";
 import { getReadingRecommendation } from "@/lib/practice/recommendation";
 import type { ReviewQuestion } from "@/lib/practice/types";
 import { getCurrentUser } from "@/lib/auth/session";
+import type { ReadingPart } from "@/lib/toeic/domain";
 import { startDemoTest } from "../../actions";
 
 function formatDuration(seconds: number, locale: InterfaceLanguage) {
@@ -31,7 +32,7 @@ export default async function DemoResultsPage({ params, searchParams }: { params
   const [result, preferences] = await Promise.all([getDemoTestResult(sessionId, user.id), getPreferences(user.id)]);
   if (!result) notFound(); if (result === "in_progress") redirect(`/demo-test/${sessionId}`);
   const locale = preferences.interfaceLanguage; const t = getTranslations(locale); const accuracy = percentage(result.scoreCorrect, result.scoreTotal);
-  const attempts = result.questions.map((question) => ({ isCorrect: question.isCorrect, skill: question.skill, subSkill: question.subSkill, part: question.part, answeredAt: result.submittedAt, sessionId: result.id }));
+  const attempts = result.questions.map((question) => ({ isCorrect: question.isCorrect, skill: question.skill, subSkill: question.subSkill, part: question.part as ReadingPart, answeredAt: result.submittedAt, sessionId: result.id }));
   const skills = aggregatePerformance(attempts, "skill"); const strongest = [...result.partResults].sort((a, b) => b.accuracy - a.accuracy)[0]; const weakest = [...result.partResults].sort((a, b) => a.accuracy - b.accuracy)[0];
   let recommendation = null; try { recommendation = await getReadingRecommendation(user.id); } catch (error) { console.error("Could not load demo result recommendation", error); }
   const reviewFilter = filters.review === "incorrect" || filters.review === "unanswered" ? filters.review : "all";

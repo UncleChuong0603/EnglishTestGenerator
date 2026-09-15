@@ -1,10 +1,40 @@
 import "server-only";
 import { and, asc, eq, inArray, ne } from "drizzle-orm";
 import { db } from "@/db";
-import { passageSets, passages, practiceSessionQuestions, practiceSessions, questionOptions, questionSolutions, questions } from "@/db/schema";
+import { listeningTranscripts, mediaAssets, passageSets, passages, practiceSessionQuestions, practiceSessions, questionGroupMedia, questionOptions, questionSolutions, questions } from "@/db/schema";
+import { validateListeningEligibility } from "@/lib/listening/eligibility";
 import { MIXED_PART_WEIGHTS, READING_TAXONOMY } from "./constants";
 import { flattenUniqueQuestionIds, selectClosestUnits, shuffle, type SelectionUnit } from "./selection";
 import type { PracticeConfig, ReadingPart } from "./types";
+
+export async function selectListeningPractice(part: 1 | 2, target = 10) {
+  const candidates = await db.select().from(questions).where(and(eq(questions.skillArea, "LISTENING"), eq(questions.toeicPart, part), eq(questions.status, "published"))).limit(200);
+  const setIds = [...new Set(candidates.flatMap((q) => q.passageSetId ?? []))];
+  if (!setIds.length) throw new Error(`NOT_ENOUGH_LISTENING_PART_${part}`);
+  const questionIds = candidates.map((q) => q.id);
+  const [sets, options, solutions, attachments, transcripts] = await Promise.all([
+    db.select().from(passageSets).where(and(inArray(passageSets.id, setIds), eq(passageSets.status, "published"))),
+    db.select().from(questionOptions).where(inArray(questionOptions.questionId, questionIds)),
+    db.select().from(questionSolutions).where(inArray(questionSolutions.questionId, questionIds)),
+    db.select({ groupId: questionGroupMedia.questionGroupId, role: questionGroupMedia.role, kind: mediaAssets.kind, accessScope: mediaAssets.accessScope, status: mediaAssets.status }).from(questionGroupMedia).innerJoin(mediaAssets, eq(questionGroupMedia.mediaAssetId, mediaAssets.id)).where(inArray(questionGroupMedia.questionGroupId, setIds)),
+    db.select().from(listeningTranscripts).where(inArray(listeningTranscripts.questionGroupId, setIds)),
+  ]);
+  const published = new Set(sets.map((s) => s.id));
+  const valid = shuffle(candidates.filter((q) => q.passageSetId && published.has(q.passageSetId) && validateListeningEligibility({ skillArea: q.skillArea, part: q.toeicPart, responseType: q.responseType, questionCount: candidates.filter((other) => other.passageSetId === q.passageSetId).length, options: options.filter((o) => o.questionId === q.id), correctOptionId: solutions.find((s) => s.questionId === q.id)?.correctOptionId ?? null, explanationEn: solutions.find((s) => s.questionId === q.id)?.explanationEn ?? null, explanationVi: solutions.find((s) => s.questionId === q.id)?.explanationVi ?? null, transcript: transcripts.find((t) => t.questionGroupId === q.passageSetId)?.content ?? null, media: attachments.filter((a) => a.groupId === q.passageSetId) as Parameters<typeof validateListeningEligibility>[0]["media"] }).eligible));
+  if (valid.length < target) throw new Error(`NOT_ENOUGH_LISTENING_PART_${part}`);
+  return valid.slice(0, target);
+}
+
+export async function createListeningPracticeSession(userId: string, part: 1 | 2, target = 10) {
+  const selected = await selectListeningPractice(part, target);
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${userId}:practice`}, 0))`);
+    await tx.update(practiceSessions).set({ status: "abandoned" }).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), ne(practiceSessions.practiceType, "demo_test")));
+    const [session] = await tx.insert(practiceSessions).values({ userId, skillArea: "LISTENING", practiceType: `listening_part_${part}`, part, questionCount: selected.length, requestedQuestionCount: target, source: "custom" }).returning({ id: practiceSessions.id });
+    await tx.insert(practiceSessionQuestions).values(selected.map((q, index) => ({ sessionId: session.id, questionId: q.id, displayOrder: index + 1, passageSetId: q.passageSetId })));
+    return session.id;
+  });
+}
 
 function partForMode(mode: PracticeConfig["mode"]): ReadingPart | null { return mode === "part_5" ? 5 : mode === "part_6" ? 6 : mode === "part_7" ? 7 : null; }
 export function validatePracticeConfig(config: PracticeConfig) { const part = partForMode(config.mode); if (![10, 15, 20].includes(config.targetQuestionCount)) return false; if (!part && (config.skill || config.subSkill)) return false; if (!part) return true; if (config.skill && !(config.skill in READING_TAXONOMY[part])) return false; return !(config.subSkill && (!config.skill || !READING_TAXONOMY[part][config.skill]?.includes(config.subSkill))); }

@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { getPreferences } from "@/lib/i18n/get-translations";
 
 import { ReadingPracticeClient } from "./practice-client";
+import { ListeningPracticeClient } from "./listening-practice-client";
 
 export default async function PracticeSessionPage({ params }: PageProps<"/practice/[sessionId]">) {
   const [{ sessionId }, user] = await Promise.all([params, getCurrentUser()]);
@@ -13,5 +14,5 @@ export default async function PracticeSessionPage({ params }: PageProps<"/practi
   if (!session) notFound();
   if (session === "submitted") redirect(`/practice/${sessionId}/results`);
   const preferences = await getPreferences(user.id);
-  return <ReadingPracticeClient locale={preferences.interfaceLanguage} session={session} />;
+  return session.skillArea === "LISTENING" ? <ListeningPracticeClient locale={preferences.interfaceLanguage} session={session} /> : <ReadingPracticeClient locale={preferences.interfaceLanguage} session={session} />;
 }

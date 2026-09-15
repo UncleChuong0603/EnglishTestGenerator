@@ -8,6 +8,27 @@
       "when": 1789273989520,
       "tag": "0000_lively_mordo",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789488391588,
+      "tag": "0001_icy_queen_noir",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789488557195,
+      "tag": "0002_abandoned_mac_gargan",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789490046500,
+      "tag": "0003_late_strong_guy",
+      "breakpoints": true
     }
   ]
 }

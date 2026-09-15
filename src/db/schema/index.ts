@@ -97,9 +97,11 @@ export const securityEvents = pgTable("security_events", {
 }, (table) => [index("security_events_user_created_idx").on(table.userId, table.createdAt)]);
 
 export const passageSets = pgTable("passage_sets", {
-  id: uuid("id").primaryKey().defaultRandom(), toeicPart: smallint("toeic_part").notNull(), setType: text("set_type").notNull(),
+  id: uuid("id").primaryKey().defaultRandom(), toeicPart: smallint("toeic_part").notNull(), skillArea: text("skill_area").notNull().default("READING"), setType: text("set_type").notNull(),
   title: text("title").notNull(), metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}), status: text("status").notNull().default("draft"), ...timestamps,
-});
+}, (table) => [
+  check("passage_sets_skill_part_check", sql`(${table.skillArea} = 'LISTENING' and ${table.toeicPart} between 1 and 4) or (${table.skillArea} = 'READING' and ${table.toeicPart} between 5 and 7)`),
+]);
 
 export const passages = pgTable("passages", {
   id: uuid("id").primaryKey().defaultRandom(), toeicPart: smallint("toeic_part").notNull(), passageType: text("passage_type").notNull(), title: text("title"), content: text("content"),
@@ -107,11 +109,82 @@ export const passages = pgTable("passages", {
   passageSetId: uuid("passage_set_id").references(() => passageSets.id, { onDelete: "cascade" }), position: smallint("position"), documentType: text("document_type"), ...timestamps,
 }, (table) => [unique("passages_set_position_unique").on(table.passageSetId, table.position)]);
 
+export const mediaAssets = pgTable("media_assets", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  kind: text("kind").notNull(),
+  accessScope: text("access_scope").notNull(),
+  storageProvider: text("storage_provider").notNull().default("R2"),
+  storageKey: text("storage_key").notNull(),
+  mimeType: text("mime_type").notNull(),
+  byteSize: integer("byte_size").notNull(),
+  checksum: text("checksum").notNull(),
+  status: text("status").notNull().default("UPLOADING"),
+  ownerUserId: uuid("owner_user_id").references(() => users.id, { onDelete: "restrict" }),
+  audioDurationMs: integer("audio_duration_ms"),
+  imageWidth: integer("image_width"),
+  imageHeight: integer("image_height"),
+  archivedAt: timestamp("archived_at", { withTimezone: true, mode: "date" }),
+  ...timestamps,
+}, (table) => [
+  uniqueIndex("media_assets_storage_key_uidx").on(table.storageKey),
+  index("media_assets_checksum_idx").on(table.checksum),
+  index("media_assets_owner_idx").on(table.ownerUserId),
+  check("media_assets_kind_check", sql`${table.kind} in ('AUDIO','IMAGE')`),
+  check("media_assets_access_scope_check", sql`${table.accessScope} in ('CONTENT','PRIVATE_USER')`),
+  check("media_assets_provider_check", sql`${table.storageProvider} = 'R2'`),
+  check("media_assets_status_check", sql`${table.status} in ('UPLOADING','READY','FAILED','ARCHIVED')`),
+  check("media_assets_size_check", sql`${table.byteSize} > 0`),
+  check("media_assets_owner_scope_check", sql`(${table.accessScope} = 'CONTENT' and ${table.ownerUserId} is null) or (${table.accessScope} = 'PRIVATE_USER' and ${table.ownerUserId} is not null)`),
+]);
+
+export const questionGroupMedia = pgTable("question_group_media", {
+  questionGroupId: uuid("question_group_id").notNull().references(() => passageSets.id, { onDelete: "cascade" }),
+  mediaAssetId: uuid("media_asset_id").notNull().references(() => mediaAssets.id, { onDelete: "restrict" }),
+  role: text("role").notNull(),
+  position: smallint("position").notNull().default(1),
+  altText: text("alt_text"),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+}, (table) => [
+  primaryKey({ columns: [table.questionGroupId, table.mediaAssetId] }),
+  unique("question_group_media_role_position_unique").on(table.questionGroupId, table.role, table.position),
+  check("question_group_media_role_check", sql`${table.role} in ('AUDIO','IMAGE')`),
+  check("question_group_media_position_check", sql`${table.position} > 0`),
+]);
+
+export const stimulusMedia = pgTable("stimulus_media", {
+  stimulusId: uuid("stimulus_id").notNull().references(() => passages.id, { onDelete: "cascade" }),
+  mediaAssetId: uuid("media_asset_id").notNull().references(() => mediaAssets.id, { onDelete: "restrict" }),
+  role: text("role").notNull(),
+  position: smallint("position").notNull().default(1),
+  altText: text("alt_text"),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+}, (table) => [
+  primaryKey({ columns: [table.stimulusId, table.mediaAssetId] }),
+  unique("stimulus_media_role_position_unique").on(table.stimulusId, table.role, table.position),
+  check("stimulus_media_role_check", sql`${table.role} in ('AUDIO','IMAGE')`),
+]);
+
+export const listeningTranscripts = pgTable("listening_transcripts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  questionGroupId: uuid("question_group_id").references(() => passageSets.id, { onDelete: "cascade" }),
+  stimulusId: uuid("stimulus_id").references(() => passages.id, { onDelete: "cascade" }),
+  mediaAssetId: uuid("media_asset_id").references(() => mediaAssets.id, { onDelete: "restrict" }),
+  content: text("content").notNull(),
+  ...timestamps,
+}, (table) => [
+  check("listening_transcripts_parent_check", sql`num_nonnulls(${table.questionGroupId}, ${table.stimulusId}, ${table.mediaAssetId}) = 1`),
+]);
+
 export const questions = pgTable("questions", {
-  id: uuid("id").primaryKey().defaultRandom(), toeicPart: smallint("toeic_part").notNull(), questionType: text("question_type").notNull(), skill: text("skill").notNull(), subSkill: text("sub_skill").notNull(),
+  id: uuid("id").primaryKey().defaultRandom(), toeicPart: smallint("toeic_part").notNull(), skillArea: text("skill_area").notNull().default("READING"), questionType: text("question_type").notNull(), responseType: text("response_type").notNull().default("MULTIPLE_CHOICE"), skill: text("skill").notNull(), subSkill: text("sub_skill").notNull(),
   difficulty: text("difficulty").notNull(), questionText: text("question_text").notNull(), passageId: uuid("passage_id").references(() => passages.id, { onDelete: "restrict" }), audioUrl: text("audio_url"), imageUrl: text("image_url"),
   metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}), status: text("status").notNull().default("draft"), passageSetId: uuid("passage_set_id").references(() => passageSets.id, { onDelete: "restrict" }), questionOrder: smallint("question_order").notNull().default(1), ...timestamps,
-}, (table) => [index("questions_published_taxonomy_idx").on(table.toeicPart, table.skill, table.subSkill, table.difficulty), unique("questions_set_order_unique").on(table.passageSetId, table.questionOrder)]);
+}, (table) => [
+  index("questions_published_taxonomy_idx").on(table.skillArea, table.toeicPart, table.skill, table.subSkill, table.difficulty),
+  unique("questions_set_order_unique").on(table.passageSetId, table.questionOrder),
+  check("questions_skill_part_check", sql`(${table.skillArea} = 'LISTENING' and ${table.toeicPart} between 1 and 4) or (${table.skillArea} = 'READING' and ${table.toeicPart} between 5 and 7)`),
+  check("questions_response_type_check", sql`${table.responseType} in ('MULTIPLE_CHOICE','TEXT','AUDIO')`),
+]);
 
 export const questionOptions = pgTable("question_options", {
   id: uuid("id").primaryKey().defaultRandom(), questionId: uuid("question_id").notNull().references(() => questions.id, { onDelete: "cascade" }), optionKey: text("option_key").notNull(), optionText: text("option_text").notNull(), displayOrder: smallint("display_order").notNull(), createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
@@ -122,16 +195,16 @@ export const questionSolutions = pgTable("question_solutions", {
 });
 
 export const practiceSessions = pgTable("practice_sessions", {
-  id: uuid("id").primaryKey().defaultRandom(), userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }), practiceType: text("practice_type").notNull().default("part_5"), part: smallint("part"), status: text("status").notNull().default("in_progress"), questionCount: smallint("question_count").notNull(), startedAt: timestamp("started_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(), submittedAt: timestamp("submitted_at", { withTimezone: true, mode: "date" }), scoreCorrect: smallint("score_correct"), scoreTotal: smallint("score_total"), createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(), source: text("source").notNull().default("custom"), requestedQuestionCount: smallint("requested_question_count").notNull().default(10), requestedSkill: text("requested_skill"), requestedSubSkill: text("requested_sub_skill"), expiresAt: timestamp("expires_at", { withTimezone: true, mode: "date" }), submissionReason: text("submission_reason"),
-}, (table) => [unique("practice_sessions_id_user_unique").on(table.id, table.userId), index("practice_sessions_user_created_idx").on(table.userId, table.createdAt), uniqueIndex("practice_sessions_one_open_practice_idx").on(table.userId).where(sql`${table.status} = 'in_progress' and ${table.practiceType} <> 'demo_test'`), uniqueIndex("practice_sessions_one_open_demo_idx").on(table.userId).where(sql`${table.status} = 'in_progress' and ${table.practiceType} = 'demo_test'`)]);
+  id: uuid("id").primaryKey().defaultRandom(), userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }), skillArea: text("skill_area").notNull().default("READING"), practiceType: text("practice_type").notNull().default("part_5"), part: smallint("part"), status: text("status").notNull().default("in_progress"), questionCount: smallint("question_count").notNull(), startedAt: timestamp("started_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(), submittedAt: timestamp("submitted_at", { withTimezone: true, mode: "date" }), scoreCorrect: smallint("score_correct"), scoreTotal: smallint("score_total"), createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(), source: text("source").notNull().default("custom"), requestedQuestionCount: smallint("requested_question_count").notNull().default(10), requestedSkill: text("requested_skill"), requestedSubSkill: text("requested_sub_skill"), expiresAt: timestamp("expires_at", { withTimezone: true, mode: "date" }), submissionReason: text("submission_reason"),
+}, (table) => [unique("practice_sessions_id_user_unique").on(table.id, table.userId), index("practice_sessions_user_created_idx").on(table.userId, table.createdAt), uniqueIndex("practice_sessions_one_open_practice_idx").on(table.userId).where(sql`${table.status} = 'in_progress' and ${table.practiceType} <> 'demo_test'`), uniqueIndex("practice_sessions_one_open_demo_idx").on(table.userId).where(sql`${table.status} = 'in_progress' and ${table.practiceType} = 'demo_test'`), check("practice_sessions_skill_part_check", sql`(${table.skillArea} = 'READING' and (${table.part} is null or ${table.part} between 5 and 7)) or (${table.skillArea} = 'LISTENING' and (${table.part} is null or ${table.part} between 1 and 4))`)]);
 
 export const practiceSessionQuestions = pgTable("practice_session_questions", {
   sessionId: uuid("session_id").notNull().references(() => practiceSessions.id, { onDelete: "cascade" }), questionId: uuid("question_id").notNull().references(() => questions.id, { onDelete: "restrict" }), displayOrder: smallint("display_order").notNull(), passageSetId: uuid("passage_set_id").references(() => passageSets.id, { onDelete: "restrict" }),
 }, (table) => [primaryKey({ columns: [table.sessionId, table.questionId] }), unique("practice_session_questions_order_unique").on(table.sessionId, table.displayOrder)]);
 
 export const attemptAnswers = pgTable("attempt_answers", {
-  id: uuid("id").primaryKey().defaultRandom(), sessionId: uuid("session_id").notNull().references(() => practiceSessions.id, { onDelete: "cascade" }), userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }), questionId: uuid("question_id").notNull().references(() => questions.id, { onDelete: "restrict" }), selectedOptionId: uuid("selected_option_id").references(() => questionOptions.id, { onDelete: "restrict" }), isCorrect: boolean("is_correct").notNull(), responseTimeMs: integer("response_time_ms"), answeredAt: timestamp("answered_at", { withTimezone: true, mode: "date" }), createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
-}, (table) => [unique("attempt_answers_session_question_unique").on(table.sessionId, table.questionId), index("attempt_answers_user_session_idx").on(table.userId, table.sessionId)]);
+  id: uuid("id").primaryKey().defaultRandom(), sessionId: uuid("session_id").notNull().references(() => practiceSessions.id, { onDelete: "cascade" }), userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }), questionId: uuid("question_id").notNull().references(() => questions.id, { onDelete: "restrict" }), responseType: text("response_type").notNull().default("MULTIPLE_CHOICE"), selectedOptionId: uuid("selected_option_id").references(() => questionOptions.id, { onDelete: "restrict" }), isCorrect: boolean("is_correct").notNull(), responseTimeMs: integer("response_time_ms"), answeredAt: timestamp("answered_at", { withTimezone: true, mode: "date" }), createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+}, (table) => [unique("attempt_answers_session_question_unique").on(table.sessionId, table.questionId), index("attempt_answers_user_session_idx").on(table.userId, table.sessionId), check("attempt_answers_response_type_check", sql`${table.responseType} = 'MULTIPLE_CHOICE'`)]);
 
 export const demoTestAnswers = pgTable("demo_test_answers", {
   sessionId: uuid("session_id").notNull().references(() => practiceSessions.id, { onDelete: "cascade" }), userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }), questionId: uuid("question_id").notNull().references(() => questions.id, { onDelete: "restrict" }), selectedOptionId: uuid("selected_option_id").notNull().references(() => questionOptions.id, { onDelete: "restrict" }), responseTimeMs: integer("response_time_ms"), answeredAt: timestamp("answered_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(), updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),

@@ -1,4 +1,5 @@
 export const en = {
+  listening: { title: "Listening", photographs: "Photographs", questionResponse: "Question–Response", choose: "Choose your answer", imageUnavailable: "The photograph is unavailable. Retry without submitting the question.", notEnough: "Not enough Listening questions are available.", transcript: "Transcript", audio: { play: "Play audio", pause: "Pause", replay: "Replay", loading: "Audio loading", unavailable: "Audio unavailable", retry: "Retry" } },
   demoTest: {
     title: "TOEIC Reading Demo Test", shortTitle: "TOEIC Reading Demo", questions: "100 Questions", duration: "75 Minutes",
     intro: "Once you start, the 75-minute timer will begin. Your answers are automatically saved as you work.", disclaimer: "This is an original practice test designed to simulate the TOEIC Reading format. It is not an official ETS test.",

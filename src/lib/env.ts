@@ -16,6 +16,13 @@ const serverEnvSchema = z.object({
   SMTP_USER: z.string().optional(), SMTP_PASSWORD: z.string().optional(),
   SMTP_FROM: z.string().min(1).default("English Test <noreply@localhost>"),
   SMTP_SECURE: z.enum(["true", "false"]).default("false"),
+  MEDIA_ENABLED: z.enum(["true", "false"]).default("false"),
+  R2_ACCOUNT_ID: z.string().min(1).optional(),
+  R2_ACCESS_KEY_ID: z.string().min(1).optional(),
+  R2_SECRET_ACCESS_KEY: z.string().min(1).optional(),
+  R2_BUCKET_NAME: z.string().min(1).optional(),
+  R2_ENDPOINT: z.url().optional(),
+  R2_PUBLIC_BASE_URL: z.url().optional(),
 });
 
 export function getServerEnv() {
@@ -23,6 +30,9 @@ export function getServerEnv() {
   if (!parsed.success) throw new Error(`Invalid server environment: ${parsed.error.issues.map((issue) => issue.path.join(".")).join(", ")}`);
   if (Boolean(parsed.data.GOOGLE_CLIENT_ID) !== Boolean(parsed.data.GOOGLE_CLIENT_SECRET)) throw new Error("GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be configured together");
   if (Boolean(parsed.data.SMTP_USER) !== Boolean(parsed.data.SMTP_PASSWORD)) throw new Error("SMTP_USER and SMTP_PASSWORD must be configured together");
+  const r2Values = [parsed.data.R2_ACCOUNT_ID, parsed.data.R2_ACCESS_KEY_ID, parsed.data.R2_SECRET_ACCESS_KEY, parsed.data.R2_BUCKET_NAME, parsed.data.R2_ENDPOINT];
+  if (r2Values.some(Boolean) && !r2Values.every(Boolean)) throw new Error("R2 configuration must be complete");
+  if (parsed.data.MEDIA_ENABLED === "true" && !r2Values.every(Boolean)) throw new Error("R2 configuration is required when MEDIA_ENABLED=true");
   if (process.env.NODE_ENV === "production") {
     if (!parsed.data.GOOGLE_CLIENT_ID || !parsed.data.GOOGLE_CLIENT_SECRET) throw new Error("Google OAuth credentials are required in production");
     const appUrl = parseUrl(parsed.data.APP_URL, "APP_URL");
@@ -37,4 +47,12 @@ export function getServerEnv() {
     if (/^(change[_-]?me|development|default|secret)/i.test(parsed.data.SESSION_SECRET)) throw new Error("SESSION_SECRET must not use a placeholder in production");
   }
   return parsed.data;
+}
+
+export function getR2Env() {
+  const env = getServerEnv();
+  if (!env.R2_ACCOUNT_ID || !env.R2_ACCESS_KEY_ID || !env.R2_SECRET_ACCESS_KEY || !env.R2_BUCKET_NAME || !env.R2_ENDPOINT) throw new Error("R2_MEDIA_STORAGE_NOT_CONFIGURED");
+  const endpoint = new URL(env.R2_ENDPOINT);
+  if (endpoint.protocol !== "https:") throw new Error("R2_ENDPOINT must use HTTPS");
+  return { R2_ACCOUNT_ID: env.R2_ACCOUNT_ID, R2_ACCESS_KEY_ID: env.R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY: env.R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME: env.R2_BUCKET_NAME, R2_ENDPOINT: endpoint.toString() };
 }
