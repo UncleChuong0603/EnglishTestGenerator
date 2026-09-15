@@ -23,13 +23,19 @@ export async function getSafeSessionContent(sessionId: string, listening = false
     ]);
     const storage = new R2MediaStorage();
     const safeQuestions = await Promise.all(assigned.map(async (assignment) => {
-      const q = questionRows.find((row) => row.id === assignment.questionId); if (!q || ![1, 2].includes(q.toeicPart) || q.skillArea !== "LISTENING" || !q.passageSetId) throw new Error("INVALID_LISTENING_QUESTION");
+      const q = questionRows.find((row) => row.id === assignment.questionId); if (!q || ![1, 2, 3, 4].includes(q.toeicPart) || q.skillArea !== "LISTENING" || !q.passageSetId) throw new Error("INVALID_LISTENING_QUESTION");
       const assets = attachments.filter((asset) => asset.groupId === q.passageSetId && asset.status === "READY" && asset.scope === "CONTENT");
       const safe = toLearnerPracticeQuestion({ ...q, displayOrder: assignment.displayOrder, options: options.filter((o) => o.questionId === q.id) });
-      safe.media = await Promise.all(assets.map(async (asset) => ({ id: asset.id, kind: asset.kind as "AUDIO" | "IMAGE", url: await storage.createReadUrl(asset.storageKey), alt: asset.kind === "IMAGE" ? "TOEIC Listening Part 1 photograph" : "TOEIC listening audio" })));
+      safe.media = await Promise.all(assets.map(async (asset) => ({ id: asset.id, kind: asset.kind as "AUDIO" | "IMAGE", url: await storage.createReadUrl(asset.storageKey), alt: asset.kind === "IMAGE" ? `TOEIC Listening Part ${q.toeicPart} graphic` : "TOEIC listening audio" })));
       return safe;
     }));
-    const groups: PracticeGroup[] = safeQuestions.map((question) => ({ id: question.passageSetId!, part: question.part, setType: question.part === 1 ? "photographs" : "question_response", title: null, passages: [], questions: [question] }));
+    const groups: PracticeGroup[] = [];
+    for (const question of safeQuestions) {
+      if (groups.some((group) => group.id === question.passageSetId)) continue;
+      const set = sets.find((row) => row.id === question.passageSetId); if (!set) throw new Error("INVALID_LISTENING_GROUP");
+      const setType = question.part === 1 ? "photographs" : question.part === 2 ? "question_response" : set.setType;
+      groups.push({ id: set.id, part: question.part, setType: setType as PracticeGroup["setType"], title: set.title, passages: [], questions: safeQuestions.filter((q) => q.passageSetId === set.id) });
+    }
     return { questions: safeQuestions, groups, transcripts };
   }
   const questionMap = new Map(questionRows.map((q) => [q.id, q]));

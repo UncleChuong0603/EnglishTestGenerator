@@ -49,7 +49,7 @@ export function validateQuestionGroup(group: QuestionGroup): boolean {
   if (!isValidSkillPart(group.skillArea, group.part) || group.questionIds.length === 0) return false;
   if (group.part === 1) return group.questionIds.length === 1 && group.stimuli.some((item) => item.type === "IMAGE") && group.stimuli.some((item) => item.type === "AUDIO");
   if (group.part === 2) return group.questionIds.length === 1 && group.stimuli.some((item) => item.type === "AUDIO");
-  if (group.part === 3 || group.part === 4) return group.questionIds.length > 1 && group.stimuli.some((item) => item.type === "AUDIO");
+  if (group.part === 3 || group.part === 4) return group.questionIds.length === 3 && group.stimuli.some((item) => item.type === "AUDIO");
   if (group.part === 5) return group.questionIds.length === 1 && group.stimuli.length === 0;
   return group.stimuli.some((item) => item.type === "TEXT");
 }

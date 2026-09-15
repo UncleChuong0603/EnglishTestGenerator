@@ -1,11 +1,13 @@
 "use server";
 import { and, eq, inArray } from "drizzle-orm";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { db } from "@/db";
-import { attemptAnswers, practiceSessionQuestions, practiceSessions, questionOptions, questionSolutions } from "@/db/schema";
+import { attemptAnswers, listeningTranscripts, practiceSessionQuestions, practiceSessions, questionOptions, questionSolutions, questions } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth/session";
 import { createListeningPracticeSession, createReadingPracticeSession, validatePracticeConfig } from "@/lib/practice/selector";
 import { createAuthorizedListeningMediaUrl } from "@/lib/listening/media-access";
+import { canUnlockListeningGroupReview, hasExactCompleteGroupAnswers } from "@/lib/listening/group-submission";
 import { R2MediaStorage } from "@/lib/media/r2-storage";
 import type { PracticeConfig, ReadingPracticeMode, SubmittedAnswer } from "@/lib/practice/types";
 import { evaluateMultipleChoice } from "@/lib/toeic/evaluation";
@@ -21,20 +23,46 @@ export async function submitReadingPractice(sessionId: string, answers: Submitte
     const [solutions, options] = await Promise.all([tx.select().from(questionSolutions).where(inArray(questionSolutions.questionId, ids)), tx.select().from(questionOptions).where(inArray(questionOptions.questionId, ids))]); const solutionMap = new Map(solutions.map((s) => [s.questionId, s.correctOptionId])); const input = new Map(answers.map((a) => [String(a.questionId), a])); let correct = 0;
     const rows = assigned.map((a) => { const answer = input.get(a.questionId); if (answer?.responseType && answer.responseType !== "MULTIPLE_CHOICE") throw new Error("BAD_RESPONSE_TYPE"); const selected = answer?.selectedOptionId ? String(answer.selectedOptionId) : null; if (selected && !options.some((o) => o.id === selected && o.questionId === a.questionId)) throw new Error("BAD_OPTION"); const correctOptionId = solutionMap.get(a.questionId); if (!correctOptionId) throw new Error("MISSING_SOLUTION"); const evaluation = evaluateMultipleChoice({ type: "MULTIPLE_CHOICE", selectedOptionId: selected }, correctOptionId); if (evaluation.isCorrect) correct++; return { sessionId, userId: user.id, questionId: a.questionId, responseType: "MULTIPLE_CHOICE", selectedOptionId: selected, isCorrect: evaluation.isCorrect, responseTimeMs: Number.isInteger(answer?.responseTimeMs) ? Math.min(Math.max(answer!.responseTimeMs!, 0), 86_400_000) : null, answeredAt: selected ? new Date() : null }; });
     await tx.insert(attemptAnswers).values(rows); await tx.update(practiceSessions).set({ status: "submitted", submittedAt: new Date(), scoreCorrect: correct, scoreTotal: session.questionCount }).where(and(eq(practiceSessions.id, sessionId), eq(practiceSessions.status, "in_progress")));
-  }); return { ok: true, sessionId }; } catch (error) { console.error("Could not submit Reading practice", error); return { ok: false, error: "submit_failed" }; }
+  }); revalidatePath("/progress"); revalidatePath("/dashboard"); return { ok: true, sessionId }; } catch (error) { console.error("Could not submit Reading practice", error); return { ok: false, error: "submit_failed" }; }
 }
 export async function startPart5Practice(formData: FormData) { formData.set("mode", "part_5"); formData.set("source", "custom"); return startReadingPractice(formData); }
 export const submitPart5Practice = submitReadingPractice;
 
 export async function startListeningPractice(formData: FormData) {
   const part = Number(formData.get("part")); const user = await getCurrentUser();
-  if (!user) redirect("/sign-in"); if (part !== 1 && part !== 2) redirect("/practice?error=invalid_config");
-  try { redirect(`/practice/${await createListeningPracticeSession(user.id, part, part === 1 ? 5 : 10)}`); }
+  if (!user) redirect("/sign-in"); if (![1, 2, 3, 4].includes(part)) redirect("/practice?error=invalid_config");
+  try { const typedPart = part as 1 | 2 | 3 | 4; redirect(`/practice/${await createListeningPracticeSession(user.id, typedPart, typedPart <= 2 ? (typedPart === 1 ? 5 : 10) : 3)}`); }
   catch (error) { if (typeof error === "object" && error && "digest" in error) throw error; console.error("Could not start Listening practice", error); redirect(`/practice?error=not_enough_listening_${part}`); }
 }
 
-export async function refreshListeningMedia(sessionId: string, questionId: string, assetId: string): Promise<{ ok: true; url: string } | { ok: false }> {
+export type ListeningGroupReview = { groupId: string; transcript: string; questions: Array<{ questionId: string; selectedOptionId: string; correctOptionId: string; isCorrect: boolean; explanationEn: string | null; explanationVi: string | null }> };
+export async function submitListeningGroup(sessionId: string, groupId: string, answers: SubmittedAnswer[]): Promise<{ ok: true; review: ListeningGroupReview; complete: boolean } | { ok: false; error: "session_expired" | "submit_failed" }> {
+  const user = await getCurrentUser(); if (!user) return { ok: false, error: "session_expired" };
+  if (!sessionId || !groupId || answers.length !== 3) return { ok: false, error: "submit_failed" };
+  try {
+    const result = await db.transaction(async (tx) => {
+      const [session] = await tx.select().from(practiceSessions).where(and(eq(practiceSessions.id, sessionId), eq(practiceSessions.userId, user.id))).for("update").limit(1);
+      if (!session || session.skillArea !== "LISTENING" || ![3, 4].includes(session.part ?? 0) || !["in_progress", "submitted"].includes(session.status)) throw new Error("INVALID_SESSION");
+      const assigned = await tx.select({ questionId: practiceSessionQuestions.questionId, passageSetId: practiceSessionQuestions.passageSetId, part: questions.toeicPart }).from(practiceSessionQuestions).innerJoin(questions, eq(questions.id, practiceSessionQuestions.questionId)).where(and(eq(practiceSessionQuestions.sessionId, sessionId), eq(practiceSessionQuestions.passageSetId, groupId)));
+      if (assigned.length !== 3 || assigned.some((q) => q.passageSetId !== groupId || q.part !== session.part)) throw new Error("INVALID_GROUP");
+      const expectedIds = assigned.map((q) => q.questionId).sort(); if (!hasExactCompleteGroupAnswers(expectedIds, answers.map((answer) => ({ questionId: String(answer.questionId), selectedOptionId: answer.selectedOptionId ? String(answer.selectedOptionId) : null })))) throw new Error("INVALID_QUESTIONS");
+      const [solutions, options, transcriptRows, existing] = await Promise.all([tx.select().from(questionSolutions).where(inArray(questionSolutions.questionId, expectedIds)), tx.select().from(questionOptions).where(inArray(questionOptions.questionId, expectedIds)), tx.select().from(listeningTranscripts).where(eq(listeningTranscripts.questionGroupId, groupId)), tx.select().from(attemptAnswers).where(and(eq(attemptAnswers.sessionId, sessionId), inArray(attemptAnswers.questionId, expectedIds)))]);
+      const answerMap = new Map(answers.map((a) => [String(a.questionId), String(a.selectedOptionId)])); const existingMap = new Map(existing.map((a) => [a.questionId, a]));
+      const rows = expectedIds.map((questionId) => { const selectedOptionId = answerMap.get(questionId)!; if (!options.some((o) => o.id === selectedOptionId && o.questionId === questionId)) throw new Error("INVALID_OPTION"); const correctOptionId = solutions.find((s) => s.questionId === questionId)?.correctOptionId; if (!correctOptionId) throw new Error("MISSING_SOLUTION"); const old = existingMap.get(questionId); if (old && old.selectedOptionId !== selectedOptionId) throw new Error("IDEMPOTENCY_CONFLICT"); return { sessionId, userId: user.id, questionId, responseType: "MULTIPLE_CHOICE", selectedOptionId, isCorrect: evaluateMultipleChoice({ type: "MULTIPLE_CHOICE", selectedOptionId }, correctOptionId).isCorrect, answeredAt: new Date() }; });
+      if (existing.length !== 0 && existing.length !== 3) throw new Error("PARTIAL_GROUP");
+      if (!existing.length) await tx.insert(attemptAnswers).values(rows);
+      const allAnswers = await tx.select().from(attemptAnswers).where(eq(attemptAnswers.sessionId, sessionId)); const complete = allAnswers.length === session.questionCount;
+      if (complete && session.status === "in_progress") await tx.update(practiceSessions).set({ status: "submitted", submittedAt: new Date(), scoreCorrect: allAnswers.filter((a) => a.isCorrect).length, scoreTotal: session.questionCount }).where(eq(practiceSessions.id, sessionId));
+      const persisted = existing.length ? existing : rows; if (!canUnlockListeningGroupReview(expectedIds, persisted.map((answer) => answer.questionId))) throw new Error("INCOMPLETE_GROUP"); const transcript = transcriptRows[0]?.content; if (!transcript) throw new Error("MISSING_TRANSCRIPT");
+      return { ok: true as const, complete, review: { groupId, transcript, questions: expectedIds.map((questionId) => { const solution = solutions.find((s) => s.questionId === questionId)!; const answer = persisted.find((a) => a.questionId === questionId)!; return { questionId, selectedOptionId: answer.selectedOptionId!, correctOptionId: solution.correctOptionId, isCorrect: answer.isCorrect, explanationEn: solution.explanationEn, explanationVi: solution.explanationVi }; }) } };
+    });
+    if (result.complete) { revalidatePath("/progress"); revalidatePath("/dashboard"); }
+    return result;
+  } catch (error) { console.error("Could not submit Listening group", error); return { ok: false, error: "submit_failed" }; }
+}
+
+export async function refreshListeningMedia(sessionId: string, questionId: string, assetId: string, groupId?: string): Promise<{ ok: true; url: string } | { ok: false }> {
   const user = await getCurrentUser(); if (!user) return { ok: false };
-  try { return { ok: true, url: await createAuthorizedListeningMediaUrl({ userId: user.id, sessionId, questionId, assetId }, new R2MediaStorage()) }; }
+  try { return { ok: true, url: await createAuthorizedListeningMediaUrl({ userId: user.id, sessionId, questionId, groupId, assetId }, new R2MediaStorage()) }; }
   catch (error) { console.error("Could not refresh Listening media URL", error); return { ok: false }; }
 }

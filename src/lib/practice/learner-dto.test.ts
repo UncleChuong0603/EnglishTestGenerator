@@ -13,4 +13,8 @@ describe("learner-safe question DTO", () => {
     expect(dto.text).toBe(""); expect(dto.options.map((o) => o.text)).toEqual(["", "", ""]);
     expect(JSON.stringify(dto)).not.toMatch(/station|street|noon|train|correctOption|transcript|explanation|storageKey|checksum/i);
   });
+  it.each([3, 4])("exposes only visible Part %i prompt/options and leaks no review data", (part) => {
+    const dto = toLearnerPracticeQuestion({ id: `q${part}`, displayOrder: 1, toeicPart: part, questionText: "What will happen next?", skill: "inference", subSkill: "next_action", passageSetId: "g1", options: ["A","B","C","D"].map((optionKey) => ({ id: optionKey, optionKey, optionText: `Choice ${optionKey}` })), correctOptionId: "A", explanationEn: "secret", transcript: "secret", storageKey: "secret", checksum: "secret" } as Parameters<typeof toLearnerPracticeQuestion>[0]);
+    expect(dto.text).toBe("What will happen next?"); expect(dto.options).toHaveLength(4); expect(JSON.stringify(dto)).not.toMatch(/correctOption|transcript|explanation|storageKey|checksum|solution|isCorrect/i);
+  });
 });

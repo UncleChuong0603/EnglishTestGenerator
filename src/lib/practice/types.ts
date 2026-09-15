@@ -7,7 +7,7 @@ export type PracticeOption = {
 export type { ReadingPart } from "@/lib/toeic/domain";
 import type { ListeningPart, ReadingPart } from "@/lib/toeic/domain";
 export type ReadingPracticeMode = "part_5" | "part_6" | "part_7" | "mixed_reading";
-export type ListeningPracticeMode = "listening_part_1" | "listening_part_2";
+export type ListeningPracticeMode = "listening_part_1" | "listening_part_2" | "listening_part_3" | "listening_part_4";
 export type PracticeMode = ReadingPracticeMode | ListeningPracticeMode;
 export type ReadingSessionMode = ReadingPracticeMode | "demo_test";
 export type PracticeSource = "recommended" | "custom";
@@ -24,7 +24,7 @@ export type PracticePassage = {
 export type PracticeQuestion = {
   id: string;
   number: number;
-  part: ReadingPart | Extract<ListeningPart, 1 | 2>;
+  part: ReadingPart | ListeningPart;
   text: string;
   skill: string;
   subSkill: string;
@@ -35,8 +35,8 @@ export type PracticeQuestion = {
 
 export type PracticeGroup = {
   id: string;
-  part: ReadingPart | 1 | 2;
-  setType: "standalone" | "part6" | "single" | "double" | "triple" | "photographs" | "question_response";
+  part: ReadingPart | ListeningPart;
+  setType: "standalone" | "part6" | "single" | "double" | "triple" | "photographs" | "question_response" | "conversation" | "talk";
   title: string | null;
   passages: PracticePassage[];
   questions: PracticeQuestion[];

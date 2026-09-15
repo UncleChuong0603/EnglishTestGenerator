@@ -2,12 +2,12 @@ import "server-only";
 import { and, asc, eq, inArray, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { listeningTranscripts, mediaAssets, passageSets, passages, practiceSessionQuestions, practiceSessions, questionGroupMedia, questionOptions, questionSolutions, questions } from "@/db/schema";
-import { validateListeningEligibility } from "@/lib/listening/eligibility";
+import { validateListeningEligibility, validateListeningGroupEligibility } from "@/lib/listening/eligibility";
 import { MIXED_PART_WEIGHTS, READING_TAXONOMY } from "./constants";
 import { flattenUniqueQuestionIds, selectClosestUnits, shuffle, type SelectionUnit } from "./selection";
 import type { PracticeConfig, ReadingPart } from "./types";
 
-export async function selectListeningPractice(part: 1 | 2, target = 10) {
+export async function selectListeningPractice(part: 1 | 2 | 3 | 4, target = 10) {
   const candidates = await db.select().from(questions).where(and(eq(questions.skillArea, "LISTENING"), eq(questions.toeicPart, part), eq(questions.status, "published"))).limit(200);
   const setIds = [...new Set(candidates.flatMap((q) => q.passageSetId ?? []))];
   if (!setIds.length) throw new Error(`NOT_ENOUGH_LISTENING_PART_${part}`);
@@ -20,12 +20,21 @@ export async function selectListeningPractice(part: 1 | 2, target = 10) {
     db.select().from(listeningTranscripts).where(inArray(listeningTranscripts.questionGroupId, setIds)),
   ]);
   const published = new Set(sets.map((s) => s.id));
-  const valid = shuffle(candidates.filter((q) => q.passageSetId && published.has(q.passageSetId) && validateListeningEligibility({ skillArea: q.skillArea, part: q.toeicPart, responseType: q.responseType, questionCount: candidates.filter((other) => other.passageSetId === q.passageSetId).length, options: options.filter((o) => o.questionId === q.id), correctOptionId: solutions.find((s) => s.questionId === q.id)?.correctOptionId ?? null, explanationEn: solutions.find((s) => s.questionId === q.id)?.explanationEn ?? null, explanationVi: solutions.find((s) => s.questionId === q.id)?.explanationVi ?? null, transcript: transcripts.find((t) => t.questionGroupId === q.passageSetId)?.content ?? null, media: attachments.filter((a) => a.groupId === q.passageSetId) as Parameters<typeof validateListeningEligibility>[0]["media"] }).eligible));
-  if (valid.length < target) throw new Error(`NOT_ENOUGH_LISTENING_PART_${part}`);
-  return valid.slice(0, target);
+  if (part <= 2) {
+    const valid = shuffle(candidates.filter((q) => q.passageSetId && published.has(q.passageSetId) && validateListeningEligibility({ skillArea: q.skillArea, part: q.toeicPart, responseType: q.responseType, questionCount: candidates.filter((other) => other.passageSetId === q.passageSetId).length, options: options.filter((o) => o.questionId === q.id), correctOptionId: solutions.find((s) => s.questionId === q.id)?.correctOptionId ?? null, explanationEn: solutions.find((s) => s.questionId === q.id)?.explanationEn ?? null, explanationVi: solutions.find((s) => s.questionId === q.id)?.explanationVi ?? null, transcript: transcripts.find((t) => t.questionGroupId === q.passageSetId)?.content ?? null, media: attachments.filter((a) => a.groupId === q.passageSetId) as Parameters<typeof validateListeningEligibility>[0]["media"] }).eligible));
+    if (valid.length < target) throw new Error(`NOT_ENOUGH_LISTENING_PART_${part}`);
+    return valid.slice(0, target);
+  }
+  const eligibleSets = shuffle(sets.filter((set) => {
+    const children = candidates.filter((q) => q.passageSetId === set.id).sort((a, b) => a.questionOrder - b.questionOrder);
+    return validateListeningGroupEligibility({ skillArea: "LISTENING", part, setType: set.setType, status: set.status, transcript: transcripts.find((t) => t.questionGroupId === set.id)?.content ?? null, media: attachments.filter((a) => a.groupId === set.id) as Parameters<typeof validateListeningGroupEligibility>[0]["media"], questions: children.map((q) => { const solution = solutions.find((s) => s.questionId === q.id); return { order: q.questionOrder, responseType: q.responseType, options: options.filter((o) => o.questionId === q.id), correctOptionId: solution?.correctOptionId ?? null, explanationEn: solution?.explanationEn ?? null, explanationVi: solution?.explanationVi ?? null }; }) }).eligible;
+  }));
+  if (eligibleSets.length < target) throw new Error(`NOT_ENOUGH_LISTENING_PART_${part}`);
+  const selectedIds = eligibleSets.slice(0, target).map((set) => set.id);
+  return selectedIds.flatMap((id) => candidates.filter((q) => q.passageSetId === id).sort((a, b) => a.questionOrder - b.questionOrder));
 }
 
-export async function createListeningPracticeSession(userId: string, part: 1 | 2, target = 10) {
+export async function createListeningPracticeSession(userId: string, part: 1 | 2 | 3 | 4, target = 10) {
   const selected = await selectListeningPractice(part, target);
   return db.transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${userId}:practice`}, 0))`);

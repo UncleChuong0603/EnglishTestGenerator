@@ -8,7 +8,7 @@ describe("TOEIC domain rules", () => {
   it.each([1, 2, 3, 4])("rejects Reading Part %i", (part) => expect(isValidSkillPart("READING", part)).toBe(false));
   it("owns every V1 part centrally", () => { expect(skillAreaForPart(2)).toBe("LISTENING"); expect(skillAreaForPart(7)).toBe("READING"); });
   it("validates structural Listening groups", () => {
-    expect(validateQuestionGroup({ id: "g", skillArea: "LISTENING", part: 3, stimuli: [{ type: "AUDIO", media: { assetId: "a", kind: "CONTENT_AUDIO" } }], questionIds: ["q1", "q2"] })).toBe(true);
-    expect(validateQuestionGroup({ id: "g", skillArea: "LISTENING", part: 3, stimuli: [], questionIds: ["q1", "q2"] })).toBe(false);
+    expect(validateQuestionGroup({ id: "g", skillArea: "LISTENING", part: 3, stimuli: [{ type: "AUDIO", media: { assetId: "a", kind: "CONTENT_AUDIO" } }], questionIds: ["q1", "q2", "q3"] })).toBe(true);
+    expect(validateQuestionGroup({ id: "g", skillArea: "LISTENING", part: 3, stimuli: [], questionIds: ["q1", "q2", "q3"] })).toBe(false);
   });
 });
