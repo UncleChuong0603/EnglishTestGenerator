@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { practiceSessions, questions } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getToeicProgress } from "@/lib/progress/queries";
+import type { ToeicProgress } from "@/lib/progress/types";
 import type { PartBearingSkillArea, ToeicPart } from "@/lib/toeic/domain";
 import { calculateToeicDiagnosis } from "./calculate";
 import { recommendWorkout } from "./recommendation";
@@ -23,6 +24,10 @@ async function contextFor(userId: string) {
 /** Internal DAL helper. Callers at an application boundary must authenticate first. */
 export async function loadToeicDiagnosis(userId: string): Promise<ToeicDiagnosis> { return calculateToeicDiagnosis(await getToeicProgress(userId)); }
 export async function loadRecommendedWorkout(userId: string): Promise<WorkoutRecommendation> { const [diagnosis, context] = await Promise.all([loadToeicDiagnosis(userId), contextFor(userId)]); return recommendWorkout(diagnosis, context); }
+/** Reuses a progress aggregate already loaded by a composing server page. */
+export async function loadRecommendedWorkoutFromProgress(userId: string, progress: ToeicProgress): Promise<WorkoutRecommendation> {
+  return recommendWorkout(calculateToeicDiagnosis(progress), await contextFor(userId));
+}
 export async function getCurrentToeicDiagnosis(): Promise<ToeicDiagnosis | null> { const user = await getCurrentUser(); return user ? loadToeicDiagnosis(user.id) : null; }
 export async function getCurrentRecommendedWorkout(): Promise<WorkoutRecommendation | null> { const user = await getCurrentUser(); return user ? loadRecommendedWorkout(user.id) : null; }
 

@@ -1,16 +1,38 @@
+import Link from "next/link";
 import { startRecommendedPractice } from "@/app/practice/actions";
-import type { InterfaceLanguage } from "@/lib/i18n/config";
-import { taxonomyLabel } from "@/lib/i18n/labels";
+import { StartWorkoutButton } from "@/components/diagnosis/start-workout-button";
 import type { WorkoutRecommendation } from "@/lib/diagnosis/types";
+import type { InterfaceLanguage } from "@/lib/i18n/config";
+import { formatMessage, getTranslations } from "@/lib/i18n/get-translations";
+import { partName, taxonomyLabel } from "@/lib/i18n/labels";
 
-const copy = {
-  en: { label: "Recommended next", focus: "Primary focus", why: "Why this workout?", start: "Start recommended workout", build: "We need more data", buildReason: "Complete a few more questions so TOEICGym can personalize your training.", early: "This exploration workout builds a more reliable profile.", supported: "Based on your observed practice, this is your highest-priority supported improvement area.", correct: "correct", questions: "questions" },
-  vi: { label: "Bài luyện tiếp theo", focus: "Trọng tâm chính", why: "Vì sao đề xuất bài này?", start: "Bắt đầu bài luyện đề xuất", build: "Cần thêm dữ liệu", buildReason: "Hãy hoàn thành thêm một số câu để TOEICGym có thể cá nhân hóa việc luyện tập.", early: "Bài luyện khám phá này giúp xây dựng hồ sơ đáng tin cậy hơn.", supported: "Dựa trên kết quả luyện tập đã ghi nhận, đây là nội dung được hỗ trợ bởi đủ dữ liệu và cần ưu tiên cải thiện.", correct: "đúng", questions: "câu" },
-} as const;
+export function UnifiedRecommendationCard({ recommendation, locale, dashboard = false }: { recommendation: WorkoutRecommendation; locale: InterfaceLanguage; dashboard?: boolean }) {
+  const t = getTranslations(locale).workout;
+  const focus = recommendation.primarySubskill ?? recommendation.primarySkill;
+  const isEarly = recommendation.reasonCode === "EARLY_EXPLORATION";
+  const status = recommendation.evidence?.label ? t.status[recommendation.evidence.label] : isEarly ? t.earlySignal : null;
+  const reason = recommendation.reasonCode === "SUPPORTED_WEAKNESS" && recommendation.evidence
+    ? formatMessage(t.reasonSupported, { accuracy: recommendation.evidence.accuracy ?? 0, attempted: recommendation.evidence.attemptedCount })
+    : isEarly ? t.reasonEarly : t.reasonBuild;
+  const title = recommendation.kind === "EXPLORATION" ? t.buildProfile : `${recommendation.skillArea === "LISTENING" ? t.listening : t.reading} · Part ${recommendation.part}`;
 
-export function UnifiedRecommendationCard({ recommendation, locale }: { recommendation: WorkoutRecommendation; locale: InterfaceLanguage }) {
-  const t = copy[locale]; const focus = recommendation.primarySubskill ?? recommendation.primarySkill;
-  const title = recommendation.kind === "EXPLORATION" ? t.build : `${recommendation.skillArea === "LISTENING" ? "Listening" : "Reading"}${recommendation.part ? ` · Part ${recommendation.part}` : ""}${focus ? ` · ${taxonomyLabel(focus, locale)}` : ""}`;
-  const reason = recommendation.evidence ? `${recommendation.evidence.correctCount}/${recommendation.evidence.attemptedCount} ${t.correct} · ${recommendation.evidence.accuracy}%. ${t.supported}` : recommendation.reasonCode === "EARLY_EXPLORATION" ? t.early : t.buildReason;
-  return <section className="rounded-3xl border border-teal-200 bg-teal-50 p-6 text-slate-900 sm:p-8"><p className="text-sm font-bold uppercase tracking-wider text-teal-700">{t.label}</p><h2 className="mt-2 text-2xl font-black">{title}</h2>{focus ? <p className="mt-2 text-sm font-bold">{t.focus}: {taxonomyLabel(focus, locale)}</p> : null}<h3 className="mt-5 font-black">{t.why}</h3><p className="mt-2 max-w-3xl leading-7 text-slate-600">{reason}</p><p className="mt-3 text-sm text-slate-500">~{recommendation.questionCount} {t.questions}{recommendation.groupCount ? ` · ${recommendation.groupCount} groups` : ""}</p><form action={startRecommendedPractice} className="mt-6"><button className="min-h-12 rounded-xl bg-teal-700 px-5 py-3 font-bold text-white" type="submit">{t.start}</button></form></section>;
+  return <section className={`rounded-3xl border p-6 text-slate-900 shadow-sm sm:p-8 ${dashboard ? "border-teal-300 bg-gradient-to-br from-white to-teal-50" : "border-teal-200 bg-teal-50"}`}>
+    <p className="text-sm font-bold uppercase tracking-wider text-teal-700">{dashboard ? t.today : t.recommendedNext}</p>
+    <h2 className="mt-2 text-3xl font-black">{title}</h2>
+    {recommendation.part ? <p className="mt-2 font-semibold text-slate-600">Part {recommendation.part} · {partName(recommendation.part, locale)}</p> : null}
+    {focus ? <p className="mt-3 text-xl font-bold">{taxonomyLabel(focus, locale)}</p> : null}
+    {status ? <p className="mt-4 inline-flex rounded-full border border-teal-300 bg-white px-3 py-1 text-sm font-bold text-teal-900">{status}</p> : null}
+    <h3 className="mt-5 font-black">{t.why}</h3>
+    <p className="mt-2 max-w-2xl leading-7 text-slate-600">{reason}</p>
+    <p className="mt-4 font-semibold text-slate-700">{recommendation.questionCount} {t.questions}{recommendation.groupCount ? ` · ${recommendation.groupCount} ${t.sets}` : ""}</p>
+    <div className="mt-6 flex flex-wrap items-center gap-4">
+      <form action={startRecommendedPractice}><StartWorkoutButton idle={t.start} pending={t.starting} /></form>
+      {dashboard ? <Link className="rounded-xl px-3 py-3 font-bold text-teal-800 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700" href="/practice">{t.choose}</Link> : null}
+    </div>
+  </section>;
+}
+
+export function RecommendationUnavailable({ locale }: { locale: InterfaceLanguage }) {
+  const t = getTranslations(locale).workout;
+  return <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8"><p className="text-sm font-bold uppercase tracking-wider text-teal-700">{t.today}</p><h2 className="mt-2 text-2xl font-black">{t.unavailable}</h2><p className="mt-3 text-slate-600">{t.unavailableBody}</p><Link className="mt-6 inline-flex min-h-12 items-center rounded-xl bg-teal-700 px-6 py-3 font-bold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700" href="/practice">{t.choose}</Link></section>;
 }

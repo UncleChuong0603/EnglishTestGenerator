@@ -1,5 +1,6 @@
 import type { PerformanceStatus, Trend } from "@/lib/analytics/types";
 import type { ReadingPart } from "@/lib/practice/types";
+import type { ToeicPart } from "@/lib/toeic/domain";
 
 import type { InterfaceLanguage } from "./config";
 import { getTranslations } from "./runtime";
@@ -29,6 +30,14 @@ export function modeLabel(value: string, locale: InterfaceLanguage) {
 export function partTitle(part: ReadingPart, locale: InterfaceLanguage) {
   const t = getTranslations(locale);
   return t.parts[`title${part}` as "title5" | "title6" | "title7"];
+}
+
+export function partName(part: ToeicPart, locale: InterfaceLanguage) {
+  if (part === 1) return getTranslations(locale).listening.photographs;
+  if (part === 2) return getTranslations(locale).listening.questionResponse;
+  if (part === 3) return getTranslations(locale).listening.conversations;
+  if (part === 4) return getTranslations(locale).listening.talks;
+  return partTitle(part, locale);
 }
 
 export function statusLabel(value: PerformanceStatus | Trend, locale: InterfaceLanguage) {
