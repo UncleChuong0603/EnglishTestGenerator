@@ -11,7 +11,7 @@ export default async function Home() {
   const preferences = await getPreferences(user?.id);
   const locale = preferences.interfaceLanguage;
   const t = getMarketingTranslations(locale);
-  const primaryHref = user ? "/dashboard" : "/sign-in";
+  const primaryHref = user ? "/dashboard" : "/try";
   const demoHref = user ? "/demo-test" : "/sign-in?next=/demo-test";
   return <main className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-900"><PublicHeader locale={locale} signedIn={Boolean(user)} />
     <section className="border-b border-slate-200 bg-white"><div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 sm:px-6 sm:py-24 lg:grid-cols-[1.05fr_.95fr] lg:items-center"><div><p className="text-sm font-black uppercase tracking-[.16em] text-teal-700">{t.hero.eyebrow}</p><h1 className="mt-5 max-w-3xl text-4xl font-black leading-[1.08] tracking-tight text-slate-950 sm:text-6xl">{t.hero.title}</h1><p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600">{t.hero.body}</p><div className="mt-8 flex flex-col gap-3 sm:flex-row"><Link className="inline-flex min-h-12 items-center justify-center rounded-xl bg-teal-700 px-6 py-3 font-bold text-white hover:bg-teal-800" href={primaryHref}>{user ? t.nav.continue : t.hero.start}</Link><Link className="inline-flex min-h-12 items-center justify-center rounded-xl border border-slate-300 bg-white px-6 py-3 font-bold text-slate-800" href={demoHref}>{t.hero.demo}</Link></div><p className="mt-4 text-sm text-slate-500">{t.hero.trust}</p></div><ProductPreview t={t.preview} /></div></section>

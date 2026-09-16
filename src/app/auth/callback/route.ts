@@ -9,6 +9,7 @@ import { hashToken, normalizeEmail } from "@/lib/auth/crypto";
 import { decideGoogleAccount } from "@/lib/auth/policy";
 import { createSession, getCurrentUser } from "@/lib/auth/session";
 import { getServerEnv } from "@/lib/env";
+import { migrateGuestAttempts } from "@/lib/guest/migration";
 
 export async function GET(request: NextRequest) {
   const env = getServerEnv();
@@ -56,7 +57,7 @@ export async function GET(request: NextRequest) {
       await tx.update(users).set({ lastLoginAt: new Date(), updatedAt: new Date() }).where(eq(users.id, userId));
       await tx.insert(securityEvents).values({ userId, eventType: "login_success", metadata: { method: "google" } });
     });
-    await createSession(userId); return NextResponse.redirect(new URL(oauthState.returnTo, appUrl));
+    await createSession(userId); await migrateGuestAttempts(userId); return NextResponse.redirect(new URL(oauthState.returnTo, appUrl));
   } catch (error) {
     const collision = error instanceof Error && error.message === "EXPLICIT_LINK_REQUIRED";
     if (!collision) console.error("[auth:google_callback]", error);

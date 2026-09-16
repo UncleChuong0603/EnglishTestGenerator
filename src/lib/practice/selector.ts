@@ -6,6 +6,7 @@ import { validateListeningEligibility, validateListeningGroupEligibility } from 
 import { MIXED_PART_WEIGHTS, READING_TAXONOMY } from "./constants";
 import { flattenUniqueQuestionIds, rankSelectionUnits, RECENT_CONTENT_SESSION_WINDOW, selectClosestUnits, shuffle, type ContentHistory, type SelectionUnit } from "./selection";
 import type { PracticeConfig, ReadingPart } from "./types";
+import { GUEST_TTL_DAYS } from "@/lib/guest/identity";
 
 const EMPTY_HISTORY: ContentHistory = { seenQuestionIds: new Set(), recentQuestionIds: new Set() };
 const keepOrder = () => 0.999;
@@ -116,6 +117,30 @@ export async function createReadingPracticeSession(userId: string, config: Pract
     const [session] = await tx.insert(practiceSessions).values({ userId, practiceType: config.mode, part, questionCount: selection.actualQuestionCount, source: config.source, requestedQuestionCount: config.targetQuestionCount, requestedSkill: config.skill ?? null, requestedSubSkill: config.subSkill ?? null }).returning({ id: practiceSessions.id });
     const setByQuestion = new Map(selection.units.flatMap((u) => u.questionIds.map((id) => [id, u.part === 5 ? null : u.id] as const)));
     await tx.insert(practiceSessionQuestions).values(selection.questionIds.map((questionId, i) => ({ sessionId: session.id, questionId, displayOrder: i + 1, passageSetId: setByQuestion.get(questionId) ?? null })));
+    return session.id;
+  });
+}
+
+export async function createGuestReadingPracticeSession(guestOwnerHash: string) {
+  const config: PracticeConfig = { mode: "mixed_reading", targetQuestionCount: 10, source: "custom" };
+  const selection = await selectReadingPractice(config);
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${guestOwnerHash}:guest-practice`}, 0))`);
+    await tx.update(practiceSessions).set({ status: "abandoned" }).where(and(eq(practiceSessions.guestOwnerHash, guestOwnerHash), eq(practiceSessions.status, "in_progress")));
+    const [session] = await tx.insert(practiceSessions).values({ guestOwnerHash, userId: null, practiceType: config.mode, part: null, questionCount: selection.actualQuestionCount, source: "guest", requestedQuestionCount: 10, expiresAt: new Date(Date.now() + GUEST_TTL_DAYS * 86_400_000) }).returning({ id: practiceSessions.id });
+    const setByQuestion = new Map(selection.units.flatMap((unit) => unit.questionIds.map((id) => [id, unit.part === 5 ? null : unit.id] as const)));
+    await tx.insert(practiceSessionQuestions).values(selection.questionIds.map((questionId, index) => ({ sessionId: session.id, questionId, displayOrder: index + 1, passageSetId: setByQuestion.get(questionId) ?? null })));
+    return session.id;
+  });
+}
+
+export async function createGuestListeningPracticeSession(guestOwnerHash: string) {
+  const part = 3 as const; const selected = await selectListeningPractice(part, 3);
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${guestOwnerHash}:guest-practice`}, 0))`);
+    await tx.update(practiceSessions).set({ status: "abandoned" }).where(and(eq(practiceSessions.guestOwnerHash, guestOwnerHash), eq(practiceSessions.status, "in_progress")));
+    const [session] = await tx.insert(practiceSessions).values({ guestOwnerHash, userId: null, skillArea: "LISTENING", practiceType: "listening_part_3", part, questionCount: selected.length, requestedQuestionCount: selected.length, source: "guest", expiresAt: new Date(Date.now() + GUEST_TTL_DAYS * 86_400_000) }).returning({ id: practiceSessions.id });
+    await tx.insert(practiceSessionQuestions).values(selected.map((question, index) => ({ sessionId: session.id, questionId: question.id, displayOrder: index + 1, passageSetId: question.passageSetId })));
     return session.id;
   });
 }

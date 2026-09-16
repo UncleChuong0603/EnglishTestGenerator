@@ -6,7 +6,7 @@ import { getCurrentUser } from "@/lib/auth/session";
 export default async function LegacyPart5SessionPage({ params }: PageProps<"/practice/part-5/[sessionId]">) {
   const [{ sessionId }, user] = await Promise.all([params, getCurrentUser()]);
   if (!user) redirect("/sign-in");
-  const session = await getPracticeSession(sessionId, user.id);
+  const session = await getPracticeSession(sessionId, { userId: user.id });
   if (!session) notFound();
   redirect(session === "submitted" ? `/practice/${sessionId}/results` : `/practice/${sessionId}`);
 }

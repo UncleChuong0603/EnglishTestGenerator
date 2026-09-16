@@ -15,6 +15,7 @@ beforeAll(async () => {
   await applyMigration("drizzle/0001_icy_queen_noir.sql");
   await applyMigration("drizzle/0002_abandoned_mac_gargan.sql");
   await applyMigration("drizzle/0003_late_strong_guy.sql");
+  await applyMigration("drizzle/0004_guest_practice.sql");
 }, 30_000);
 
 afterAll(async () => database.close());
@@ -41,6 +42,16 @@ describe("TOEIC domain migration", () => {
     expect(tables.rows.map((row) => row.table_name)).toEqual(expect.arrayContaining(["media_assets", "question_group_media", "stimulus_media", "listening_transcripts"]));
     const existing = await database.query("select id from passage_sets where id='00000000-0000-4000-8000-000000000101'");
     expect(existing.rows).toHaveLength(1);
+  });
+
+  it("enforces exactly one authenticated or guest practice owner", async () => {
+    await expect(database.query("insert into practice_sessions (skill_area,practice_type,question_count,guest_owner_hash,expires_at) values ('READING','mixed_reading',10,'guest-hash',now()+interval '7 days')")).resolves.toBeDefined();
+    await expect(database.query("insert into practice_sessions (skill_area,practice_type,question_count) values ('READING','mixed_reading',10)")).rejects.toThrow();
+    const [guest] = (await database.query<{ id: string }>("select id from practice_sessions where guest_owner_hash='guest-hash'")).rows;
+    await database.query("insert into users (id,email,email_normalized,status) values ('00000000-0000-4000-8000-000000000099','guest@example.com','guest@example.com','active')");
+    await database.query("update practice_sessions set user_id='00000000-0000-4000-8000-000000000099',guest_owner_hash=null,expires_at=null where id=$1", [guest.id]);
+    const claimed = await database.query<{ user_id: string; guest_owner_hash: string | null }>("select user_id,guest_owner_hash from practice_sessions where id=$1", [guest.id]);
+    expect(claimed.rows[0]).toEqual({ user_id: "00000000-0000-4000-8000-000000000099", guest_owner_hash: null });
   });
 
   it("represents Listening Parts 1-4 media groups and internal transcripts", async () => {

@@ -6,6 +6,7 @@ import { PASSWORD_MIN_LENGTH } from "@/lib/auth/crypto";
 import { enforceRateLimit } from "@/lib/auth/rate-limit";
 import { authenticatePassword, changePassword, consumeActivationToken, registerPasswordUser, requestPasswordReset, resendVerification, resetPassword, verifyEmailToken } from "@/lib/auth/service";
 import { createSession, getCurrentSession, requireUser, revokeAllUserSessions, revokeCurrentSession } from "@/lib/auth/session";
+import { migrateGuestAttempts } from "@/lib/guest/migration";
 
 export type AuthActionState = { ok: boolean; error?: string; message?: string };
 const passwordSchema = z.string().min(PASSWORD_MIN_LENGTH).max(1024);
@@ -25,7 +26,7 @@ export async function signUpAction(_state: AuthActionState, formData: FormData):
 export async function signInAction(_state: AuthActionState, formData: FormData): Promise<AuthActionState> {
   const parsed = z.object({ email: emailSchema, password: z.string().max(1024), next: z.string().optional() }).safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { ok: false, error: "Email hoặc mật khẩu không đúng." };
-  try { await enforceRateLimit("login", await clientKey(parsed.data.email)); const user = await authenticatePassword(parsed.data.email, parsed.data.password); if (!user) return { ok: false, error: "Email hoặc mật khẩu không đúng." }; await createSession(user.id); const next = parsed.data.next?.startsWith("/") && !parsed.data.next.startsWith("//") ? parsed.data.next : "/dashboard"; redirect(next); }
+  try { await enforceRateLimit("login", await clientKey(parsed.data.email)); const user = await authenticatePassword(parsed.data.email, parsed.data.password); if (!user) return { ok: false, error: "Email hoặc mật khẩu không đúng." }; await createSession(user.id); await migrateGuestAttempts(user.id); const next = parsed.data.next?.startsWith("/") && !parsed.data.next.startsWith("//") ? parsed.data.next : "/dashboard"; redirect(next); }
   catch (error) { if (typeof error === "object" && error && "digest" in error) throw error; return { ok: false, error: error instanceof Error && error.message === "RATE_LIMITED" ? "Bạn thao tác quá nhanh. Vui lòng thử lại sau." : "Email hoặc mật khẩu không đúng." }; }
 }
 

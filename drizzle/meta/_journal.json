@@ -29,6 +29,13 @@
       "when": 1789490046500,
       "tag": "0003_late_strong_guy",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789502400000,
+      "tag": "0004_guest_practice",
+      "breakpoints": true
     }
   ]
 }
