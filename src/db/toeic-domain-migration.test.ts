@@ -16,11 +16,19 @@ beforeAll(async () => {
   await applyMigration("drizzle/0002_abandoned_mac_gargan.sql");
   await applyMigration("drizzle/0003_late_strong_guy.sql");
   await applyMigration("drizzle/0004_guest_practice.sql");
+  await applyMigration("drizzle/0005_diagnostic_runs.sql");
+  await applyMigration("drizzle/0006_mistake_mastery.sql");
 }, 30_000);
 
 afterAll(async () => database.close());
 
 describe("TOEIC domain migration", () => {
+  it("adds append-only mastery state with one row per learner and question", async () => {
+    const tables = await database.query<{ table_name: string }>("select table_name from information_schema.tables where table_schema='public'");
+    expect(tables.rows.map((row) => row.table_name)).toContain("question_mastery");
+    const constraints = await database.query<{ constraint_name: string }>("select constraint_name from information_schema.table_constraints where table_name='question_mastery'");
+    expect(constraints.rows.map((row) => row.constraint_name)).toContain("question_mastery_user_question_unique");
+  });
   it("backfills existing Reading data without changing its identity", async () => {
     const result = await database.query<{ id: string; skill_area: string }>("select id, skill_area from passage_sets where id='00000000-0000-4000-8000-000000000101'");
     expect(result.rows).toEqual([{ id: "00000000-0000-4000-8000-000000000101", skill_area: "READING" }]);
@@ -68,5 +76,11 @@ describe("TOEIC domain migration", () => {
       const questions = await database.query(`select id from questions where passage_set_id='${groupId}'`);
       expect(questions.rows).toHaveLength(count);
     }
+  });
+
+  it("enforces one active diagnostic per unambiguous owner", async () => {
+    await database.query("insert into diagnostic_runs (user_id,expires_at) values ('00000000-0000-4000-8000-000000000099',now()+interval '7 days')");
+    await expect(database.query("insert into diagnostic_runs (user_id,expires_at) values ('00000000-0000-4000-8000-000000000099',now()+interval '7 days')")).rejects.toThrow();
+    await expect(database.query("insert into diagnostic_runs (expires_at) values (now()+interval '7 days')")).rejects.toThrow();
   });
 });

@@ -20,6 +20,7 @@ describe("guest practice security architecture", () => {
   it("claims only submitted, unexpired sessions transactionally and clears identity after success", () => {
     expect(claim).toContain("db.transaction"); expect(claim).toContain('eq(practiceSessions.status, "submitted")');
     expect(claim).toContain("gt(practiceSessions.expiresAt, new Date())"); expect(claim).toContain("clearGuestIdentity");
+    expect(claim).toContain("diagnosticRuns"); expect(claim).toContain("diagnosticRunId");
   });
   it("derives ownership from server cookies rather than client identifiers", () => {
     expect(actions).toContain("getGuestOwnerHash()"); expect(actions).not.toContain('formData.get("guestSessionId")');

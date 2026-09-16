@@ -10,7 +10,7 @@ export type ReadingPracticeMode = "part_5" | "part_6" | "part_7" | "mixed_readin
 export type ListeningPracticeMode = "listening_part_1" | "listening_part_2" | "listening_part_3" | "listening_part_4";
 export type PracticeMode = ReadingPracticeMode | ListeningPracticeMode;
 export type ReadingSessionMode = ReadingPracticeMode | "demo_test";
-export type PracticeSource = "recommended" | "custom";
+export type PracticeSource = "recommended" | "custom" | "guest" | "diagnostic" | "mastery_review";
 
 export type PracticePassage = {
   id: string;

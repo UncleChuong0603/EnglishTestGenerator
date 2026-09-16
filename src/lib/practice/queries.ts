@@ -1,7 +1,7 @@
 import "server-only";
 import { and, asc, eq, gt, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import { attemptAnswers, listeningTranscripts, mediaAssets, passageSets, passages, practiceSessionQuestions, practiceSessions, questionGroupMedia, questionOptions, questionSolutions, questions } from "@/db/schema";
+import { attemptAnswers, diagnosticRuns, listeningTranscripts, mediaAssets, passageSets, passages, practiceSessionQuestions, practiceSessions, questionGroupMedia, questionOptions, questionSolutions, questions } from "@/db/schema";
 import { R2MediaStorage } from "@/lib/media/r2-storage";
 import type { PracticeGroup, PracticeQuestion, PracticeResult, PracticeSession } from "./types";
 import { toLearnerPracticeQuestion } from "./learner-dto";
@@ -61,6 +61,7 @@ export async function getPracticeSession(sessionId: string, owner: PracticeOwner
 
 export async function getPracticeResult(sessionId: string, owner: PracticeOwner): Promise<PracticeResult | null | "in_progress"> {
   const session = await getOwnedSession(sessionId, owner); if (!session || session.practiceType === "demo_test") return null; if (session.status === "in_progress") return "in_progress";
+  if (session.diagnosticRunId) { const parent = (await db.select({ status: diagnosticRuns.status }).from(diagnosticRuns).where(eq(diagnosticRuns.id, session.diagnosticRunId)).limit(1))[0]; if (!parent || parent.status !== "COMPLETED") return null; }
   if (session.status !== "submitted" || session.scoreCorrect === null || session.scoreTotal === null || !session.submittedAt) return null;
   const listening = session.skillArea === "LISTENING"; const content = await getSafeSessionContent(session.id, listening); const ids = content.questions.map((q) => q.id);
   const [answers, solutions] = await Promise.all([db.select().from(attemptAnswers).where(eq(attemptAnswers.sessionId, session.id)), db.select().from(questionSolutions).where(inArray(questionSolutions.questionId, ids))]);

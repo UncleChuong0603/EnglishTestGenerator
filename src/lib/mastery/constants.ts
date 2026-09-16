@@ -1,0 +1,3 @@
+export const MASTERY_REQUIRED_SUCCESS_STREAK = 2;
+export const MASTERY_REVIEW_BATCH_SIZE = 10;
+
