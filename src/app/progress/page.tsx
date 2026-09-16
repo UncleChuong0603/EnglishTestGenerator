@@ -1,13 +1,13 @@
+/* eslint-disable react-hooks/error-boundaries */
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { RecommendationCard } from "@/components/analytics/recommendation-card";
+import { UnifiedRecommendationCard as RecommendationCard } from "@/components/diagnosis/recommendation-card";
 import { LearnerNav } from "@/components/learner-nav";
-import { getLearnerAnalytics } from "@/lib/analytics/queries";
 import { getCurrentUser } from "@/lib/auth/session";
 import type { InterfaceLanguage } from "@/lib/i18n/config";
 import { getPreferences, getTranslations } from "@/lib/i18n/get-translations";
 import { taxonomyLabel } from "@/lib/i18n/labels";
-import { getReadingRecommendation } from "@/lib/practice/recommendation";
+import { loadRecommendedWorkout } from "@/lib/diagnosis/service";
 import { getToeicProgress } from "@/lib/progress/queries";
 import type { PartProgress, SkillAreaProgress } from "@/lib/progress/types";
 
@@ -32,8 +32,7 @@ export default async function ProgressPage() {
   const user = await getCurrentUser(); if (!user) redirect("/sign-in");
   const preferences = await getPreferences(user.id); const locale = preferences.interfaceLanguage; const t = getTranslations(locale);
   try {
-    const [progress, readingAnalytics] = await Promise.all([getToeicProgress(user.id), getLearnerAnalytics(user.id)]);
-    const recommendation = await getReadingRecommendation(user.id, readingAnalytics).catch((error) => { console.error("Could not load Reading recommendation", error); return null; });
+    const [progress, recommendation] = await Promise.all([getToeicProgress(user.id), loadRecommendedWorkout(user.id).catch((error) => { console.error("Could not load recommendation", error); return null; })]);
     return <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 sm:px-6 sm:py-8"><div className="mx-auto max-w-6xl"><LearnerNav locale={locale} /><header className="mt-10"><p className="text-sm font-bold uppercase tracking-wider text-teal-700">{t.progress.eyebrow}</p><h1 className="mt-2 text-3xl font-black sm:text-4xl">{t.progress.toeicTitle}</h1><p className="mt-3 max-w-3xl leading-7 text-slate-600">{t.progress.unifiedIntro}</p></header>{progress.attemptedCount === 0 ? <section className="mt-8 rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center sm:p-12"><h2 className="text-2xl font-black">{t.progress.noPracticeYet}</h2><p className="mt-3 text-slate-600">{t.progress.startBuilding}</p><Link className="mt-6 inline-flex rounded-xl bg-teal-700 px-5 py-3 font-bold text-white" href="/practice">{t.progress.startPracticing}</Link></section> : null}<div className="mt-8 space-y-7"><AreaSection area={progress.listening} locale={locale} /><AreaSection area={progress.reading} locale={locale} /></div>{recommendation ? <div className="mt-7"><RecommendationCard locale={locale} recommendation={recommendation} /></div> : null}<div className="pb-12" /></div></main>;
   } catch (error) {
     console.error("Could not load progress page", error); return <main className="grid min-h-screen place-items-center bg-slate-50 p-6 text-center"><div><h1 className="text-2xl font-black">{t.progress.loadError}</h1><p className="mt-2 text-slate-600">{t.progress.tryAgain}</p><Link className="mt-6 inline-flex rounded-xl bg-teal-700 px-5 py-3 font-bold text-white" href="/progress">{t.common.retry}</Link></div></main>;

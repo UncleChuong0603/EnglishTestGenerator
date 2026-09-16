@@ -5,12 +5,13 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { attemptAnswers, listeningTranscripts, practiceSessionQuestions, practiceSessions, questionOptions, questionSolutions, questions } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth/session";
-import { createListeningPracticeSession, createReadingPracticeSession, validatePracticeConfig } from "@/lib/practice/selector";
+import { createListeningPracticeSession, createReadingPracticeSession, createRecommendedReadingPracticeSession, validatePracticeConfig } from "@/lib/practice/selector";
 import { createAuthorizedListeningMediaUrl } from "@/lib/listening/media-access";
 import { canUnlockListeningGroupReview, hasExactCompleteGroupAnswers } from "@/lib/listening/group-submission";
 import { R2MediaStorage } from "@/lib/media/r2-storage";
 import type { PracticeConfig, ReadingPracticeMode, SubmittedAnswer } from "@/lib/practice/types";
 import { evaluateMultipleChoice } from "@/lib/toeic/evaluation";
+import { isListeningPart, loadRecommendedWorkout } from "@/lib/diagnosis/service";
 
 function parseConfig(formData: FormData): PracticeConfig | null { const config = { mode: String(formData.get("mode") ?? "") as ReadingPracticeMode, targetQuestionCount: Number(formData.get("questionCount")), source: formData.get("source") === "recommended" ? "recommended" : "custom", skill: String(formData.get("skill") ?? "").trim() || undefined, subSkill: String(formData.get("subSkill") ?? "").trim() || undefined } as PracticeConfig; return validatePracticeConfig(config) ? config : null; }
 export async function startReadingPractice(formData: FormData) { const config = parseConfig(formData); if (!config) redirect("/practice?error=invalid_config"); const user = await getCurrentUser(); if (!user) redirect("/sign-in"); try { redirect(`/practice/${await createReadingPracticeSession(user.id, config)}`); } catch (error) { if (typeof error === "object" && error && "digest" in error) throw error; console.error("Could not start Reading practice", error); redirect(`/practice?error=${error instanceof Error && error.message === "NO_PUBLISHED_CONTENT" ? "not_enough_content" : "start_failed"}`); } }
@@ -33,6 +34,30 @@ export async function startListeningPractice(formData: FormData) {
   if (!user) redirect("/sign-in"); if (![1, 2, 3, 4].includes(part)) redirect("/practice?error=invalid_config");
   try { const typedPart = part as 1 | 2 | 3 | 4; redirect(`/practice/${await createListeningPracticeSession(user.id, typedPart, typedPart <= 2 ? (typedPart === 1 ? 5 : 10) : 3)}`); }
   catch (error) { if (typeof error === "object" && error && "digest" in error) throw error; console.error("Could not start Listening practice", error); redirect(`/practice?error=not_enough_listening_${part}`); }
+}
+
+/** Recalculates on the server; no client-supplied weakness or taxonomy is trusted. */
+export async function startRecommendedPractice() {
+  const user = await getCurrentUser(); if (!user) redirect("/sign-in");
+  try {
+    const recommendation = await loadRecommendedWorkout(user.id);
+    if (recommendation.skillArea === "LISTENING" && isListeningPart(recommendation.part)) {
+      const target = recommendation.part === 1 ? 5 : recommendation.part === 2 ? 10 : recommendation.groupCount ?? 3;
+      redirect(`/practice/${await createListeningPracticeSession(user.id, recommendation.part, target)}`);
+    }
+    if (recommendation.skillArea === "READING") {
+      const part = recommendation.part && recommendation.part >= 5 ? recommendation.part as 5 | 6 | 7 : null;
+      if (part) redirect(`/practice/${await createRecommendedReadingPracticeSession(user.id, { part, skill: recommendation.primarySkill ?? undefined, subSkill: recommendation.primarySubskill ?? undefined, questionCount: recommendation.requestedQuestionCount })}`);
+      const attempts: PracticeConfig[] = part ? [
+        { mode: `part_${part}` as ReadingPracticeMode, skill: recommendation.primarySkill ?? undefined, subSkill: recommendation.primarySubskill ?? undefined, targetQuestionCount: 10, source: "recommended" },
+        { mode: `part_${part}` as ReadingPracticeMode, skill: recommendation.primarySkill ?? undefined, targetQuestionCount: 10, source: "recommended" },
+        { mode: `part_${part}` as ReadingPracticeMode, targetQuestionCount: 10, source: "recommended" },
+        { mode: "mixed_reading", targetQuestionCount: 10, source: "recommended" },
+      ] : [{ mode: "mixed_reading", targetQuestionCount: 10, source: "recommended" }];
+      for (const config of attempts) try { redirect(`/practice/${await createReadingPracticeSession(user.id, config)}`); } catch (error) { if (typeof error === "object" && error && "digest" in error) throw error; }
+    }
+    redirect("/practice?error=not_enough_content");
+  } catch (error) { if (typeof error === "object" && error && "digest" in error) throw error; console.error("Could not start recommended practice", error); redirect("/practice?error=start_failed"); }
 }
 
 export type ListeningGroupReview = { groupId: string; transcript: string; questions: Array<{ questionId: string; selectedOptionId: string; correctOptionId: string; isCorrect: boolean; explanationEn: string | null; explanationVi: string | null }> };

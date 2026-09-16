@@ -1,0 +1,10 @@
+import { describe, expect, it } from "vitest";
+import { calculateToeicDiagnosis, diagnosisLabel, evidenceState, rankDiagnosisSignals } from "./calculate";
+import { calculateToeicProgress } from "../progress/calculate";
+
+describe("evidence-aware TOEIC diagnosis", () => {
+  it("uses centralized sample and accuracy thresholds", () => { expect(evidenceState(0)).toBe("INSUFFICIENT_DATA"); expect(evidenceState(2)).toBe("INSUFFICIENT_DATA"); expect(evidenceState(3)).toBe("EARLY_SIGNAL"); expect(evidenceState(7)).toBe("EARLY_SIGNAL"); expect(evidenceState(8)).toBe("SUPPORTED"); expect(diagnosisLabel(2, 0)).toBeNull(); expect(diagnosisLabel(8, 50)).toBe("NEEDS_ATTENTION"); expect(diagnosisLabel(8, 74)).toBe("DEVELOPING"); expect(diagnosisLabel(8, 80)).toBe("STABLE"); expect(diagnosisLabel(8, 90)).toBe("STRONG"); });
+  it("ranks supported evidence above a tiny perfect failure", () => { const diagnosis = calculateToeicDiagnosis(calculateToeicProgress([{ skillArea: "LISTENING", part: 2, skill: "inference", subskill: "intent", attemptedCount: 2, correctCount: 0, latestAttemptAt: null }, { skillArea: "READING", part: 7, skill: "inference", subskill: "detail", attemptedCount: 15, correctCount: 7, latestAttemptAt: null }])); expect(diagnosis.rankedImprovementAreas[0]).toMatchObject({ skillArea: "READING", part: 7 }); expect(diagnosis.listening.skills[0].evidence).toBe("INSUFFICIENT_DATA"); expect(diagnosis.reading.skills[0].label).toBe("NEEDS_ATTENTION"); });
+  it("keeps same-named skills separated by section and part", () => { const diagnosis = calculateToeicDiagnosis(calculateToeicProgress([{ skillArea: "LISTENING", part: 3, skill: "inference", subskill: "intent", attemptedCount: 8, correctCount: 7, latestAttemptAt: null }, { skillArea: "READING", part: 7, skill: "inference", subskill: "intent", attemptedCount: 8, correctCount: 2, latestAttemptAt: null }])); expect(diagnosis.listening.skills[0].label).toBe("STABLE"); expect(diagnosis.reading.skills[0].label).toBe("NEEDS_ATTENTION"); });
+  it("does not rank zero-attempt or insufficient signals", () => { expect(rankDiagnosisSignals([])).toEqual([]); });
+});

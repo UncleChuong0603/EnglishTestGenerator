@@ -82,4 +82,28 @@ export async function createReadingPracticeSession(userId: string, config: Pract
     return session.id;
   });
 }
+
+/** Recommended-only 60/20/20 selector. Whole passage units are never split. */
+export async function createRecommendedReadingPracticeSession(userId: string, target: { part: ReadingPart; skill?: string; subSkill?: string; questionCount: number }) {
+  const primaryPools = [await loadUnits(target.part, target.skill, target.subSkill), await loadUnits(target.part, target.skill), await loadUnits(target.part)];
+  const primaryPool = primaryPools.find((pool) => pool.length) ?? [];
+  const primary = selectClosestUnits(primaryPool, Math.max(1, Math.round(target.questionCount * 0.6)));
+  const used = new Set(primary.map((unit) => unit.id));
+  const supportPool = (await loadUnits(target.part)).filter((unit) => !used.has(unit.id));
+  const support = selectClosestUnits(supportPool, Math.max(1, Math.round(target.questionCount * 0.2))); support.forEach((unit) => used.add(unit.id));
+  const otherParts = ([5, 6, 7] as ReadingPart[]).filter((part) => part !== target.part);
+  const maintenancePool = (await Promise.all(otherParts.map((part) => loadUnits(part)))).flat().filter((unit) => !used.has(unit.id));
+  const maintenance = selectClosestUnits(maintenancePool, Math.max(1, Math.round(target.questionCount * 0.2)));
+  let units = [...primary, ...support, ...maintenance];
+  if (!units.length) units = selectClosestUnits((await Promise.all(([5, 6, 7] as ReadingPart[]).map((part) => loadUnits(part)))).flat(), target.questionCount);
+  const questionIds = flattenUniqueQuestionIds(units); if (!questionIds.length) throw new Error("NO_PUBLISHED_CONTENT");
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${userId}:practice`}, 0))`);
+    await tx.update(practiceSessions).set({ status: "abandoned" }).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), ne(practiceSessions.practiceType, "demo_test")));
+    const [session] = await tx.insert(practiceSessions).values({ userId, practiceType: `part_${target.part}`, part: target.part, questionCount: questionIds.length, source: "recommended", requestedQuestionCount: target.questionCount, requestedSkill: target.skill ?? null, requestedSubSkill: target.subSkill ?? null }).returning({ id: practiceSessions.id });
+    const setByQuestion = new Map(units.flatMap((unit) => unit.questionIds.map((id) => [id, unit.part === 5 ? null : unit.id] as const)));
+    await tx.insert(practiceSessionQuestions).values(questionIds.map((questionId, index) => ({ sessionId: session.id, questionId, displayOrder: index + 1, passageSetId: setByQuestion.get(questionId) ?? null })));
+    return session.id;
+  });
+}
 import { sql } from "drizzle-orm";
