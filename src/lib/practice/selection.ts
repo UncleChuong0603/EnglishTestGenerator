@@ -1,10 +1,32 @@
-import type { ReadingPart } from "./types";
-
 export type SelectionUnit = {
   id: string;
-  part: ReadingPart;
+  part: number;
   questionIds: string[];
 };
+
+/** One shared recency policy for adaptive selection. */
+export const RECENT_CONTENT_SESSION_WINDOW = 10;
+
+export type ContentHistory = {
+  seenQuestionIds: ReadonlySet<string>;
+  recentQuestionIds: ReadonlySet<string>;
+};
+
+export function contentHistoryRank(unit: Pick<SelectionUnit, "questionIds">, history: ContentHistory) {
+  if (unit.questionIds.some((id) => history.recentQuestionIds.has(id))) return 2;
+  if (unit.questionIds.some((id) => history.seenQuestionIds.has(id))) return 1;
+  return 0;
+}
+
+/** Stable ordering with a strong recent penalty but a smaller historical penalty. */
+export function rankSelectionUnits<T extends SelectionUnit>(
+  units: readonly T[],
+  history: ContentHistory,
+  relevance: (unit: T) => number = () => 0,
+): T[] {
+  const score = (unit: T) => relevance(unit) * 10 - (contentHistoryRank(unit, history) === 2 ? 25 : contentHistoryRank(unit, history) === 1 ? 5 : 0);
+  return [...units].sort((a, b) => score(b) - score(a) || a.id.localeCompare(b.id));
+}
 
 export function shuffle<T>(items: readonly T[], random = Math.random): T[] {
   const result = [...items];

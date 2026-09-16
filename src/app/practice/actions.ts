@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { attemptAnswers, listeningTranscripts, practiceSessionQuestions, practiceSessions, questionOptions, questionSolutions, questions } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth/session";
-import { createListeningPracticeSession, createReadingPracticeSession, createRecommendedReadingPracticeSession, validatePracticeConfig } from "@/lib/practice/selector";
+import { createListeningPracticeSession, createReadingPracticeSession, createRecommendedListeningPracticeSession, createRecommendedReadingPracticeSession, validatePracticeConfig } from "@/lib/practice/selector";
 import { createAuthorizedListeningMediaUrl } from "@/lib/listening/media-access";
 import { canUnlockListeningGroupReview, hasExactCompleteGroupAnswers } from "@/lib/listening/group-submission";
 import { R2MediaStorage } from "@/lib/media/r2-storage";
@@ -24,7 +24,7 @@ export async function submitReadingPractice(sessionId: string, answers: Submitte
     const [solutions, options] = await Promise.all([tx.select().from(questionSolutions).where(inArray(questionSolutions.questionId, ids)), tx.select().from(questionOptions).where(inArray(questionOptions.questionId, ids))]); const solutionMap = new Map(solutions.map((s) => [s.questionId, s.correctOptionId])); const input = new Map(answers.map((a) => [String(a.questionId), a])); let correct = 0;
     const rows = assigned.map((a) => { const answer = input.get(a.questionId); if (answer?.responseType && answer.responseType !== "MULTIPLE_CHOICE") throw new Error("BAD_RESPONSE_TYPE"); const selected = answer?.selectedOptionId ? String(answer.selectedOptionId) : null; if (selected && !options.some((o) => o.id === selected && o.questionId === a.questionId)) throw new Error("BAD_OPTION"); const correctOptionId = solutionMap.get(a.questionId); if (!correctOptionId) throw new Error("MISSING_SOLUTION"); const evaluation = evaluateMultipleChoice({ type: "MULTIPLE_CHOICE", selectedOptionId: selected }, correctOptionId); if (evaluation.isCorrect) correct++; return { sessionId, userId: user.id, questionId: a.questionId, responseType: "MULTIPLE_CHOICE", selectedOptionId: selected, isCorrect: evaluation.isCorrect, responseTimeMs: Number.isInteger(answer?.responseTimeMs) ? Math.min(Math.max(answer!.responseTimeMs!, 0), 86_400_000) : null, answeredAt: selected ? new Date() : null }; });
     await tx.insert(attemptAnswers).values(rows); await tx.update(practiceSessions).set({ status: "submitted", submittedAt: new Date(), scoreCorrect: correct, scoreTotal: session.questionCount }).where(and(eq(practiceSessions.id, sessionId), eq(practiceSessions.status, "in_progress")));
-  }); revalidatePath("/progress"); revalidatePath("/dashboard"); return { ok: true, sessionId }; } catch (error) { console.error("Could not submit Reading practice", error); return { ok: false, error: "submit_failed" }; }
+  }); revalidatePath("/progress"); revalidatePath("/dashboard"); revalidatePath(`/practice/${sessionId}/results`); return { ok: true, sessionId }; } catch (error) { console.error("Could not submit Reading practice", error); return { ok: false, error: "submit_failed" }; }
 }
 export async function startPart5Practice(formData: FormData) { formData.set("mode", "part_5"); formData.set("source", "custom"); return startReadingPractice(formData); }
 export const submitPart5Practice = submitReadingPractice;
@@ -43,7 +43,7 @@ export async function startRecommendedPractice() {
     const recommendation = await loadRecommendedWorkout(user.id);
     if (recommendation.skillArea === "LISTENING" && isListeningPart(recommendation.part)) {
       const target = recommendation.part === 1 ? 5 : recommendation.part === 2 ? 10 : recommendation.groupCount ?? 3;
-      redirect(`/practice/${await createListeningPracticeSession(user.id, recommendation.part, target)}`);
+      redirect(`/practice/${await createRecommendedListeningPracticeSession(user.id, { part: recommendation.part, skill: recommendation.primarySkill ?? undefined, subSkill: recommendation.primarySubskill ?? undefined, count: target })}`);
     }
     if (recommendation.skillArea === "READING") {
       const part = recommendation.part && recommendation.part >= 5 ? recommendation.part as 5 | 6 | 7 : null;
@@ -81,7 +81,7 @@ export async function submitListeningGroup(sessionId: string, groupId: string, a
       const persisted = existing.length ? existing : rows; if (!canUnlockListeningGroupReview(expectedIds, persisted.map((answer) => answer.questionId))) throw new Error("INCOMPLETE_GROUP"); const transcript = transcriptRows[0]?.content; if (!transcript) throw new Error("MISSING_TRANSCRIPT");
       return { ok: true as const, complete, review: { groupId, transcript, questions: expectedIds.map((questionId) => { const solution = solutions.find((s) => s.questionId === questionId)!; const answer = persisted.find((a) => a.questionId === questionId)!; return { questionId, selectedOptionId: answer.selectedOptionId!, correctOptionId: solution.correctOptionId, isCorrect: answer.isCorrect, explanationEn: solution.explanationEn, explanationVi: solution.explanationVi }; }) } };
     });
-    if (result.complete) { revalidatePath("/progress"); revalidatePath("/dashboard"); }
+    if (result.complete) { revalidatePath("/progress"); revalidatePath("/dashboard"); revalidatePath(`/practice/${sessionId}/results`); }
     return result;
   } catch (error) { console.error("Could not submit Listening group", error); return { ok: false, error: "submit_failed" }; }
 }

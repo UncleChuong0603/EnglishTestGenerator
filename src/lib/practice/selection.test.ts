@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { flattenUniqueQuestionIds, selectClosestUnits } from "./selection";
+import { contentHistoryRank, flattenUniqueQuestionIds, rankSelectionUnits, RECENT_CONTENT_SESSION_WINDOW, selectClosestUnits } from "./selection";
 
 describe("reading practice set selection", () => {
   const noShuffle = () => 0.999;
@@ -21,5 +21,33 @@ describe("reading practice set selection", () => {
       { id: "a", part: 7, questionIds: ["1", "2"] },
       { id: "b", part: 7, questionIds: ["2", "3"] },
     ])).toEqual(["1", "2", "3"]);
+  });
+
+  it("defines recency centrally as the latest ten submitted sessions", () => {
+    expect(RECENT_CONTENT_SESSION_WINDOW).toBe(10);
+  });
+
+  it("prefers unseen content and can reuse older content before recent content", () => {
+    const units = [
+      { id: "recent", part: 1, questionIds: ["q1"] },
+      { id: "old", part: 1, questionIds: ["q2"] },
+      { id: "unseen", part: 1, questionIds: ["q3"] },
+    ];
+    const history = { seenQuestionIds: new Set(["q1", "q2"]), recentQuestionIds: new Set(["q1"]) };
+    expect(rankSelectionUnits(units, history).map((unit) => unit.id)).toEqual(["unseen", "old", "recent"]);
+  });
+
+  it("deprioritizes a complete group when any child was recent", () => {
+    const group = { id: "conversation", part: 3, questionIds: ["q1", "q2", "q3"] };
+    expect(contentHistoryRank(group, { seenQuestionIds: new Set(["q2"]), recentQuestionIds: new Set(["q2"]) })).toBe(2);
+  });
+
+  it("uses relevance while allowing a recent exact target to fall behind fresh support", () => {
+    const units = [
+      { id: "exact-recent", part: 3, questionIds: ["q1"], relevance: 3 },
+      { id: "support-unseen", part: 3, questionIds: ["q2"], relevance: 2 },
+    ];
+    const ranked = rankSelectionUnits(units, { seenQuestionIds: new Set(["q1"]), recentQuestionIds: new Set(["q1"]) }, (unit) => unit.relevance);
+    expect(ranked[0].id).toBe("support-unseen");
   });
 });

@@ -1,13 +1,32 @@
 import "server-only";
-import { and, asc, eq, inArray, ne } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
 import { db } from "@/db";
-import { listeningTranscripts, mediaAssets, passageSets, passages, practiceSessionQuestions, practiceSessions, questionGroupMedia, questionOptions, questionSolutions, questions } from "@/db/schema";
+import { attemptAnswers, listeningTranscripts, mediaAssets, passageSets, passages, practiceSessionQuestions, practiceSessions, questionGroupMedia, questionOptions, questionSolutions, questions } from "@/db/schema";
 import { validateListeningEligibility, validateListeningGroupEligibility } from "@/lib/listening/eligibility";
 import { MIXED_PART_WEIGHTS, READING_TAXONOMY } from "./constants";
-import { flattenUniqueQuestionIds, selectClosestUnits, shuffle, type SelectionUnit } from "./selection";
+import { flattenUniqueQuestionIds, rankSelectionUnits, RECENT_CONTENT_SESSION_WINDOW, selectClosestUnits, shuffle, type ContentHistory, type SelectionUnit } from "./selection";
 import type { PracticeConfig, ReadingPart } from "./types";
 
-export async function selectListeningPractice(part: 1 | 2 | 3 | 4, target = 10) {
+const EMPTY_HISTORY: ContentHistory = { seenQuestionIds: new Set(), recentQuestionIds: new Set() };
+const keepOrder = () => 0.999;
+
+async function loadContentHistory(userId: string, candidateIds: readonly string[]): Promise<ContentHistory> {
+  if (!candidateIds.length) return EMPTY_HISTORY;
+  const recentSessions = await db.select({ id: practiceSessions.id }).from(practiceSessions)
+    .where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "submitted")))
+    .orderBy(desc(practiceSessions.submittedAt)).limit(RECENT_CONTENT_SESSION_WINDOW);
+  const seen = await db.select({ questionId: attemptAnswers.questionId, sessionId: attemptAnswers.sessionId }).from(attemptAnswers)
+    .where(and(eq(attemptAnswers.userId, userId), inArray(attemptAnswers.questionId, [...candidateIds])));
+  const recentSessionIds = new Set(recentSessions.map((row) => row.id));
+  return {
+    seenQuestionIds: new Set(seen.map((row) => row.questionId)),
+    recentQuestionIds: new Set(seen.filter((row) => recentSessionIds.has(row.sessionId)).map((row) => row.questionId)),
+  };
+}
+
+type ListeningTarget = { userId: string; skill?: string; subSkill?: string };
+
+export async function selectListeningPractice(part: 1 | 2 | 3 | 4, target = 10, focus?: ListeningTarget) {
   const candidates = await db.select().from(questions).where(and(eq(questions.skillArea, "LISTENING"), eq(questions.toeicPart, part), eq(questions.status, "published"))).limit(200);
   const setIds = [...new Set(candidates.flatMap((q) => q.passageSetId ?? []))];
   if (!setIds.length) throw new Error(`NOT_ENOUGH_LISTENING_PART_${part}`);
@@ -20,17 +39,24 @@ export async function selectListeningPractice(part: 1 | 2 | 3 | 4, target = 10) 
     db.select().from(listeningTranscripts).where(inArray(listeningTranscripts.questionGroupId, setIds)),
   ]);
   const published = new Set(sets.map((s) => s.id));
+  const history = focus ? await loadContentHistory(focus.userId, questionIds) : EMPTY_HISTORY;
+  const relevance = (q: (typeof candidates)[number]) => focus?.subSkill && q.subSkill === focus.subSkill ? 3 : focus?.skill && q.skill === focus.skill ? 2 : 1;
   if (part <= 2) {
-    const valid = shuffle(candidates.filter((q) => q.passageSetId && published.has(q.passageSetId) && validateListeningEligibility({ skillArea: q.skillArea, part: q.toeicPart, responseType: q.responseType, questionCount: candidates.filter((other) => other.passageSetId === q.passageSetId).length, options: options.filter((o) => o.questionId === q.id), correctOptionId: solutions.find((s) => s.questionId === q.id)?.correctOptionId ?? null, explanationEn: solutions.find((s) => s.questionId === q.id)?.explanationEn ?? null, explanationVi: solutions.find((s) => s.questionId === q.id)?.explanationVi ?? null, transcript: transcripts.find((t) => t.questionGroupId === q.passageSetId)?.content ?? null, media: attachments.filter((a) => a.groupId === q.passageSetId) as Parameters<typeof validateListeningEligibility>[0]["media"] }).eligible));
+    const eligible = candidates.filter((q) => q.passageSetId && published.has(q.passageSetId) && validateListeningEligibility({ skillArea: q.skillArea, part: q.toeicPart, responseType: q.responseType, questionCount: candidates.filter((other) => other.passageSetId === q.passageSetId).length, options: options.filter((o) => o.questionId === q.id), correctOptionId: solutions.find((s) => s.questionId === q.id)?.correctOptionId ?? null, explanationEn: solutions.find((s) => s.questionId === q.id)?.explanationEn ?? null, explanationVi: solutions.find((s) => s.questionId === q.id)?.explanationVi ?? null, transcript: transcripts.find((t) => t.questionGroupId === q.passageSetId)?.content ?? null, media: attachments.filter((a) => a.groupId === q.passageSetId) as Parameters<typeof validateListeningEligibility>[0]["media"] }).eligible);
+    const valid = focus ? rankSelectionUnits(eligible.map((q) => ({ ...q, part, questionIds: [q.id] })), history, relevance) : shuffle(eligible);
     if (valid.length < target) throw new Error(`NOT_ENOUGH_LISTENING_PART_${part}`);
     return valid.slice(0, target);
   }
-  const eligibleSets = shuffle(sets.filter((set) => {
+  const eligibleSets = sets.filter((set) => {
     const children = candidates.filter((q) => q.passageSetId === set.id).sort((a, b) => a.questionOrder - b.questionOrder);
     return validateListeningGroupEligibility({ skillArea: "LISTENING", part, setType: set.setType, status: set.status, transcript: transcripts.find((t) => t.questionGroupId === set.id)?.content ?? null, media: attachments.filter((a) => a.groupId === set.id) as Parameters<typeof validateListeningGroupEligibility>[0]["media"], questions: children.map((q) => { const solution = solutions.find((s) => s.questionId === q.id); return { order: q.questionOrder, responseType: q.responseType, options: options.filter((o) => o.questionId === q.id), correctOptionId: solution?.correctOptionId ?? null, explanationEn: solution?.explanationEn ?? null, explanationVi: solution?.explanationVi ?? null }; }) }).eligible;
-  }));
+  });
   if (eligibleSets.length < target) throw new Error(`NOT_ENOUGH_LISTENING_PART_${part}`);
-  const selectedIds = eligibleSets.slice(0, target).map((set) => set.id);
+  const rankedSets = focus ? rankSelectionUnits(eligibleSets.map((set) => ({ ...set, part, questionIds: candidates.filter((q) => q.passageSetId === set.id).map((q) => q.id) })), history, (set) => {
+    const children = candidates.filter((q) => q.passageSetId === set.id);
+    return 1 + children.filter((q) => focus.subSkill && q.subSkill === focus.subSkill).length * 3 + children.filter((q) => focus.skill && q.skill === focus.skill).length * 2;
+  }) : shuffle(eligibleSets);
+  const selectedIds = rankedSets.slice(0, target).map((set) => set.id);
   return selectedIds.flatMap((id) => candidates.filter((q) => q.passageSetId === id).sort((a, b) => a.questionOrder - b.questionOrder));
 }
 
@@ -40,6 +66,17 @@ export async function createListeningPracticeSession(userId: string, part: 1 | 2
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${userId}:practice`}, 0))`);
     await tx.update(practiceSessions).set({ status: "abandoned" }).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), ne(practiceSessions.practiceType, "demo_test")));
     const [session] = await tx.insert(practiceSessions).values({ userId, skillArea: "LISTENING", practiceType: `listening_part_${part}`, part, questionCount: selected.length, requestedQuestionCount: target, source: "custom" }).returning({ id: practiceSessions.id });
+    await tx.insert(practiceSessionQuestions).values(selected.map((q, index) => ({ sessionId: session.id, questionId: q.id, displayOrder: index + 1, passageSetId: q.passageSetId })));
+    return session.id;
+  });
+}
+
+export async function createRecommendedListeningPracticeSession(userId: string, target: { part: 1 | 2 | 3 | 4; skill?: string; subSkill?: string; count: number }) {
+  const selected = await selectListeningPractice(target.part, target.count, { userId, skill: target.skill, subSkill: target.subSkill });
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${userId}:practice`}, 0))`);
+    await tx.update(practiceSessions).set({ status: "abandoned" }).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), ne(practiceSessions.practiceType, "demo_test")));
+    const [session] = await tx.insert(practiceSessions).values({ userId, skillArea: "LISTENING", practiceType: `listening_part_${target.part}`, part: target.part, questionCount: selected.length, requestedQuestionCount: target.part >= 3 ? target.count * 3 : target.count, source: "recommended", requestedSkill: target.skill ?? null, requestedSubSkill: target.subSkill ?? null }).returning({ id: practiceSessions.id });
     await tx.insert(practiceSessionQuestions).values(selected.map((q, index) => ({ sessionId: session.id, questionId: q.id, displayOrder: index + 1, passageSetId: q.passageSetId })));
     return session.id;
   });
@@ -86,16 +123,21 @@ export async function createReadingPracticeSession(userId: string, config: Pract
 /** Recommended-only 60/20/20 selector. Whole passage units are never split. */
 export async function createRecommendedReadingPracticeSession(userId: string, target: { part: ReadingPart; skill?: string; subSkill?: string; questionCount: number }) {
   const primaryPools = [await loadUnits(target.part, target.skill, target.subSkill), await loadUnits(target.part, target.skill), await loadUnits(target.part)];
-  const primaryPool = primaryPools.find((pool) => pool.length) ?? [];
-  const primary = selectClosestUnits(primaryPool, Math.max(1, Math.round(target.questionCount * 0.6)));
-  const used = new Set(primary.map((unit) => unit.id));
-  const supportPool = (await loadUnits(target.part)).filter((unit) => !used.has(unit.id));
-  const support = selectClosestUnits(supportPool, Math.max(1, Math.round(target.questionCount * 0.2))); support.forEach((unit) => used.add(unit.id));
   const otherParts = ([5, 6, 7] as ReadingPart[]).filter((part) => part !== target.part);
-  const maintenancePool = (await Promise.all(otherParts.map((part) => loadUnits(part)))).flat().filter((unit) => !used.has(unit.id));
-  const maintenance = selectClosestUnits(maintenancePool, Math.max(1, Math.round(target.questionCount * 0.2)));
+  const allOtherUnits = (await Promise.all(otherParts.map((part) => loadUnits(part)))).flat();
+  const allCandidateIds = flattenUniqueQuestionIds([...primaryPools.flat(), ...allOtherUnits]);
+  const history = await loadContentHistory(userId, allCandidateIds);
+  const primarySpecificity = new Map<string, number>();
+  primaryPools.forEach((pool, index) => pool.forEach((unit) => primarySpecificity.set(unit.id, Math.max(primarySpecificity.get(unit.id) ?? 0, 3 - index))));
+  const primaryPool = rankSelectionUnits([...new Map(primaryPools.flat().map((unit) => [unit.id, unit])).values()], history, (unit) => primarySpecificity.get(unit.id) ?? 0);
+  const primary = selectClosestUnits(primaryPool, Math.max(1, Math.round(target.questionCount * 0.6)), keepOrder);
+  const used = new Set(primary.map((unit) => unit.id));
+  const supportPool = rankSelectionUnits(primaryPools[2].filter((unit) => !used.has(unit.id)), history);
+  const support = selectClosestUnits(supportPool, Math.max(1, Math.round(target.questionCount * 0.2)), keepOrder); support.forEach((unit) => used.add(unit.id));
+  const maintenancePool = rankSelectionUnits(allOtherUnits.filter((unit) => !used.has(unit.id)), history);
+  const maintenance = selectClosestUnits(maintenancePool, Math.max(1, Math.round(target.questionCount * 0.2)), keepOrder);
   let units = [...primary, ...support, ...maintenance];
-  if (!units.length) units = selectClosestUnits((await Promise.all(([5, 6, 7] as ReadingPart[]).map((part) => loadUnits(part)))).flat(), target.questionCount);
+  if (!units.length) units = selectClosestUnits(rankSelectionUnits(allOtherUnits, history), target.questionCount, keepOrder);
   const questionIds = flattenUniqueQuestionIds(units); if (!questionIds.length) throw new Error("NO_PUBLISHED_CONTENT");
   return db.transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${userId}:practice`}, 0))`);
