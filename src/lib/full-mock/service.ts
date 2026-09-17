@@ -1,4 +1,5 @@
 import "server-only";
+import { randomUUID } from "node:crypto";
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { attemptAnswers, fullMockAnswers, fullMockRuns, passageSets, practiceSessionQuestions, practiceSessions, questionOptions, questionSolutions } from "@/db/schema";
@@ -6,6 +7,7 @@ import { reconcileMasteryAnswers } from "@/lib/mastery/persistence";
 import { getSafeSessionContent } from "@/lib/practice/queries";
 import { loadUnits, selectListeningPractice } from "@/lib/practice/selector";
 import { assembleFullMock, deadlineFrom, type MockForm, type MockUnit } from "./blueprint";
+import { consumeUsage } from "@/lib/entitlements/service";
 
 export type FullMockReadiness = {
   ready: boolean;
@@ -54,12 +56,13 @@ export async function getActiveFullMock(userId: string) {
 export async function createFullMock(userId: string): Promise<{ ok: true; runId: string; resumed: boolean } | { ok: false; reason: "CONTENT_NOT_READY" }> {
   const active = await getActiveFullMock(userId); if (active) return { ok: true, runId: active.id, resumed: true };
   const readiness = await getFullMockReadiness(); if (!readiness.ready || !readiness.form) return { ok: false, reason: "CONTENT_NOT_READY" };
-  const now = new Date();
+  const now = new Date(); const runId = randomUUID();
   return db.transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${userId}:full-mock`}, 0))`);
     const [existing] = await tx.select().from(fullMockRuns).where(and(eq(fullMockRuns.userId, userId), inArray(fullMockRuns.status, ["LISTENING", "READING"]))).limit(1);
     if (existing) return { ok: true as const, runId: existing.id, resumed: true };
-    const [run] = await tx.insert(fullMockRuns).values({ userId, listeningStartedAt: now, listeningDeadline: deadlineFrom(now, "LISTENING") }).returning({ id: fullMockRuns.id });
+    await consumeUsage(tx, { userId, entitlement: "FULL_MOCK", sourceType: "FULL_MOCK_RUN", sourceId: runId, now });
+    const [run] = await tx.insert(fullMockRuns).values({ id: runId, userId, listeningStartedAt: now, listeningDeadline: deadlineFrom(now, "LISTENING") }).returning({ id: fullMockRuns.id });
     for (const part of [1,2,3,4,5,6,7] as const) {
       const units = readiness.form!.byPart[part]; const ids = units.flatMap((unit) => unit.questionIds);
       const [session] = await tx.insert(practiceSessions).values({ userId, skillArea: part <= 4 ? "LISTENING" : "READING", practiceType: `full_mock_part_${part}`, part, status: "in_progress", questionCount: ids.length, requestedQuestionCount: ids.length, source: "full_mock", fullMockRunId: run.id, fullMockOrder: part }).returning({ id: practiceSessions.id });

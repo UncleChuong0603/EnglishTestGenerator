@@ -10,6 +10,7 @@ import { getPreferences, getTranslations } from "@/lib/i18n/get-translations";
 import type { InterfaceLanguage } from "@/lib/i18n/config";
 import { getCurrentProfile } from "@/lib/profiles/profile";
 import type { SkillAreaProgress } from "@/lib/progress/types";
+import { getUsageStatus } from "@/lib/entitlements/service";
 
 function ProgressCard({ area, locale }: { area: SkillAreaProgress; locale: InterfaceLanguage }) {
   const t = getTranslations(locale).workout;
@@ -29,9 +30,10 @@ export default async function DashboardPage() {
   if (profileResult.status === "missing") redirect("/onboarding");
   if (profileResult.status === "error") return <main className="grid min-h-screen place-items-center bg-slate-50 p-6 text-center"><div><h1 className="text-2xl font-black">{translations.dashboard.loadErrorTitle}</h1><p className="mt-2 text-slate-600">{translations.dashboard.loadErrorBody}</p></div></main>;
 
-  const [dashboardResult, activeDemo] = await Promise.all([
+  const [dashboardResult, activeDemo, usage] = await Promise.all([
     getDashboardData(user.id).catch((error) => { console.error("Could not load dashboard data", error); return null; }),
     getActiveDemoTest(user.id).catch((error) => { console.error("Could not load active demo", error); return null; }),
+    getUsageStatus(user.id),
   ]);
   const profile = profileResult.profile!;
   const t = translations.workout;
@@ -40,6 +42,8 @@ export default async function DashboardPage() {
     <LearnerNav locale={locale} />
     <header className="mt-8"><p className="text-sm font-bold uppercase tracking-wider text-teal-700">{translations.dashboard.welcome}</p><h1 className="mt-2 text-3xl font-black sm:text-4xl">{profile.full_name ?? user.email ?? "Learner"}</h1></header>
     <div className="mt-7">{dashboardResult?.recommendDiagnostic ? <section className="rounded-3xl bg-slate-900 p-6 text-white sm:p-8"><p className="text-sm font-black uppercase tracking-wider text-teal-300">{locale === "vi" ? "Xây dựng hồ sơ TOEIC" : "Build your TOEIC profile"}</p><h2 className="mt-2 text-2xl font-black">{dashboardResult.activeDiagnosticId ? (locale === "vi" ? "Tiếp tục bài đánh giá đầu vào" : "Continue your diagnostic") : (locale === "vi" ? "Bắt đầu bài đánh giá đầu vào" : "Take your diagnostic assessment")}</h2><p className="mt-3 max-w-2xl text-slate-300">{locale === "vi" ? "Hoàn thành một bài ngắn qua Listening và Reading để cá nhân hóa luyện tập nhanh hơn." : "Complete a short Listening and Reading assessment to personalize your training faster."}</p><Link className="mt-5 inline-flex min-h-12 items-center rounded-xl bg-teal-400 px-5 font-bold text-slate-950" href={dashboardResult.activeDiagnosticId ? `/diagnostic/${dashboardResult.activeDiagnosticId}` : "/diagnostic"}>{dashboardResult.activeDiagnosticId ? (locale === "vi" ? "Tiếp tục đánh giá" : "Continue diagnostic") : (locale === "vi" ? "Bắt đầu đánh giá" : "Start diagnostic")}</Link></section> : dashboardResult?.recommendation ? <UnifiedRecommendationCard dashboard locale={locale} recommendation={dashboardResult.recommendation} /> : <RecommendationUnavailable locale={locale} />}</div>
+
+    <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-6" aria-labelledby="plan-heading"><div className="flex items-center justify-between gap-4"><h2 className="text-xl font-black" id="plan-heading">{usage.effectivePlan === "PREMIUM" ? "Premium" : locale === "vi" ? "Gói Free" : "Free plan"}</h2><Link className="font-bold text-teal-700" href="/pricing">{locale === "vi" ? "Xem Premium" : "View Premium"}</Link></div><div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">{([['TODAYS_WORKOUT', locale === 'vi' ? 'Bài hôm nay' : "Today's Workout"],['MANUAL_PRACTICE', locale === 'vi' ? 'Luyện tập' : 'Practice'],['MASTERY_REVIEW', locale === 'vi' ? 'Ôn lỗi sai' : 'Mastery Review'],['FULL_MOCK','Full Mock']] as const).map(([key,label]) => { const item = usage.entitlements[key]; return <div className="rounded-xl bg-slate-50 p-3" key={key}><strong>{label}</strong><p className="mt-1 text-slate-600">{item.type === 'UNLIMITED' ? (locale === 'vi' ? 'Không giới hạn' : 'Unlimited') : `${item.used} / ${item.limit} ${key === 'FULL_MOCK' ? (locale === 'vi' ? 'tháng này' : 'this month') : (locale === 'vi' ? 'hôm nay' : 'today')}`}</p></div>; })}</div></section>
 
     <section className="mt-8" aria-labelledby="progress-heading"><div className="flex flex-wrap items-end justify-between gap-3"><h2 className="text-2xl font-black" id="progress-heading">{t.progressTitle}</h2><Link className="font-bold text-teal-700 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700" href="/progress">{t.viewProgress}</Link></div>
       {dashboardResult ? <div className="mt-4 grid gap-4 sm:grid-cols-2"><ProgressCard area={dashboardResult.progress.listening} locale={locale} /><ProgressCard area={dashboardResult.progress.reading} locale={locale} /></div> : <p className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-amber-900" role="alert">{translations.dashboard.progressError}</p>}

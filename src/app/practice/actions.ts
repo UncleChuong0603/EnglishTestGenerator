@@ -16,12 +16,13 @@ import { evaluateMultipleChoice } from "@/lib/toeic/evaluation";
 import { isListeningPart, loadRecommendedWorkout } from "@/lib/diagnosis/service";
 import { enforceRateLimit } from "@/lib/auth/rate-limit";
 import { reconcileMasteryAnswers } from "@/lib/mastery/persistence";
+import { UsageLimitError } from "@/lib/entitlements/service";
 
 function parseConfig(formData: FormData): PracticeConfig | null { const config = { mode: String(formData.get("mode") ?? "") as ReadingPracticeMode, targetQuestionCount: Number(formData.get("questionCount")), source: formData.get("source") === "recommended" ? "recommended" : "custom", skill: String(formData.get("skill") ?? "").trim() || undefined, subSkill: String(formData.get("subSkill") ?? "").trim() || undefined } as PracticeConfig; return validatePracticeConfig(config) ? config : null; }
 async function currentOwner() { const user = await getCurrentUser(); if (user) return { userId: user.id, guestOwnerHash: null }; return { userId: null, guestOwnerHash: await getGuestOwnerHash() }; }
 function ownedSessionCondition(sessionId: string, owner: Awaited<ReturnType<typeof currentOwner>>) { return owner.userId ? and(eq(practiceSessions.id, sessionId), eq(practiceSessions.userId, owner.userId)) : owner.guestOwnerHash ? and(eq(practiceSessions.id, sessionId), eq(practiceSessions.guestOwnerHash, owner.guestOwnerHash)) : and(eq(practiceSessions.id, sessionId), eq(practiceSessions.id, "00000000-0000-0000-0000-000000000000")); }
 export async function startGuestPractice(formData: FormData) { const kind = formData.get("kind"); const user = await getCurrentUser(); if (user) redirect("/practice"); const requestHeaders = await headers(); const ip = requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() ?? requestHeaders.get("x-real-ip") ?? "unknown"; try { await enforceRateLimit("guest_practice", ip); const guestOwnerHash = await requireGuestOwnerHash(); redirect(`/practice/${kind === "listening" ? await createGuestListeningPracticeSession(guestOwnerHash) : await createGuestReadingPracticeSession(guestOwnerHash)}`); } catch (error) { if (typeof error === "object" && error && "digest" in error) throw error; console.error("Could not start guest practice", error); redirect("/try?error=start_failed"); } }
-export async function startReadingPractice(formData: FormData) { const config = parseConfig(formData); if (!config) redirect("/practice?error=invalid_config"); const user = await getCurrentUser(); if (!user) redirect("/sign-in"); try { redirect(`/practice/${await createReadingPracticeSession(user.id, config)}`); } catch (error) { if (typeof error === "object" && error && "digest" in error) throw error; console.error("Could not start Reading practice", error); redirect(`/practice?error=${error instanceof Error && error.message === "NO_PUBLISHED_CONTENT" ? "not_enough_content" : "start_failed"}`); } }
+export async function startReadingPractice(formData: FormData) { const config = parseConfig(formData); if (!config) redirect("/practice?error=invalid_config"); const user = await getCurrentUser(); if (!user) redirect("/sign-in"); try { redirect(`/practice/${await createReadingPracticeSession(user.id, config)}`); } catch (error) { if (typeof error === "object" && error && "digest" in error) throw error; if (error instanceof UsageLimitError) redirect(`/practice?error=usage_limit&resetAt=${encodeURIComponent(error.status.resetAt)}`); console.error("Could not start Reading practice", error); redirect(`/practice?error=${error instanceof Error && error.message === "NO_PUBLISHED_CONTENT" ? "not_enough_content" : "start_failed"}`); } }
 type SubmitResult = { ok: true; sessionId: string } | { ok: false; error: "session_expired" | "submit_failed" };
 export async function submitReadingPractice(sessionId: string, answers: SubmittedAnswer[]): Promise<SubmitResult> {
   const owner = await currentOwner(); if (!owner.userId && !owner.guestOwnerHash) return { ok: false, error: "session_expired" }; if (!sessionId || !Array.isArray(answers) || answers.length > 30 || new Set(answers.map((a) => a.questionId)).size !== answers.length) return { ok: false, error: "submit_failed" };
@@ -40,7 +41,7 @@ export async function startListeningPractice(formData: FormData) {
   const part = Number(formData.get("part")); const user = await getCurrentUser();
   if (!user) redirect("/sign-in"); if (![1, 2, 3, 4].includes(part)) redirect("/practice?error=invalid_config");
   try { const typedPart = part as 1 | 2 | 3 | 4; redirect(`/practice/${await createListeningPracticeSession(user.id, typedPart, typedPart <= 2 ? (typedPart === 1 ? 5 : 10) : 3)}`); }
-  catch (error) { if (typeof error === "object" && error && "digest" in error) throw error; console.error("Could not start Listening practice", error); redirect(`/practice?error=not_enough_listening_${part}`); }
+  catch (error) { if (typeof error === "object" && error && "digest" in error) throw error; if (error instanceof UsageLimitError) redirect(`/practice?error=usage_limit&resetAt=${encodeURIComponent(error.status.resetAt)}`); console.error("Could not start Listening practice", error); redirect(`/practice?error=not_enough_listening_${part}`); }
 }
 
 /** Recalculates on the server; no client-supplied weakness or taxonomy is trusted. */
@@ -64,7 +65,7 @@ export async function startRecommendedPractice() {
       for (const config of attempts) try { redirect(`/practice/${await createReadingPracticeSession(user.id, config)}`); } catch (error) { if (typeof error === "object" && error && "digest" in error) throw error; }
     }
     redirect("/practice?error=not_enough_content");
-  } catch (error) { if (typeof error === "object" && error && "digest" in error) throw error; console.error("Could not start recommended practice", error); redirect("/practice?error=start_failed"); }
+  } catch (error) { if (typeof error === "object" && error && "digest" in error) throw error; if (error instanceof UsageLimitError) redirect(`/practice?error=usage_limit&resetAt=${encodeURIComponent(error.status.resetAt)}`); console.error("Could not start recommended practice", error); redirect("/practice?error=start_failed"); }
 }
 
 export type ListeningGroupReview = { groupId: string; transcript: string; questions: Array<{ questionId: string; selectedOptionId: string; correctOptionId: string; isCorrect: boolean; explanationEn: string | null; explanationVi: string | null }> };

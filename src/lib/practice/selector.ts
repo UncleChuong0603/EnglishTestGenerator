@@ -1,5 +1,6 @@
 import "server-only";
-import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
+import { and, asc, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { attemptAnswers, listeningTranscripts, mediaAssets, passageSets, passages, practiceSessionQuestions, practiceSessions, questionGroupMedia, questionOptions, questionSolutions, questions } from "@/db/schema";
 import { validateListeningEligibility, validateListeningGroupEligibility } from "@/lib/listening/eligibility";
@@ -9,6 +10,7 @@ import type { PracticeConfig, ReadingPart } from "./types";
 import { GUEST_TTL_DAYS } from "@/lib/guest/identity";
 import { MASTERY_REVIEW_BATCH_SIZE } from "@/lib/mastery/constants";
 import { expandReviewGroups, getReviewCandidates } from "@/lib/mastery/queries";
+import { consumeUsage } from "@/lib/entitlements/service";
 
 const EMPTY_HISTORY: ContentHistory = { seenQuestionIds: new Set(), recentQuestionIds: new Set() };
 const keepOrder = () => 0.999;
@@ -76,10 +78,12 @@ export async function selectListeningPractice(part: 1 | 2 | 3 | 4, target = 10, 
 
 export async function createListeningPracticeSession(userId: string, part: 1 | 2 | 3 | 4, target = 10) {
   const selected = await selectListeningPractice(part, target);
+  const sessionId = randomUUID(); const now = new Date();
   return db.transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${userId}:practice`}, 0))`);
     await tx.update(practiceSessions).set({ status: "abandoned" }).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), ne(practiceSessions.practiceType, "demo_test"), ne(practiceSessions.source, "diagnostic")));
-    const [session] = await tx.insert(practiceSessions).values({ userId, skillArea: "LISTENING", practiceType: `listening_part_${part}`, part, questionCount: selected.length, requestedQuestionCount: target, source: "custom" }).returning({ id: practiceSessions.id });
+    await consumeUsage(tx, { userId, entitlement: "MANUAL_PRACTICE", sourceType: "PRACTICE_SESSION", sourceId: sessionId, now });
+    const [session] = await tx.insert(practiceSessions).values({ id: sessionId, userId, skillArea: "LISTENING", practiceType: `listening_part_${part}`, part, questionCount: selected.length, requestedQuestionCount: target, source: "custom" }).returning({ id: practiceSessions.id });
     await tx.insert(practiceSessionQuestions).values(selected.map((q, index) => ({ sessionId: session.id, questionId: q.id, displayOrder: index + 1, passageSetId: q.passageSetId })));
     return session.id;
   });
@@ -87,10 +91,13 @@ export async function createListeningPracticeSession(userId: string, part: 1 | 2
 
 export async function createRecommendedListeningPracticeSession(userId: string, target: { part: 1 | 2 | 3 | 4; skill?: string; subSkill?: string; count: number }) {
   const selected = await selectListeningPractice(target.part, target.count, { userId, skill: target.skill, subSkill: target.subSkill });
+  const sessionId = randomUUID(); const now = new Date();
   return db.transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${userId}:practice`}, 0))`);
+    const [existing] = await tx.select({ id: practiceSessions.id }).from(practiceSessions).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), eq(practiceSessions.source, "recommended"))).limit(1); if (existing) return existing.id;
     await tx.update(practiceSessions).set({ status: "abandoned" }).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), ne(practiceSessions.practiceType, "demo_test"), ne(practiceSessions.source, "diagnostic")));
-    const [session] = await tx.insert(practiceSessions).values({ userId, skillArea: "LISTENING", practiceType: `listening_part_${target.part}`, part: target.part, questionCount: selected.length, requestedQuestionCount: target.part >= 3 ? target.count * 3 : target.count, source: "recommended", requestedSkill: target.skill ?? null, requestedSubSkill: target.subSkill ?? null }).returning({ id: practiceSessions.id });
+    await consumeUsage(tx, { userId, entitlement: "TODAYS_WORKOUT", sourceType: "PRACTICE_SESSION", sourceId: sessionId, now });
+    const [session] = await tx.insert(practiceSessions).values({ id: sessionId, userId, skillArea: "LISTENING", practiceType: `listening_part_${target.part}`, part: target.part, questionCount: selected.length, requestedQuestionCount: target.part >= 3 ? target.count * 3 : target.count, source: "recommended", requestedSkill: target.skill ?? null, requestedSubSkill: target.subSkill ?? null }).returning({ id: practiceSessions.id });
     await tx.insert(practiceSessionQuestions).values(selected.map((q, index) => ({ sessionId: session.id, questionId: q.id, displayOrder: index + 1, passageSetId: q.passageSetId })));
     return session.id;
   });
@@ -124,10 +131,14 @@ export async function selectReadingPractice(config: PracticeConfig) {
 }
 export async function createReadingPracticeSession(userId: string, config: PracticeConfig) {
   const selection = await selectReadingPractice(config); const part = partForMode(config.mode);
+  const sessionId = randomUUID(); const now = new Date();
   return db.transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${userId}:practice`}, 0))`);
+    const entitlement = config.source === "recommended" ? "TODAYS_WORKOUT" : "MANUAL_PRACTICE";
+    if (entitlement === "TODAYS_WORKOUT") { const [existing] = await tx.select({ id: practiceSessions.id }).from(practiceSessions).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), eq(practiceSessions.source, "recommended"))).limit(1); if (existing) return existing.id; }
     await tx.update(practiceSessions).set({ status: "abandoned" }).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), ne(practiceSessions.practiceType, "demo_test"), ne(practiceSessions.source, "diagnostic")));
-    const [session] = await tx.insert(practiceSessions).values({ userId, practiceType: config.mode, part, questionCount: selection.actualQuestionCount, source: config.source, requestedQuestionCount: config.targetQuestionCount, requestedSkill: config.skill ?? null, requestedSubSkill: config.subSkill ?? null }).returning({ id: practiceSessions.id });
+    await consumeUsage(tx, { userId, entitlement, sourceType: "PRACTICE_SESSION", sourceId: sessionId, now });
+    const [session] = await tx.insert(practiceSessions).values({ id: sessionId, userId, practiceType: config.mode, part, questionCount: selection.actualQuestionCount, source: config.source, requestedQuestionCount: config.targetQuestionCount, requestedSkill: config.skill ?? null, requestedSubSkill: config.subSkill ?? null }).returning({ id: practiceSessions.id });
     const setByQuestion = new Map(selection.units.flatMap((u) => u.questionIds.map((id) => [id, u.part === 5 ? null : u.id] as const)));
     await tx.insert(practiceSessionQuestions).values(selection.questionIds.map((questionId, i) => ({ sessionId: session.id, questionId, displayOrder: i + 1, passageSetId: setByQuestion.get(questionId) ?? null })));
     return session.id;
@@ -177,17 +188,18 @@ export async function createRecommendedReadingPracticeSession(userId: string, ta
   let units = [...primary, ...support, ...maintenance];
   if (!units.length) units = selectClosestUnits(rankSelectionUnits(allOtherUnits, history), target.questionCount, keepOrder);
   const questionIds = flattenUniqueQuestionIds(units); if (!questionIds.length) throw new Error("NO_PUBLISHED_CONTENT");
+  const sessionId = randomUUID(); const now = new Date();
   return db.transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${userId}:practice`}, 0))`);
+    const [existing] = await tx.select({ id: practiceSessions.id }).from(practiceSessions).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), eq(practiceSessions.source, "recommended"))).limit(1); if (existing) return existing.id;
     await tx.update(practiceSessions).set({ status: "abandoned" }).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), ne(practiceSessions.practiceType, "demo_test"), ne(practiceSessions.source, "diagnostic")));
-    const [session] = await tx.insert(practiceSessions).values({ userId, practiceType: `part_${target.part}`, part: target.part, questionCount: questionIds.length, source: "recommended", requestedQuestionCount: target.questionCount, requestedSkill: target.skill ?? null, requestedSubSkill: target.subSkill ?? null }).returning({ id: practiceSessions.id });
+    await consumeUsage(tx, { userId, entitlement: "TODAYS_WORKOUT", sourceType: "PRACTICE_SESSION", sourceId: sessionId, now });
+    const [session] = await tx.insert(practiceSessions).values({ id: sessionId, userId, practiceType: `part_${target.part}`, part: target.part, questionCount: questionIds.length, source: "recommended", requestedQuestionCount: target.questionCount, requestedSkill: target.skill ?? null, requestedSubSkill: target.subSkill ?? null }).returning({ id: practiceSessions.id });
     const setByQuestion = new Map(units.flatMap((unit) => unit.questionIds.map((id) => [id, unit.part === 5 ? null : unit.id] as const)));
     await tx.insert(practiceSessionQuestions).values(questionIds.map((questionId, index) => ({ sessionId: session.id, questionId, displayOrder: index + 1, passageSetId: setByQuestion.get(questionId) ?? null })));
     return session.id;
   });
 }
-import { sql } from "drizzle-orm";
-
 /** Creates a server-authoritative, single-Part review session; grouped content is expanded atomically. */
 export async function createMasteryReviewSession(userId: string, requestedPart?: number) {
   const candidates = await getReviewCandidates(userId, requestedPart);
@@ -204,10 +216,13 @@ export async function createMasteryReviewSession(userId: string, requestedPart?:
   const expanded = await expandReviewGroups(seedIds, part);
   if (!expanded.length) throw new Error("NO_REVIEWABLE_MISTAKES");
   const skillArea = samePart[0].skillArea as "LISTENING" | "READING";
+  const sessionId = randomUUID(); const now = new Date();
   return db.transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${userId}:practice`}, 0))`);
+    const [existing] = await tx.select({ id: practiceSessions.id }).from(practiceSessions).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), eq(practiceSessions.source, "mastery_review"))).limit(1); if (existing) return existing.id;
     await tx.update(practiceSessions).set({ status: "abandoned" }).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), ne(practiceSessions.practiceType, "demo_test"), ne(practiceSessions.source, "diagnostic")));
-    const [session] = await tx.insert(practiceSessions).values({ userId, skillArea, practiceType: skillArea === "LISTENING" ? `listening_part_${part}` : `part_${part}`, part, questionCount: expanded.length, requestedQuestionCount: MASTERY_REVIEW_BATCH_SIZE, source: "mastery_review" }).returning({ id: practiceSessions.id });
+    await consumeUsage(tx, { userId, entitlement: "MASTERY_REVIEW", sourceType: "PRACTICE_SESSION", sourceId: sessionId, now });
+    const [session] = await tx.insert(practiceSessions).values({ id: sessionId, userId, skillArea, practiceType: skillArea === "LISTENING" ? `listening_part_${part}` : `part_${part}`, part, questionCount: expanded.length, requestedQuestionCount: MASTERY_REVIEW_BATCH_SIZE, source: "mastery_review" }).returning({ id: practiceSessions.id });
     await tx.insert(practiceSessionQuestions).values(expanded.map((row, index) => ({ sessionId: session.id, questionId: row.id, displayOrder: index + 1, passageSetId: row.passageSetId })));
     return session.id;
   });

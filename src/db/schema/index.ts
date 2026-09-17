@@ -20,6 +20,38 @@ export const users = pgTable("users", {
   check("users_status_check", sql`${table.status} in ('active', 'disabled', 'pending_verification')`),
 ]);
 
+export const userPlanMemberships = pgTable("user_plan_memberships", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  planKey: text("plan_key").notNull(),
+  source: text("source").notNull(),
+  startsAt: timestamp("starts_at", { withTimezone: true, mode: "date" }).notNull(),
+  endsAt: timestamp("ends_at", { withTimezone: true, mode: "date" }),
+  revokedAt: timestamp("revoked_at", { withTimezone: true, mode: "date" }),
+  ...timestamps,
+}, (table) => [
+  index("user_plan_memberships_user_window_idx").on(table.userId, table.startsAt, table.endsAt, table.revokedAt),
+  check("user_plan_memberships_plan_check", sql`${table.planKey} = 'PREMIUM'`),
+  check("user_plan_memberships_source_check", sql`${table.source} in ('MANUAL','PROMOTION','PAYMENT')`),
+  check("user_plan_memberships_range_check", sql`${table.endsAt} is null or ${table.endsAt} > ${table.startsAt}`),
+]);
+
+export const usageConsumptions = pgTable("usage_consumptions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  entitlementKey: text("entitlement_key").notNull(),
+  sourceType: text("source_type").notNull(),
+  sourceId: uuid("source_id").notNull(),
+  quantity: integer("quantity").notNull().default(1),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+}, (table) => [
+  unique("usage_consumptions_source_unique").on(table.userId, table.entitlementKey, table.sourceType, table.sourceId),
+  index("usage_consumptions_user_entitlement_created_idx").on(table.userId, table.entitlementKey, table.createdAt),
+  check("usage_consumptions_entitlement_check", sql`${table.entitlementKey} in ('TODAYS_WORKOUT','MANUAL_PRACTICE','MASTERY_REVIEW','FULL_MOCK')`),
+  check("usage_consumptions_source_check", sql`${table.sourceType} in ('PRACTICE_SESSION','FULL_MOCK_RUN')`),
+  check("usage_consumptions_quantity_check", sql`${table.quantity} > 0`),
+]);
+
 export const profiles = pgTable("profiles", {
   id: uuid("id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
   fullName: text("full_name"),
