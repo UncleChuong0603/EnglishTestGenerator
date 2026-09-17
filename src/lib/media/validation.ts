@@ -8,7 +8,7 @@ const EXTENSION: Record<string, string> = { "audio/mpeg": "mp3", "image/jpeg": "
 
 function sniffMime(body: Uint8Array): string | null {
   if (body.length >= 3 && body[0] === 0x49 && body[1] === 0x44 && body[2] === 0x33) return "audio/mpeg";
-  if (body.length >= 2 && body[0] === 0xff && body[1] === 0xfb) return "audio/mpeg";
+  if (body.length >= 4 && body[0] === 0xff && (body[1] & 0xe0) === 0xe0 && ((body[1] >> 1) & 3) === 1) return "audio/mpeg";
   if (body.length >= 3 && body[0] === 0xff && body[1] === 0xd8 && body[2] === 0xff) return "image/jpeg";
   if (body.length >= 8 && Buffer.from(body.subarray(0, 8)).equals(Buffer.from([137,80,78,71,13,10,26,10]))) return "image/png";
   if (body.length >= 12 && Buffer.from(body.subarray(0, 4)).toString() === "RIFF" && Buffer.from(body.subarray(8, 12)).toString() === "WEBP") return "image/webp";
@@ -18,12 +18,14 @@ function sniffMime(body: Uint8Array): string | null {
 function mp3DurationMs(body: Uint8Array): number | null {
   let offset = 0;
   if (body.length >= 10 && body[0] === 0x49 && body[1] === 0x44 && body[2] === 0x33) offset = 10 + ((body[6] & 0x7f) << 21) + ((body[7] & 0x7f) << 14) + ((body[8] & 0x7f) << 7) + (body[9] & 0x7f);
-  const bitrates = [0,32,40,48,56,64,80,96,112,128,160,192,224,256,320];
+  const mpeg1Bitrates = [0,32,40,48,56,64,80,96,112,128,160,192,224,256,320];
+  const mpeg2Bitrates = [0,8,16,24,32,40,48,56,64,80,96,112,128,144,160];
   for (let i = offset; i + 4 <= body.length; i++) {
     if (body[i] !== 0xff || (body[i + 1] & 0xe0) !== 0xe0) continue;
     const version = (body[i + 1] >> 3) & 3, layer = (body[i + 1] >> 1) & 3, bitrateIndex = (body[i + 2] >> 4) & 15;
-    if (version !== 3 || layer !== 1 || bitrateIndex < 1 || bitrateIndex > 14) continue;
-    return Math.round((body.length - i) * 8 / (bitrates[bitrateIndex] * 1000) * 1000);
+    if (version === 1 || layer !== 1 || bitrateIndex < 1 || bitrateIndex > 14) continue;
+    const bitrate = (version === 3 ? mpeg1Bitrates : mpeg2Bitrates)[bitrateIndex];
+    return Math.round((body.length - i) * 8 / (bitrate * 1000) * 1000);
   }
   return null;
 }

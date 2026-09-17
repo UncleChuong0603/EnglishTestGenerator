@@ -1,4 +1,3 @@
-// @ts-nocheck -- CLI consumes repository-authored ESM manifests without declaration files.
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
@@ -8,7 +7,7 @@ import pg from "pg";
 import { productionListening } from "./content-manifest.mjs";
 import { validateMediaUpload } from "../src/lib/media/validation";
 import { ConfiguredR2MediaStorage } from "../src/lib/media/r2-client";
-import { OpenAiContentTtsProvider } from "../src/lib/content/tts";
+import { createContentTtsProvider, selectContentVoice, type ContentTtsProviderName } from "../src/lib/content/tts";
 
 const generatedDir = resolve(".content-generated");
 const isDryRun = process.argv.includes("--dry-run");
@@ -19,7 +18,7 @@ const crc = (b: Buffer) => { let c=0xffffffff; for(const x of b)c=crcTable[(c^x)
 const chunk = (name: string, data: Buffer) => { const n=Buffer.from(name); const out=Buffer.alloc(data.length+12); out.writeUInt32BE(data.length); n.copy(out,4); data.copy(out,8); out.writeUInt32BE(crc(Buffer.concat([n,data])),8+data.length); return out; };
 function courierPng() { const w=960,h=540, raw=Buffer.alloc((w*4+1)*h); for(let y=0;y<h;y++){const row=y*(w*4+1); for(let x=0;x<w;x++){const i=row+1+x*4; const counter=y>330; raw[i]=counter?126:232;raw[i+1]=counter?91:238;raw[i+2]=counter?62:242;raw[i+3]=255;} } const rect=(x0:number,y0:number,x1:number,y1:number,r:number,g:number,b:number)=>{for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){const i=y*(w*4+1)+1+x*4;raw[i]=r;raw[i+1]=g;raw[i+2]=b;}}; rect(610,265,790,370,190,132,55);rect(250,170,330,330,38,93,130);rect(220,120,350,190,62,125,168);rect(405,240,600,335,219,174,92); const ih=Buffer.alloc(13);ih.writeUInt32BE(w,0);ih.writeUInt32BE(h,4);ih[8]=8;ih[9]=6; return Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]),chunk("IHDR",ih),chunk("IDAT",deflateSync(raw)),chunk("IEND",Buffer.alloc(0))]); }
 async function validate() { const ids=new Set<string>(); for(const item of productionListening){if(ids.has(item.externalId))throw new Error(`DUPLICATE_CONTENT_ID:${item.externalId}`);ids.add(item.externalId);if(!item.transcript?.trim())throw new Error(`MISSING_TRANSCRIPT:${item.externalId}`);} console.log(`Manifest valid: ${productionListening.length} groups, ${productionListening.reduce((n,i)=>n+(i.questions?.length??1),0)} questions.`); }
-async function generate() { await mkdir(generatedDir,{recursive:true}); let made=0; const image=resolve(generatedDir,"L-P1-PROD-006.png"); if(!existsSync(image)){const authored=resolve("content/listening/source/L-P1-PROD-006.png");await writeFile(image,existsSync(authored)?await readFile(authored):courierPng());made++;} const apiKey=process.env.OPENAI_API_KEY; if(!apiKey){console.log(`Generated ${made} image(s). Audio generation skipped: OPENAI_API_KEY is not set.`);return;} const provider=new OpenAiContentTtsProvider(apiKey,process.env.CONTENT_TTS_MODEL);for(const item of productionListening.filter(i=>i.externalId.startsWith("L-"))){const path=resolve(generatedDir,`${item.externalId}.mp3`);if(existsSync(path))continue;const voice=item.externalId.includes("P3")||item.externalId.includes("P1")?"alloy":"nova";const body=await provider.synthesize({text:item.transcript,voice,locale:"en-US",outputFormat:"mp3"});await writeFile(path,body);made++;} console.log(`Generated ${made} media file(s) with OpenAI TTS.`); }
+async function generate() { await mkdir(generatedDir,{recursive:true}); let generated=0,skipped=0; const image=resolve(generatedDir,"L-P1-PROD-006.png"); if(!existsSync(image)){const authored=resolve("content/listening/source/L-P1-PROD-006.png");await writeFile(image,existsSync(authored)?await readFile(authored):courierPng());generated++;}else skipped++;const providerName=(process.env.CONTENT_TTS_PROVIDER||"edge").toLowerCase() as ContentTtsProviderName;const provider=createContentTtsProvider({provider:providerName,openAiApiKey:process.env.OPENAI_API_KEY,openAiModel:process.env.CONTENT_TTS_MODEL});for(const item of productionListening.filter(i=>i.externalId.startsWith("L-"))){const path=resolve(generatedDir,`${item.externalId}.mp3`);if(existsSync(path)){skipped++;continue;}const voice=selectContentVoice(providerName,item.externalId);const body=await provider.synthesize({text:item.transcript,voice,locale:"en-US",outputFormat:"mp3"});await writeFile(path,body);generated++;}console.log(`TTS provider: ${providerName}`);console.log(`Generated: ${generated}`);console.log(`Skipped: ${skipped}`);console.log("Failed: 0"); }
 async function publish() {
   await validate(); const additions=productionListening.filter(i=>i.externalId.startsWith("L-")); if(isDryRun){console.log(`DRY RUN: would publish ${additions.length} groups and ${additions.reduce((n,i)=>n+(i.questions?.length??1),0)} questions; would upload ${additions.length+1} media assets.`);return;}
   const required=["DATABASE_URL","R2_ENDPOINT","R2_ACCESS_KEY_ID","R2_SECRET_ACCESS_KEY","R2_BUCKET_NAME"] as const; const missing=required.filter(k=>!process.env[k]);if(missing.length)throw new Error(`MISSING_ENV:${missing.join(",")}`);
@@ -29,5 +28,13 @@ async function publish() {
     console.log(`Published ${additions.length} Listening groups idempotently.`);
   } finally {client.release();await pool.end();}
 }
-async function report(){await validate();const rows=productionListening.map(i=>`| ${i.externalId} | ${i.part} | ${i.questions?.length??1} | ${existsSync(resolve(generatedDir,`${i.externalId}.mp3`))?"GENERATED":"PENDING"} |`);await writeFile(resolve(generatedDir,"review-report.md"),`# Listening content review\n\n| Content ID | Part | Questions | Audio |\n|---|---:|---:|---|\n${rows.join("\n")}\n`);console.log("Wrote .content-generated/review-report.md");}
-await ({validate, "generate-media":generate, publish, report}[command] as ()=>Promise<void>)();
+async function report(){await validate();await mkdir(generatedDir,{recursive:true});const rows=productionListening.map(i=>`| ${i.externalId} | ${i.part} | ${i.questions?.length??1} | ${existsSync(resolve(generatedDir,`${i.externalId}.mp3`))?"GENERATED":"PENDING"} |`);await writeFile(resolve(generatedDir,"review-report.md"),`# Listening content review\n\n| Content ID | Part | Questions | Audio |\n|---|---:|---:|---|\n${rows.join("\n")}\n`);console.log("Wrote .content-generated/review-report.md");}
+async function main() {
+  const handler = { validate, "generate-media": generate, publish, report }[command] as () => Promise<void>;
+  await handler();
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
