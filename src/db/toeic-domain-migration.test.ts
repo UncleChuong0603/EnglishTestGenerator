@@ -18,6 +18,7 @@ beforeAll(async () => {
   await applyMigration("drizzle/0004_guest_practice.sql");
   await applyMigration("drizzle/0005_diagnostic_runs.sql");
   await applyMigration("drizzle/0006_mistake_mastery.sql");
+  await applyMigration("drizzle/0007_full_mock_test.sql");
 }, 30_000);
 
 afterAll(async () => database.close());
@@ -28,6 +29,12 @@ describe("TOEIC domain migration", () => {
     expect(tables.rows.map((row) => row.table_name)).toContain("question_mastery");
     const constraints = await database.query<{ constraint_name: string }>("select constraint_name from information_schema.table_constraints where table_name='question_mastery'");
     expect(constraints.rows.map((row) => row.constraint_name)).toContain("question_mastery_user_question_unique");
+  });
+  it("adds authenticated Full Mock lifecycle and progressive answer storage", async () => {
+    const tables = await database.query<{ table_name: string }>("select table_name from information_schema.tables where table_schema='public'");
+    expect(tables.rows.map((row) => row.table_name)).toEqual(expect.arrayContaining(["full_mock_runs", "full_mock_answers"]));
+    const indexes = await database.query<{ indexname: string }>("select indexname from pg_indexes where tablename='full_mock_runs'");
+    expect(indexes.rows.map((row) => row.indexname)).toContain("full_mock_runs_one_active_user_idx");
   });
   it("backfills existing Reading data without changing its identity", async () => {
     const result = await database.query<{ id: string; skill_area: string }>("select id, skill_area from passage_sets where id='00000000-0000-4000-8000-000000000101'");

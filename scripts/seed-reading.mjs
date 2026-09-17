@@ -90,6 +90,10 @@ async function run() {
   if (validation.errors.length) throw new Error(validation.errors.join("\n"));
   console.log(`Local validation passed.\n\n${formatReadingDistribution(validation.report)}\n`);
   const rows = buildRows();
+  if (process.argv.includes("--dry-run")) {
+    console.log(`DRY RUN: would upsert ${rows.setRows.length} sets, ${rows.passageRows.length} passages, ${rows.questionRows.length} questions, ${rows.optionRows.length} options, and ${rows.solutionRows.length} solutions.`);
+    return;
+  }
   const pool = createPool(); const client = await pool.connect();
   if (!process.argv.includes("--verify-only")) {
     await client.query("begin"); await upsertRows(client, "passage_sets", rows.setRows, "id"); await upsertRows(client, "passages", rows.passageRows, "id"); await upsertRows(client, "questions", rows.questionRows, "id"); await upsertRows(client, "question_options", rows.optionRows, "id"); await upsertRows(client, "question_solutions", rows.solutionRows, "question_id"); await client.query("commit");

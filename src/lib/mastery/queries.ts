@@ -1,7 +1,7 @@
 import "server-only";
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { attemptAnswers, diagnosticRuns, practiceSessionQuestions, practiceSessions, questionMastery, questions } from "@/db/schema";
+import { attemptAnswers, diagnosticRuns, fullMockRuns, practiceSessionQuestions, practiceSessions, questionMastery, questions } from "@/db/schema";
 
 export type MistakeStatus = "UNRESOLVED" | "MASTERED";
 export type MistakeListItem = { questionId: string; status: MistakeStatus; skillArea: "LISTENING" | "READING"; part: number; skill: string; subSkill: string; firstMissedAt: Date; lastMissedAt: Date; lastReviewedAt: Date | null; reviewAttemptCount: number; reviewSuccessStreak: number; masteredAt: Date | null; available: boolean };
@@ -10,9 +10,11 @@ const visibleEvidence = sql`exists (
   select 1 from ${attemptAnswers} aa
   join ${practiceSessions} ps on ps.id = aa.session_id
   left join ${diagnosticRuns} dr on dr.id = ps.diagnostic_run_id
+  left join ${fullMockRuns} fmr on fmr.id = ps.full_mock_run_id
   where aa.user_id = ${questionMastery.userId} and aa.question_id = ${questionMastery.questionId}
     and aa.is_correct = false and ps.status = 'submitted'
     and (ps.source <> 'diagnostic' or dr.status = 'COMPLETED')
+    and (ps.source <> 'full_mock' or fmr.status = 'COMPLETED')
 )`;
 const reviewableContent = sql`(
   ${questions.status} = 'published'

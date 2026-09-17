@@ -1,14 +1,15 @@
 import "server-only";
-import { and, desc, eq, inArray, isNotNull } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { attemptAnswers, practiceSessions, questions } from "@/db/schema";
+import { attemptAnswers, fullMockRuns, practiceSessions, questions } from "@/db/schema";
 import type { ReadingPart } from "@/lib/practice/types";
 import { calculateLearnerAnalytics, percentage } from "./calculate";
 import type { AnalyticsAttempt, LearnerAnalytics, RecentSession } from "./types";
 
 export async function getLearnerAnalytics(userId: string, options: { excludeSessionId?: string } = {}): Promise<LearnerAnalytics> {
-  const rows = await db.select().from(practiceSessions).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "submitted"), isNotNull(practiceSessions.submittedAt))).orderBy(desc(practiceSessions.submittedAt));
-  const candidates = rows.filter((s) => s.id !== options.excludeSessionId && s.questionCount > 0 && s.scoreTotal === s.questionCount && s.scoreCorrect !== null && s.scoreCorrect >= 0 && s.scoreCorrect <= s.scoreTotal);
+  const rows = await db.select({ session: practiceSessions }).from(practiceSessions).leftJoin(fullMockRuns, eq(fullMockRuns.id, practiceSessions.fullMockRunId)).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "submitted"), isNotNull(practiceSessions.submittedAt), sql`(${practiceSessions.source} <> 'full_mock' or ${fullMockRuns.status} = 'COMPLETED')`)).orderBy(desc(practiceSessions.submittedAt));
+  const visibleRows = rows.map((row) => row.session);
+  const candidates = visibleRows.filter((s) => s.id !== options.excludeSessionId && s.questionCount > 0 && s.scoreTotal === s.questionCount && s.scoreCorrect !== null && s.scoreCorrect >= 0 && s.scoreCorrect <= s.scoreTotal);
   if (!candidates.length) return calculateLearnerAnalytics([], []); const ids = candidates.map((s) => s.id);
   const answers = await db.select().from(attemptAnswers).where(and(eq(attemptAnswers.userId, userId), inArray(attemptAnswers.sessionId, ids))); const questionIds = [...new Set(answers.map((a) => a.questionId))]; const taxonomyRows = questionIds.length ? await db.select({ id: questions.id, skill: questions.skill, subSkill: questions.subSkill, part: questions.toeicPart }).from(questions).where(inArray(questions.id, questionIds)) : [];
   const taxonomy = new Map(taxonomyRows.map((q) => [q.id, q])); const bySession = new Map<string, typeof answers>(); for (const a of answers) bySession.set(a.sessionId, [...(bySession.get(a.sessionId) ?? []), a]);

@@ -10,6 +10,7 @@
 
 # Test output
 /coverage/
+/.content-generated/
 /.npm-cache/
 /supabase/.temp/
 

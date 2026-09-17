@@ -1,7 +1,7 @@
 import "server-only";
 import { and, count, eq, max, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { attemptAnswers, practiceSessions, questions } from "@/db/schema";
+import { attemptAnswers, fullMockRuns, practiceSessions, questions } from "@/db/schema";
 import { isValidSkillPart, type PartBearingSkillArea, type ToeicPart } from "@/lib/toeic/domain";
 import { calculateToeicProgress } from "./calculate";
 import type { ProgressAggregateRow, ToeicProgress } from "./types";
@@ -18,8 +18,9 @@ export async function getToeicProgress(userId: string): Promise<ToeicProgress> {
     latestAttemptAt: max(sql<Date>`coalesce(${attemptAnswers.answeredAt}, ${attemptAnswers.createdAt})`),
   }).from(attemptAnswers)
     .innerJoin(practiceSessions, and(eq(practiceSessions.id, attemptAnswers.sessionId), eq(practiceSessions.userId, attemptAnswers.userId)))
+    .leftJoin(fullMockRuns, eq(fullMockRuns.id, practiceSessions.fullMockRunId))
     .innerJoin(questions, eq(questions.id, attemptAnswers.questionId))
-    .where(and(eq(attemptAnswers.userId, userId), eq(practiceSessions.status, "submitted"), sql`${questions.skillArea} = ${practiceSessions.skillArea}`))
+    .where(and(eq(attemptAnswers.userId, userId), eq(practiceSessions.status, "submitted"), sql`${questions.skillArea} = ${practiceSessions.skillArea}`, sql`(${practiceSessions.source} <> 'full_mock' or ${fullMockRuns.status} = 'COMPLETED')`))
     .groupBy(questions.skillArea, questions.toeicPart, questions.skill, questions.subSkill);
 
   const safeRows: ProgressAggregateRow[] = rows.flatMap((row) => {

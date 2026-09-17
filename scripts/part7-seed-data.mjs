@@ -131,6 +131,33 @@ function tripleSet(data, index) {
 
 export const part7Sets = [
   ...singles.map(singleSet),
+  ...[
+    ["p7-single-prod-21", "Maple Library Notice", "notice", "The second-floor study room will close at 6 P.M. on Friday for carpet cleaning. Reservations after that time have been moved to Room 104. Ask at the circulation desk for a new key.", [
+      question("q1", 1, "purpose", "document_purpose", "Why was the notice written?", "To explain a temporary room change", ["To advertise a cleaning company", "To recruit library staff", "To extend opening hours"], 0, "The notice explains that reservations are moving because a room will close."),
+      question("q2", 2, "detail", "explicit_information", "Where should affected visitors go?", "Room 104", ["The second floor", "The cleaning office", "The parking desk"], 1, "The notice identifies Room 104 as the replacement location."),
+    ]],
+    ["p7-single-prod-22", "Elm Street Bakery Message", "text_message", "Your cake order will be ready at 2 P.M. Saturday. Because the front entrance is under repair, please collect it at the side door beside the parking area. Bring order number 7816.", [
+      question("q1", 1, "detail", "explicit_information", "When will the order be ready?", "At 2 P.M. Saturday", ["At noon Friday", "On Monday morning", "After the repair"], 1, "The first sentence gives the pickup time."),
+      question("q2", 2, "inference", "implied_information", "Why will the customer use the side door?", "The main entrance is being repaired", ["The bakery is closed", "Parking is unavailable", "The order is too large"], 2, "The message connects side-door collection with repairs to the front entrance."),
+    ]],
+    ["p7-single-prod-23", "Cedar Design Memo", "memo", "The client approved the blue packaging sample this morning. Production can begin after Finance confirms the updated material cost. Team leaders should send final quantities to Mina by Thursday.", [
+      question("q1", 1, "detail", "explicit_information", "What did the client approve?", "A packaging sample", ["A finance report", "A delivery schedule", "A staff request"], 2, "The memo states that the blue packaging sample was approved."),
+      question("q2", 2, "detail", "explicit_information", "What should team leaders do?", "Send quantities to Mina", ["Contact the client", "Begin production today", "Choose another color"], 3, "The final sentence instructs team leaders to send final quantities."),
+    ]],
+    ["p7-single-prod-24", "Pineview Bus Update", "web_page", "Route 12 will not stop at Market Square between 9 A.M. and noon on June 18 because of a street festival. During those hours, passengers may board at King Avenue, two blocks north. Normal service resumes at 12:15 P.M.", [
+      question("q1", 1, "purpose", "document_purpose", "What is the purpose of the post?", "To announce a temporary bus-stop change", ["To promote a festival booth", "To hire bus drivers", "To sell travel passes"], 3, "The post tells passengers that a usual stop will be unavailable temporarily."),
+      question("q2", 2, "detail", "explicit_information", "Where can passengers board during the disruption?", "At King Avenue", ["At Market Square", "At the festival gate", "At Route 18"], 0, "King Avenue is named as the temporary boarding point."),
+    ]],
+    ["p7-single-prod-25", "BrightPath Course Email", "email", "Thank you for enrolling in the spreadsheet workshop on August 6. The class begins at 9 A.M. in Computer Lab B. Laptops are provided, but participants should download the practice file from their confirmation page before arriving.", [
+      question("q1", 1, "detail", "explicit_information", "What is provided to participants?", "Laptop computers", ["Printed certificates", "Breakfast", "Parking permits"], 0, "The email explicitly says laptops are provided."),
+      question("q2", 2, "detail", "explicit_information", "What should participants do before the class?", "Download a practice file", ["Purchase a laptop", "Call the instructor", "Print a parking map"], 1, "Participants are asked to download the practice file before arriving."),
+    ]],
+    ["p7-single-prod-26", "Riverside Garden Volunteer Day", "announcement", "Volunteers will meet at the east gate at 8:30 A.M. Gloves and tools will be supplied. Light rain will not cancel the event, but an update will be posted by 7 A.M. if severe weather is expected. After planting, lunch will be served in the visitor center.", [
+      question("q1", 1, "detail", "explicit_information", "Where will volunteers meet?", "At the east gate", ["In the visitor center", "By the tool shed", "At the west parking lot"], 1, "The announcement gives the east gate as the meeting point."),
+      question("q2", 2, "inference", "implied_information", "What is suggested about light rain?", "The event will continue", ["Tools will not be supplied", "Lunch will be canceled", "Volunteers should arrive later"], 2, "The announcement explicitly says light rain will not cancel the event."),
+      question("q3", 3, "detail", "explicit_information", "When will a severe-weather update be posted?", "By 7 A.M.", ["At 8:30 A.M.", "After lunch", "The previous evening"], 3, "The announcement specifies a 7 A.M. update deadline."),
+    ]],
+  ].map(([key, title, documentType, content, questions]) => ({ key, toeicPart: 7, setType: "single", title, status: "published", passages: [{ key: "doc1", position: 1, documentType, title, content }], questions: questions.map(item => ({ ...item, passageKey: "doc1" })) })),
   ...doubles.map(doubleSet),
   ...triples.map(tripleSet),
 ];
