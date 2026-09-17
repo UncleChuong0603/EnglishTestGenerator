@@ -52,6 +52,35 @@ export const usageConsumptions = pgTable("usage_consumptions", {
   check("usage_consumptions_quantity_check", sql`${table.quantity} > 0`),
 ]);
 
+export const userRoles = pgTable("user_roles", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  role: text("role").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+  createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+  revokedAt: timestamp("revoked_at", { withTimezone: true, mode: "date" }),
+  revokedBy: uuid("revoked_by").references(() => users.id, { onDelete: "set null" }),
+}, (table) => [
+  uniqueIndex("user_roles_active_role_uidx").on(table.userId, table.role).where(sql`${table.revokedAt} is null`),
+  index("user_roles_user_active_idx").on(table.userId, table.revokedAt),
+  check("user_roles_role_check", sql`${table.role} in ('ADMIN')`),
+]);
+
+export const adminAuditLogs = pgTable("admin_audit_logs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  actorUserId: uuid("actor_user_id").references(() => users.id, { onDelete: "set null" }),
+  action: text("action").notNull(),
+  targetUserId: uuid("target_user_id").references(() => users.id, { onDelete: "set null" }),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+}, (table) => [
+  index("admin_audit_logs_created_idx").on(table.createdAt),
+  index("admin_audit_logs_actor_idx").on(table.actorUserId),
+  index("admin_audit_logs_target_idx").on(table.targetUserId),
+  index("admin_audit_logs_action_idx").on(table.action),
+  check("admin_audit_logs_action_check", sql`${table.action} in ('ADMIN_ROLE_GRANTED','ADMIN_ROLE_REVOKED','USER_SUSPENDED','USER_REACTIVATED','PREMIUM_GRANTED','PREMIUM_REVOKED')`),
+]);
+
 export const profiles = pgTable("profiles", {
   id: uuid("id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
   fullName: text("full_name"),

@@ -1,0 +1,4 @@
+import Link from "next/link";
+import { getCurrentUser } from "@/lib/auth/session";
+import { getPreferences } from "@/lib/i18n/get-translations";
+export default async function AccessDeniedPage() { const user = await getCurrentUser(); const p = await getPreferences(user?.id); const vi = p.interfaceLanguage === "vi"; return <main className="grid min-h-screen place-items-center bg-slate-50 p-6 text-center"><div><h1 className="text-3xl font-black">{vi ? "Không có quyền truy cập" : "Access denied"}</h1><p className="mt-3 text-slate-600">{vi ? "Tài khoản của bạn không có quyền quản trị." : "Your account does not have administrator permission."}</p><Link className="mt-6 inline-flex rounded-xl bg-slate-900 px-5 py-3 font-bold text-white" href="/dashboard">{vi ? "Về khu học tập" : "Return to learner area"}</Link></div></main>; }

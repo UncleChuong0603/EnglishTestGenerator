@@ -38,7 +38,10 @@
     "verify:smtp": "node scripts/verify-smtp.mjs",
     "plan:inspect": "node --env-file=.env.local --import tsx scripts/plan-operator.ts inspect",
     "plan:grant": "node --env-file=.env.local --import tsx scripts/plan-operator.ts grant",
-    "plan:revoke": "node --env-file=.env.local --import tsx scripts/plan-operator.ts revoke"
+    "plan:revoke": "node --env-file=.env.local --import tsx scripts/plan-operator.ts revoke",
+    "admin:inspect": "node --env-file=.env.local --import tsx scripts/admin-operator.ts inspect",
+    "admin:grant": "node --env-file=.env.local --import tsx scripts/admin-operator.ts grant",
+    "admin:revoke": "node --env-file=.env.local --import tsx scripts/admin-operator.ts revoke"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1132.0",

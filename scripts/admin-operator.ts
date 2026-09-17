@@ -1,0 +1,8 @@
+import { desc, eq } from "drizzle-orm";
+import { db, pool } from "../src/db";
+import { userRoles, users } from "../src/db/schema";
+import { normalizeEmail } from "../src/lib/auth/crypto";
+import { grantAdminRole, revokeAdminRole } from "../src/lib/admin/service";
+function option(name: string) { const index=process.argv.indexOf(`--${name}`); return index>=0?process.argv[index+1]:undefined; }
+async function main(){ const command=process.argv[2]; const raw=option("email"); if(!raw||!["inspect","grant","revoke"].includes(command)) throw new Error("USAGE: admin:<inspect|grant|revoke> -- --email user@example.com"); const [user]=await db.select({id:users.id,email:users.email,status:users.status,createdAt:users.createdAt,lastLoginAt:users.lastLoginAt}).from(users).where(eq(users.emailNormalized,normalizeEmail(raw))).limit(1); if(!user) throw new Error("USER_NOT_FOUND"); if(command==="grant"){ const changed=await grantAdminRole(user.id); console.log(changed?`ADMIN granted to ${user.email}.`:`${user.email} is already an active ADMIN.`); } else if(command==="revoke"){ await revokeAdminRole(user.id); console.log(`ADMIN revoked from ${user.email}.`); } else { const roles=await db.select({role:userRoles.role,createdAt:userRoles.createdAt,revokedAt:userRoles.revokedAt}).from(userRoles).where(eq(userRoles.userId,user.id)).orderBy(desc(userRoles.createdAt)); console.log(JSON.stringify({...user,activeAdmin:roles.some(r=>r.role==="ADMIN"&&!r.revokedAt),roleHistory:roles},null,2)); }}
+main().catch(error=>{console.error(error instanceof Error?error.message:"FAILED");process.exitCode=1;}).finally(()=>pool.end());

@@ -1,4 +1,4 @@
-import { and, eq, gt, isNull, lte, or, sql } from "drizzle-orm";
+import { and, desc, eq, gt, isNull, lte, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { usageConsumptions, userPlanMemberships } from "@/db/schema";
 import { getUsageWindow, PLAN_CATALOG, type EntitlementKey, type PlanKey } from "./catalog";
@@ -25,6 +25,36 @@ export async function getUsageStatus(userId: string, now = new Date()): Promise<
 }
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+export type EntitlementTx = Tx;
+
+export async function grantPremiumWithTx(tx: Tx, input: { userId: string; days: number; now?: Date }) {
+  const now = input.now ?? new Date();
+  if (!Number.isInteger(input.days) || input.days < 1 || input.days > 3650) throw new Error("INVALID_DURATION");
+  await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${input.userId}:plan`}, 0))`);
+  const [latest] = await tx.select({ endsAt: userPlanMemberships.endsAt }).from(userPlanMemberships).where(and(
+    eq(userPlanMemberships.userId, input.userId), isNull(userPlanMemberships.revokedAt),
+    or(isNull(userPlanMemberships.endsAt), gt(userPlanMemberships.endsAt, now)),
+  )).orderBy(sql`${userPlanMemberships.endsAt} desc nulls first`).limit(1);
+  if (latest?.endsAt === null) return { membershipId: null, endsAt: null, unchanged: true as const };
+  const base = latest?.endsAt && latest.endsAt > now ? latest.endsAt : now;
+  const endsAt = new Date(base.getTime() + input.days * 86_400_000);
+  const [membership] = await tx.insert(userPlanMemberships).values({ userId: input.userId, planKey: "PREMIUM", source: "MANUAL", startsAt: now, endsAt }).returning({ id: userPlanMemberships.id });
+  return { membershipId: membership.id, endsAt, unchanged: false as const };
+}
+
+export async function revokePremiumWithTx(tx: Tx, input: { userId: string; now?: Date }) {
+  const now = input.now ?? new Date();
+  await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${input.userId}:plan`}, 0))`);
+  return tx.update(userPlanMemberships).set({ revokedAt: now, updatedAt: now }).where(and(
+    eq(userPlanMemberships.userId, input.userId), isNull(userPlanMemberships.revokedAt),
+    lte(userPlanMemberships.startsAt, now), or(isNull(userPlanMemberships.endsAt), gt(userPlanMemberships.endsAt, now)),
+  )).returning({ id: userPlanMemberships.id });
+}
+
+export async function getMembershipHistory(userId: string, page = 1, pageSize = 20) {
+  return db.select({ id: userPlanMemberships.id, planKey: userPlanMemberships.planKey, source: userPlanMemberships.source, startsAt: userPlanMemberships.startsAt, endsAt: userPlanMemberships.endsAt, revokedAt: userPlanMemberships.revokedAt, createdAt: userPlanMemberships.createdAt })
+    .from(userPlanMemberships).where(eq(userPlanMemberships.userId, userId)).orderBy(desc(userPlanMemberships.createdAt), desc(userPlanMemberships.id)).limit(pageSize).offset((page - 1) * pageSize);
+}
 export class UsageLimitError extends Error { readonly code = "USAGE_LIMIT_REACHED"; constructor(readonly status: { entitlement: EntitlementKey; used: number; limit: number; remaining: 0; resetAt: string; effectivePlan: PlanKey }) { super("USAGE_LIMIT_REACHED"); } }
 
 export async function consumeUsage(tx: Tx, input: { userId: string; entitlement: EntitlementKey; sourceType: "PRACTICE_SESSION" | "FULL_MOCK_RUN"; sourceId: string; now: Date }) {
