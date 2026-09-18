@@ -27,3 +27,17 @@ Task 15 integration is enforced by an `0013` database archive guard: content ref
 ## Browser verification
 
 Use a migrated local/test database, never production scoring data: create a draft under Admin Challenges, generate and verify its exact composition, publish in a controlled LIVE window, start as a learner, refresh to verify Resume, complete with fixture/test helpers, confirm raw score and LIVE review lock, then advance only the test clock/window to CLOSED and confirm review unlock. Production smoke verification stops at migration readiness, authorization, draft generation and validation unless an operator intentionally schedules a real challenge.
+
+## Task 16C/16D verification harness
+
+All write-based verification refuses any database other than `127.0.0.1:15433`. Test credentials live only in the gitignored `.env.task16.local`; fixtures use generated questions and fake R2 configuration. `0014_ranked_practice_session_constraints` is append-only and removes obsolete session-type constraints exposed by real ranked runs while preserving the source and lifecycle invariants required by normal Full Mock and Ranked Challenge sessions. Migrations `0011` through `0013` were not rewritten.
+
+Operator sequence on an empty disposable PostgreSQL 17 database:
+
+1. `npm run test:integration:ranked-challenges:migrate`
+2. `npm run test:integration:ranked-challenges`
+3. Set `TASK16_TEST_MODE=true`, then run `npm run test:integration:ranked-challenges:matrix`
+4. `npm run test:e2e:ranked-challenges:seed`
+5. `npm run test:e2e:ranked-challenges`
+
+The executed matrix covers fresh migrations through `0014`, Full 200, independent Reading 100 and Listening 100 frozen forms for two learners, autosave/resume/finalize, real concurrent start/finalize, transactional creation/finalize rollback, all three late-start boundaries, quota isolation, FREE/PREMIUM one-attempt equality, completion-bonus idempotency, LIVE/CLOSED owner review checks, competition ties, and PUBLIC/ANONYMOUS/HIDDEN filtering. Playwright uses password-authenticated fixture users only; it does not invoke Google OAuth, SMTP, production R2, or a production-accessible helper route. The failure hooks are service-process only and throw unless `TASK16_TEST_MODE=true` and `NODE_ENV` is not `production`.

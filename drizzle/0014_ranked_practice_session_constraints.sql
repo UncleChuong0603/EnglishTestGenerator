@@ -1,0 +1,6 @@
+ALTER TABLE "practice_sessions" DROP CONSTRAINT "practice_sessions_part_check";
+ALTER TABLE "practice_sessions" DROP CONSTRAINT "practice_sessions_type_check";
+ALTER TABLE "practice_sessions" DROP CONSTRAINT "practice_sessions_source_check";
+ALTER TABLE "practice_sessions" ADD CONSTRAINT "practice_sessions_source_check" CHECK ("source" in ('recommended','custom','demo_test','guest','diagnostic','mastery_review','full_mock','ranked_challenge'));
+ALTER TABLE "practice_sessions" DROP CONSTRAINT "practice_sessions_demo_time_check";
+ALTER TABLE "practice_sessions" ADD CONSTRAINT "practice_sessions_demo_time_check" CHECK (("practice_type"='demo_test' AND "guest_owner_hash" IS NULL AND "expires_at">"started_at" AND (("status"='in_progress' AND "submission_reason" IS NULL) OR ("status"='submitted' AND "submission_reason" in ('manual','time_expired')) OR "status"='abandoned')) OR ("practice_type"<>'demo_test' AND (("guest_owner_hash" IS NOT NULL AND "expires_at">"started_at") OR ("guest_owner_hash" IS NULL AND ("expires_at" IS NULL OR "source" in ('diagnostic','full_mock','ranked_challenge')))) AND (("status"='submitted' AND "submission_reason" in ('mock_section_complete','ranked_section_complete')) OR ("status"<>'submitted' AND "submission_reason" IS NULL))));
