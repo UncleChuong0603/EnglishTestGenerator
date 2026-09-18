@@ -159,8 +159,11 @@ export const securityEvents = pgTable("security_events", {
 
 export const passageSets = pgTable("passage_sets", {
   id: uuid("id").primaryKey().defaultRandom(), toeicPart: smallint("toeic_part").notNull(), skillArea: text("skill_area").notNull().default("READING"), setType: text("set_type").notNull(),
-  title: text("title").notNull(), metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}), status: text("status").notNull().default("draft"), ...timestamps,
+  title: text("title").notNull(), metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}), status: text("status").notNull().default("draft"), provenance: text("provenance").notNull().default("SEEDED"), revisionOfId: uuid("revision_of_id"), publishedAt: timestamp("published_at", { withTimezone: true, mode: "date" }), archivedAt: timestamp("archived_at", { withTimezone: true, mode: "date" }), ...timestamps,
 }, (table) => [
+  index("passage_sets_admin_list_idx").on(table.status, table.skillArea, table.toeicPart, table.updatedAt),
+  check("passage_sets_lifecycle_check", sql`${table.status} in ('draft','published','archived')`),
+  check("passage_sets_provenance_check", sql`${table.provenance} in ('SEEDED','ADMIN')`),
   check("passage_sets_skill_part_check", sql`(${table.skillArea} = 'LISTENING' and ${table.toeicPart} between 1 and 4) or (${table.skillArea} = 'READING' and ${table.toeicPart} between 5 and 7)`),
 ]);
 
@@ -239,12 +242,15 @@ export const listeningTranscripts = pgTable("listening_transcripts", {
 export const questions = pgTable("questions", {
   id: uuid("id").primaryKey().defaultRandom(), toeicPart: smallint("toeic_part").notNull(), skillArea: text("skill_area").notNull().default("READING"), questionType: text("question_type").notNull(), responseType: text("response_type").notNull().default("MULTIPLE_CHOICE"), skill: text("skill").notNull(), subSkill: text("sub_skill").notNull(),
   difficulty: text("difficulty").notNull(), questionText: text("question_text").notNull(), passageId: uuid("passage_id").references(() => passages.id, { onDelete: "restrict" }), audioUrl: text("audio_url"), imageUrl: text("image_url"),
-  metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}), status: text("status").notNull().default("draft"), passageSetId: uuid("passage_set_id").references(() => passageSets.id, { onDelete: "restrict" }), questionOrder: smallint("question_order").notNull().default(1), ...timestamps,
+  metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}), status: text("status").notNull().default("draft"), provenance: text("provenance").notNull().default("SEEDED"), revisionOfId: uuid("revision_of_id"), publishedAt: timestamp("published_at", { withTimezone: true, mode: "date" }), archivedAt: timestamp("archived_at", { withTimezone: true, mode: "date" }), passageSetId: uuid("passage_set_id").references(() => passageSets.id, { onDelete: "restrict" }), questionOrder: smallint("question_order").notNull().default(1), ...timestamps,
 }, (table) => [
   index("questions_published_taxonomy_idx").on(table.skillArea, table.toeicPart, table.skill, table.subSkill, table.difficulty),
+  index("questions_admin_list_idx").on(table.status, table.skillArea, table.toeicPart, table.updatedAt),
   unique("questions_set_order_unique").on(table.passageSetId, table.questionOrder),
   check("questions_skill_part_check", sql`(${table.skillArea} = 'LISTENING' and ${table.toeicPart} between 1 and 4) or (${table.skillArea} = 'READING' and ${table.toeicPart} between 5 and 7)`),
   check("questions_response_type_check", sql`${table.responseType} in ('MULTIPLE_CHOICE','TEXT','AUDIO')`),
+  check("questions_lifecycle_check", sql`${table.status} in ('draft','published','archived')`),
+  check("questions_provenance_check", sql`${table.provenance} in ('SEEDED','ADMIN')`),
 ]);
 
 export const questionOptions = pgTable("question_options", {
@@ -300,6 +306,7 @@ export const practiceSessions = pgTable("practice_sessions", {
   uniqueIndex("practice_sessions_one_open_demo_idx").on(table.userId).where(sql`${table.status} = 'in_progress' and ${table.practiceType} = 'demo_test'`), uniqueIndex("practice_sessions_one_open_guest_idx").on(table.guestOwnerHash).where(sql`${table.status} = 'in_progress' and ${table.source} <> 'diagnostic' and ${table.guestOwnerHash} is not null`),
   check("practice_sessions_owner_check", sql`num_nonnulls(${table.userId}, ${table.guestOwnerHash}) = 1`), check("practice_sessions_diagnostic_link_check", sql`(${table.source} = 'diagnostic' and ${table.diagnosticRunId} is not null and ${table.diagnosticOrder} between 1 and 7) or (${table.source} <> 'diagnostic' and ${table.diagnosticRunId} is null and ${table.diagnosticOrder} is null)`),
   check("practice_sessions_full_mock_link_check", sql`(${table.source} = 'full_mock' and ${table.fullMockRunId} is not null and ${table.fullMockOrder} between 1 and 7 and ${table.userId} is not null and ${table.guestOwnerHash} is null) or (${table.source} <> 'full_mock' and ${table.fullMockRunId} is null and ${table.fullMockOrder} is null)`),
+  check("practice_sessions_count_check", sql`${table.questionCount} > 0 and (${table.requestedQuestionCount} is null or ${table.requestedQuestionCount} > 0)`),
   check("practice_sessions_demo_time_check", sql`(${table.practiceType} = 'demo_test' and ${table.guestOwnerHash} is null and ${table.expiresAt} > ${table.startedAt}) or (${table.practiceType} <> 'demo_test' and ${table.submissionReason} is null and ((${table.guestOwnerHash} is not null and ${table.expiresAt} > ${table.startedAt}) or (${table.guestOwnerHash} is null and (${table.expiresAt} is null or ${table.source} in ('diagnostic','full_mock'))))`), check("practice_sessions_skill_part_check", sql`(${table.skillArea} = 'READING' and (${table.part} is null or ${table.part} between 5 and 7)) or (${table.skillArea} = 'LISTENING' and (${table.part} is null or ${table.part} between 1 and 4))`),
 ]);
 
