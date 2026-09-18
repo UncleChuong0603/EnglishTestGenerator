@@ -1,0 +1,3 @@
+import { describe, expect, it, vi } from "vitest";
+import { getPaymentCatalog, resolveProduct } from "./catalog";
+describe("payment catalog security",()=>{it("keeps an unconfigured product unavailable",()=>{vi.stubEnv("PREMIUM_30_PRICE_VND","");expect(getPaymentCatalog()[0].amountVnd).toBeNull();expect(()=>resolveProduct("PREMIUM_30_DAYS")).toThrow("PRODUCT_NOT_AVAILABLE")});it("accepts only positive integer VND",()=>{vi.stubEnv("PREMIUM_30_PRICE_VND","99000");expect(resolveProduct("PREMIUM_30_DAYS")).toMatchObject({days:30,amountVnd:99000,currency:"VND"});vi.stubEnv("PREMIUM_30_PRICE_VND","1.5");expect(getPaymentCatalog()[0].amountVnd).toBeNull()});it("has exactly the supported durations",()=>expect(getPaymentCatalog().map(p=>p.days)).toEqual([30,90,365]))});

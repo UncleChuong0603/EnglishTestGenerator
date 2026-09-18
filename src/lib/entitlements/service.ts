@@ -27,7 +27,7 @@ export async function getUsageStatus(userId: string, now = new Date()): Promise<
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 export type EntitlementTx = Tx;
 
-export async function grantPremiumWithTx(tx: Tx, input: { userId: string; days: number; now?: Date }) {
+export async function grantPremiumWithTx(tx: Tx, input: { userId: string; days: number; now?: Date; source?: "MANUAL" | "PROMOTION" | "PAYMENT"; paymentOrderId?: string }) {
   const now = input.now ?? new Date();
   if (!Number.isInteger(input.days) || input.days < 1 || input.days > 3650) throw new Error("INVALID_DURATION");
   await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${input.userId}:plan`}, 0))`);
@@ -38,7 +38,9 @@ export async function grantPremiumWithTx(tx: Tx, input: { userId: string; days: 
   if (latest?.endsAt === null) return { membershipId: null, endsAt: null, unchanged: true as const };
   const base = latest?.endsAt && latest.endsAt > now ? latest.endsAt : now;
   const endsAt = new Date(base.getTime() + input.days * 86_400_000);
-  const [membership] = await tx.insert(userPlanMemberships).values({ userId: input.userId, planKey: "PREMIUM", source: "MANUAL", startsAt: now, endsAt }).returning({ id: userPlanMemberships.id });
+  const source = input.source ?? "MANUAL";
+  if ((source === "PAYMENT") !== Boolean(input.paymentOrderId)) throw new Error("INVALID_MEMBERSHIP_SOURCE");
+  const [membership] = await tx.insert(userPlanMemberships).values({ userId: input.userId, planKey: "PREMIUM", source, paymentOrderId: input.paymentOrderId, startsAt: now, endsAt }).returning({ id: userPlanMemberships.id });
   return { membershipId: membership.id, endsAt, unchanged: false as const };
 }
 

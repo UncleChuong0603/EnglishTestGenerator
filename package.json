@@ -19,6 +19,9 @@
     "test:integration:ranked-challenges:archive": "node --conditions=react-server --import tsx scripts/task16d-archive-matrix.mts",
     "test:e2e:ranked-challenges:seed": "node --conditions=react-server --import tsx scripts/task16c-browser-seed.mts",
     "test:e2e:ranked-challenges": "playwright test e2e/ranked-challenges.spec.ts",
+    "test:integration:payments": "node --env-file=.env.task16.local --conditions=react-server --import tsx scripts/task17b-integration.mts",
+    "test:e2e:payments": "node --env-file=.env.task16.local scripts/task17b-playwright.mjs",
+    "payments:preflight": "node scripts/payments-preflight.mjs",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
@@ -53,6 +56,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1132.0",
     "@aws-sdk/s3-request-presigner": "^3.1132.0",
+    "@payos/node": "^2.0.5",
     "argon2": "^0.45.1",
     "drizzle-orm": "^0.45.2",
     "google-auth-library": "^11.0.2",

@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, check, index, integer, jsonb, pgTable, primaryKey, smallint, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { bigint, boolean, check, index, integer, jsonb, pgTable, primaryKey, smallint, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
@@ -20,6 +20,38 @@ export const users = pgTable("users", {
   check("users_status_check", sql`${table.status} in ('active', 'disabled', 'pending_verification')`),
 ]);
 
+export const paymentOrders = pgTable("payment_orders", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+  productKey: text("product_key").notNull(),
+  provider: text("provider").notNull(),
+  orderCode: bigint("order_code", { mode: "number" }).notNull(),
+  providerPaymentId: text("provider_payment_id"),
+  amount: integer("amount").notNull(), currency: text("currency").notNull().default("VND"),
+  status: text("status").notNull().default("PENDING"), checkoutUrl: text("checkout_url"),
+  expiresAt: timestamp("expires_at", { withTimezone: true, mode: "date" }).notNull(),
+  paidAt: timestamp("paid_at", { withTimezone: true, mode: "date" }), cancelledAt: timestamp("cancelled_at", { withTimezone: true, mode: "date" }),
+  ...timestamps,
+}, (table) => [
+  uniqueIndex("payment_orders_order_code_uidx").on(table.orderCode),
+  index("payment_orders_user_created_idx").on(table.userId, table.createdAt),
+  index("payment_orders_provider_reference_idx").on(table.provider, table.providerPaymentId),
+  index("payment_orders_status_expires_idx").on(table.status, table.expiresAt),
+  index("payment_orders_admin_recent_idx").on(table.createdAt, table.status),
+  check("payment_orders_product_check", sql`${table.productKey} in ('PREMIUM_30_DAYS','PREMIUM_90_DAYS','PREMIUM_365_DAYS')`),
+  check("payment_orders_provider_check", sql`${table.provider} in ('PAYOS','FAKE')`),
+  check("payment_orders_currency_check", sql`${table.currency} = 'VND'`),
+  check("payment_orders_status_check", sql`${table.status} in ('PENDING','PAID','EXPIRED','CANCELLED','FAILED')`),
+  check("payment_orders_amount_check", sql`${table.amount} > 0`),
+]);
+
+export const paymentEvents = pgTable("payment_events", {
+  id: uuid("id").primaryKey().defaultRandom(), provider: text("provider").notNull(), providerEventKey: text("provider_event_key").notNull(),
+  orderId: uuid("order_id").references(() => paymentOrders.id, { onDelete: "restrict" }), eventType: text("event_type").notNull(),
+  processingStatus: text("processing_status").notNull().default("RECEIVED"), metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}),
+  receivedAt: timestamp("received_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(), processedAt: timestamp("processed_at", { withTimezone: true, mode: "date" }),
+}, (table) => [unique("payment_events_provider_key_unique").on(table.provider, table.providerEventKey), index("payment_events_order_idx").on(table.orderId, table.receivedAt), check("payment_events_provider_check", sql`${table.provider} in ('PAYOS','FAKE')`), check("payment_events_processing_check", sql`${table.processingStatus} in ('RECEIVED','PROCESSED','REJECTED','FAILED')`)]);
+
 export const userPlanMemberships = pgTable("user_plan_memberships", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
@@ -28,12 +60,15 @@ export const userPlanMemberships = pgTable("user_plan_memberships", {
   startsAt: timestamp("starts_at", { withTimezone: true, mode: "date" }).notNull(),
   endsAt: timestamp("ends_at", { withTimezone: true, mode: "date" }),
   revokedAt: timestamp("revoked_at", { withTimezone: true, mode: "date" }),
+  paymentOrderId: uuid("payment_order_id").references(() => paymentOrders.id, { onDelete: "restrict" }),
   ...timestamps,
 }, (table) => [
   index("user_plan_memberships_user_window_idx").on(table.userId, table.startsAt, table.endsAt, table.revokedAt),
   check("user_plan_memberships_plan_check", sql`${table.planKey} = 'PREMIUM'`),
   check("user_plan_memberships_source_check", sql`${table.source} in ('MANUAL','PROMOTION','PAYMENT')`),
   check("user_plan_memberships_range_check", sql`${table.endsAt} is null or ${table.endsAt} > ${table.startsAt}`),
+  uniqueIndex("user_plan_memberships_payment_order_uidx").on(table.paymentOrderId).where(sql`${table.paymentOrderId} is not null`),
+  check("user_plan_memberships_payment_source_check", sql`(${table.source} = 'PAYMENT') = (${table.paymentOrderId} is not null)`),
 ]);
 
 export const usageConsumptions = pgTable("usage_consumptions", {
