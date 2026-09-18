@@ -46,7 +46,9 @@ export async function applyVerifiedPayment(event: VerifiedPayment, providerName:
 }
 
 export async function processWebhook(body: unknown, provider = getPaymentProvider()) {
-  const event = await provider.verifyWebhook(body);
+  let event: VerifiedPayment;
+  try { event = await provider.verifyWebhook(body); }
+  catch { throw new PaymentWebhookError("VERIFICATION_FAILED"); }
   try { return await applyVerifiedPayment(event, provider.name); }
   catch (error) {
     if (!(error instanceof Error) || error.message !== "PAYMENT_ORDER_NOT_FOUND") throw error;
@@ -54,6 +56,7 @@ export async function processWebhook(body: unknown, provider = getPaymentProvide
     return { status: "UNMATCHED", rejected: true };
   }
 }
+export class PaymentWebhookError extends Error { constructor(readonly code: "VERIFICATION_FAILED") { super(code); this.name="PaymentWebhookError"; } }
 export async function reconcileOrder(orderId: string, actorUserId: string, provider = getPaymentProvider()) {
   const [order] = await db.select().from(paymentOrders).where(eq(paymentOrders.id, orderId)).limit(1); if (!order || order.userId !== actorUserId || order.provider !== provider.name) throw new Error("ORDER_NOT_FOUND");
   const result = await provider.getStatus(order.orderCode); if (result.status === "PAID") return applyVerifiedPayment({ eventKey: `reconcile:${order.orderCode}:${result.providerPaymentId}`, orderCode: order.orderCode, amountVnd: result.amountVnd, currency: "VND", providerPaymentId: result.providerPaymentId, paid: true }, provider.name);

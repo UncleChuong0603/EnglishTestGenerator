@@ -21,7 +21,7 @@
     "test:e2e:ranked-challenges": "playwright test e2e/ranked-challenges.spec.ts",
     "test:integration:payments": "node --env-file=.env.task16.local --conditions=react-server --import tsx scripts/task17b-integration.mts",
     "test:e2e:payments": "node --env-file=.env.task16.local scripts/task17b-playwright.mjs",
-    "payments:preflight": "node scripts/payments-preflight.mjs",
+    "payments:preflight": "node --env-file-if-exists=.env.local scripts/payments-preflight.mjs",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",

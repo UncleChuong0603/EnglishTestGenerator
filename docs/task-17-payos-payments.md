@@ -43,3 +43,63 @@ The write-capable runner parses its test URL and refuses anything except `127.0.
 Verified on PostgreSQL 17 with a fresh `0000` through `0015` migration: successful 30/90/365-day activation, active-Premium extension, same-event and different-event idempotency, simultaneous delivery, injected rollback followed by clean retry, amount mismatch, unknown order, cross-user read/reconcile/cancel denial, creation failure, expiry fallback, cancellation without revocation, and provider-authoritative late payment. Payment-created memberships were `PAYMENT` with an order link; manual grants remained `MANUAL` without an order.
 
 Playwright verifies configured test prices, checkout, pending return, Fake verified payment, Premium state, PAID history, Settings, return-query spoof resistance, cross-user hiding, and read-only Admin authorization. The adapter suite mocks the official client boundary and verifies request/URL/expiry mapping, webhook helper invocation and status mapping. Real payOS traffic and real transactions remain deliberately untested; production checkout stays fail-closed while prices are absent.
+
+## Production activation runbook (Task 17C)
+
+### Exact configuration and preflight
+
+The server contract is `PAYOS_CLIENT_ID`, `PAYOS_API_KEY`, `PAYOS_CHECKSUM_KEY`, `PREMIUM_30_PRICE_VND`, `PREMIUM_90_PRICE_VND`, `PREMIUM_365_PRICE_VND`, `APP_URL`, and optional `PAYMENT_PROVIDER` (defaults to `PAYOS`). Production `APP_URL` is `https://toeicgym.net`. No payment variable uses `NEXT_PUBLIC_`.
+
+Run `npm run payments:preflight`. The npm command uses Node's `--env-file-if-exists=.env.local`: a local operator checkout automatically loads its gitignored `.env.local`, while a Dokploy/container environment without that file continues with injected `process.env`. Already-injected environment variables remain authoritative. The file is never copied into the production image. Preflight is read-only: it does not import the database client, create an order, or contact payOS. It reports only configured/not-configured secret states, non-secret integer prices, origin and calculated routes. Checkout is enabled only when provider is PAYOS, all three credentials and all three positive integer prices are present, and the production origin is valid. Fake is always blocked in production.
+
+The four supported configuration states are: no credentials/no prices → disabled; credentials/no prices → disabled; complete credentials/complete prices → enabled; prices/incomplete credentials → disabled. Pages and Free learning continue to boot in every disabled state. Removing all three price variables is the V1 emergency kill switch for **new** checkout; it does not alter existing Premium, history, webhook verification, or reconciliation of existing orders.
+
+### Backup and migration
+
+From the actual Dokploy checkout directory, before deployment:
+
+```sh
+COMPOSE_ENV_FILE=.env COMPOSE_FILE_PATH=docker-compose.dokploy.yml ./scripts/backup-db.sh /opt/toeicgym/backups
+```
+
+The script uses the PostgreSQL container's existing environment, `pg_dump -Fc`, restrictive permissions, a non-empty-file check and retention cleanup; no password appears on the command line. Capture the returned archive path and verify it is readable without restoring production:
+
+```sh
+docker compose --env-file .env -f docker-compose.dokploy.yml exec -T postgres sh -c 'pg_restore -l' < /opt/toeicgym/backups/ARCHIVE.dump > /dev/null
+```
+
+Pre-migration order: commit/push code; create and verify backup; connect the production tunnel only if the chosen local workflow requires it; run `npm run validate:mock-readiness`; run `npm run payments:preflight`; confirm checkout is DISABLED. Then deploy and run `npm run db:migrate` in the configured migrator environment. Drizzle applies every missing journal entry in order (`0000` through current `0015`), not only `0015`. Any migration failure stops activation. Re-run Full Mock readiness and payment preflight afterward. Never apply SQL files manually.
+
+The first deployment intentionally has rotated credentials configured and all price variables unset. Smoke `/`, `/sign-in`, `/dashboard`, `/practice`, `/ranking`, `/pricing`, `/billing`, `/admin`, `/admin/challenges`, and `/admin/payments`; verify learning works, payment pages render “Chưa mở bán”/equivalent, no `0 VND` appears and no checkout can start.
+
+### Webhook and price activation
+
+After the disabled-checkout smoke passes, the human configures this exact URL in the payOS payment channel:
+
+`https://toeicgym.net/api/payments/payos/webhook`
+
+The code uses `https://toeicgym.net/billing/return` and `https://toeicgym.net/billing/cancel`. Redirects are UX-only; verified webhook/reconciliation is authoritative.
+
+When payOS/Casso validates Webhook V2 it sends a signed sample. TOEICGym first verifies it with the official SDK; a correctly signed sample with no internal order is safely acknowledged and cannot activate Premium. HTTP `400 {"error":"invalid_webhook"}` means verification failed—check that the deployed runtime has the Checksum Key from the same payOS payment channel, with no whitespace/quoting corruption, then redeploy. HTTP `503 {"error":"webhook_processing_unavailable"}` means verification passed far enough to reach processing but the service/DB is unavailable or migration `0015` is missing; inspect safe logs and migration health. Never bypass signature verification or paste the key into logs/chat. Configure the webhook only after migration and preflight succeed.
+
+If the operator chooses 59,000 / 139,000 / 399,000 VND, place them respectively in `PREMIUM_30_PRICE_VND`, `PREMIUM_90_PRICE_VND`, and `PREMIUM_365_PRICE_VND` in Dokploy. These are decisions, not source defaults. Redeploy and run preflight again; require PAYOS, three configured credential indicators, three configured prices, Fake BLOCKED, checkout ENABLED and the HTTPS URLs above.
+
+### Controlled human real-payment smoke
+
+1. Sign in with a normal operator-controlled learner account.
+2. Open `/pricing` or `/billing`; choose the lowest-priced 30-day product.
+3. Confirm its displayed VND amount exactly matches configuration, then start checkout.
+4. Record the non-secret TOEICGym order identifier/orderCode.
+5. The human explicitly completes payment in their banking application.
+6. Return to TOEICGym. If PENDING, do not create/pay another order; wait and refresh or use the existing Check again reconciliation action.
+7. On `/billing`, require one PAID order with expected product, amount and paid timestamp, plus effective PREMIUM.
+8. In Settings, require PREMIUM and the correct expiry.
+9. In `/admin/payments`, require provider PAYOS, expected product/amount/status and created/paid timestamps. No secret or signature should appear.
+10. Refresh repeatedly and confirm the expiry never extends again: one paid order, one PAYMENT-linked membership, one activation effect.
+11. Confirm a normal learning page still works.
+
+If bank payment succeeds but the order remains PENDING: do not pay again; allow a reasonable webhook interval; refresh Billing; use Check again for authoritative server reconciliation; inspect Admin Payments and bounded application logs; contact payOS support only if authoritative status remains unresolved. Never mark PAID, edit `payment_orders`, insert a membership, delete an event, or use direct SQL. A provider creation failure remains FAILED and transfers no entitlement; if money was actually sent, treat it as reconciliation/support work rather than starting a second payment.
+
+Credential rotation: generate replacements in payOS, update only the Dokploy secret environment, redeploy/restart, run preflight, verify checkout/webhook behavior, then retire old credentials using payOS capability. Never store values in Git, logs, documentation, chat or tickets.
+
+Application rollback must retain payment tables/events and continue accepting verified webhook reconciliation for already-created orders. Disable new checkout by unsetting prices before rollback when necessary; do not drop migration `0015` or payment history.
