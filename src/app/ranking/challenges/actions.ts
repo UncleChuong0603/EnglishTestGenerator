@@ -1,0 +1,4 @@
+"use server";import{redirect}from"next/navigation";import{requireUser}from"@/lib/auth/session";import{finalizeRankedSection,saveRankedAnswer,startRankedChallenge}from"@/lib/challenges/service";
+export async function startChallenge(id:string){const u=await requireUser();const r=await startRankedChallenge(id,u.id);if(!r.ok)redirect(`/ranking/challenges/${id}?error=${r.reason}`);redirect(`/ranking/challenges/run/${r.runId}`);}
+export async function saveChallengeAnswer(runId:string,sessionId:string,questionId:string,fd:FormData){const u=await requireUser();const optionId=fd.get("optionId");if(typeof optionId==="string")await saveRankedAnswer({runId,sessionId,questionId,optionId,userId:u.id});}
+export async function finishChallengeSection(runId:string){const u=await requireUser();const r=await finalizeRankedSection(runId,u.id);if(r.ok&&r.status==="COMPLETED")redirect(`/ranking/challenges/run/${runId}/result`);redirect(`/ranking/challenges/run/${runId}`);}

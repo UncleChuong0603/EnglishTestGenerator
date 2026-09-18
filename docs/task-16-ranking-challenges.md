@@ -11,3 +11,19 @@ Challenge types are Reading 100 (P5 30, P6 4 groups/16, P7 single 10/29 and mult
 Deployment: back up, deploy code, then run `npm run db:migrate`. Drizzle applies missing migrations in journal order: `0010_admin_content` → `0011_practice_session_count_invariants` → `0012_ranking_challenges`. Do not run manual SQL. Existing users start at XP/streak/weekly score zero. Production smoke testing should stop at migration, readiness, Admin authorization and draft validation unless an operator intentionally publishes a real event.
 
 Future scope explicitly excludes payments, levels, leagues, badges, social graphs and unofficial TOEIC scaled-score prediction. Task 17 is not implemented.
+
+## Ranked attempt runtime
+
+Migration `0013_ranked_challenge_runtime` adds the ranked parent-to-session relationship and authoritative section deadlines without rewriting the existing `0012` foundation. Starting acquires a transaction advisory lock keyed by challenge/user, returns an existing run on retry, checks LIVE state and remaining duration, then instantiates practice-session children from the frozen item order. No Task 13 usage row is created. FREE and PREMIUM therefore both receive exactly one database-unique attempt.
+
+Reading runs use a 75-minute Reading deadline; Listening uses 45 minutes; Full begins with a 45-minute Listening deadline and transitions to a fixed 75-minute Reading deadline. Answer writes re-read ownership, active section, assignment, option ownership and deadline on the server. Browser countdowns are display-only. Expired runs retain their identity and finalize saved answers plus unanswered items as incorrect. Finalization is locked and idempotent, persists immutable raw section/total scores, removes staging rows and emits the source-idempotent Challenge gamification event.
+
+The learner routes are `/ranking/challenges/[challengeId]`, `/ranking/challenges/run/[runId]`, and the nested result route. LIVE results expose only raw score/rank/visible participant population; practice result DTOs reject ranked child review until the parent challenge derives CLOSED. Thus solutions, explanations and transcripts stay unavailable while LIVE. After CLOSED, existing review pages become available. CANCELLED challenges retain private history but are not treated as normal published standings.
+
+Admin routes are `/admin/challenges`, `/admin/challenges/new`, and `/admin/challenges/[id]`. Admin can create a draft, generate/regenerate its exact frozen form, inspect part/group/question composition, publish idempotently and cancel without deletion. All mutations require `CHALLENGE_MANAGE` and use the existing audit actions. There is deliberately no score editing, rank editing or attempt reset operation.
+
+Task 15 integration is enforced by an `0013` database archive guard: content referenced by a PUBLISHED challenge whose `ends_at` is still in the future (UPCOMING or LIVE) cannot transition from published to archived. Draft references do not block archive and must be regenerated if content eligibility changes. CLOSED references remain stored and reviewable, while the pre-existing Full Mock feasibility guard still determines whether ordinary archive is safe.
+
+## Browser verification
+
+Use a migrated local/test database, never production scoring data: create a draft under Admin Challenges, generate and verify its exact composition, publish in a controlled LIVE window, start as a learner, refresh to verify Resume, complete with fixture/test helpers, confirm raw score and LIVE review lock, then advance only the test clock/window to CLOSED and confirm review unlock. Production smoke verification stops at migration readiness, authorization, draft generation and validation unless an operator intentionally schedules a real challenge.

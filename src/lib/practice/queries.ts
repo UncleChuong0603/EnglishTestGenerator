@@ -1,10 +1,11 @@
 import "server-only";
 import { and, asc, eq, gt, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import { attemptAnswers, diagnosticRuns, fullMockRuns, listeningTranscripts, mediaAssets, passageSets, passages, practiceSessionQuestions, practiceSessions, questionGroupMedia, questionOptions, questionSolutions, questions } from "@/db/schema";
+import { attemptAnswers, diagnosticRuns, fullMockRuns, listeningTranscripts, mediaAssets, passageSets, passages, practiceSessionQuestions, practiceSessions, questionGroupMedia, questionOptions, questionSolutions, questions, rankedChallengeRuns, rankedChallenges } from "@/db/schema";
 import { R2MediaStorage } from "@/lib/media/r2-storage";
 import type { PracticeGroup, PracticeQuestion, PracticeResult, PracticeSession } from "./types";
 import { toLearnerPracticeQuestion } from "./learner-dto";
+import { challengePhase } from "@/lib/challenges/policy";
 
 export type PracticeOwner = { userId: string; guestOwnerHash?: never } | { userId?: never; guestOwnerHash: string };
 function ownerCondition(owner: PracticeOwner) { return "userId" in owner ? eq(practiceSessions.userId, owner.userId!) : and(eq(practiceSessions.guestOwnerHash, owner.guestOwnerHash), gt(practiceSessions.expiresAt, new Date())); }
@@ -53,7 +54,7 @@ export async function getSafeSessionContent(sessionId: string, listening = false
 }
 
 export async function getPracticeSession(sessionId: string, owner: PracticeOwner): Promise<PracticeSession | null | "submitted"> {
-  const session = await getOwnedSession(sessionId, owner); if (!session || session.practiceType === "demo_test" || session.fullMockRunId) return null; if (session.status === "submitted") return "submitted"; if (session.status !== "in_progress") return null;
+  const session = await getOwnedSession(sessionId, owner); if (!session || session.practiceType === "demo_test" || session.fullMockRunId || session.rankedChallengeRunId) return null; if (session.status === "submitted") return "submitted"; if (session.status !== "in_progress") return null;
   const listening = session.skillArea === "LISTENING"; const content = await getSafeSessionContent(session.id, listening); const expected = session.part === 2 ? 3 : 4;
   if (content.questions.length !== session.questionCount || content.questions.some((q) => q.options.length !== expected)) throw new Error("PRACTICE_LOAD_FAILED");
   return { id: session.id, status: "in_progress", questionCount: session.questionCount, requestedQuestionCount: session.requestedQuestionCount, mode: session.practiceType as PracticeSession["mode"], skillArea: listening ? "LISTENING" : "READING", source: session.source as PracticeSession["source"], requestedSkill: session.requestedSkill, requestedSubSkill: session.requestedSubSkill, questions: content.questions, groups: content.groups };
@@ -63,6 +64,7 @@ export async function getPracticeResult(sessionId: string, owner: PracticeOwner)
   const session = await getOwnedSession(sessionId, owner); if (!session || session.practiceType === "demo_test") return null; if (session.status === "in_progress") return "in_progress";
   if (session.diagnosticRunId) { const parent = (await db.select({ status: diagnosticRuns.status }).from(diagnosticRuns).where(eq(diagnosticRuns.id, session.diagnosticRunId)).limit(1))[0]; if (!parent || parent.status !== "COMPLETED") return null; }
   if (session.fullMockRunId) { const parent = (await db.select({ status: fullMockRuns.status }).from(fullMockRuns).where(eq(fullMockRuns.id, session.fullMockRunId)).limit(1))[0]; if (!parent || parent.status !== "COMPLETED") return null; }
+  if (session.rankedChallengeRunId) { const parent=(await db.select({status:rankedChallengeRuns.status,challenge:rankedChallenges}).from(rankedChallengeRuns).innerJoin(rankedChallenges,eq(rankedChallenges.id,rankedChallengeRuns.challengeId)).where(eq(rankedChallengeRuns.id,session.rankedChallengeRunId)).limit(1))[0];if(!parent||parent.status!=="COMPLETED"||challengePhase(parent.challenge)!=="CLOSED")return null; }
   if (session.status !== "submitted" || session.scoreCorrect === null || session.scoreTotal === null || !session.submittedAt) return null;
   const listening = session.skillArea === "LISTENING"; const content = await getSafeSessionContent(session.id, listening); const ids = content.questions.map((q) => q.id);
   const [answers, solutions] = await Promise.all([db.select().from(attemptAnswers).where(eq(attemptAnswers.sessionId, session.id)), db.select().from(questionSolutions).where(inArray(questionSolutions.questionId, ids))]);
