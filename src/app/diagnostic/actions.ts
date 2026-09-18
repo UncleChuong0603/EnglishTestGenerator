@@ -10,6 +10,7 @@ import { getGuestOwnerHash, requireGuestOwnerHash } from "@/lib/guest/identity";
 import type { SubmittedAnswer } from "@/lib/practice/types";
 import { evaluateMultipleChoice } from "@/lib/toeic/evaluation";
 import { reconcileMasteryAnswers } from "@/lib/mastery/persistence";
+import { awardCompletedLearning } from "@/lib/gamification/award";
 
 async function owner() { const user = await getCurrentUser(); return user ? { userId: user.id } as const : { guestOwnerHash: await requireGuestOwnerHash() } as const; }
 export async function startDiagnostic() { let runId: string; try { runId = await getOrCreateDiagnostic(await owner()); } catch (error) { console.error("Could not create diagnostic", error); redirect("/diagnostic?error=unavailable"); } redirect(`/diagnostic/${runId}`); }
@@ -34,6 +35,7 @@ export async function submitDiagnosticPart(runId: string, sessionId: string, ans
       await reconcileMasteryAnswers(tx, "userId" in current ? current.userId ?? null : null, session.source, rows);
       await tx.update(practiceSessions).set({ status: "submitted", submittedAt: new Date(), scoreCorrect: correct, scoreTotal: session.questionCount }).where(eq(practiceSessions.id, sessionId));
       const remaining = await tx.select({ id: practiceSessions.id }).from(practiceSessions).where(and(eq(practiceSessions.diagnosticRunId, runId), eq(practiceSessions.status, "in_progress")));
+      if ("userId" in current) await awardCompletedLearning(tx,{userId:current.userId??null,sourceType:"DIAGNOSTIC_RUN",sourceId:runId,questionIds:rows.map(r=>r.questionId),completion:remaining.length?undefined:"DIAGNOSTIC"});
       if (!remaining.length) await tx.update(diagnosticRuns).set({ status: "COMPLETED", completedAt: new Date() }).where(eq(diagnosticRuns.id, runId));
       return remaining.length === 0;
     });

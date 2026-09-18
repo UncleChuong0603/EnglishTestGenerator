@@ -8,6 +8,7 @@ import { getSafeSessionContent } from "@/lib/practice/queries";
 import { loadUnits, selectListeningPractice } from "@/lib/practice/selector";
 import { assembleFullMock, deadlineFrom, type MockForm, type MockUnit } from "./blueprint";
 import { consumeUsage } from "@/lib/entitlements/service";
+import { awardCompletedLearning } from "@/lib/gamification/award";
 
 export type FullMockReadiness = {
   ready: boolean;
@@ -123,6 +124,7 @@ export async function finalizeFullMockSection(runId: string, userId: string) {
     const attempts = await tx.select().from(attemptAnswers).where(and(eq(attemptAnswers.userId, userId), inArray(attemptAnswers.sessionId, ids)));
     if (attempts.length !== 200) throw new Error("FULL_MOCK_INCOMPLETE");
     await reconcileMasteryAnswers(tx, userId, "full_mock", attempts);
+    await awardCompletedLearning(tx,{userId,sourceType:"FULL_MOCK_RUN",sourceId:run.id,questionIds:attempts.map(a=>a.questionId),completion:"FULL_MOCK"});
     await tx.update(fullMockRuns).set({ status: "COMPLETED", readingCompletedAt: now, completedAt: now, updatedAt: now }).where(eq(fullMockRuns.id, run.id));
     await tx.delete(fullMockAnswers).where(inArray(fullMockAnswers.sessionId, ids));
     return { ok: true as const, status: "COMPLETED" as const };

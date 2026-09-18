@@ -19,3 +19,4 @@ export async function setInterfaceLanguage(formData: FormData) {
   (await cookies()).set(LANGUAGE_COOKIE, language, { maxAge: 31_536_000, path: "/", sameSite: "lax", secure: process.env.NODE_ENV === "production" });
   const user = await getCurrentUser(); if (user) await db.update(profiles).set({ interfaceLanguage: language, updatedAt: new Date() }).where(eq(profiles.id, user.id)); revalidatePath("/", "layout");
 }
+export async function saveRankingVisibility(formData: FormData) { const visibility=String(formData.get("visibility")??""); if(!["PUBLIC","ANONYMOUS","HIDDEN"].includes(visibility)) return; const user=await getCurrentUser();if(!user)return;await db.update(profiles).set({rankingVisibility:visibility,updatedAt:new Date()}).where(eq(profiles.id,user.id));revalidatePath("/settings");revalidatePath("/ranking"); }

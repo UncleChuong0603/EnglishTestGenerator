@@ -1,0 +1,3 @@
+import {readFileSync} from "node:fs";import {describe,expect,it} from "vitest";
+const sql=readFileSync("drizzle/0012_ranking_challenges.sql","utf8");const journal=readFileSync("drizzle/meta/_journal.json","utf8");
+describe("Task 16 migration",()=>{it("appends after protected 0011",()=>{expect(journal).toContain("0011_practice_session_count_invariants");expect(journal).toContain("0012_ranking_challenges")});it("has privacy, idempotency and one-attempt constraints",()=>{expect(sql).toContain("DEFAULT 'ANONYMOUS'");expect(sql).toContain("UNIQUE NULLS NOT DISTINCT");expect(sql).toContain('CONSTRAINT "ranked_challenge_runs_user_unique" UNIQUE')});it("does not backfill history",()=>{expect(sql.toLowerCase()).not.toMatch(/insert into "gamification_events"\s+select/)})});

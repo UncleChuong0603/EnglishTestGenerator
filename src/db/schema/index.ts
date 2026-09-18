@@ -87,11 +87,46 @@ export const profiles = pgTable("profiles", {
   avatarUrl: text("avatar_url"),
   interfaceLanguage: text("interface_language").notNull().default("vi"),
   explanationLanguage: text("explanation_language").notNull().default("both"),
+  rankingVisibility: text("ranking_visibility").notNull().default("ANONYMOUS"),
+  publicProfileId: uuid("public_profile_id").notNull().defaultRandom(),
   ...timestamps,
 }, (table) => [
   check("profiles_interface_language_check", sql`${table.interfaceLanguage} in ('en', 'vi')`),
   check("profiles_explanation_language_check", sql`${table.explanationLanguage} in ('en', 'vi', 'both')`),
+  check("profiles_ranking_visibility_check", sql`${table.rankingVisibility} in ('PUBLIC','ANONYMOUS','HIDDEN')`),
+  uniqueIndex("profiles_public_profile_uidx").on(table.publicProfileId),
 ]);
+
+export const studyStreaks = pgTable("study_streaks", {
+  userId: uuid("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+  currentDays: integer("current_days").notNull().default(0),
+  bestDays: integer("best_days").notNull().default(0),
+  lastStudyDate: text("last_study_date"),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+}, (table) => [check("study_streaks_counts_check", sql`${table.currentDays} >= 0 and ${table.bestDays} >= ${table.currentDays}`)]);
+
+export const gamificationEvents = pgTable("gamification_events", {
+  id: uuid("id").primaryKey().defaultRandom(), userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  eventType: text("event_type").notNull(), sourceType: text("source_type").notNull(), sourceId: uuid("source_id").notNull(), questionId: uuid("question_id").references(() => questions.id, { onDelete: "restrict" }),
+  localDate: text("local_date").notNull(), xpAwarded: integer("xp_awarded").notNull().default(0), rankPointsAwarded: integer("rank_points_awarded").notNull().default(0), createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+}, (table) => [
+  unique("gamification_events_source_unique").on(table.userId, table.eventType, table.sourceType, table.sourceId, table.questionId),
+  index("gamification_events_user_created_idx").on(table.userId, table.createdAt), index("gamification_events_user_date_idx").on(table.userId, table.localDate), index("gamification_events_date_rank_idx").on(table.localDate, table.rankPointsAwarded),
+  check("gamification_events_type_check", sql`${table.eventType} in ('QUESTION','STUDY_DAY','STREAK','WORKOUT_COMPLETE','MASTERY_COMPLETE','DIAGNOSTIC_COMPLETE','FULL_MOCK_COMPLETE','CHALLENGE_COMPLETE')`),
+  check("gamification_events_points_check", sql`${table.xpAwarded} >= 0 and ${table.rankPointsAwarded} >= 0 and (${table.xpAwarded} > 0 or ${table.rankPointsAwarded} > 0)`),
+]);
+
+export const rankedChallenges = pgTable("ranked_challenges", {
+  id: uuid("id").primaryKey().defaultRandom(), type: text("type").notNull(), status: text("status").notNull().default("DRAFT"), titleEn: text("title_en").notNull(), titleVi: text("title_vi").notNull(), startsAt: timestamp("starts_at", { withTimezone: true, mode: "date" }), endsAt: timestamp("ends_at", { withTimezone: true, mode: "date" }), publishedAt: timestamp("published_at", { withTimezone: true, mode: "date" }), cancelledAt: timestamp("cancelled_at", { withTimezone: true, mode: "date" }), createdBy: uuid("created_by").notNull().references(() => users.id, { onDelete: "restrict" }), ...timestamps,
+}, (table) => [index("ranked_challenges_status_window_idx").on(table.status, table.type, table.startsAt, table.endsAt), check("ranked_challenges_type_check", sql`${table.type} in ('READING_100','LISTENING_100','FULL_200')`), check("ranked_challenges_status_check", sql`${table.status} in ('DRAFT','PUBLISHED','CANCELLED')`), check("ranked_challenges_window_check", sql`(${table.status} = 'DRAFT') or (${table.startsAt} is not null and ${table.endsAt} > ${table.startsAt})`)]);
+
+export const rankedChallengeItems = pgTable("ranked_challenge_items", {
+  challengeId: uuid("challenge_id").notNull().references(() => rankedChallenges.id, { onDelete: "cascade" }), position: integer("position").notNull(), part: smallint("part").notNull(), questionId: uuid("question_id").notNull().references(() => questions.id, { onDelete: "restrict" }), groupId: uuid("group_id").references(() => passageSets.id, { onDelete: "restrict" }),
+}, (table) => [primaryKey({ columns: [table.challengeId, table.position] }), unique("ranked_challenge_question_unique").on(table.challengeId, table.questionId), check("ranked_challenge_item_part_check", sql`${table.part} between 1 and 7 and ${table.position} > 0`)]);
+
+export const rankedChallengeRuns = pgTable("ranked_challenge_runs", {
+  id: uuid("id").primaryKey().defaultRandom(), challengeId: uuid("challenge_id").notNull().references(() => rankedChallenges.id, { onDelete: "restrict" }), userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }), fullMockRunId: uuid("full_mock_run_id").references(() => fullMockRuns.id, { onDelete: "restrict" }), status: text("status").notNull().default("IN_PROGRESS"), listeningScore: smallint("listening_score"), readingScore: smallint("reading_score"), totalScore: smallint("total_score"), startedAt: timestamp("started_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(), completedAt: timestamp("completed_at", { withTimezone: true, mode: "date" }), ...timestamps,
+}, (table) => [unique("ranked_challenge_runs_user_unique").on(table.challengeId, table.userId), index("ranked_challenge_runs_leaderboard_idx").on(table.challengeId, table.status, table.totalScore), check("ranked_challenge_runs_status_check", sql`${table.status} in ('IN_PROGRESS','COMPLETED','EXPIRED')`), check("ranked_challenge_runs_scores_check", sql`(${table.listeningScore} is null or ${table.listeningScore} between 0 and 100) and (${table.readingScore} is null or ${table.readingScore} between 0 and 100) and (${table.totalScore} is null or ${table.totalScore} between 0 and 200)`)]);
 
 export const userSessions = pgTable("user_sessions", {
   id: uuid("id").primaryKey().defaultRandom(),
