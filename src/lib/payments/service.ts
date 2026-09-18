@@ -4,7 +4,7 @@ import { and, desc, eq, gt, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { paymentEvents, paymentOrders, userPlanMemberships, users } from "@/db/schema";
 import { grantPremiumWithTx } from "@/lib/entitlements/service";
-import { resolveProduct } from "./catalog";
+import { resolveProduct, resolveProductDuration } from "./catalog";
 import { getPaymentProvider, type VerifiedPayment } from "./provider";
 
 const ORDER_TTL_MS = 30 * 60_000;
@@ -36,8 +36,8 @@ export async function applyVerifiedPayment(event: VerifiedPayment, providerName:
     if (!event.paid || event.amountVnd !== order.amount || event.currency !== order.currency || event.providerPaymentId !== order.providerPaymentId) {
       await tx.update(paymentEvents).set({ processingStatus: "REJECTED", processedAt: new Date() }).where(eq(paymentEvents.id, inserted[0].id)); return { status: order.status, rejected: true };
     }
-    const product = resolveProduct(order.productKey);
-    await grantPremiumWithTx(tx, { userId: order.userId, days: product.days, source: "PAYMENT", paymentOrderId: order.id });
+    const days = resolveProductDuration(order.productKey);
+    await grantPremiumWithTx(tx, { userId: order.userId, days, source: "PAYMENT", paymentOrderId: order.id });
     if (injectFailure) throw new Error("INJECTED_ROLLBACK");
     const now = new Date(); await tx.update(paymentOrders).set({ status: "PAID", paidAt: now, updatedAt: now }).where(eq(paymentOrders.id, order.id));
     await tx.update(paymentEvents).set({ processingStatus: "PROCESSED", processedAt: now }).where(eq(paymentEvents.id, inserted[0].id));
@@ -52,7 +52,7 @@ export async function processWebhook(body: unknown, provider = getPaymentProvide
   try { return await applyVerifiedPayment(event, provider.name); }
   catch (error) {
     if (!(error instanceof Error) || error.message !== "PAYMENT_ORDER_NOT_FOUND") throw error;
-    await db.insert(paymentEvents).values({ provider: provider.name, providerEventKey: event.eventKey, eventType: "UNMATCHED_VERIFIED_EVENT", processingStatus: "REJECTED", processedAt: new Date(), metadata: { orderCode: event.orderCode, amount: event.amountVnd, currency: event.currency, reference: event.providerPaymentId } }).onConflictDoNothing();
+    console.info("payment_webhook_verified_unmatched", { provider: provider.name, orderCode: event.orderCode });
     return { status: "UNMATCHED", rejected: true };
   }
 }

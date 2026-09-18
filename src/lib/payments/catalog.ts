@@ -27,3 +27,8 @@ export function resolveProduct(key: string) {
   if (!product.amountVnd || !product.purchasable) throw new Error("PRODUCT_NOT_AVAILABLE");
   return { ...product, amountVnd: product.amountVnd };
 }
+
+export function resolveProductDuration(key: string) {
+  if (!(key in PREMIUM_PRODUCTS)) throw new Error("INVALID_PRODUCT");
+  return PREMIUM_PRODUCTS[key as PremiumProductKey].days;
+}
