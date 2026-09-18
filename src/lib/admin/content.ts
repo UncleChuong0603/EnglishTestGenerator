@@ -89,7 +89,19 @@ export async function validateContent(id: string) { const d = await getAdminCont
 
 export async function publishContent(actorUserId: string, id: string, expectedUpdatedAt?: string) { return db.transaction(async (tx) => { await assertManage(tx, actorUserId); const [g] = await tx.select().from(passageSets).where(eq(passageSets.id, id)).for("update").limit(1); if (!g) throw new ContentAdminError("NOT_FOUND"); if (g.status === "published") return false; if (g.status !== "draft") throw new ContentAdminError("INVALID_LIFECYCLE"); if (expectedUpdatedAt && g.updatedAt.toISOString() !== expectedUpdatedAt) throw new ContentAdminError("STALE_CONTENT"); const issues = await validateContent(id); if (issues.length) throw new ContentAdminError("VALIDATION_FAILED", issues); const now = new Date(); await tx.update(passageSets).set({ status: "published", publishedAt: now, updatedAt: now }).where(and(eq(passageSets.id, id), eq(passageSets.status, "draft"))); await tx.update(passages).set({ status: "published", updatedAt: now }).where(eq(passages.passageSetId, id)); await tx.update(questions).set({ status: "published", publishedAt: now, updatedAt: now }).where(and(eq(questions.passageSetId, id), eq(questions.status, "draft"))); await tx.insert(adminAuditLogs).values({ actorUserId, action: "CONTENT_PUBLISHED", metadata: { groupId: id, part: g.toeicPart, previousLifecycle: "draft", newLifecycle: "published" } }); return true; }); }
 
-async function allPublishedUnits(tx: Tx, excluding?: string) { const rows = await tx.select({ id: passageSets.id, part: passageSets.toeicPart, setType: passageSets.setType, qid: questions.id }).from(passageSets).innerJoin(questions, and(eq(questions.passageSetId, passageSets.id), eq(questions.status, "published"))).where(and(eq(passageSets.status, "published"), excluding ? sql`${passageSets.id} <> ${excluding}` : undefined)); const map = new Map<string, MockUnit>(); for (const r of rows) { const type = r.part === 1 ? "photographs" : r.part === 2 ? "question_response" : r.part === 3 ? "conversation" : r.part === 4 ? "talk" : r.part === 5 ? "standalone" : r.setType; const unit = map.get(r.id) ?? { id: r.id, part: r.part as MockUnit["part"], setType: type as MockUnit["setType"], questionIds: [] }; unit.questionIds.push(r.qid); map.set(r.id, unit); } return [...map.values()]; }
+async function allPublishedUnits(tx: Tx, excluding?: string) {
+  const [rows, standalone] = await Promise.all([
+    tx.select({ id: passageSets.id, part: passageSets.toeicPart, setType: passageSets.setType, qid: questions.id }).from(passageSets).innerJoin(questions, and(eq(questions.passageSetId, passageSets.id), eq(questions.status, "published"))).where(and(eq(passageSets.status, "published"), excluding ? sql`${passageSets.id} <> ${excluding}` : undefined)),
+    tx.select({ id: questions.id }).from(questions).where(and(eq(questions.toeicPart, 5), eq(questions.status, "published"), sql`${questions.passageSetId} is null`)),
+  ]);
+  const map = new Map<string, MockUnit>();
+  for (const row of rows) {
+    const type = row.part === 1 ? "photographs" : row.part === 2 ? "question_response" : row.part === 3 ? "conversation" : row.part === 4 ? "talk" : row.setType;
+    const unit = map.get(row.id) ?? { id: row.id, part: row.part as MockUnit["part"], setType: type as MockUnit["setType"], questionIds: [] };
+    unit.questionIds.push(row.qid); map.set(row.id, unit);
+  }
+  return [...map.values(), ...standalone.map((row) => ({ id: row.id, part: 5 as const, setType: "standalone" as const, questionIds: [row.id] }))];
+}
 export async function archiveContent(actorUserId: string, id: string, expectedUpdatedAt?: string) {
   return db.transaction(async (tx) => {
     await assertManage(tx, actorUserId);

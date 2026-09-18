@@ -16,6 +16,7 @@
     "test:integration:ranked-challenges:reset": "node scripts/task16c-reset.mjs",
     "test:integration:ranked-challenges": "node --conditions=react-server --import tsx scripts/task16c-integration.mts",
     "test:integration:ranked-challenges:matrix": "node --conditions=react-server --import tsx scripts/task16d-matrix.mts",
+    "test:integration:ranked-challenges:archive": "node --conditions=react-server --import tsx scripts/task16d-archive-matrix.mts",
     "test:e2e:ranked-challenges:seed": "node --conditions=react-server --import tsx scripts/task16c-browser-seed.mts",
     "test:e2e:ranked-challenges": "playwright test e2e/ranked-challenges.spec.ts",
     "db:generate": "drizzle-kit generate",

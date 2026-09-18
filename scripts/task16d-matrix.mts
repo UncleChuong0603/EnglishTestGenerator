@@ -114,11 +114,18 @@ async function rollbackAndFairness() {
   for (const premium of [false, true]) { const u = await user(premium ? "premium" : "free", "PUBLIC", premium); const first = await service.startRankedChallenge(id, u, now); const second = await service.startRankedChallenge(id, u, now); assert.ok(first.ok && second.ok && first.runId === second.runId); assert.equal((await pool.query(`select count(*)::int n from ranked_challenge_runs where challenge_id=$1 and user_id=$2`, [id, u])).rows[0].n, 1); }
 }
 
+async function fullSecondLearner() {
+  const row=(await pool.query(`select c.id,r.id run_id from ranked_challenges c join ranked_challenge_runs r on r.challenge_id=c.id join users u on u.id=r.user_id where c.type='FULL_200' and u.email_normalized='alice@task16c.invalid' limit 1`)).rows[0];assert.ok(row);
+  await pool.query(`update ranked_challenges set status='PUBLISHED',cancelled_at=null,starts_at=now()-interval '1 minute',ends_at=now()+interval '3 hours' where id=$1`,[row.id]);
+  const second=await user("full-second");const started=await service.startRankedChallenge(row.id,second,new Date());assert.ok(started.ok);assert.deepEqual(await form(row.run_id),await form(started.runId));assert.equal((await form(started.runId)).length,200);
+}
+
 try {
   await independent("READING_100", 2031);
   await independent("LISTENING_100", 2032);
   await timing("READING_100", 2033); await timing("LISTENING_100", 2034); await timing("FULL_200", 2035);
   await rankingPrivacy();
   await rollbackAndFairness();
+  await fullSecondLearner();
   console.log("TASK16D_MATRIX_PASS");
 } finally { await pool.end(); const { pool: appPool } = await import("../src/db/index.ts"); await appPool.end(); }
