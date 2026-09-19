@@ -19,7 +19,11 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-be-vietnam-pro), Arial, Helvetica, sans-serif;
+  overflow-x: clip;
 }
+
+img, video, svg { max-width: 100%; }
+summary::-webkit-details-marker { display: none; }
 
 :focus-visible {
   outline: 3px solid #0f766e;
@@ -38,4 +42,37 @@ button, a, input, select, summary {
   body:has(nav[aria-label][class*="fixed"][class*="bottom-0"]) {
     padding-bottom: calc(3.5rem + env(safe-area-inset-bottom));
   }
+  .mobile-sticky-actions {
+    position: sticky;
+    bottom: calc(3.5rem + env(safe-area-inset-bottom));
+    z-index: 20;
+    margin-inline: -1rem;
+    padding: .75rem 1rem;
+    border-top: 1px solid #e2e8f0;
+    background: rgb(248 250 252 / .96);
+    backdrop-filter: blur(10px);
+  }
+  /* Standalone practice sessions do not render the learner bottom navigation. */
+  main:has(> div > header + [role="progressbar"]) > div > .mt-6.grid.grid-cols-2,
+  main:has(> div > header + section) > div > .mt-5.flex.gap-3 {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    margin-inline: -1rem;
+    padding: .75rem 1rem calc(.75rem + env(safe-area-inset-bottom));
+    border-top: 1px solid #e2e8f0;
+    background: rgb(248 250 252 / .96);
+    backdrop-filter: blur(10px);
+  }
+  #billing-plans article {
+    padding: 1rem;
+  }
+  #billing-plans article > .min-h-7,
+  #billing-plans article > .my-6,
+  #billing-plans article > ul {
+    display: none;
+  }
+  #billing-plans article > h3 { margin-top: 0; font-size: 1.125rem; }
+  #billing-plans article > p.text-3xl { font-size: 1.5rem; }
+  #billing-plans article > form { margin-top: .75rem; }
 }

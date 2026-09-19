@@ -45,6 +45,7 @@
     "content:validate-import": "tsx scripts/validate-question-import.ts",
     "media:preflight": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/media-operator.mts preflight",
     "media:status": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/media-operator.mts status",
+    "media:verify": "node --env-file-if-exists=.env.local scripts/media-verify.mjs",
     "media:migrate-to-local": "node --env-file-if-exists=.env.local --conditions=react-server --import tsx scripts/migrate-media-to-local.mts",
     "validate:mock-readiness": "node --env-file=.env.local scripts/validate-mock-readiness.mjs",
     "seed:reading": "node --env-file=.env.local scripts/seed-reading.mjs",

@@ -2,7 +2,7 @@ import type { TrendPoint } from "@/lib/progress/trends";
 
 export function UsageProgress({ label, used, limit, period }: { label: string; used: number; limit: number; period: string }) {
   const percent = Math.min(100, Math.round(used / limit * 100));
-  return <div className="rounded-xl bg-slate-50 p-4"><div className="flex items-baseline justify-between gap-3"><strong>{label}</strong><span className="text-sm font-bold">{used} / {limit}</span></div><div className="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-200" role="progressbar" aria-label={`${label}: ${used} / ${limit} ${period}`} aria-valuemin={0} aria-valuemax={limit} aria-valuenow={Math.min(used, limit)}><div className="h-full rounded-full bg-teal-600" style={{ width: `${percent}%` }} /></div><p className="mt-2 text-xs text-slate-500">{period}</p></div>;
+  return <div className="min-w-0 rounded-xl bg-slate-50 p-3 sm:p-4"><div className="flex flex-wrap items-baseline justify-between gap-x-2"><strong className="min-w-0 break-words text-sm">{label}</strong><span className="whitespace-nowrap text-sm font-bold">{used} / {limit}</span></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200" role="progressbar" aria-label={`${label}: ${used} / ${limit} ${period}`} aria-valuemin={0} aria-valuemax={limit} aria-valuenow={Math.min(used, limit)}><div className="h-full rounded-full bg-teal-600" style={{ width: `${percent}%` }} /></div><p className="mt-1 text-xs text-slate-500">{period}</p></div>;
 }
 
 export function AccuracyDonut({ correct, total, label }: { correct: number; total: number; label: string }) {

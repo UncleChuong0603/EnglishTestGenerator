@@ -2,9 +2,10 @@ import "server-only";
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { attemptAnswers, diagnosticRuns, fullMockRuns, practiceSessionQuestions, practiceSessions, questionMastery, questions } from "@/db/schema";
+import { compareReviewPriority, type PriorityEvidence } from "./priority";
 
 export type MistakeStatus = "UNRESOLVED" | "MASTERED";
-export type MistakeListItem = { questionId: string; status: MistakeStatus; skillArea: "LISTENING" | "READING"; part: number; skill: string; subSkill: string; firstMissedAt: Date; lastMissedAt: Date; lastReviewedAt: Date | null; reviewAttemptCount: number; reviewSuccessStreak: number; masteredAt: Date | null; available: boolean };
+export type MistakeListItem = { questionId: string; status: MistakeStatus; skillArea: "LISTENING" | "READING"; part: number; skill: string; subSkill: string; firstMissedAt: Date; lastMissedAt: Date; lastReviewedAt: Date | null; reviewAttemptCount: number; reviewSuccessStreak: number; masteredAt: Date | null; available: boolean; wrongCount: number };
 
 const visibleEvidence = sql`exists (
   select 1 from ${attemptAnswers} aa
@@ -32,15 +33,23 @@ const reviewableContent = sql`(
   and (${questions.toeicPart} not in (3,4) or exists (select 1 from listening_transcripts lt where lt.question_group_id = ${questions.passageSetId} and length(lt.content) > 0))
   and (${questions.toeicPart} not in (6,7) or exists (select 1 from passages p where p.passage_set_id = ${questions.passageSetId} and p.status = 'published' and p.content is not null))
 )`;
+const wrongCount = sql<number>`(select count(*)::int from ${attemptAnswers} wrong
+  join ${practiceSessions} session on session.id = wrong.session_id
+  left join ${diagnosticRuns} diagnostic on diagnostic.id = session.diagnostic_run_id
+  left join ${fullMockRuns} mock on mock.id = session.full_mock_run_id
+  where wrong.user_id = ${questionMastery.userId} and wrong.question_id = ${questionMastery.questionId}
+    and wrong.is_correct = false and session.status = 'submitted'
+    and (session.source <> 'diagnostic' or diagnostic.status = 'COMPLETED')
+    and (session.source <> 'full_mock' or mock.status = 'COMPLETED'))`;
 
 export async function getMistakeBank(userId: string, status: MistakeStatus, filters?: { skillArea?: "LISTENING" | "READING"; part?: number }) {
   const conditions = [eq(questionMastery.userId, userId), eq(questionMastery.status, status), visibleEvidence];
   if (filters?.skillArea) conditions.push(eq(questions.skillArea, filters.skillArea));
   if (filters?.part) conditions.push(eq(questions.toeicPart, filters.part));
-  const rows = await db.select({ questionId: questionMastery.questionId, status: questionMastery.status, skillArea: questions.skillArea, part: questions.toeicPart, skill: questions.skill, subSkill: questions.subSkill, firstMissedAt: questionMastery.firstMissedAt, lastMissedAt: questionMastery.lastMissedAt, lastReviewedAt: questionMastery.lastReviewedAt, reviewAttemptCount: questionMastery.reviewAttemptCount, reviewSuccessStreak: questionMastery.reviewSuccessStreak, masteredAt: questionMastery.masteredAt, available: sql<boolean>`${reviewableContent}` })
+  const rows = await db.select({ questionId: questionMastery.questionId, status: questionMastery.status, skillArea: questions.skillArea, part: questions.toeicPart, skill: questions.skill, subSkill: questions.subSkill, firstMissedAt: questionMastery.firstMissedAt, lastMissedAt: questionMastery.lastMissedAt, lastReviewedAt: questionMastery.lastReviewedAt, reviewAttemptCount: questionMastery.reviewAttemptCount, reviewSuccessStreak: questionMastery.reviewSuccessStreak, masteredAt: questionMastery.masteredAt, available: sql<boolean>`${reviewableContent}`, wrongCount })
     .from(questionMastery).innerJoin(questions, eq(questions.id, questionMastery.questionId)).where(and(...conditions))
     .orderBy(status === "UNRESOLVED" ? asc(questionMastery.lastReviewedAt) : desc(questionMastery.masteredAt), asc(questionMastery.lastMissedAt));
-  return rows.map((row) => ({ ...row, status: row.status as MistakeStatus, skillArea: row.skillArea as "LISTENING" | "READING", available: row.available })) satisfies MistakeListItem[];
+  return rows.map((row) => ({ ...row, status: row.status as MistakeStatus, skillArea: row.skillArea as "LISTENING" | "READING", available: row.available, wrongCount: Number(row.wrongCount) })) satisfies MistakeListItem[];
 }
 
 export async function getMistakeCounts(userId: string) {
@@ -51,9 +60,17 @@ export async function getMistakeCounts(userId: string) {
 export async function getReviewCandidates(userId: string, part?: number) {
   const conditions = [eq(questionMastery.userId, userId), eq(questionMastery.status, "UNRESOLVED"), visibleEvidence, reviewableContent];
   if (part) conditions.push(eq(questions.toeicPart, part));
-  return db.select({ questionId: questions.id, part: questions.toeicPart, skillArea: questions.skillArea, passageSetId: questions.passageSetId, lastReviewedAt: questionMastery.lastReviewedAt, lastMissedAt: questionMastery.lastMissedAt, streak: questionMastery.reviewSuccessStreak, attempts: questionMastery.reviewAttemptCount })
+  return db.select({ questionId: questions.id, part: questions.toeicPart, skillArea: questions.skillArea, passageSetId: questions.passageSetId, lastReviewedAt: questionMastery.lastReviewedAt, lastMissedAt: questionMastery.lastMissedAt, streak: questionMastery.reviewSuccessStreak, attempts: questionMastery.reviewAttemptCount, wrongCount })
     .from(questionMastery).innerJoin(questions, eq(questions.id, questionMastery.questionId)).where(and(...conditions))
     .orderBy(asc(questionMastery.lastReviewedAt), asc(questionMastery.lastMissedAt), desc(questionMastery.reviewAttemptCount), asc(questionMastery.reviewSuccessStreak));
+}
+
+export async function getSmartReviewCandidates(userId: string, part?: number) {
+  const candidates = await getReviewCandidates(userId, part);
+  return candidates.sort((a, b) => compareReviewPriority(
+    { questionId: a.questionId, wrongCount: Number(a.wrongCount), lastMissedAt: a.lastMissedAt, lastReviewedAt: a.lastReviewedAt, reviewSuccessStreak: a.streak } satisfies PriorityEvidence,
+    { questionId: b.questionId, wrongCount: Number(b.wrongCount), lastMissedAt: b.lastMissedAt, lastReviewedAt: b.lastReviewedAt, reviewSuccessStreak: b.streak } satisfies PriorityEvidence,
+  ));
 }
 
 export async function expandReviewGroups(seedIds: string[], part: number) {

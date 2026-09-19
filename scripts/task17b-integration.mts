@@ -2,28 +2,24 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import pg from "pg";
+import { assertTestDatabase } from "./lib/assert-test-database.mjs";
 
 const testUrl = process.env.TASK17_TEST_DATABASE_URL ?? process.env.TASK16_TEST_DATABASE_URL;
 if (!testUrl) throw new Error("TASK17_TEST_DATABASE_URL_REQUIRED");
 const source = new URL(testUrl);
-if (source.hostname !== "127.0.0.1" || source.port !== "15433") throw new Error("TASK17_REFUSES_NON_ISOLATED_DATABASE");
+await assertTestDatabase(source.href);
 process.env.DATABASE_URL = source.href;
 process.env.PAYMENT_PROVIDER = "FAKE";
 process.env.PREMIUM_30_PRICE_VND = "59000"; process.env.PREMIUM_90_PRICE_VND = "139000"; process.env.PREMIUM_365_PRICE_VND = "399000";
 const databaseName = source.pathname.slice(1);
 if (!/^[a-zA-Z0-9_]+$/.test(databaseName)) throw new Error("INVALID_TEST_DATABASE_NAME");
-const adminUrl = new URL(source.href); adminUrl.pathname = "/postgres";
-const bootstrap = new pg.Pool({ connectionString: adminUrl.href, max: 1 });
-const exists = await bootstrap.query(`select 1 from pg_database where datname=$1`, [databaseName]);
-if (!exists.rowCount) await bootstrap.query(`create database "${databaseName}"`);
-await bootstrap.end();
 const pool = new pg.Pool({ connectionString: source.href, max: 12 });
 
 async function freshMigrate() {
   await pool.query("drop schema public cascade"); await pool.query("create schema public");
   const journal = JSON.parse(readFileSync("drizzle/meta/_journal.json", "utf8"));
   for (const entry of journal.entries) { const client=await pool.connect(); try { await client.query("begin"); await client.query(readFileSync(`drizzle/${entry.tag}.sql`,"utf8")); await client.query("commit"); } catch(e){await client.query("rollback");throw e} finally{client.release()} }
-  assert.equal(journal.entries.at(-1).tag,"0015_payos_payments");
+  assert.equal(journal.entries.at(-1).tag,"0022_advanced_practice_targeting");
 }
 async function user(email:string){const id=randomUUID();await pool.query(`insert into users(id,email,email_normalized,status,email_verified_at) values($1,$2,$2,'active',now())`,[id,email]);await pool.query(`insert into profiles(id,full_name) values($1,$2)`,[id,email]);return id}
 async function orderRow(id:string){return (await pool.query(`select * from payment_orders where id=$1`,[id])).rows[0]}

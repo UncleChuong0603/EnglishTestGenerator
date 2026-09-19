@@ -1,0 +1,17 @@
+name: toeicgym-integration-test
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: toeicgym_task17
+      POSTGRES_USER: toeicgym_test
+      POSTGRES_PASSWORD: isolated_test_only
+    ports:
+      - "127.0.0.1:15433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U toeicgym_test -d toeicgym_task17"]
+      interval: 2s
+      timeout: 2s
+      retries: 20

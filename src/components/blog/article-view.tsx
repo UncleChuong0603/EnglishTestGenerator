@@ -15,7 +15,7 @@ export function ArticleView({ post, locale, coverUrl, preview = false, signedIn 
       <header>
         <nav aria-label={locale === "vi" ? "Đường dẫn" : "Breadcrumb"} className="text-sm"><Link className="font-semibold text-teal-800 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-teal-700" href="/blog">← {locale === "vi" ? "Kiến thức TOEIC" : "TOEIC Guides"}</Link><span className="mx-2 text-slate-400">/</span><span className="text-slate-600">{category}</span></nav>
         <p className="mt-8 text-sm font-black uppercase tracking-wider text-teal-800">{category}</p>
-        <h1 className="mt-3 break-words text-4xl font-black leading-tight tracking-tight text-slate-950 sm:text-5xl">{post.title}</h1>
+        <h1 className="mt-3 break-words text-3xl font-black leading-tight tracking-tight text-slate-950 sm:text-5xl">{post.title}</h1>
         <p className="mt-5 text-lg leading-8 text-slate-600 sm:text-xl">{post.excerpt}</p>
         <div className="mt-5 flex flex-wrap gap-x-2 gap-y-1 text-sm text-slate-500">{post.publishedAt ? <time dateTime={post.publishedAt.toISOString()}>{post.publishedAt.toLocaleDateString(locale === "vi" ? "vi-VN" : "en-US")}</time> : <span>{locale === "vi" ? "Bản nháp" : "Draft"}</span>}<span aria-hidden="true">·</span><span>{readingMinutes(post.content)} {locale === "vi" ? "phút đọc" : "min read"}</span></div>
       </header>

@@ -9,7 +9,8 @@ import { flattenUniqueQuestionIds, rankPreferUnseen, rankSelectionUnits, RECENT_
 import type { PracticeConfig, ReadingPart } from "./types";
 import { GUEST_TTL_DAYS } from "@/lib/guest/identity";
 import { MASTERY_REVIEW_BATCH_SIZE } from "@/lib/mastery/constants";
-import { expandReviewGroups, getReviewCandidates } from "@/lib/mastery/queries";
+import { expandReviewGroups, getReviewCandidates, getSmartReviewCandidates } from "@/lib/mastery/queries";
+import { getEffectiveCapabilities } from "@/lib/entitlements/service";
 import { consumeUsage } from "@/lib/entitlements/service";
 
 const EMPTY_HISTORY: ContentHistory = { seenQuestionIds: new Set(), recentQuestionIds: new Set() };
@@ -229,17 +230,19 @@ export async function createRecommendedReadingPracticeSession(userId: string, ta
   });
 }
 /** Creates a server-authoritative, single-Part review session; grouped content is expanded atomically. */
-export async function createMasteryReviewSession(userId: string, requestedPart?: number) {
-  const candidates = await getReviewCandidates(userId, requestedPart);
+export async function createMasteryReviewSession(userId: string, requestedPart?: number, options?: { smart?: boolean; size?: number }) {
+  if (options?.smart && !(await getEffectiveCapabilities(userId)).canUseSmartMistakeReview) throw new Error("PREMIUM_REQUIRED");
+  const candidates = options?.smart ? await getSmartReviewCandidates(userId, requestedPart) : await getReviewCandidates(userId, requestedPart);
   if (!candidates.length) throw new Error("NO_MISTAKES");
   const part = requestedPart ?? candidates[0].part;
   const samePart = candidates.filter((row) => row.part === part);
+  const targetSize = options?.smart && [5, 10, 15, 20].includes(options.size ?? 10) ? options.size! : MASTERY_REVIEW_BATCH_SIZE;
   const seedIds: string[] = []; const units = new Set<string>(); let estimatedQuestions = 0;
   for (const row of samePart) {
     const unit = row.passageSetId ?? row.questionId;
     if (units.has(unit)) continue;
     units.add(unit); seedIds.push(row.questionId); estimatedQuestions += [3, 4, 7].includes(part) ? 3 : part === 6 ? 4 : 1;
-    if (estimatedQuestions >= MASTERY_REVIEW_BATCH_SIZE) break;
+    if (estimatedQuestions >= targetSize) break;
   }
   const expanded = await expandReviewGroups(seedIds, part);
   if (!expanded.length) throw new Error("NO_REVIEWABLE_MISTAKES");
@@ -250,7 +253,7 @@ export async function createMasteryReviewSession(userId: string, requestedPart?:
     const [existing] = await tx.select({ id: practiceSessions.id }).from(practiceSessions).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), eq(practiceSessions.source, "mastery_review"))).limit(1); if (existing) return existing.id;
     await tx.update(practiceSessions).set({ status: "abandoned" }).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), ne(practiceSessions.practiceType, "demo_test"), ne(practiceSessions.source, "diagnostic")));
     await consumeUsage(tx, { userId, entitlement: "MASTERY_REVIEW", sourceType: "PRACTICE_SESSION", sourceId: sessionId, now });
-    const [session] = await tx.insert(practiceSessions).values({ id: sessionId, userId, skillArea, practiceType: skillArea === "LISTENING" ? `listening_part_${part}` : `part_${part}`, part, questionCount: expanded.length, requestedQuestionCount: MASTERY_REVIEW_BATCH_SIZE, source: "mastery_review" }).returning({ id: practiceSessions.id });
+    const [session] = await tx.insert(practiceSessions).values({ id: sessionId, userId, skillArea, practiceType: skillArea === "LISTENING" ? `listening_part_${part}` : `part_${part}`, part, questionCount: expanded.length, requestedQuestionCount: targetSize, source: "mastery_review" }).returning({ id: practiceSessions.id });
     await tx.insert(practiceSessionQuestions).values(expanded.map((row, index) => ({ sessionId: session.id, questionId: row.id, displayOrder: index + 1, passageSetId: row.passageSetId })));
     return session.id;
   });
