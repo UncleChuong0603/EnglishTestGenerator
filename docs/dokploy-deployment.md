@@ -72,6 +72,14 @@ không copy secret vào layer. Giữ cùng một key
 qua mọi lần build/replica. Dokploy ghi Environment vào file `.env`; Docker
 Compose dùng giá trị đó làm nguồn cho secret khi deploy.
 
+Dockerfile không pin `# syntax=docker/dockerfile:1.7`. Pin này buộc BuildKit tải
+thêm image frontend `docker/dockerfile:1.7` từ Docker Hub trước khi đọc
+Dockerfile, tạo thêm một điểm lỗi mạng không cần thiết. Cú pháp duy nhất cần
+BuildKit là `RUN --mount=type=secret,...,required=true`; frontend tích hợp trong
+Docker Engine/BuildKit hiện đại hỗ trợ cú pháp này. Host vẫn phải bật BuildKit
+và dùng Docker Compose plugin hiện đại; không được đổi secret mount thành `ARG`
+hoặc `ENV`.
+
 Trước lần deploy đầu, mở **Preview Compose** và xác nhận phần build của `app` có
 secret trên. Nếu phiên bản Docker Compose của host báo không hỗ trợ
 `secrets.<name>.environment`, nâng Docker Compose plugin; không chuyển key sang
