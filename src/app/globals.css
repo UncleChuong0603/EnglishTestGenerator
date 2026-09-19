@@ -34,3 +34,8 @@ button, a, input, select, summary {
   html { scroll-behavior: auto; }
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
 }
+@media (max-width: 1023px) {
+  body:has(nav[aria-label][class*="fixed"][class*="bottom-0"]) {
+    padding-bottom: calc(3.5rem + env(safe-area-inset-bottom));
+  }
+}
