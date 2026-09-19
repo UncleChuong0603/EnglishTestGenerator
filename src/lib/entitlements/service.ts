@@ -1,7 +1,7 @@
 import { and, desc, eq, gt, isNull, lte, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { usageConsumptions, userPlanMemberships } from "@/db/schema";
-import { getUsageWindow, PLAN_CATALOG, type EntitlementKey, type PlanKey } from "./catalog";
+import { getPlanCapabilities, getUsageWindow, PLAN_CATALOG, type EntitlementKey, type PlanKey } from "./catalog";
 
 export async function getEffectivePlan(userId: string, now = new Date()): Promise<PlanKey> {
   const row = await db.select({ id: userPlanMemberships.id }).from(userPlanMemberships).where(and(
@@ -9,6 +9,24 @@ export async function getEffectivePlan(userId: string, now = new Date()): Promis
     lte(userPlanMemberships.startsAt, now), or(isNull(userPlanMemberships.endsAt), gt(userPlanMemberships.endsAt, now)),
   )).orderBy(sql`${userPlanMemberships.endsAt} desc nulls first`, sql`${userPlanMemberships.createdAt} desc`).limit(1);
   return row.length ? "PREMIUM" : "FREE";
+}
+
+export async function getEffectiveCapabilities(userId: string, now = new Date()) {
+  const plan = await getEffectivePlan(userId, now);
+  return { plan, ...getPlanCapabilities(plan) };
+}
+
+export type MembershipState = { status: "ACTIVE" | "EXPIRED" | "FREE"; expiresAt: Date | null; daysRemaining: number | null };
+export async function getMembershipState(userId: string, now = new Date()): Promise<MembershipState> {
+  const [active] = await db.select({ endsAt: userPlanMemberships.endsAt }).from(userPlanMemberships).where(and(
+    eq(userPlanMemberships.userId, userId), eq(userPlanMemberships.planKey, "PREMIUM"), isNull(userPlanMemberships.revokedAt),
+    lte(userPlanMemberships.startsAt, now), or(isNull(userPlanMemberships.endsAt), gt(userPlanMemberships.endsAt, now)),
+  )).orderBy(sql`${userPlanMemberships.endsAt} desc nulls first`, desc(userPlanMemberships.createdAt)).limit(1);
+  if (active) return { status: "ACTIVE", expiresAt: active.endsAt, daysRemaining: active.endsAt ? Math.max(1, Math.ceil((active.endsAt.getTime() - now.getTime()) / 86_400_000)) : null };
+  const [row] = await db.select({ endsAt: userPlanMemberships.endsAt }).from(userPlanMemberships).where(and(eq(userPlanMemberships.userId, userId), eq(userPlanMemberships.planKey, "PREMIUM")))
+    .orderBy(sql`${userPlanMemberships.endsAt} desc nulls first`, desc(userPlanMemberships.createdAt)).limit(1);
+  if (!row) return { status: "FREE", expiresAt: null, daysRemaining: null };
+  return { status: "EXPIRED", expiresAt: row.endsAt, daysRemaining: 0 };
 }
 
 export type UsageItem = { type: "UNLIMITED"; used: number; resetAt: null } | { type: "LIMITED"; used: number; limit: number; remaining: number; resetAt: string };

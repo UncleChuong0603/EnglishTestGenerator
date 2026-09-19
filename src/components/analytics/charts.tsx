@@ -12,8 +12,9 @@ export function AccuracyDonut({ correct, total, label }: { correct: number; tota
 }
 
 export type ComparisonItem = { label: string; accuracy: number | null; answered: number; correct?: number };
-export function ComparisonBars({ items, noData = "Chưa có dữ liệu" }: { items: ComparisonItem[]; noData?: string }) {
-  return <div className="space-y-4">{items.map((item) => <div key={item.label}><div className="flex items-end justify-between gap-3"><strong>{item.label}</strong><span className="text-sm font-semibold text-slate-600">{item.accuracy === null ? noData : `${item.accuracy}% · ${item.answered} câu`}</span></div><div className="mt-2 h-3 overflow-hidden rounded-full bg-slate-100" role="img" aria-label={`${item.label}: ${item.accuracy === null ? noData : `${item.accuracy}%, ${item.answered} câu`}`}><div className="h-full rounded-full bg-teal-600" style={{ width: `${item.accuracy ?? 0}%` }} /></div></div>)}</div>;
+export function ComparisonBars({ items, noData = "Chưa có dữ liệu", unit = "" }: { items: ComparisonItem[]; noData?: string; unit?: string }) {
+  const count = (value: number) => `${value}${unit ? ` ${unit}` : ""}`;
+  return <div className="space-y-4">{items.map((item) => <div key={item.label}><div className="flex items-end justify-between gap-3"><strong>{item.label}</strong><span className="text-sm font-semibold text-slate-600">{item.accuracy === null ? noData : `${item.accuracy}% · ${count(item.answered)}`}</span></div><div className="mt-2 h-3 overflow-hidden rounded-full bg-slate-100" role="img" aria-label={`${item.label}: ${item.accuracy === null ? noData : `${item.accuracy}%, ${count(item.answered)}`}`}><div className="h-full rounded-full bg-teal-600" style={{ width: `${item.accuracy ?? 0}%` }} /></div></div>)}</div>;
 }
 
 export function TrendChart({ points, title, emptyText }: { points: TrendPoint[]; title: string; emptyText: string }) {

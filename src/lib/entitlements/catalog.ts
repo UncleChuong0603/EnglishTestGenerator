@@ -4,6 +4,13 @@ export type PlanKey = "FREE" | "PREMIUM";
 export type EntitlementKey = "TODAYS_WORKOUT" | "MANUAL_PRACTICE" | "MASTERY_REVIEW" | "FULL_MOCK";
 export type UsagePeriod = "DAY" | "MONTH";
 export type EntitlementLimit = { type: "UNLIMITED" } | { type: "LIMITED"; count: number; period: UsagePeriod };
+export type HistoryWindowDays = 30 | 90;
+export type PlanCapabilities = {
+  canUseAdvancedAnalytics: boolean;
+  canUseAdvancedTargeting: boolean;
+  canUseSkillBreakdown: boolean;
+  historyWindowDays: HistoryWindowDays;
+};
 
 const unlimited = { type: "UNLIMITED" } as const;
 export const PLAN_CATALOG: Record<PlanKey, { key: PlanKey; entitlements: Record<EntitlementKey, EntitlementLimit> }> = {
@@ -15,6 +22,14 @@ export const PLAN_CATALOG: Record<PlanKey, { key: PlanKey; entitlements: Record<
   } },
   PREMIUM: { key: "PREMIUM", entitlements: { TODAYS_WORKOUT: unlimited, MANUAL_PRACTICE: unlimited, MASTERY_REVIEW: unlimited, FULL_MOCK: unlimited } },
 };
+
+/** Canonical product capabilities used by both UI and server-side query policy. */
+export const PLAN_CAPABILITIES: Record<PlanKey, PlanCapabilities> = {
+  FREE: { canUseAdvancedAnalytics: false, canUseAdvancedTargeting: false, canUseSkillBreakdown: false, historyWindowDays: 30 },
+  PREMIUM: { canUseAdvancedAnalytics: true, canUseAdvancedTargeting: true, canUseSkillBreakdown: true, historyWindowDays: 90 },
+};
+
+export function getPlanCapabilities(plan: PlanKey): PlanCapabilities { return PLAN_CAPABILITIES[plan]; }
 
 export type UsageWindow = { start: Date; resetAt: Date };
 const VN_OFFSET_MS = 7 * 60 * 60 * 1000;

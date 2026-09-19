@@ -9,7 +9,7 @@ import { signOut } from "@/app/dashboard/actions";
 import type { InterfaceLanguage } from "@/lib/i18n/config";
 
 type Item = { href: string; label: string };
-type Props = { items: readonly Item[]; secondary: readonly Item[]; label: string; locale: InterfaceLanguage; account: { name: string; avatarUrl?: string | null; premium: boolean; status?: "Premium" | "Free" } | null; settingsLabel: string; signOutLabel: string };
+type Props = { items: readonly Item[]; secondary: readonly Item[]; label: string; locale: InterfaceLanguage; account: { name: string; avatarUrl?: string | null; premium: boolean; status?: string } | null; settingsLabel: string; signOutLabel: string };
 const matches = (path: string, href: string) => path === href || path.startsWith(`${href}/`);
 
 function Menu({ children, summary, active = false, className = "" }: { children: React.ReactNode; summary: React.ReactNode; active?: boolean; className?: string }) {

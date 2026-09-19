@@ -1,14 +1,13 @@
 import "server-only";
 import { cache } from "react";
-import { getEffectivePlan } from "@/lib/entitlements/service";
-import { getPremiumExpiry } from "@/lib/payments/service";
+import { getEffectivePlan, getMembershipState } from "@/lib/entitlements/service";
 import { getCurrentProfile } from "@/lib/profiles/profile";
 
-export type PremiumAccount = { name: string; avatarUrl: string | null; isPremium: boolean; expiresAt: Date | null };
+export type PremiumAccount = { name: string; avatarUrl: string | null; isPremium: boolean; membershipStatus: "ACTIVE" | "EXPIRED" | "FREE"; expiresAt: Date | null; daysRemaining: number | null };
 
 export const getPremiumAccount = cache(async (userId: string, fallbackName: string): Promise<PremiumAccount> => {
-  const [profile, plan, expiresAt] = await Promise.all([getCurrentProfile(userId), getEffectivePlan(userId), getPremiumExpiry(userId)]);
-  return { name: profile.profile?.full_name ?? fallbackName, avatarUrl: profile.profile?.avatar_url ?? null, isPremium: plan === "PREMIUM", expiresAt };
+  const [profile, plan, membership] = await Promise.all([getCurrentProfile(userId), getEffectivePlan(userId), getMembershipState(userId)]);
+  return { name: profile.profile?.full_name ?? fallbackName, avatarUrl: profile.profile?.avatar_url ?? null, isPremium: plan === "PREMIUM", membershipStatus: membership.status, expiresAt: membership.expiresAt, daysRemaining: membership.daysRemaining };
 });
 
 export function premiumCopy(locale: "vi" | "en") {
