@@ -127,6 +127,20 @@
       "when": 1790812800000,
       "tag": "0017_question_bank_import",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1790899200000,
+      "tag": "0018_question_import_group_types",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1790985600000,
+      "tag": "0019_question_import_p5_group",
+      "breakpoints": true
     }
   ]
 }

@@ -70,8 +70,8 @@ export function validateImportValue(value: unknown): ImportReport {
     const expectedDocs=item.part===6?1:item.part===7?(item.setType==="double"?2:item.setType==="triple"?3:1):0;
     if(item.passages.length!==expectedDocs) issue(issues,item,"STIMULUS_COUNT_MISMATCH",`Cần đúng ${expectedDocs} passage.`,"passages");
     if(item.part<=4&&!item.transcript) issue(issues,item,"MISSING_TRANSCRIPT","Listening yêu cầu transcript.","transcript");
-    if(item.part<=4&&!item.media?.audio) issue(issues,item,"MEDIA_PENDING","Chưa có audio; nhóm được nhập Draft nhưng không thể publish.","media.audio","WARNING");
-    if(item.part===1&&!item.media?.image) issue(issues,item,"MEDIA_PENDING","Chưa có image; nhóm được nhập Draft nhưng không thể publish.","media.image","WARNING");
+    if(item.part<=4&&(!item.media?.audio||item.media.audio.pending)) issue(issues,item,"MEDIA_PENDING","Chưa có audio; nhóm được nhập Draft nhưng không thể publish.","media.audio","WARNING");
+    if(item.part===1&&(!item.media?.image||item.media.image.pending)) issue(issues,item,"MEDIA_PENDING","Chưa có image; nhóm được nhập Draft nhưng không thể publish.","media.image","WARNING");
     for(const [index,q] of item.questions.entries()){
       if(questionKeys.has(q.externalQuestionId)) issue(issues,item,"DUPLICATE_IMPORT_KEY",`externalQuestionId ${q.externalQuestionId} bị lặp.`,`questions.${index}.externalQuestionId`); questionKeys.add(q.externalQuestionId);
       if(item.part>2&&!q.text) issue(issues,item,"MISSING_QUESTION_TEXT","Thiếu nội dung câu hỏi.",`questions.${index}.text`);

@@ -1,5 +1,5 @@
 import "server-only";
-import { desc, eq, inArray } from "drizzle-orm";
+import { desc, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { adminAuditLogs, listeningTranscripts, mediaAssets, passages, passageSets, questionGroupMedia, questionImportBatches, questionImportItems, questionOptions, questions, questionSolutions } from "@/db/schema";
 import { batchFingerprint, itemFingerprint, normalizeContent, parseAndValidateImport, type ImportIssue, type ImportReport, type QuestionImportFile } from "./schema";
@@ -11,11 +11,12 @@ export async function validateQuestionImport(text:string):Promise<ImportReport>{
   const file=report.parsed, issues=[...report.issues];
   const fingerprint=batchFingerprint(file);
   const [sameBatch, imported, existingQuestions]=await Promise.all([
-    db.select({id:questionImportBatches.id}).from(questionImportBatches).where(eq(questionImportBatches.fingerprint,fingerprint)).limit(1),
+    db.select({id:questionImportBatches.id,batchKey:questionImportBatches.batchKey,fingerprint:questionImportBatches.fingerprint}).from(questionImportBatches).where(inArray(questionImportBatches.batchKey,[file.batch.batchKey])),
     db.select({fingerprint:questionImportItems.contentFingerprint}).from(questionImportItems).where(inArray(questionImportItems.contentFingerprint,file.items.map(itemFingerprint))),
     db.select({text:questions.questionText}).from(questions),
   ]);
-  if(sameBatch.length) issues.push({severity:"ERROR",code:"ALREADY_IMPORTED",message:"Tệp này đã được import trước đó."});
+  if(sameBatch.some(x=>x.fingerprint===fingerprint)) issues.push({severity:"ERROR",code:"ALREADY_IMPORTED",message:"Tệp này đã được import trước đó."});
+  else if(sameBatch.length) issues.push({severity:"ERROR",code:"BATCH_KEY_CONFLICT",message:"batchKey đã được dùng cho một tệp khác."});
   const importedSet=new Set(imported.map((x)=>x.fingerprint)); const normalizedExisting=new Set(existingQuestions.map((x)=>normalizeContent(x.text)));
   for(const item of file.items){
     if(importedSet.has(itemFingerprint(item))) issues.push({severity:"ERROR",code:"DUPLICATE_EXISTING",message:"Nhóm nội dung đã được import.",importKey:item.externalItemId,part:item.part,group:item.externalItemId});

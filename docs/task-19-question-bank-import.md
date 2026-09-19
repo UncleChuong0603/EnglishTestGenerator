@@ -19,5 +19,6 @@ Chỉ import nội dung TOEICGym có quyền sử dụng: original, AI-assisted 
 - P2 có 3 options; Parts khác 4. Explanation EN và VI bắt buộc.
 - Dry run không mutation. Commit toàn batch; lỗi sẽ rollback, không có orphan/group partial.
 - Draft nhập vào dùng scorer, learner DTO, adaptive/practice và Full Mock canonical sau khi được human QA và publish; không có scoring/selection path thứ hai.
+- Migration 0017 tạo lịch sử/idempotency. Migration 0018–0019 căn chỉnh constraint group P1/P2/P5 cũ với Task 15 Admin Content; không đổi nội dung learner hiện hữu. Chỉ chạy migration trên DB cô lập trong test, không chạy production.
 
 CLI read-only: `npm run content:validate-import -- docs/question-bank-import/template-v1.json`.
