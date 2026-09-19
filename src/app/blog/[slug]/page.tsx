@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const canonical = post.canonicalPath || `/blog/${post.slug}`;
   const title = post.seoTitle || post.title;
   const description = post.seoDescription || post.excerpt;
-  return { title, description, alternates: { canonical }, openGraph: { title, description, type: "article", publishedTime: post.publishedAt?.toISOString(), modifiedTime: post.updatedAt.toISOString(), url: canonical, images: image ? [image] : [] } };
+  return { title, description, alternates:{canonical}, openGraph: { title, description, type: "article", publishedTime: post.publishedAt?.toISOString(), modifiedTime: post.updatedAt.toISOString(), url: canonical, images: image ? [image] : [] } };
 }
 
 export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
@@ -27,6 +27,6 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   const related = posts.filter(item => item.slug !== post.slug && item.category === post.category).slice(0, 2);
   const base = process.env.APP_URL ?? "http://localhost:3000";
   const url = new URL(post.canonicalPath || `/blog/${post.slug}`, base).toString();
-  const jsonLd = { "@context": "https://schema.org", "@type": "BlogPosting", headline: post.title, description: post.seoDescription || post.excerpt, datePublished: post.publishedAt?.toISOString(), dateModified: post.updatedAt.toISOString(), url, image: image || undefined, author: { "@type": "Organization", name: "TOEICGym" }, publisher: { "@type": "Organization", name: "TOEICGym" } };
+  const jsonLd = { "@context":"https://schema.org", "@type":"BlogPosting", headline: post.title, description: post.seoDescription || post.excerpt, datePublished: post.publishedAt?.toISOString(), dateModified: post.updatedAt.toISOString(), url, image: image || undefined, author: { "@type": "Organization", name: "TOEICGym" }, publisher: { "@type": "Organization", name: "TOEICGym" } };
   return <main className="min-h-screen bg-white text-slate-900"><PublicHeader locale={prefs.interfaceLanguage} signedIn={Boolean(user)} /><script dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} type="application/ld+json" /><ArticleView coverUrl={image} locale={prefs.interfaceLanguage} post={post} related={related} signedIn={Boolean(user)} /><PublicFooter locale={prefs.interfaceLanguage} /></main>;
 }
