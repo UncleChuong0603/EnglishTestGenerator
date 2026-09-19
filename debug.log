@@ -21,3 +21,5 @@
 [0919/163356.929:ERROR:command_buffer_proxy_impl.cc(125)] ContextResult::kTransientFailure: Failed to send GpuControl.CreateCommandBuffer.
 [0919/174720.452:WARNING:viz_main_impl.cc(85)] VizNullHypothesis is disabled (not a warning)
 [0919/174852.785:WARNING:viz_main_impl.cc(85)] VizNullHypothesis is disabled (not a warning)
+[0919/180248.623:WARNING:viz_main_impl.cc(85)] VizNullHypothesis is disabled (not a warning)
+[0919/181043.275:WARNING:viz_main_impl.cc(85)] VizNullHypothesis is disabled (not a warning)

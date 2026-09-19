@@ -15,6 +15,12 @@ export const DIAGNOSTIC_TTL_DAYS = 7;
 export const DIAGNOSTIC_PARTS = [1, 2, 3, 4, 5, 6, 7] as const;
 
 export type DiagnosticOwner = PracticeOwner;
+export async function hasResumableDiagnostic(owner: DiagnosticOwner) {
+  const active = await db.select({ id: diagnosticRuns.id }).from(diagnosticRuns)
+    .where(and(ownerWhere(owner), eq(diagnosticRuns.status, "IN_PROGRESS"), gt(diagnosticRuns.expiresAt, new Date())))
+    .limit(1);
+  return active.length > 0;
+}
 type ChildDraft = { skillArea: "LISTENING" | "READING"; part: number; practiceType: string; questionIds: string[]; units: SelectionUnit[] };
 
 function ownerWhere(owner: DiagnosticOwner) {
