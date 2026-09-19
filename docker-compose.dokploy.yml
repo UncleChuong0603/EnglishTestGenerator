@@ -6,6 +6,9 @@ x-logging: &default-logging
     max-size: "10m"
     max-file: "5"
 
+# Common runtime environment shared by app/migrate/db-tools.
+# Do not put payment-provider secrets here because migrate/db-tools
+# do not need access to them.
 x-app-environment: &app-environment
   DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
   SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET is required}
@@ -66,7 +69,8 @@ services:
     image: postgres:17-alpine
     restart: unless-stopped
     depends_on:
-      preflight: { condition: service_completed_successfully }
+      preflight:
+        condition: service_completed_successfully
     environment:
       POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
       POSTGRES_USER: ${POSTGRES_ADMIN_USER:?POSTGRES_ADMIN_USER is required}
@@ -95,7 +99,8 @@ services:
     restart: "no"
     environment: *app-environment
     depends_on:
-      postgres: { condition: service_healthy }
+      postgres:
+        condition: service_healthy
     networks: [database]
     security_opt: [no-new-privileges:true]
     logging: *default-logging
@@ -109,35 +114,64 @@ services:
     restart: unless-stopped
     init: true
     stop_grace_period: 30s
-    environment: *app-environment
+
+    environment:
+      <<: *app-environment
+
+      # Payment configuration — app runtime only.
+      PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-PAYOS}
+
+      # Server-only payOS credentials.
+      # Keep optional so TOEICGym can boot with checkout disabled.
+      PAYOS_CLIENT_ID: ${PAYOS_CLIENT_ID:-}
+      PAYOS_API_KEY: ${PAYOS_API_KEY:-}
+      PAYOS_CHECKSUM_KEY: ${PAYOS_CHECKSUM_KEY:-}
+
+      # Optional product pricing.
+      # Missing prices intentionally keep checkout disabled.
+      PREMIUM_30_PRICE_VND: ${PREMIUM_30_PRICE_VND:-}
+      PREMIUM_90_PRICE_VND: ${PREMIUM_90_PRICE_VND:-}
+      PREMIUM_365_PRICE_VND: ${PREMIUM_365_PRICE_VND:-}
+
     depends_on:
-      postgres: { condition: service_healthy }
-      migrate: { condition: service_completed_successfully }
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
     expose: ["3000"]
+
     labels:
       traefik.enable: "true"
+
       traefik.http.services.toeicgym-app.loadbalancer.server.port: "3000"
+
       traefik.http.middlewares.toeicgym-https.redirectscheme.scheme: "https"
       traefik.http.middlewares.toeicgym-https.redirectscheme.permanent: "true"
+
       traefik.http.routers.toeicgym-web.rule: "Host(`toeicgym.net`)"
       traefik.http.routers.toeicgym-web.entrypoints: "web"
       traefik.http.routers.toeicgym-web.middlewares: "toeicgym-https"
       traefik.http.routers.toeicgym-web.service: "toeicgym-app"
       traefik.http.routers.toeicgym-web.priority: "100"
+
       traefik.http.routers.toeicgym-websecure.rule: "Host(`toeicgym.net`)"
       traefik.http.routers.toeicgym-websecure.entrypoints: "websecure"
       traefik.http.routers.toeicgym-websecure.service: "toeicgym-app"
       traefik.http.routers.toeicgym-websecure.priority: "100"
       traefik.http.routers.toeicgym-websecure.tls: "true"
       traefik.http.routers.toeicgym-websecure.tls.certresolver: "letsencrypt"
+
       traefik.http.middlewares.toeicgym-www-canonical.redirectregex.regex: "^https?://www\\.toeicgym\\.net/(.*)"
       traefik.http.middlewares.toeicgym-www-canonical.redirectregex.replacement: "https://toeicgym.net/$${1}"
       traefik.http.middlewares.toeicgym-www-canonical.redirectregex.permanent: "true"
+
       traefik.http.routers.toeicgym-www-canonical-web.rule: "Host(`www.toeicgym.net`)"
       traefik.http.routers.toeicgym-www-canonical-web.entrypoints: "web"
       traefik.http.routers.toeicgym-www-canonical-web.middlewares: "toeicgym-www-canonical"
       traefik.http.routers.toeicgym-www-canonical-web.service: "noop@internal"
       traefik.http.routers.toeicgym-www-canonical-web.priority: "100"
+
       traefik.http.routers.toeicgym-www-canonical-websecure.rule: "Host(`www.toeicgym.net`)"
       traefik.http.routers.toeicgym-www-canonical-websecure.entrypoints: "websecure"
       traefik.http.routers.toeicgym-www-canonical-websecure.middlewares: "toeicgym-www-canonical"
@@ -145,13 +179,22 @@ services:
       traefik.http.routers.toeicgym-www-canonical-websecure.priority: "100"
       traefik.http.routers.toeicgym-www-canonical-websecure.tls: "true"
       traefik.http.routers.toeicgym-www-canonical-websecure.tls.certresolver: "letsencrypt"
+
     networks: [frontend, database]
+
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
       interval: 15s
       timeout: 5s
       retries: 10
       start_period: 20s
+
     security_opt: [no-new-privileges:true]
     logging: *default-logging
 
@@ -162,7 +205,8 @@ services:
     profiles: [tools]
     environment: *app-environment
     depends_on:
-      postgres: { condition: service_healthy }
+      postgres:
+        condition: service_healthy
     networks: [database]
     restart: "no"
     security_opt: [no-new-privileges:true]
@@ -171,6 +215,7 @@ networks:
   frontend:
     name: dokploy-network
     external: true
+
   database:
     internal: true
 
