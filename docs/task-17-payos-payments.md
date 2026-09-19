@@ -86,6 +86,10 @@ When payOS/Casso validates Webhook V2 it sends a signed sample. TOEICGym first v
 
 Task 17 was verified in production on 2026-09-19. Migration `0015` and the payment schema are present; payOS credentials, all production prices, checkout, and the webhook are configured and verified. One controlled `PREMIUM_30_DAYS` payment reached `PAID`, resolved the effective plan to `PREMIUM`, and produced exactly one linked `PAYMENT` membership effect with the expected duration semantics. ADMIN remains independent from Premium. Full Mock validation reported `Mode: PRODUCTION DATABASE` and `READY: YES`. No credential, user identity, order code, bank detail, webhook payload, or signature is recorded here.
 
+## Premium member presentation
+
+Premium visuals are server-rendered from the authoritative effective plan and naturally disappear after entitlement expiry; no client or permanent profile flag stores paid state. Premium and ADMIN remain independent. Premium does not alter the shared 60 RP/day cap or the one-attempt-per-Ranked-Challenge rule, and paid status is not exposed on public profiles, leaderboards, or competitive results. Product wording describes fixed 30-, 90-, and 365-day access and extension only; the UI makes no subscription or automatic-renewal claim.
+
 If the operator chooses 59,000 / 139,000 / 399,000 VND, place them respectively in `PREMIUM_30_PRICE_VND`, `PREMIUM_90_PRICE_VND`, and `PREMIUM_365_PRICE_VND` in Dokploy. These are decisions, not source defaults. Redeploy and run preflight again; require PAYOS, three configured credential indicators, three configured prices, Fake BLOCKED, checkout ENABLED and the HTTPS URLs above.
 
 ### Controlled human real-payment smoke

@@ -11,6 +11,8 @@ import type { InterfaceLanguage } from "@/lib/i18n/config";
 import { getCurrentProfile } from "@/lib/profiles/profile";
 import type { SkillAreaProgress } from "@/lib/progress/types";
 import { getUsageStatus } from "@/lib/entitlements/service";
+import { getPremiumAccount } from "@/lib/premium/presentation";
+import { PremiumBadge } from "@/components/premium/premium-badge";
 
 function ProgressCard({ area, locale }: { area: SkillAreaProgress; locale: InterfaceLanguage }) {
   const t = getTranslations(locale).workout;
@@ -24,7 +26,7 @@ function ProgressCard({ area, locale }: { area: SkillAreaProgress; locale: Inter
 export default async function DashboardPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/sign-in");
-  const [profileResult, preferences] = await Promise.all([getCurrentProfile(user.id), getPreferences(user.id)]);
+  const [profileResult, preferences, account] = await Promise.all([getCurrentProfile(user.id), getPreferences(user.id), getPremiumAccount(user.id,user.email)]);
   const locale = preferences.interfaceLanguage;
   const translations = getTranslations(locale);
   if (profileResult.status === "missing") redirect("/onboarding");
@@ -40,7 +42,7 @@ export default async function DashboardPage() {
 
   return <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 sm:px-6 sm:py-8"><div className="mx-auto max-w-5xl">
     <LearnerNav locale={locale} />
-    <header className="mt-8"><p className="text-sm font-bold uppercase tracking-wider text-teal-700">{translations.dashboard.welcome}</p><h1 className="mt-2 text-3xl font-black sm:text-4xl">{profile.full_name ?? user.email ?? "Learner"}</h1></header>
+    <header className="mt-8"><p className="text-sm font-bold uppercase tracking-wider text-teal-700">{translations.dashboard.welcome}</p><div className="mt-2 flex min-w-0 flex-wrap items-center gap-3"><h1 className="min-w-0 truncate text-3xl font-black sm:text-4xl">{profile.full_name ?? user.email ?? "Learner"}</h1>{account.isPremium?<PremiumBadge/>:null}</div>{account.isPremium&&account.expiresAt?<p className="mt-2 text-sm font-semibold text-amber-900">{locale==="vi"?"Premium đang hoạt động · Hết hạn vào":"Premium active · Expires on"} {account.expiresAt.toLocaleDateString(locale==="vi"?"vi-VN":"en-US")}</p>:null}</header>
     <div className="mt-7">{dashboardResult?.recommendDiagnostic ? <section className="rounded-3xl bg-slate-900 p-6 text-white sm:p-8"><p className="text-sm font-black uppercase tracking-wider text-teal-300">{locale === "vi" ? "Xây dựng hồ sơ TOEIC" : "Build your TOEIC profile"}</p><h2 className="mt-2 text-2xl font-black">{dashboardResult.activeDiagnosticId ? (locale === "vi" ? "Tiếp tục bài đánh giá đầu vào" : "Continue your diagnostic") : (locale === "vi" ? "Bắt đầu bài đánh giá đầu vào" : "Take your diagnostic assessment")}</h2><p className="mt-3 max-w-2xl text-slate-300">{locale === "vi" ? "Hoàn thành một bài ngắn qua Listening và Reading để cá nhân hóa luyện tập nhanh hơn." : "Complete a short Listening and Reading assessment to personalize your training faster."}</p><Link className="mt-5 inline-flex min-h-12 items-center rounded-xl bg-teal-400 px-5 font-bold text-slate-950" href={dashboardResult.activeDiagnosticId ? `/diagnostic/${dashboardResult.activeDiagnosticId}` : "/diagnostic"}>{dashboardResult.activeDiagnosticId ? (locale === "vi" ? "Tiếp tục đánh giá" : "Continue diagnostic") : (locale === "vi" ? "Bắt đầu đánh giá" : "Start diagnostic")}</Link></section> : dashboardResult?.recommendation ? <UnifiedRecommendationCard dashboard locale={locale} recommendation={dashboardResult.recommendation} /> : <RecommendationUnavailable locale={locale} />}</div>
 
     <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-6" aria-labelledby="plan-heading"><div className="flex items-center justify-between gap-4"><h2 className="text-xl font-black" id="plan-heading">{usage.effectivePlan === "PREMIUM" ? "Premium" : locale === "vi" ? "Gói Free" : "Free plan"}</h2><Link className="font-bold text-teal-700" href="/pricing">{locale === "vi" ? "Xem Premium" : "View Premium"}</Link></div><div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">{([['TODAYS_WORKOUT', locale === 'vi' ? 'Bài hôm nay' : "Today's Workout"],['MANUAL_PRACTICE', locale === 'vi' ? 'Luyện tập' : 'Practice'],['MASTERY_REVIEW', locale === 'vi' ? 'Ôn lỗi sai' : 'Mastery Review'],['FULL_MOCK','Full Mock']] as const).map(([key,label]) => { const item = usage.entitlements[key]; return <div className="rounded-xl bg-slate-50 p-3" key={key}><strong>{label}</strong><p className="mt-1 text-slate-600">{item.type === 'UNLIMITED' ? (locale === 'vi' ? 'Không giới hạn' : 'Unlimited') : `${item.used} / ${item.limit} ${key === 'FULL_MOCK' ? (locale === 'vi' ? 'tháng này' : 'this month') : (locale === 'vi' ? 'hôm nay' : 'today')}`}</p></div>; })}</div></section>
