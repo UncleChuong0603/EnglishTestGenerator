@@ -5,27 +5,37 @@ function parseUrl(value: string, name: string) {
   try { return new URL(value); } catch { throw new Error(`${name} is not a valid URL`); }
 }
 
+const optionalString = (minimumLength = 1) => z.preprocess(
+  (value) => value === "" ? undefined : value,
+  z.string().min(minimumLength).optional(),
+);
+
+const optionalUrl = z.preprocess(
+  (value) => value === "" ? undefined : value,
+  z.url().optional(),
+);
+
 const serverEnvSchema = z.object({
   DATABASE_URL: z.string().min(1),
   SESSION_SECRET: z.string().min(32),
   APP_URL: z.url(),
-  GOOGLE_CLIENT_ID: z.string().min(1).optional(),
-  GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
-  SMTP_HOST: z.preprocess((value) => value === "" ? undefined : value, z.string().min(1).optional()),
+  GOOGLE_CLIENT_ID: optionalString(),
+  GOOGLE_CLIENT_SECRET: optionalString(),
+  SMTP_HOST: optionalString(),
   SMTP_PORT: z.coerce.number().int().min(1).max(65535).default(1025),
-  SMTP_USER: z.string().optional(), SMTP_PASSWORD: z.string().optional(),
+  SMTP_USER: optionalString(), SMTP_PASSWORD: optionalString(),
   SMTP_FROM: z.string().min(1).default("English Test <noreply@localhost>"),
   SMTP_SECURE: z.enum(["true", "false"]).default("false"),
   MEDIA_ENABLED: z.enum(["true", "false"]).default("false"),
   MEDIA_STORAGE_PROVIDER: z.enum(["R2", "LOCAL"]).default("R2"),
-  LOCAL_MEDIA_ROOT: z.string().min(1).optional(),
-  MEDIA_SIGNING_SECRET: z.string().min(32).optional(),
-  R2_ACCOUNT_ID: z.string().min(1).optional(),
-  R2_ACCESS_KEY_ID: z.string().min(1).optional(),
-  R2_SECRET_ACCESS_KEY: z.string().min(1).optional(),
-  R2_BUCKET_NAME: z.string().min(1).optional(),
-  R2_ENDPOINT: z.url().optional(),
-  R2_PUBLIC_BASE_URL: z.url().optional(),
+  LOCAL_MEDIA_ROOT: optionalString(),
+  MEDIA_SIGNING_SECRET: optionalString(32),
+  R2_ACCOUNT_ID: optionalString(),
+  R2_ACCESS_KEY_ID: optionalString(),
+  R2_SECRET_ACCESS_KEY: optionalString(),
+  R2_BUCKET_NAME: optionalString(),
+  R2_ENDPOINT: optionalUrl,
+  R2_PUBLIC_BASE_URL: optionalUrl,
 });
 
 export function getServerEnv() {
