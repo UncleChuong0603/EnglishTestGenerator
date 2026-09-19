@@ -1,10 +1,10 @@
 import "server-only";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { adminAuditLogs, listeningTranscripts, mediaAssets, passages, passageSets, questionGroupMedia, questionImportBatches, questionImportItems, questionOptions, questions, questionSolutions } from "@/db/schema";
 import { batchFingerprint, itemFingerprint, normalizeContent, parseAndValidateImport, type ImportIssue, type ImportReport, type QuestionImportFile } from "./schema";
 
-function publicReport(report: ImportReport) { const {parsed:_,...safe}=report; return safe; }
+function publicReport(report: ImportReport) { const safe={...report}; delete safe.parsed; return safe; }
 
 export async function validateQuestionImport(text:string):Promise<ImportReport>{
   const report=parseAndValidateImport(text); if(!report.parsed||!report.valid) return report;
