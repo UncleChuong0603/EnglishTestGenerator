@@ -82,6 +82,10 @@ The code uses `https://toeicgym.net/billing/return` and `https://toeicgym.net/bi
 
 When payOS/Casso validates Webhook V2 it sends a signed sample. TOEICGym first verifies it with the official SDK; a correctly signed sample with no internal order is acknowledged without a database write and cannot activate Premium. Matched real orders still require the complete transactional database flow. HTTP `400 {"error":"invalid_webhook"}` means verification failed—check that the deployed runtime has the Checksum Key from the same payOS payment channel, with no whitespace/quoting corruption, then redeploy. After this validation-sample handling is deployed, HTTP `503 {"error":"webhook_processing_unavailable"}` indicates a matched-order processing/database failure (for example, migration `0015` is missing); inspect safe logs and migration health. Never bypass signature verification or paste the key into logs/chat. Configure the webhook only after migration and preflight succeed.
 
+## Production verification closure
+
+Task 17 was verified in production on 2026-09-19. Migration `0015` and the payment schema are present; payOS credentials, all production prices, checkout, and the webhook are configured and verified. One controlled `PREMIUM_30_DAYS` payment reached `PAID`, resolved the effective plan to `PREMIUM`, and produced exactly one linked `PAYMENT` membership effect with the expected duration semantics. ADMIN remains independent from Premium. Full Mock validation reported `Mode: PRODUCTION DATABASE` and `READY: YES`. No credential, user identity, order code, bank detail, webhook payload, or signature is recorded here.
+
 If the operator chooses 59,000 / 139,000 / 399,000 VND, place them respectively in `PREMIUM_30_PRICE_VND`, `PREMIUM_90_PRICE_VND`, and `PREMIUM_365_PRICE_VND` in Dokploy. These are decisions, not source defaults. Redeploy and run preflight again; require PAYOS, three configured credential indicators, three configured prices, Fake BLOCKED, checkout ENABLED and the HTTPS URLs above.
 
 ### Controlled human real-payment smoke
