@@ -16,6 +16,7 @@ if (provider !== "LOCAL" || !root || !process.env.DATABASE_URL) {
   try {
     const base = await realpath(root);
     const { rows } = await pool.query("select storage_key, byte_size, checksum, mime_type from media_assets where storage_provider='LOCAL' and status='READY'");
+    const { rows: [{ remaining }] } = await pool.query("select count(*)::int as remaining from media_assets where storage_provider='R2' and status='READY'");
     const known = new Set(rows.map((row) => row.storage_key));
     let missing = 0, invalid = 0, files = 0, orphans = 0;
     for (const row of rows) {
@@ -42,10 +43,11 @@ if (provider !== "LOCAL" || !root || !process.env.DATABASE_URL) {
     }
     await walk(base);
     console.log(`DB LOCAL READY assets: ${rows.length}`);
+    console.log(`DB R2 READY assets awaiting migration: ${remaining}`);
     console.log(`LOCAL files: ${files}`);
     console.log(`Missing: ${missing}; invalid metadata/content: ${invalid}; unexpected files: ${orphans}`);
-    console.log(`LOCAL readiness: ${missing === 0 && invalid === 0 ? "PASS" : "FAIL"}`);
-    if (missing || invalid) process.exitCode = 1;
+    console.log(`LOCAL readiness: ${missing === 0 && invalid === 0 && remaining === 0 ? "PASS" : "FAIL"}`);
+    if (missing || invalid || remaining) process.exitCode = 1;
   } catch { console.error("LOCAL_VERIFY_FAILED: database or media root unavailable"); process.exitCode = 1; }
   finally { await pool.end(); }
 }
