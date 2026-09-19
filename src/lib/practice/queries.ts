@@ -2,7 +2,7 @@ import "server-only";
 import { and, asc, eq, gt, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { attemptAnswers, diagnosticRuns, fullMockRuns, listeningTranscripts, mediaAssets, passageSets, passages, practiceSessionQuestions, practiceSessions, questionGroupMedia, questionOptions, questionSolutions, questions, rankedChallengeRuns, rankedChallenges } from "@/db/schema";
-import { R2MediaStorage } from "@/lib/media/r2-storage";
+import { createMediaStorage } from "@/lib/media/storage";
 import type { PracticeGroup, PracticeQuestion, PracticeResult, PracticeSession } from "./types";
 import { toLearnerPracticeQuestion } from "./learner-dto";
 import { challengePhase } from "@/lib/challenges/policy";
@@ -24,7 +24,7 @@ export async function getSafeSessionContent(sessionId: string, listening = false
       db.select({ groupId: questionGroupMedia.questionGroupId, id: mediaAssets.id, kind: mediaAssets.kind, role: questionGroupMedia.role, storageKey: mediaAssets.storageKey, status: mediaAssets.status, scope: mediaAssets.accessScope }).from(questionGroupMedia).innerJoin(mediaAssets, eq(questionGroupMedia.mediaAssetId, mediaAssets.id)).where(inArray(questionGroupMedia.questionGroupId, setIds)),
       db.select().from(listeningTranscripts).where(inArray(listeningTranscripts.questionGroupId, setIds)),
     ]);
-    const storage = new R2MediaStorage();
+    const storage = createMediaStorage();
     const safeQuestions = await Promise.all(assigned.map(async (assignment) => {
       const q = questionRows.find((row) => row.id === assignment.questionId); if (!q || ![1, 2, 3, 4].includes(q.toeicPart) || q.skillArea !== "LISTENING" || !q.passageSetId) throw new Error("INVALID_LISTENING_QUESTION");
       const assets = attachments.filter((asset) => asset.groupId === q.passageSetId && asset.status === "READY" && asset.scope === "CONTENT");

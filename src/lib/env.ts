@@ -17,6 +17,9 @@ const serverEnvSchema = z.object({
   SMTP_FROM: z.string().min(1).default("English Test <noreply@localhost>"),
   SMTP_SECURE: z.enum(["true", "false"]).default("false"),
   MEDIA_ENABLED: z.enum(["true", "false"]).default("false"),
+  MEDIA_STORAGE_PROVIDER: z.enum(["R2", "LOCAL"]).default("R2"),
+  LOCAL_MEDIA_ROOT: z.string().min(1).optional(),
+  MEDIA_SIGNING_SECRET: z.string().min(32).optional(),
   R2_ACCOUNT_ID: z.string().min(1).optional(),
   R2_ACCESS_KEY_ID: z.string().min(1).optional(),
   R2_SECRET_ACCESS_KEY: z.string().min(1).optional(),
@@ -32,7 +35,8 @@ export function getServerEnv() {
   if (Boolean(parsed.data.SMTP_USER) !== Boolean(parsed.data.SMTP_PASSWORD)) throw new Error("SMTP_USER and SMTP_PASSWORD must be configured together");
   const r2Values = [parsed.data.R2_ACCOUNT_ID, parsed.data.R2_ACCESS_KEY_ID, parsed.data.R2_SECRET_ACCESS_KEY, parsed.data.R2_BUCKET_NAME, parsed.data.R2_ENDPOINT];
   if (r2Values.some(Boolean) && !r2Values.every(Boolean)) throw new Error("R2 configuration must be complete");
-  if (parsed.data.MEDIA_ENABLED === "true" && !r2Values.every(Boolean)) throw new Error("R2 configuration is required when MEDIA_ENABLED=true");
+  if (parsed.data.MEDIA_ENABLED === "true" && parsed.data.MEDIA_STORAGE_PROVIDER === "R2" && !r2Values.every(Boolean)) throw new Error("R2 configuration is required when MEDIA_STORAGE_PROVIDER=R2");
+  if (parsed.data.MEDIA_ENABLED === "true" && parsed.data.MEDIA_STORAGE_PROVIDER === "LOCAL" && (!parsed.data.LOCAL_MEDIA_ROOT || !parsed.data.MEDIA_SIGNING_SECRET)) throw new Error("Local media root and signing secret are required when MEDIA_STORAGE_PROVIDER=LOCAL");
   if (process.env.NODE_ENV === "production") {
     if (!parsed.data.GOOGLE_CLIENT_ID || !parsed.data.GOOGLE_CLIENT_SECRET) throw new Error("Google OAuth credentials are required in production");
     const appUrl = parseUrl(parsed.data.APP_URL, "APP_URL");

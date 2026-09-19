@@ -1,8 +1,9 @@
 import "server-only";
 import { and, asc, count, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { adminAuditLogs, listeningTranscripts, mediaAssets, passages, passageSets, questionGroupMedia, questionOptions, questions, questionSolutions, rankedChallengeItems, rankedChallenges, userRoles, users } from "@/db/schema";
-import { assembleFullMock, type MockUnit } from "@/lib/full-mock/blueprint";
+import { adminAuditLogs, listeningTranscripts, mediaAssets, passages, passageSets, questionGroupMedia, questionImportBatches, questionImportItems, questionOptions, questions, questionSolutions, rankedChallengeItems, rankedChallenges, userRoles, users } from "@/db/schema";
+import { IMPORT_SCHEMA_VERSION, validateImportValue, type QuestionImportFile } from "@/lib/question-import/schema";
+import { assembleFullMock, assembleListeningMock, assembleReadingMock, type MockUnit } from "@/lib/full-mock/blueprint";
 import { ROLE_PERMISSIONS } from "./permissions";
 
 export const CONTENT_PAGE_SIZE = 20;
@@ -127,7 +128,102 @@ export async function archiveContent(actorUserId: string, id: string, expectedUp
 export async function cloneContent(actorUserId: string, id: string) { const source = await getAdminContentDetail(id); if (!source) throw new ContentAdminError("NOT_FOUND"); const newId = await createAdminDraft(actorUserId, { part: source.group.toeicPart, setType: source.group.setType, title: `${source.group.title} (copy)`, passage: source.passages.map((p) => p.content ?? "").join("\n\n"), transcript: source.transcript?.content, mediaIds: source.media.map((m) => m.asset.id), questions: source.questions.map((q) => ({ text: q.questionText, options: q.options.map((o) => o.optionText), correct: Math.max(0, q.options.findIndex((o) => o.id === q.solution?.correctOptionId)), explanationEn: q.solution?.explanationEn ?? "", explanationVi: q.solution?.explanationVi ?? "", skill: q.skill, subSkill: q.subSkill, difficulty: q.difficulty })) }); await db.transaction(async (tx) => { await tx.update(passageSets).set({ revisionOfId: id }).where(eq(passageSets.id, newId)); await tx.insert(adminAuditLogs).values({ actorUserId, action: "CONTENT_CLONED", metadata: { sourceGroupId: id, groupId: newId } }); }); return newId; }
 export async function discardDraft(actorUserId: string, id: string) { return db.transaction(async (tx) => { await assertManage(tx, actorUserId); const [g] = await tx.select().from(passageSets).where(eq(passageSets.id, id)).for("update").limit(1); if (!g || g.status !== "draft") throw new ContentAdminError("INVALID_LIFECYCLE"); const now = new Date(); await tx.update(passageSets).set({ status: "archived", archivedAt: now, updatedAt: now }).where(eq(passageSets.id, id)); await tx.update(passages).set({ status: "archived", updatedAt: now }).where(eq(passages.passageSetId, id)); await tx.update(questions).set({ status: "archived", archivedAt: now, updatedAt: now }).where(eq(questions.passageSetId, id)); await tx.insert(adminAuditLogs).values({ actorUserId, action: "CONTENT_DRAFT_DISCARDED", metadata: { groupId: id } }); }); }
 
-export async function listAdminContent(filters: { search?: string; domain?: string; part?: number; lifecycle?: string; difficulty?: string; skill?: string; subSkill?: string; provenance?: string; page?: number }) { const page = Math.max(1, filters.page ?? 1); const conditions = []; if (filters.domain) conditions.push(eq(passageSets.skillArea, filters.domain)); if (filters.part) conditions.push(eq(passageSets.toeicPart, filters.part)); if (filters.lifecycle) conditions.push(eq(passageSets.status, filters.lifecycle)); if (filters.provenance) conditions.push(eq(passageSets.provenance, filters.provenance)); if (filters.search?.trim()) { const q = `%${filters.search.trim().slice(0, 200)}%`; conditions.push(or(ilike(passageSets.title, q), sql`exists(select 1 from questions qx where qx.passage_set_id=${passageSets.id} and (qx.question_text ilike ${q} or qx.id::text ilike ${q}))`)!); } if (filters.difficulty) conditions.push(sql`exists(select 1 from questions qx where qx.passage_set_id=${passageSets.id} and qx.difficulty=${filters.difficulty})`); if (filters.skill) conditions.push(sql`exists(select 1 from questions qx where qx.passage_set_id=${passageSets.id} and qx.skill=${filters.skill})`); if (filters.subSkill) conditions.push(sql`exists(select 1 from questions qx where qx.passage_set_id=${passageSets.id} and qx.sub_skill=${filters.subSkill})`); const where = conditions.length ? and(...conditions) : undefined; const [rows, totals] = await Promise.all([db.select({ id: passageSets.id, title: passageSets.title, part: passageSets.toeicPart, domain: passageSets.skillArea, setType: passageSets.setType, lifecycle: passageSets.status, provenance: passageSets.provenance, updatedAt: passageSets.updatedAt, questions: sql<number>`(select count(*)::int from questions q where q.passage_set_id=${passageSets.id})` }).from(passageSets).where(where).orderBy(desc(passageSets.updatedAt), desc(passageSets.id)).limit(CONTENT_PAGE_SIZE).offset((page - 1) * CONTENT_PAGE_SIZE), db.select({ value: count() }).from(passageSets).where(where)]); return { rows, total: Number(totals[0].value), page, pageSize: CONTENT_PAGE_SIZE }; }
-export async function getContentOverview() { const [lifecycle, unitRows] = await Promise.all([db.select({ status: passageSets.status, value: count() }).from(passageSets).groupBy(passageSets.status), db.select({ id: passageSets.id, part: passageSets.toeicPart, area: passageSets.skillArea, setType: passageSets.setType, qid: questions.id }).from(passageSets).innerJoin(questions, and(eq(questions.passageSetId, passageSets.id), eq(questions.status, "published"))).where(eq(passageSets.status, "published"))]); const grouped = new Map<string, typeof unitRows>(); unitRows.forEach((r) => grouped.set(r.id, [...(grouped.get(r.id) ?? []), r])); const units: MockUnit[] = [...grouped].map(([id, rs]) => ({ id, part: rs[0].part as MockUnit["part"], setType: (rs[0].part === 1 ? "photographs" : rs[0].part === 2 ? "question_response" : rs[0].part === 3 ? "conversation" : rs[0].part === 4 ? "talk" : rs[0].part === 5 ? "standalone" : rs[0].setType) as MockUnit["setType"], questionIds: rs.map((r) => r.qid) })); const form = assembleFullMock(units); const countPart = (part: number) => units.filter((u) => u.part === part); const p7s = units.filter((u) => u.part === 7 && u.setType === "single"), p7m = units.filter((u) => u.part === 7 && u.setType !== "single"); return { lifecycle: Object.fromEntries(lifecycle.map((r) => [r.status, Number(r.value)])), ready: Boolean(form), listening: { p1: countPart(1).length, p2: countPart(2).length, p3Groups: countPart(3).filter((u) => u.questionIds.length === 3).length, p3Questions: countPart(3).flatMap((u) => u.questionIds).length, p4Groups: countPart(4).filter((u) => u.questionIds.length === 3).length, p4Questions: countPart(4).flatMap((u) => u.questionIds).length }, reading: { p5: countPart(5).flatMap((u) => u.questionIds).length, p6Groups: countPart(6).filter((u) => u.questionIds.length === 4).length, p6Questions: countPart(6).flatMap((u) => u.questionIds).length, p7SingleGroups: p7s.length, p7SingleQuestions: p7s.flatMap((u) => u.questionIds).length, p7MultipleGroups: p7m.length, p7MultipleQuestions: p7m.flatMap((u) => u.questionIds).length, p7SingleFeasible: Boolean(assembleFullMock([...units.filter((u) => u.part !== 7), ...p7s, ...p7m])), p7MultipleFeasible: Boolean(form) } }; }
+export async function listAdminContent(filters: { search?: string; domain?: string; part?: number; lifecycle?: string; difficulty?: string; skill?: string; subSkill?: string; provenance?: string; batch?: string; page?: number }) { const page = Math.max(1, filters.page ?? 1); const conditions = []; if (filters.domain) conditions.push(eq(passageSets.skillArea, filters.domain)); if (filters.part) conditions.push(eq(passageSets.toeicPart, filters.part)); if (filters.lifecycle) conditions.push(eq(passageSets.status, filters.lifecycle)); if (filters.provenance) conditions.push(eq(passageSets.provenance, filters.provenance)); if (filters.batch) conditions.push(sql`exists(select 1 from question_import_items qi join question_import_batches qb on qb.id=qi.import_batch_id where qi.question_group_id=${passageSets.id} and qb.batch_key=${filters.batch})`); if (filters.search?.trim()) { const q = `%${filters.search.trim().slice(0, 200)}%`; conditions.push(or(ilike(passageSets.title, q), sql`exists(select 1 from questions qx where qx.passage_set_id=${passageSets.id} and (qx.question_text ilike ${q} or qx.id::text ilike ${q}))`)!); } if (filters.difficulty) conditions.push(sql`exists(select 1 from questions qx where qx.passage_set_id=${passageSets.id} and qx.difficulty=${filters.difficulty})`); if (filters.skill) conditions.push(sql`exists(select 1 from questions qx where qx.passage_set_id=${passageSets.id} and qx.skill=${filters.skill})`); if (filters.subSkill) conditions.push(sql`exists(select 1 from questions qx where qx.passage_set_id=${passageSets.id} and qx.sub_skill=${filters.subSkill})`); const where = conditions.length ? and(...conditions) : undefined; const [rows, totals] = await Promise.all([db.select({ id: passageSets.id, title: passageSets.title, part: passageSets.toeicPart, domain: passageSets.skillArea, setType: passageSets.setType, lifecycle: passageSets.status, provenance: passageSets.provenance, updatedAt: passageSets.updatedAt, questions: sql<number>`(select count(*)::int from questions q where q.passage_set_id=${passageSets.id})`, batchKey: sql<string|null>`(select qb.batch_key from question_import_items qi join question_import_batches qb on qb.id=qi.import_batch_id where qi.question_group_id=${passageSets.id} limit 1)` }).from(passageSets).where(where).orderBy(desc(passageSets.updatedAt), desc(passageSets.id)).limit(CONTENT_PAGE_SIZE).offset((page - 1) * CONTENT_PAGE_SIZE), db.select({ value: count(), questions: sql<number>`coalesce(sum((select count(*) from questions q where q.passage_set_id=${passageSets.id})),0)::int` }).from(passageSets).where(where)]); return { rows, total: Number(totals[0].value), totalQuestions: Number(totals[0].questions), page, pageSize: CONTENT_PAGE_SIZE }; }
+export async function getContentOverview() { const [lifecycle, unitRows] = await Promise.all([db.select({ status: passageSets.status, value: count() }).from(passageSets).groupBy(passageSets.status), db.select({ id: passageSets.id, part: passageSets.toeicPart, area: passageSets.skillArea, setType: passageSets.setType, qid: questions.id }).from(passageSets).innerJoin(questions, and(eq(questions.passageSetId, passageSets.id), eq(questions.status, "published"))).where(eq(passageSets.status, "published"))]); const grouped = new Map<string, typeof unitRows>(); unitRows.forEach((r) => grouped.set(r.id, [...(grouped.get(r.id) ?? []), r])); const units: MockUnit[] = [...grouped].map(([id, rs]) => ({ id, part: rs[0].part as MockUnit["part"], setType: (rs[0].part === 1 ? "photographs" : rs[0].part === 2 ? "question_response" : rs[0].part === 3 ? "conversation" : rs[0].part === 4 ? "talk" : rs[0].part === 5 ? "standalone" : rs[0].setType) as MockUnit["setType"], questionIds: rs.map((r) => r.qid) })); const listeningReady=Boolean(assembleListeningMock(units)),readingReady=Boolean(assembleReadingMock(units)),form = assembleFullMock(units); const countPart = (part: number) => units.filter((u) => u.part === part); const p7s = units.filter((u) => u.part === 7 && u.setType === "single"), p7m = units.filter((u) => u.part === 7 && u.setType !== "single"); return { lifecycle: Object.fromEntries(lifecycle.map((r) => [r.status, Number(r.value)])), ready: Boolean(form), listeningReady, readingReady, listening: { p1: countPart(1).length, p2: countPart(2).length, p3Groups: countPart(3).filter((u) => u.questionIds.length === 3).length, p3Questions: countPart(3).flatMap((u) => u.questionIds).length, p4Groups: countPart(4).filter((u) => u.questionIds.length === 3).length, p4Questions: countPart(4).flatMap((u) => u.questionIds).length }, reading: { p5: countPart(5).flatMap((u) => u.questionIds).length, p6Groups: countPart(6).filter((u) => u.questionIds.length === 4).length, p6Questions: countPart(6).flatMap((u) => u.questionIds).length, p7SingleGroups: p7s.length, p7SingleQuestions: p7s.flatMap((u) => u.questionIds).length, p7MultipleGroups: p7m.length, p7MultipleQuestions: p7m.flatMap((u) => u.questionIds).length, p7SingleFeasible: Boolean(assembleReadingMock([...units.filter((u) => u.part !== 7), ...p7s, ...p7m])), p7MultipleFeasible: readingReady } }; }
 
 export async function listAdminMedia(page = 1) { const safe = Math.max(1, page); const rows = await db.select({ id: mediaAssets.id, kind: mediaAssets.kind, mimeType: mediaAssets.mimeType, byteSize: mediaAssets.byteSize, status: mediaAssets.status, duration: mediaAssets.audioDurationMs, width: mediaAssets.imageWidth, height: mediaAssets.imageHeight, createdAt: mediaAssets.createdAt, references: sql<number>`((select count(*) from question_group_media g where g.media_asset_id=${mediaAssets.id}) + (select count(*) from stimulus_media s where s.media_asset_id=${mediaAssets.id}) + (select count(*) from listening_transcripts t where t.media_asset_id=${mediaAssets.id}))::int`, publishedReferences: sql<number>`(select count(*) from question_group_media gm join passage_sets ps on ps.id=gm.question_group_id where gm.media_asset_id=${mediaAssets.id} and ps.status in ('published','archived'))::int` }).from(mediaAssets).orderBy(desc(mediaAssets.createdAt), desc(mediaAssets.id)).limit(CONTENT_PAGE_SIZE).offset((safe - 1) * CONTENT_PAGE_SIZE); const [total] = await db.select({ value: count() }).from(mediaAssets); return { rows, total: Number(total.value), page: safe, pageSize: CONTENT_PAGE_SIZE }; }
+
+export type ReviewFilters = { domain?: string; part?: number; lifecycle?: string; difficulty?: string; skill?: string; subSkill?: string; provenance?: string; batch?: string };
+
+function reviewConditions(filters: ReviewFilters) {
+  const conditions = [];
+  if (filters.domain) conditions.push(eq(passageSets.skillArea, filters.domain));
+  if (filters.part) conditions.push(eq(passageSets.toeicPart, filters.part));
+  if (filters.lifecycle) conditions.push(eq(passageSets.status, filters.lifecycle));
+  if (filters.provenance) conditions.push(eq(passageSets.provenance, filters.provenance));
+  if (filters.difficulty) conditions.push(sql`exists(select 1 from questions qx where qx.passage_set_id=${passageSets.id} and qx.difficulty=${filters.difficulty})`);
+  if (filters.skill) conditions.push(sql`exists(select 1 from questions qx where qx.passage_set_id=${passageSets.id} and qx.skill=${filters.skill})`);
+  if (filters.subSkill) conditions.push(sql`exists(select 1 from questions qx where qx.passage_set_id=${passageSets.id} and qx.sub_skill=${filters.subSkill})`);
+  if (filters.batch) conditions.push(sql`exists(select 1 from question_import_items qi join question_import_batches qb on qb.id=qi.import_batch_id where qi.question_group_id=${passageSets.id} and qb.batch_key=${filters.batch})`);
+  return conditions.length ? and(...conditions) : undefined;
+}
+
+export async function getReviewQueue(currentId: string, filters: ReviewFilters) {
+  const rows = await db.select({ id: passageSets.id, title: passageSets.title }).from(passageSets)
+    .where(reviewConditions(filters)).orderBy(asc(passageSets.toeicPart), asc(passageSets.createdAt), asc(passageSets.id));
+  const index = rows.findIndex((row) => row.id === currentId);
+  return { total: rows.length, position: index < 0 ? null : index + 1, previous: index > 0 ? rows[index - 1] : null, next: index >= 0 && index + 1 < rows.length ? rows[index + 1] : null };
+}
+
+export async function getImportContextForGroup(groupId: string) {
+  const [row] = await db.select({ id: questionImportBatches.id, batchKey: questionImportBatches.batchKey, name: questionImportBatches.name, externalItemId: questionImportItems.externalItemId })
+    .from(questionImportItems).innerJoin(questionImportBatches, eq(questionImportBatches.id, questionImportItems.importBatchId))
+    .where(eq(questionImportItems.questionGroupId, groupId)).limit(1);
+  return row ?? null;
+}
+
+export async function getImportBatchSummary(batchKey: string) {
+  const [batch] = await db.select({ batch: questionImportBatches, importedBy: users.email }).from(questionImportBatches)
+    .innerJoin(users, eq(users.id, questionImportBatches.createdBy)).where(eq(questionImportBatches.batchKey, batchKey)).limit(1);
+  if (!batch) return null;
+  const items = await db.select({ groupId: passageSets.id, title: passageSets.title, part: passageSets.toeicPart, status: passageSets.status, updatedAt: passageSets.updatedAt, externalItemId: questionImportItems.externalItemId })
+    .from(questionImportItems).innerJoin(passageSets, eq(passageSets.id, questionImportItems.questionGroupId))
+    .where(eq(questionImportItems.importBatchId, batch.batch.id)).orderBy(asc(passageSets.toeicPart), asc(questionImportItems.createdAt), asc(passageSets.id));
+  const validations = await Promise.all(items.map(async (item) => ({ groupId: item.groupId, issues: item.status === "draft" ? await validateContent(item.groupId) : [] })));
+  const blocked = validations.filter((item) => item.issues.length);
+  return {
+    ...batch.batch, importedBy: batch.importedBy, items, validations,
+    counts: { imported: items.length, draft: items.filter((i) => i.status === "draft").length, published: items.filter((i) => i.status === "published").length, archived: items.filter((i) => i.status === "archived").length, blocked: blocked.length },
+    partDistribution: Object.fromEntries([1,2,3,4,5,6,7].map((part) => [part, items.filter((i) => i.part === part).length])),
+    valid: blocked.length === 0,
+  };
+}
+
+export async function publishImportBatch(actorUserId: string, batchKey: string) {
+  await db.transaction(async (tx) => { await assertManage(tx, actorUserId); });
+  const summary = await getImportBatchSummary(batchKey);
+  if (!summary) throw new ContentAdminError("BATCH_NOT_FOUND");
+  const drafts = summary.items.filter((item) => item.status === "draft");
+  if (!drafts.length) return { published: 0 };
+  const failures = summary.validations.filter((item) => item.issues.length);
+  if (failures.length) throw new ContentAdminError("BATCH_VALIDATION_FAILED", failures.flatMap((item) => item.issues.map((issue) => `${item.groupId}: ${issue}`)));
+  return db.transaction(async (tx) => {
+    await assertManage(tx, actorUserId);
+    const locked = await tx.select({ id: passageSets.id, status: passageSets.status, updatedAt: passageSets.updatedAt }).from(passageSets).where(inArray(passageSets.id, drafts.map((item) => item.groupId))).for("update");
+    if (locked.length !== drafts.length || locked.some((item) => item.status !== "draft" || item.updatedAt.toISOString() !== drafts.find((draft) => draft.groupId === item.id)?.updatedAt.toISOString())) throw new ContentAdminError("BATCH_CHANGED_RETRY");
+    const now = new Date(); const ids = locked.map((item) => item.id);
+    await tx.update(passageSets).set({ status: "published", publishedAt: now, updatedAt: now }).where(inArray(passageSets.id, ids));
+    await tx.update(passages).set({ status: "published", updatedAt: now }).where(inArray(passages.passageSetId, ids));
+    await tx.update(questions).set({ status: "published", publishedAt: now, updatedAt: now }).where(and(inArray(questions.passageSetId, ids), eq(questions.status, "draft")));
+    await tx.insert(adminAuditLogs).values({ actorUserId, action: "CONTENT_PUBLISHED", metadata: { operation: "BATCH_PUBLISH", importBatchId: summary.id, batchKey, itemCount: ids.length, previousLifecycle: "draft", newLifecycle: "published" } });
+    return { published: ids.length };
+  });
+}
+
+export type ExportFilters = ReviewFilters & { lifecycle?: string };
+export async function exportQuestions(filters: ExportFilters): Promise<QuestionImportFile> {
+  if (!filters.part || filters.part < 1 || filters.part > 7) throw new ContentAdminError("PART_REQUIRED");
+  const groups = await db.select({ id: passageSets.id }).from(passageSets).where(reviewConditions(filters)).orderBy(asc(passageSets.createdAt), asc(passageSets.id));
+  const details = await Promise.all(groups.map((group) => getAdminContentDetail(group.id)));
+  const batchContexts = await Promise.all(groups.map((group) => getImportContextForGroup(group.id)));
+  const usedItems = new Set<string>(); const usedQuestions = new Set<string>();
+  const unique = (candidate: string, used: Set<string>) => { let value = candidate; let suffix = 2; while (used.has(value)) value = `${candidate}-${suffix++}`; used.add(value); return value; };
+  const items = details.flatMap((detail, index) => {
+    if (!detail) return [];
+    const context = batchContexts[index]; const externalItemId = unique(context?.externalItemId ?? `EXPORT-P${detail.group.toeicPart}-${String(index + 1).padStart(4,"0")}`, usedItems);
+    return [{
+      externalItemId, part: detail.group.toeicPart, title: detail.group.title, setType: detail.group.setType as QuestionImportFile["items"][number]["setType"],
+      passages: detail.passages.map((p) => ({ ...(p.title ? { title: p.title } : {}), content: p.content ?? "", ...(p.documentType ? { documentType: p.documentType } : {}) })),
+      ...(detail.transcript ? { transcript: detail.transcript.content } : {}),
+      ...(detail.media.length ? { media: Object.fromEntries(detail.media.map((m) => [m.role.toLowerCase(), { pending: true, ...(m.asset.kind === "IMAGE" ? { altText: "Re-link the source image before publishing." } : {}) }])) } : {}),
+      questions: detail.questions.map((q, questionIndex) => ({
+        externalQuestionId: unique(typeof q.metadata?.externalQuestionId === "string" ? q.metadata.externalQuestionId : `${externalItemId}-Q${questionIndex + 1}`, usedQuestions), text: q.questionText,
+        options: q.options.map((o) => ({ key: o.optionKey as "A"|"B"|"C"|"D", text: o.optionText })), correctOptionKey: (q.options.find((o) => o.id === q.solution?.correctOptionId)?.optionKey ?? "A") as "A"|"B"|"C"|"D",
+        explanation: { en: q.solution?.explanationEn ?? "", vi: q.solution?.explanationVi ?? "" }, skill: q.skill, subSkill: q.subSkill, difficulty: q.difficulty as "easy"|"medium"|"hard",
+      })),
+    }];
+  });
+  const file: QuestionImportFile = { schemaVersion: IMPORT_SCHEMA_VERSION, batch: { batchKey: `export-p${filters.part}-${new Date().toISOString().slice(0,10)}-${Date.now()}`, name: `TOEICGym Part ${filters.part} export`, description: "Admin export for offline review and round-trip import.", sourceType: "OTHER_APPROVED", rightsNote: "Exported from TOEICGym Admin; operator must confirm rights before re-import.", createdAt: new Date().toISOString(), language: "bilingual", reviewStatus: "UNREVIEWED" }, items };
+  const report = validateImportValue(file); if (!report.valid) throw new ContentAdminError("EXPORT_VALIDATION_FAILED", report.issues.map((i) => i.message));
+  return file;
+}

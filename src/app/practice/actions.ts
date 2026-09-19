@@ -10,7 +10,7 @@ import { createGuestListeningPracticeSession, createGuestReadingPracticeSession,
 import { getGuestOwnerHash, requireGuestOwnerHash } from "@/lib/guest/identity";
 import { createAuthorizedListeningMediaUrl } from "@/lib/listening/media-access";
 import { canUnlockListeningGroupReview, hasExactCompleteGroupAnswers } from "@/lib/listening/group-submission";
-import { R2MediaStorage } from "@/lib/media/r2-storage";
+import { createMediaStorage } from "@/lib/media/storage";
 import type { PracticeConfig, ReadingPracticeMode, SubmittedAnswer } from "@/lib/practice/types";
 import { evaluateMultipleChoice } from "@/lib/toeic/evaluation";
 import { isListeningPart, loadRecommendedWorkout } from "@/lib/diagnosis/service";
@@ -97,6 +97,6 @@ export async function submitListeningGroup(sessionId: string, groupId: string, a
 
 export async function refreshListeningMedia(sessionId: string, questionId: string, assetId: string, groupId?: string): Promise<{ ok: true; url: string } | { ok: false }> {
   const owner = await currentOwner(); if (!owner.userId && !owner.guestOwnerHash) return { ok: false };
-  try { return { ok: true, url: await createAuthorizedListeningMediaUrl({ ...owner, sessionId, questionId, groupId, assetId }, new R2MediaStorage()) }; }
+  try { return { ok: true, url: await createAuthorizedListeningMediaUrl({ ...owner, sessionId, questionId, groupId, assetId }, createMediaStorage()) }; }
   catch (error) { console.error("Could not refresh Listening media URL", error); return { ok: false }; }
 }

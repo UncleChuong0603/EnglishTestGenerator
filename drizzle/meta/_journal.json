@@ -141,6 +141,20 @@
       "when": 1790985600000,
       "tag": "0019_question_import_p5_group",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1791072000000,
+      "tag": "0020_local_media_provider",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1791158400000,
+      "tag": "0021_mock_test_modes",
+      "breakpoints": true
     }
   ]
 }

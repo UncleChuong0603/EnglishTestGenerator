@@ -6,6 +6,7 @@ export type MediaKind = (typeof MEDIA_KINDS)[number];
 export type MediaAccessScope = (typeof MEDIA_ACCESS_SCOPES)[number];
 export type MediaStatus = (typeof MEDIA_STATUSES)[number];
 
+export type MediaProvider = "R2" | "LOCAL";
 export type MediaObject = { key: string; body: Uint8Array; contentType: string };
 export type MediaStorage = {
   upload(object: MediaObject): Promise<void>;
@@ -15,7 +16,7 @@ export type MediaStorage = {
 };
 
 export type MediaAssetRecord = {
-  id: string; kind: MediaKind; accessScope: MediaAccessScope; storageProvider: "R2";
+  id: string; kind: MediaKind; accessScope: MediaAccessScope; storageProvider: MediaProvider;
   storageKey: string; mimeType: string; byteSize: number; checksum: string;
   status: MediaStatus; ownerUserId: string | null; audioDurationMs: number | null;
   imageWidth: number | null; imageHeight: number | null;

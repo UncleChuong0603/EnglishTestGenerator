@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assembleFullMock, deadlineFrom, FULL_MOCK_BLUEPRINT, type MockUnit } from "./blueprint";
+import { assembleFullMock, assembleListeningMock, assembleReadingMock, deadlineFrom, FULL_MOCK_BLUEPRINT, type MockUnit } from "./blueprint";
 
 function fixtures(): MockUnit[] {
   const result: MockUnit[] = [];
@@ -23,5 +23,7 @@ describe("full mock blueprint", () => {
     expect(assembleFullMock(units)).toBeNull();
   });
   it("rejects duplicate questions", () => { const rows = fixtures(); rows[1].questionIds = rows[0].questionIds; expect(assembleFullMock(rows)).toBeNull(); });
+  it("assembles independent canonical 100-question section mocks", () => { const units = fixtures(); const listening = assembleListeningMock(units), reading = assembleReadingMock(units); expect(listening?.questionIds).toHaveLength(100); expect(reading?.questionIds).toHaveLength(100); expect(Object.keys(listening!.byPart).map(Number)).toEqual([1,2,3,4]); expect(Object.keys(reading!.byPart).map(Number)).toEqual([5,6,7]); });
+  it("keeps readiness independent and composes Full from both sections", () => { const units = fixtures(), listening = units.filter((u) => u.part <= 4), reading = units.filter((u) => u.part >= 5); expect(assembleListeningMock(listening)).not.toBeNull(); expect(assembleReadingMock(listening)).toBeNull(); expect(assembleFullMock(listening)).toBeNull(); expect(assembleListeningMock(reading)).toBeNull(); expect(assembleReadingMock(reading)).not.toBeNull(); expect(assembleFullMock(reading)).toBeNull(); });
   it("uses server timestamps for immutable section deadlines", () => { const at = new Date("2026-01-01T00:00:00Z"); expect(deadlineFrom(at, "LISTENING").toISOString()).toBe("2026-01-01T00:45:00.000Z"); expect(deadlineFrom(at, "READING").toISOString()).toBe("2026-01-01T01:15:00.000Z"); });
 });

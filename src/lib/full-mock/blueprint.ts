@@ -19,6 +19,7 @@ export type MockUnit = {
 };
 
 export type MockForm = { byPart: Record<number, MockUnit[]>; questionIds: string[] };
+export type MockMode = "LISTENING" | "READING" | "FULL";
 
 function chooseExact(units: readonly MockUnit[], groupCount: number, questionCount: number): MockUnit[] | null {
   const search = (at: number, chosen: MockUnit[], total: number): MockUnit[] | null => {
@@ -33,24 +34,32 @@ function chooseExact(units: readonly MockUnit[], groupCount: number, questionCou
   return search(0, [], 0);
 }
 
-export function assembleFullMock(units: readonly MockUnit[]): MockForm | null {
+export function assembleMock(units: readonly MockUnit[], mode: MockMode): MockForm | null {
   const uniqueUnits = [...new Map(units.map((unit) => [unit.id, unit])).values()];
   const byPart: Record<number, MockUnit[]> = {};
-  for (const part of [1, 2, 3, 4, 5, 6] as const) {
+  const parts = mode === "LISTENING" ? [1, 2, 3, 4] as const : mode === "READING" ? [5, 6] as const : [1, 2, 3, 4, 5, 6] as const;
+  for (const part of parts) {
     const target = FULL_MOCK_BLUEPRINT[part];
     const selected = chooseExact(uniqueUnits.filter((unit) => unit.part === part), target.groups, target.questions);
     if (!selected) return null;
     byPart[part] = selected;
   }
-  const singles = chooseExact(uniqueUnits.filter((unit) => unit.part === 7 && unit.setType === "single"), 10, 29);
-  const multiples = chooseExact(uniqueUnits.filter((unit) => unit.part === 7 && ["double", "triple"].includes(unit.setType)), 5, 25);
-  if (!singles || !multiples) return null;
-  byPart[7] = [...singles, ...multiples];
+  if (mode !== "LISTENING") {
+    const singles = chooseExact(uniqueUnits.filter((unit) => unit.part === 7 && unit.setType === "single"), 10, 29);
+    const multiples = chooseExact(uniqueUnits.filter((unit) => unit.part === 7 && ["double", "triple"].includes(unit.setType)), 5, 25);
+    if (!singles || !multiples) return null;
+    byPart[7] = [...singles, ...multiples];
+  }
   const selectedUnits = Object.values(byPart).flat();
   const questionIds = selectedUnits.flatMap((unit) => unit.questionIds);
-  if (questionIds.length !== 200 || new Set(questionIds).size !== 200 || new Set(selectedUnits.map((unit) => unit.id)).size !== selectedUnits.length) return null;
+  const expected = mode === "FULL" ? 200 : 100;
+  if (questionIds.length !== expected || new Set(questionIds).size !== expected || new Set(selectedUnits.map((unit) => unit.id)).size !== selectedUnits.length) return null;
   return { byPart, questionIds };
 }
+
+export const assembleListeningMock = (units: readonly MockUnit[]) => assembleMock(units, "LISTENING");
+export const assembleReadingMock = (units: readonly MockUnit[]) => assembleMock(units, "READING");
+export const assembleFullMock = (units: readonly MockUnit[]) => assembleMock(units, "FULL");
 
 export function deadlineFrom(startedAt: Date, section: "LISTENING" | "READING") {
   return new Date(startedAt.getTime() + (section === "LISTENING" ? LISTENING_DURATION_MS : READING_DURATION_MS));

@@ -13,5 +13,6 @@ export class ConfiguredR2MediaStorage implements MediaStorage {
   async upload(object: MediaObject) { await this.client.send(new PutObjectCommand({ Bucket: this.config.bucketName, Key: object.key, Body: object.body, ContentType: object.contentType, ChecksumAlgorithm: "SHA256" })); }
   async exists(key: string) { try { await this.client.send(new HeadObjectCommand({ Bucket: this.config.bucketName, Key: key })); return true; } catch (error) { if (error && typeof error === "object" && "$metadata" in error && (error as { $metadata?: { httpStatusCode?: number } }).$metadata?.httpStatusCode === 404) return false; throw new Error("R2_EXISTENCE_CHECK_FAILED", { cause: error }); } }
   async createReadUrl(key: string, expiresInSeconds = 900) { if (expiresInSeconds < 60 || expiresInSeconds > 3600) throw new Error("INVALID_MEDIA_URL_TTL"); return getSignedUrl(this.client, new GetObjectCommand({ Bucket: this.config.bucketName, Key: key }), { expiresIn: expiresInSeconds }); }
+  async download(key: string) { const result = await this.client.send(new GetObjectCommand({ Bucket: this.config.bucketName, Key: key })); if (!result.Body) throw new Error("R2_OBJECT_EMPTY"); return new Uint8Array(await result.Body.transformToByteArray()); }
   async delete(key: string) { await this.client.send(new DeleteObjectCommand({ Bucket: this.config.bucketName, Key: key })); }
 }

@@ -49,7 +49,7 @@ export async function commitQuestionImport(actorUserId:string,filename:string,te
       await tx.insert(questionImportItems).values({importBatchId:batch.id,externalItemId:item.externalItemId,contentFingerprint:itemFingerprint(item),questionGroupId:group.id});
     }
     await tx.insert(adminAuditLogs).values({actorUserId,action:"IMPORT_COMMITTED",metadata:{importBatchId:batch.id,batchKey:file.batch.batchKey,schemaVersion:file.schemaVersion,itemCount:file.items.length,questionCount:report.questionCount,warningCount:report.counts.WARNING}});
-    return {importId:batch.id,questionsCreated:report.questionCount,groupsCreated:groups,stimuliCreated:stimuli,duplicatesSkipped:0,warnings:report.counts.WARNING,blockedItems:0,durationMs:Date.now()-started};
+    return {importId:batch.id,batchKey:file.batch.batchKey,questionsCreated:report.questionCount,groupsCreated:groups,stimuliCreated:stimuli,duplicatesSkipped:0,warnings:report.counts.WARNING,blockedItems:0,durationMs:Date.now()-started};
   });
 }
 export class QuestionImportError extends Error{constructor(readonly code:string,readonly report?:Omit<ImportReport,"parsed">){super(code)}}

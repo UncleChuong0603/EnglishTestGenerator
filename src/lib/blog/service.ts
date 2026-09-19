@@ -3,7 +3,7 @@ import { and, desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { adminAuditLogs, contentPosts, contentPostTags, contentTags, mediaAssets } from "@/db/schema";
 import { POST_CATEGORIES, slugify, validatePost, type PostCategory, type PostInput } from "./core";
-import { R2MediaStorage } from "@/lib/media/r2-storage";
+import { createMediaStorage } from "@/lib/media/storage";
 
 export class BlogAdminError extends Error { constructor(public code: string) { super(code); } }
 export async function listAdminPosts() { return db.select().from(contentPosts).orderBy(desc(contentPosts.updatedAt)); }
@@ -24,4 +24,4 @@ export async function setPostPublished(actorId:string,id:string,publish:boolean)
 export async function deleteDraft(actorId:string,id:string){await db.transaction(async tx=>{const deleted=await tx.delete(contentPosts).where(and(eq(contentPosts.id,id),inArray(contentPosts.status,["DRAFT","UNPUBLISHED"]))).returning({id:contentPosts.id,slug:contentPosts.slug});if(!deleted.length)throw new BlogAdminError("PUBLISHED_DELETE_FORBIDDEN");await tx.insert(adminAuditLogs).values({actorUserId:actorId,action:"SEO_POST_DELETED",metadata:{postId:id,slug:deleted[0].slug}});});}
 export async function publishedSitemapRows(){return db.select({slug:contentPosts.slug,updatedAt:contentPosts.updatedAt}).from(contentPosts).where(eq(contentPosts.status,"PUBLISHED"));}
 export function readingMinutes(content:string){return Math.max(1,Math.ceil(content.trim().split(/\s+/).length/220));}
-export async function coverUrl(mediaId:string|null){if(!mediaId)return null;const asset=(await db.select({key:mediaAssets.storageKey}).from(mediaAssets).where(and(eq(mediaAssets.id,mediaId),eq(mediaAssets.kind,"IMAGE"),eq(mediaAssets.status,"READY"),eq(mediaAssets.accessScope,"CONTENT"))).limit(1))[0];return asset?new R2MediaStorage().createReadUrl(asset.key,3600):null;}
+export async function coverUrl(mediaId:string|null){if(!mediaId)return null;const asset=(await db.select({key:mediaAssets.storageKey}).from(mediaAssets).where(and(eq(mediaAssets.id,mediaId),eq(mediaAssets.kind,"IMAGE"),eq(mediaAssets.status,"READY"),eq(mediaAssets.accessScope,"CONTENT"))).limit(1))[0];return asset?createMediaStorage().createReadUrl(asset.key,3600):null;}

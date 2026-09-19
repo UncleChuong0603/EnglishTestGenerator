@@ -22,6 +22,9 @@ x-app-environment: &app-environment
   SMTP_FROM: ${SMTP_FROM:-TOEICGym <noreply@toeicgym.net>}
   SMTP_SECURE: ${SMTP_SECURE:-false}
   MEDIA_ENABLED: ${MEDIA_ENABLED:-false}
+  MEDIA_STORAGE_PROVIDER: ${MEDIA_STORAGE_PROVIDER:-R2}
+  LOCAL_MEDIA_ROOT: ${LOCAL_MEDIA_ROOT:-/var/lib/toeicgym/media}
+  MEDIA_SIGNING_SECRET: ${MEDIA_SIGNING_SECRET:-}
   R2_ACCOUNT_ID: ${R2_ACCOUNT_ID:-}
   R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
   R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
@@ -30,6 +33,15 @@ x-app-environment: &app-environment
   R2_PUBLIC_BASE_URL: ${R2_PUBLIC_BASE_URL:-}
 
 services:
+  media-init:
+    image: alpine:3.22
+    restart: "no"
+    command: ["/bin/sh", "-ec", "chown -R 1001:1001 /var/lib/toeicgym/media && chmod 0755 /var/lib/toeicgym/media"]
+    volumes:
+      - media_data:/var/lib/toeicgym/media
+    security_opt: [no-new-privileges:true]
+    logging: *default-logging
+
   preflight:
     image: alpine:3.22
     restart: "no"
@@ -40,6 +52,9 @@ services:
       APP_DATABASE_PASSWORD: ${APP_DATABASE_PASSWORD:?APP_DATABASE_PASSWORD is required}
       NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: ${NEXT_SERVER_ACTIONS_ENCRYPTION_KEY:?NEXT_SERVER_ACTIONS_ENCRYPTION_KEY is required}
       MEDIA_ENABLED: ${MEDIA_ENABLED:-false}
+      MEDIA_STORAGE_PROVIDER: ${MEDIA_STORAGE_PROVIDER:-R2}
+      LOCAL_MEDIA_ROOT: ${LOCAL_MEDIA_ROOT:-/var/lib/toeicgym/media}
+      MEDIA_SIGNING_SECRET: ${MEDIA_SIGNING_SECRET:-}
       R2_ACCOUNT_ID: ${R2_ACCOUNT_ID:-}
       R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
       R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
@@ -55,12 +70,16 @@ services:
         test "$${#APP_DATABASE_PASSWORD}" -ge 24
         key_bytes="$$(printf '%s' "$${NEXT_SERVER_ACTIONS_ENCRYPTION_KEY}" | base64 -d | wc -c)"
         case "$${key_bytes}" in 16|24|32) ;; *) exit 1 ;; esac
-        if [ "$${MEDIA_ENABLED}" = "true" ]; then
+        if [ "$${MEDIA_ENABLED}" = "true" ] && [ "$${MEDIA_STORAGE_PROVIDER}" = "R2" ]; then
           test -n "$${R2_ACCOUNT_ID}"
           test -n "$${R2_ACCESS_KEY_ID}"
           test -n "$${R2_SECRET_ACCESS_KEY}"
           test -n "$${R2_BUCKET_NAME}"
           case "$${R2_ENDPOINT}" in https://*) ;; *) exit 1 ;; esac
+        fi
+        if [ "$${MEDIA_ENABLED}" = "true" ] && [ "$${MEDIA_STORAGE_PROVIDER}" = "LOCAL" ]; then
+          test -n "$${LOCAL_MEDIA_ROOT}"
+          test "$${#MEDIA_SIGNING_SECRET}" -ge 32
         fi
     security_opt: [no-new-privileges:true]
     logging: *default-logging
@@ -134,12 +153,16 @@ services:
       PREMIUM_365_PRICE_VND: ${PREMIUM_365_PRICE_VND:-}
 
     depends_on:
+      media-init:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
 
     expose: ["3000"]
+    volumes:
+      - media_data:/var/lib/toeicgym/media
 
     labels:
       traefik.enable: "true"
@@ -198,6 +221,29 @@ services:
     security_opt: [no-new-privileges:true]
     logging: *default-logging
 
+  media-server:
+    image: nginx:1.29-alpine
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    volumes:
+      - media_data:/srv/media:ro
+      - ./docker/media/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    expose: ["8080"]
+    labels:
+      traefik.enable: "true"
+      traefik.http.services.toeicgym-media.loadbalancer.server.port: "8080"
+      traefik.http.routers.toeicgym-media.rule: "Host(`toeicgym.net`) && Path(`/api/media/local`)"
+      traefik.http.routers.toeicgym-media.entrypoints: "websecure"
+      traefik.http.routers.toeicgym-media.service: "toeicgym-media"
+      traefik.http.routers.toeicgym-media.priority: "200"
+      traefik.http.routers.toeicgym-media.tls: "true"
+      traefik.http.routers.toeicgym-media.tls.certresolver: "letsencrypt"
+    networks: [frontend]
+    security_opt: [no-new-privileges:true]
+    logging: *default-logging
+
   db-tools:
     build:
       context: .
@@ -207,7 +253,9 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    networks: [database]
+    volumes:
+      - media_data:/var/lib/toeicgym/media
+    networks: [database, frontend]
     restart: "no"
     security_opt: [no-new-privileges:true]
 
@@ -222,6 +270,8 @@ networks:
 volumes:
   postgres_data:
     name: toeicgym_postgres_data
+  media_data:
+    name: toeicgym_media_data
 
 secrets:
   next_server_actions_encryption_key:

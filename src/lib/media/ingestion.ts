@@ -2,10 +2,10 @@ import { randomUUID } from "node:crypto";
 import type { MediaAccessScope, MediaAssetRecord, MediaKind, MediaAssetRepository, MediaStorage } from "./types";
 import { createCanonicalStorageKey, validateMediaUpload } from "./validation";
 
-export async function ingestMedia(dependencies: { storage: MediaStorage; repository: MediaAssetRepository }, input: { kind: MediaKind; accessScope: MediaAccessScope; mimeType: string; body: Uint8Array; ownerUserId?: string | null }) {
+export async function ingestMedia(dependencies: { storage: MediaStorage; repository: MediaAssetRepository; provider?: "R2" | "LOCAL" }, input: { kind: MediaKind; accessScope: MediaAccessScope; mimeType: string; body: Uint8Array; ownerUserId?: string | null }) {
   const metadata = await validateMediaUpload(input); const id = randomUUID();
   const storageKey = createCanonicalStorageKey({ ...input, assetId: id });
-  const asset: MediaAssetRecord = { id, kind: input.kind, accessScope: input.accessScope, storageProvider: "R2", storageKey, ownerUserId: input.ownerUserId ?? null, status: "UPLOADING", ...metadata };
+  const asset: MediaAssetRecord = { id, kind: input.kind, accessScope: input.accessScope, storageProvider: dependencies.provider ?? "R2", storageKey, ownerUserId: input.ownerUserId ?? null, status: "UPLOADING", ...metadata };
   await dependencies.repository.createUploading(asset);
   try {
     await dependencies.storage.upload({ key: storageKey, body: input.body, contentType: input.mimeType });

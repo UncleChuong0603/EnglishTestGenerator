@@ -265,7 +265,7 @@ export const mediaAssets = pgTable("media_assets", {
   index("media_assets_owner_idx").on(table.ownerUserId),
   check("media_assets_kind_check", sql`${table.kind} in ('AUDIO','IMAGE')`),
   check("media_assets_access_scope_check", sql`${table.accessScope} in ('CONTENT','PRIVATE_USER')`),
-  check("media_assets_provider_check", sql`${table.storageProvider} = 'R2'`),
+  check("media_assets_provider_check", sql`${table.storageProvider} in ('R2', 'LOCAL')`),
   check("media_assets_status_check", sql`${table.status} in ('UPLOADING','READY','FAILED','ARCHIVED')`),
   check("media_assets_size_check", sql`${table.byteSize} > 0`),
   check("media_assets_owner_scope_check", sql`(${table.accessScope} = 'CONTENT' and ${table.ownerUserId} is null) or (${table.accessScope} = 'PRIVATE_USER' and ${table.ownerUserId} is not null)`),
@@ -428,9 +428,10 @@ export const diagnosticRuns = pgTable("diagnostic_runs", {
 export const fullMockRuns = pgTable("full_mock_runs", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  mode: text("mode").notNull().default("FULL"),
   status: text("status").notNull().default("LISTENING"),
-  listeningStartedAt: timestamp("listening_started_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
-  listeningDeadline: timestamp("listening_deadline", { withTimezone: true, mode: "date" }).notNull(),
+  listeningStartedAt: timestamp("listening_started_at", { withTimezone: true, mode: "date" }),
+  listeningDeadline: timestamp("listening_deadline", { withTimezone: true, mode: "date" }),
   listeningCompletedAt: timestamp("listening_completed_at", { withTimezone: true, mode: "date" }),
   readingStartedAt: timestamp("reading_started_at", { withTimezone: true, mode: "date" }),
   readingDeadline: timestamp("reading_deadline", { withTimezone: true, mode: "date" }),
@@ -439,7 +440,9 @@ export const fullMockRuns = pgTable("full_mock_runs", {
   ...timestamps,
 }, (table) => [
   index("full_mock_runs_user_created_idx").on(table.userId, table.createdAt),
-  uniqueIndex("full_mock_runs_one_active_user_idx").on(table.userId).where(sql`${table.status} in ('LISTENING','READING')`),
+  uniqueIndex("full_mock_runs_one_active_user_mode_idx").on(table.userId, table.mode).where(sql`${table.status} in ('LISTENING','READING')`),
+  check("full_mock_runs_mode_check", sql`${table.mode} in ('LISTENING','READING','FULL')`),
+  check("full_mock_runs_mode_sections_check", sql`(${table.mode}='LISTENING' and ${table.listeningStartedAt} is not null and ${table.listeningDeadline} is not null and ${table.readingStartedAt} is null and ${table.readingDeadline} is null) or (${table.mode}='READING' and ${table.listeningStartedAt} is null and ${table.listeningDeadline} is null and ${table.readingStartedAt} is not null and ${table.readingDeadline} is not null) or (${table.mode}='FULL' and ${table.listeningStartedAt} is not null and ${table.listeningDeadline} is not null)`),
   check("full_mock_runs_status_check", sql`${table.status} in ('LISTENING','READING','COMPLETED','EXPIRED')`),
 ]);
 

@@ -30,6 +30,8 @@ COPY drizzle.config.ts ./
 COPY drizzle ./drizzle
 COPY scripts ./scripts
 COPY src/db ./src/db
+COPY src/lib/media ./src/lib/media
+COPY src/lib/env.ts ./src/lib/env.ts
 
 FROM node:22-bookworm-slim AS runner
 WORKDIR /app
