@@ -42,7 +42,7 @@ Chụp từ database test cục bộ `127.0.0.1:15433/toeicgym_task17` với tà
 - Không có route Admin riêng cho role/permission, passage, stimulus, option, solution, billing entitlement, system settings. Các thông tin này nằm trong trang người dùng hoặc chi tiết nhóm câu hỏi khi có.
 - Part 5 trong dữ liệu có thể là câu hỏi standalone; danh sách Admin chỉ liệt kê `passage_sets`, nên không thể mở từng câu standalone từ danh sách này.
 - Giao diện Admin dùng header và hàng liên kết có wrap trên màn hình hẹp; không có sidebar hoặc menu collapse. Một số bảng có `min-width` và vùng cuộn ngang. Form tạo Challenge không hiển thị AdminNav.
-- Kiểm tra ảnh mobile câu hỏi/nhóm: bảng nội dung chỉ hiện cột đầu trong khung cuộn ngang; trạng thái, nguồn và số câu không nhìn thấy đồng thời. Header không có chỉ báo route đang chọn. Trang chi tiết nhóm lấy dữ liệu media nhưng không hiển thị association media trong JSX hiện tại.
+- Bảng câu hỏi/nhóm trên mobile chỉ hiện cột đầu trong khung cuộn ngang; trạng thái, nguồn và số câu không nhìn thấy đồng thời. Header không có chỉ báo route đang chọn. Trang chi tiết nhóm lấy dữ liệu media nhưng không hiển thị association media trong JSX hiện tại.
 - Chưa có fixture an toàn cho media READY/unready, payment history và ranked challenge; vì vậy chưa thể kiểm toán các trạng thái này. Chưa chụp xác nhận hành động phá hủy, validation tương tác hoặc feedback thành công/thất bại; các trạng thái này cần lượt audit riêng với fixture reset được.
 - Không thực hiện hành động ghi nội dung, upload, cấp quyền, suspend, thanh toán hay đổi trạng thái.
 
