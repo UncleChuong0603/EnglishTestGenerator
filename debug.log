@@ -1,0 +1,17 @@
+[0919/155436.575:WARNING:viz_main_impl.cc(85)] VizNullHypothesis is disabled (not a warning)
+[0919/155752.924:WARNING:viz_main_impl.cc(85)] VizNullHypothesis is disabled (not a warning)
+[0919/155851.368:WARNING:viz_main_impl.cc(85)] VizNullHypothesis is disabled (not a warning)
+[0919/160013.553:WARNING:viz_main_impl.cc(85)] VizNullHypothesis is disabled (not a warning)
+[0919/160151.301:WARNING:viz_main_impl.cc(85)] VizNullHypothesis is disabled (not a warning)
+[0919/160318.288:WARNING:viz_main_impl.cc(85)] VizNullHypothesis is disabled (not a warning)
+[0919/160517.533:WARNING:viz_main_impl.cc(85)] VizNullHypothesis is disabled (not a warning)
+[0919/160627.234:WARNING:viz_main_impl.cc(85)] VizNullHypothesis is disabled (not a warning)
+[0919/160753.438:WARNING:viz_main_impl.cc(85)] VizNullHypothesis is disabled (not a warning)
+[0919/160818.579:ERROR:shared_image_manager.cc(509)] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.
+[0919/160818.579:ERROR:shared_image_manager.cc(509)] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.
+[0919/160818.580:ERROR:shared_image_manager.cc(509)] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.
+[0919/160818.580:ERROR:shared_image_manager.cc(509)] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.
+[0919/160818.580:ERROR:shared_image_manager.cc(509)] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.
+[0919/161103.070:WARNING:viz_main_impl.cc(85)] VizNullHypothesis is disabled (not a warning)
+[0919/161114.827:WARNING:viz_main_impl.cc(85)] VizNullHypothesis is disabled (not a warning)
+[0919/161644.322:WARNING:viz_main_impl.cc(85)] VizNullHypothesis is disabled (not a warning)

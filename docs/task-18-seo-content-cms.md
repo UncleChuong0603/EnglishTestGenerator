@@ -1,5 +1,13 @@
 # Task 18 — SEO Content CMS
 
+## Verification status
+
+Task 18B final integration verification passed on the isolated PostgreSQL database at `127.0.0.1:15433/toeicgym_task17` using database user `toeicgym_test`. Migration `0016_seo_content_cms` was applied through the Drizzle journal, and the complete `0000` → `0016` chain also passes the fresh in-memory PostgreSQL migration test.
+
+The real Playwright workflow passed for Admin draft creation, preview, publication, public rendering and SEO metadata, sitemap inclusion, unpublication and public removal. Mobile coverage ran at 390 × 844. No production database or payOS endpoint was contacted.
+
+The CMS remains fully self-hosted in TOEICGym PostgreSQL, adds no paid CMS dependency, and is verified safe for production deployment through the normal human-controlled deployment process.
+
 ## Routes
 
 - Admin list: `/admin/content/posts`
