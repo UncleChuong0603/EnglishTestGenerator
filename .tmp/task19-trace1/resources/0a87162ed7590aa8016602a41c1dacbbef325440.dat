@@ -1,0 +1,33 @@
+------WebKitFormBoundaryDNGBc8AjtTxNFpeJ
+Content-Disposition: form-data; name="_1_$ACTION_REF_1"
+
+
+------WebKitFormBoundaryDNGBc8AjtTxNFpeJ
+Content-Disposition: form-data; name="_1_$ACTION_1:0"
+
+{"id":"60d3ea19a3c2488ebd488024cc8b2ff0d9edc2eb68","bound":"$@1"}
+------WebKitFormBoundaryDNGBc8AjtTxNFpeJ
+Content-Disposition: form-data; name="_1_$ACTION_1:1"
+
+[{"ok":false}]
+------WebKitFormBoundaryDNGBc8AjtTxNFpeJ
+Content-Disposition: form-data; name="_1_$ACTION_KEY"
+
+kec8e3d63e027b855e0243b13e2c39545
+------WebKitFormBoundaryDNGBc8AjtTxNFpeJ
+Content-Disposition: form-data; name="_1_next"
+
+
+------WebKitFormBoundaryDNGBc8AjtTxNFpeJ
+Content-Disposition: form-data; name="_1_email"
+
+admin@task18b.invalid
+------WebKitFormBoundaryDNGBc8AjtTxNFpeJ
+Content-Disposition: form-data; name="_1_password"
+
+Task18b-browser-2026!
+------WebKitFormBoundaryDNGBc8AjtTxNFpeJ
+Content-Disposition: form-data; name="0"
+
+[{"ok":false},"$K1"]
+------WebKitFormBoundaryDNGBc8AjtTxNFpeJ--

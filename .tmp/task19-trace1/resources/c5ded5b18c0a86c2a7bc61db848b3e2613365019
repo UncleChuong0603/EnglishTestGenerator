@@ -1,0 +1,142 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: Admin validates, previews, imports Draft, and rejects duplicate
+- Location: C:\Users\CHUONG\OneDrive\Tài liệu\0. Code Project\EnglishTestGenerator\e2e\question-import.spec.ts:3:5
+
+# Error details
+
+```
+Error: Timed out 5000ms waiting for expect(locator).toBeVisible()
+
+Locator: getByText('HỢP LỆ')
+Expected: visible
+Received: <element(s) not found>
+Call log:
+  - expect.toBeVisible with timeout 5000ms
+  - waiting for getByText('HỢP LỆ')
+
+    at C:\Users\CHUONG\OneDrive\Tài liệu\0. Code Project\EnglishTestGenerator\e2e\question-import.spec.ts:25:42
+```
+
+# Page snapshot
+
+```yaml
+- main:
+  - link "TOEIC GYM"
+  - text: Admin
+  - navigation "Điều hướng quản trị":
+    - link "Tổng quan"
+    - link "Người dùng"
+    - link "Nội dung"
+    - link "Nhập câu hỏi"
+    - link "Bài viết"
+    - link "Thử thách"
+    - link "Thanh toán"
+    - link "Nhật ký"
+    - link "Khu học tập"
+  - heading "Question Bank Import" [level=1]
+  - paragraph: Validate trước, xem báo cáo, rồi xác nhận import nguyên tử dưới dạng Draft.
+  - paragraph: 1. Chọn JSON (tối đa 2 MiB / 500 nhóm)
+  - textbox: C:\fakepath\task19-e2e.json
+  - button "Đang xử lý…" [disabled]
+  - link "Tải JSON template"
+  - paragraph: "Tệp: task19-e2e.json"
+  - heading "Lịch sử import gần đây" [level=2]
+  - table:
+    - rowgroup:
+      - row "Thời gian Batch Tệp Schema Nguồn Nhóm / câu Operator":
+        - cell "Thời gian"
+        - cell "Batch"
+        - cell "Tệp"
+        - cell "Schema"
+        - cell "Nguồn"
+        - cell "Nhóm / câu"
+        - cell "Operator"
+    - rowgroup:
+      - row "9/19/2026, 5:42:38 PM All parts integration ff4c080d-22a2-4c3b-adb2-097ce2cbc542 all-parts.json 1.0 ORIGINAL 6 / 13 19000000-0000-4000-8000-000000000001":
+        - cell "9/19/2026, 5:42:38 PM"
+        - cell "All parts integration ff4c080d-22a2-4c3b-adb2-097ce2cbc542"
+        - cell "all-parts.json"
+        - cell "1.0"
+        - cell "ORIGINAL"
+        - cell "6 / 13"
+        - cell "19000000-0000-4000-8000-000000000001"
+      - row "9/19/2026, 5:42:38 PM Task 19 integration 771d0236-95c2-45da-bbeb-83512c8d784a task19.json 1.0 ORIGINAL 1 / 1 19000000-0000-4000-8000-000000000001":
+        - cell "9/19/2026, 5:42:38 PM"
+        - cell "Task 19 integration 771d0236-95c2-45da-bbeb-83512c8d784a"
+        - cell "task19.json"
+        - cell "1.0"
+        - cell "ORIGINAL"
+        - cell "1 / 1"
+        - cell "19000000-0000-4000-8000-000000000001"
+      - row "9/19/2026, 5:37:57 PM Task 19 integration ff00dc87-4977-4c34-bc6b-97f5dfffaff3 task19.json 1.0 ORIGINAL 1 / 1 19000000-0000-4000-8000-000000000001":
+        - cell "9/19/2026, 5:37:57 PM"
+        - cell "Task 19 integration ff00dc87-4977-4c34-bc6b-97f5dfffaff3"
+        - cell "task19.json"
+        - cell "1.0"
+        - cell "ORIGINAL"
+        - cell "1 / 1"
+        - cell "19000000-0000-4000-8000-000000000001"
+- alert
+```
+
+# Test source
+
+```ts
+   1 | import { expect, test } from "@playwright/test";
+   2 |
+   3 | test("Admin validates, previews, imports Draft, and rejects duplicate", async ({ page }) => {
+   4 |   test.setTimeout(120_000);
+   5 |   await page.goto("/sign-in");
+   6 |   await page.locator('input[name="email"]').fill("admin@task18b.invalid");
+   7 |   await page.locator('input[name="password"]').fill("Task18b-browser-2026!");
+   8 |   await page.locator('button[type="submit"], form button').last().click();
+   9 |   await expect(page).toHaveURL(/\/dashboard/);
+  10 |   await page.goto("/admin/content/import");
+  11 |   await expect(page.getByRole("heading",{name:"Question Bank Import"})).toBeVisible();
+  12 |   const template=await page.request.get("/api/admin/content-import/template");
+  13 |   expect(template.ok()).toBe(true);
+  14 |   const payload=await template.json();
+  15 |   const stamp=Date.now().toString(36);
+  16 |   payload.batch.batchKey=`e2e-task19-${stamp}`;
+  17 |   payload.batch.name=`Task 19 E2E ${stamp}`;
+  18 |   payload.items[0].externalItemId=`P5-E2E-${stamp}`;
+  19 |   payload.items[0].title=`DEVELOPMENT / FORMAT EXAMPLE ${stamp}`;
+  20 |   payload.items[0].questions[0].externalQuestionId=`P5-E2E-${stamp}-Q1`;
+  21 |   payload.items[0].questions[0].text=`The manager ${stamp} _____ the report yesterday.`;
+  22 |   const file={name:"task19-e2e.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify(payload))};
+  23 |   await page.locator('input[type="file"]').setInputFiles(file);
+  24 |   await page.getByRole("button",{name:"Validate / Dry run"}).click();
+> 25 |   await expect(page.getByText("HỢP LỆ")).toBeVisible();
+     |                                          ^ Error: Timed out 5000ms waiting for expect(locator).toBeVisible()
+  26 |   await expect(page.getByText(payload.items[0].questions[0].text)).toBeVisible();
+  27 |   page.once("dialog",(dialog)=>dialog.accept());
+  28 |   await page.getByRole("button",{name:"Xác nhận import Draft"}).click();
+  29 |   await expect(page.getByRole("heading",{name:"Import thành công"})).toBeVisible();
+  30 |   await page.getByRole("link",{name:"Mở Admin Content để review"}).click();
+  31 |   await expect(page.getByRole("link",{name:payload.items[0].title})).toBeVisible();
+  32 |   await page.goto("/admin/content/import");
+  33 |   await page.locator('input[type="file"]').setInputFiles(file);
+  34 |   await page.getByRole("button",{name:"Validate / Dry run"}).click();
+  35 |   await expect(page.getByText("ALREADY_IMPORTED")).toBeVisible();
+  36 | });
+  37 |
+  38 | test("Admin sees malformed JSON error on mobile", async ({ page }) => {
+  39 |   await page.setViewportSize({width:390,height:844});
+  40 |   await page.goto("/sign-in");
+  41 |   await page.locator('input[name="email"]').fill("admin@task18b.invalid");
+  42 |   await page.locator('input[name="password"]').fill("Task18b-browser-2026!");
+  43 |   await page.locator('button[type="submit"], form button').last().click();
+  44 |   await page.goto("/admin/content/import");
+  45 |   await page.locator('input[type="file"]').setInputFiles({name:"bad.json",mimeType:"application/json",buffer:Buffer.from("{")});
+  46 |   await page.getByRole("button",{name:"Validate / Dry run"}).click();
+  47 |   await expect(page.getByText("MALFORMED_JSON")).toBeVisible();
+  48 | });
+  49 |
+```
