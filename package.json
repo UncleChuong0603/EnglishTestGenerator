@@ -41,6 +41,7 @@
     "content:listening:report": "tsx scripts/content-pipeline.ts report",
     "content:reading:validate": "node scripts/validate-reading-seed.mjs",
     "content:reading:publish": "node --env-file=.env.local scripts/seed-reading.mjs",
+    "content:validate-import": "tsx scripts/validate-question-import.ts",
     "validate:mock-readiness": "node --env-file=.env.local scripts/validate-mock-readiness.mjs",
     "seed:reading": "node --env-file=.env.local scripts/seed-reading.mjs",
     "verify:reading": "node --env-file=.env.local scripts/seed-reading.mjs --verify-only",

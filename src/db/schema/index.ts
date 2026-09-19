@@ -113,7 +113,7 @@ export const adminAuditLogs = pgTable("admin_audit_logs", {
   index("admin_audit_logs_actor_idx").on(table.actorUserId),
   index("admin_audit_logs_target_idx").on(table.targetUserId),
   index("admin_audit_logs_action_idx").on(table.action),
-  check("admin_audit_logs_action_check", sql`${table.action} in ('ADMIN_ROLE_GRANTED','ADMIN_ROLE_REVOKED','USER_SUSPENDED','USER_REACTIVATED','PREMIUM_GRANTED','PREMIUM_REVOKED')`),
+  check("admin_audit_logs_action_check", sql`${table.action} in ('ADMIN_ROLE_GRANTED','ADMIN_ROLE_REVOKED','USER_SUSPENDED','USER_REACTIVATED','PREMIUM_GRANTED','PREMIUM_REVOKED','CONTENT_DRAFT_CREATED','CONTENT_DRAFT_UPDATED','CONTENT_CLONED','CONTENT_PUBLISHED','CONTENT_ARCHIVED','CONTENT_DRAFT_DISCARDED','MEDIA_UPLOADED','IMPORT_VALIDATED','IMPORT_COMMITTED','IMPORT_FAILED')`),
 ]);
 
 export const profiles = pgTable("profiles", {
@@ -321,6 +321,46 @@ export const questions = pgTable("questions", {
   check("questions_response_type_check", sql`${table.responseType} in ('MULTIPLE_CHOICE','TEXT','AUDIO')`),
   check("questions_lifecycle_check", sql`${table.status} in ('draft','published','archived')`),
   check("questions_provenance_check", sql`${table.provenance} in ('SEEDED','ADMIN')`),
+]);
+
+export const questionImportBatches = pgTable("question_import_batches", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  batchKey: text("batch_key").notNull(),
+  fingerprint: text("fingerprint").notNull(),
+  filename: text("filename").notNull(),
+  schemaVersion: text("schema_version").notNull(),
+  name: text("name").notNull(),
+  sourceType: text("source_type").notNull(),
+  rightsNote: text("rights_note").notNull(),
+  author: text("author"),
+  generator: text("generator"),
+  reviewStatus: text("review_status").notNull(),
+  status: text("status").notNull().default("COMMITTED"),
+  itemCount: integer("item_count").notNull(),
+  questionCount: integer("question_count").notNull(),
+  warningCount: integer("warning_count").notNull().default(0),
+  createdBy: uuid("created_by").notNull().references(() => users.id, { onDelete: "restrict" }),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex("question_import_batches_fingerprint_uidx").on(table.fingerprint),
+  uniqueIndex("question_import_batches_batch_key_uidx").on(table.batchKey),
+  index("question_import_batches_created_idx").on(table.createdAt),
+  check("question_import_batches_source_check", sql`${table.sourceType} in ('ORIGINAL','AI_ASSISTED_ORIGINAL','LICENSED','OTHER_APPROVED')`),
+  check("question_import_batches_review_check", sql`${table.reviewStatus} in ('UNREVIEWED','HUMAN_REVIEWED')`),
+  check("question_import_batches_status_check", sql`${table.status} in ('COMMITTED','FAILED')`),
+]);
+
+export const questionImportItems = pgTable("question_import_items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  importBatchId: uuid("import_batch_id").notNull().references(() => questionImportBatches.id, { onDelete: "cascade" }),
+  externalItemId: text("external_item_id").notNull(),
+  contentFingerprint: text("content_fingerprint").notNull(),
+  questionGroupId: uuid("question_group_id").notNull().references(() => passageSets.id, { onDelete: "restrict" }),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+}, (table) => [
+  unique("question_import_items_batch_external_unique").on(table.importBatchId, table.externalItemId),
+  uniqueIndex("question_import_items_content_fingerprint_uidx").on(table.contentFingerprint),
+  index("question_import_items_group_idx").on(table.questionGroupId),
 ]);
 
 export const contentPosts = pgTable("content_posts", {

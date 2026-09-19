@@ -1,11 +1,32 @@
 "use client";
+
 import Link from "next/link";
 import { useActionState } from "react";
 import { activateAccountAction, forgotPasswordAction, resetPasswordAction, type AuthActionState } from "@/app/auth/actions";
+import { AuthAlert, AuthShell, AuthSuccessState, fieldClassName, linkClassName, primaryButtonClassName } from "./auth-ui";
+import { PasswordField } from "./password-field";
+
 const initial: AuthActionState = { ok: false };
-function Wrap({ title, children }: { title: string; children: React.ReactNode }) { return <main className="grid min-h-screen place-items-center bg-slate-50 p-6"><section className="w-full max-w-md rounded-2xl border bg-white p-7"><h1 className="text-2xl font-black">{title}</h1>{children}<Link className="mt-6 inline-block text-sm font-bold text-teal-700" href="/sign-in">Về trang đăng nhập</Link></section></main>; }
-function Status({ state }: { state: AuthActionState }) { return state.error ? <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{state.error}</p> : state.message ? <p className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">{state.message}</p> : null; }
-export function ForgotForm() { const [state, action, pending] = useActionState(forgotPasswordAction, initial); return <Wrap title="Quên mật khẩu"><form action={action} className="mt-5 space-y-4"><input className="w-full rounded-lg border px-3 py-2.5" name="email" placeholder="Email" required type="email" /><button className="w-full rounded-lg bg-teal-700 px-4 py-3 font-bold text-white" disabled={pending}>Gửi hướng dẫn</button></form><Status state={state} /></Wrap>; }
-function PasswordForm({ token, activation = false }: { token: string; activation?: boolean }) { const [state, action, pending] = useActionState(activation ? activateAccountAction : resetPasswordAction, initial); return <Wrap title={activation ? "Kích hoạt tài khoản" : "Đặt lại mật khẩu"}><form action={action} className="mt-5 space-y-4"><input name="token" type="hidden" value={token} /><input className="w-full rounded-lg border px-3 py-2.5" minLength={10} name="password" placeholder="Mật khẩu mới (10+ ký tự)" required type="password" /><input className="w-full rounded-lg border px-3 py-2.5" minLength={10} name="confirmPassword" placeholder="Xác nhận mật khẩu" required type="password" /><button className="w-full rounded-lg bg-teal-700 px-4 py-3 font-bold text-white" disabled={pending}>Lưu mật khẩu</button></form><Status state={state} /></Wrap>; }
+
+export function ForgotForm() {
+  const [state, action, pending] = useActionState(forgotPasswordAction, initial);
+  return <AuthShell eyebrow="Khôi phục tài khoản" title="Quên mật khẩu?" intro="Nhập email của bạn và chúng tôi sẽ gửi hướng dẫn đặt lại mật khẩu.">
+    {state.ok ? <AuthSuccessState title="Hãy kiểm tra hộp thư"><p>Nếu tài khoản tồn tại, hướng dẫn đặt lại mật khẩu đã được gửi.</p></AuthSuccessState> : <form action={action} aria-busy={pending} className="mt-7 space-y-5"><div><label className="text-sm font-bold text-slate-800" htmlFor="recovery-email">Email</label><input autoComplete="email" className={fieldClassName} id="recovery-email" name="email" required type="email" /></div><button className={primaryButtonClassName} disabled={pending}>{pending ? "Đang gửi…" : "Gửi hướng dẫn"}</button></form>}
+    {state.error ? <AuthAlert type="error">{state.error}</AuthAlert> : null}
+    <p className="mt-6 text-center text-sm"><Link className={linkClassName} href="/sign-in">← Quay lại đăng nhập</Link></p>
+  </AuthShell>;
+}
+
+function PasswordForm({ token, activation = false }: { token: string; activation?: boolean }) {
+  const [state, action, pending] = useActionState(activation ? activateAccountAction : resetPasswordAction, initial);
+  const title = activation ? "Kích hoạt tài khoản" : "Đặt lại mật khẩu";
+  const intro = activation ? "Tạo mật khẩu an toàn để hoàn tất thiết lập tài khoản." : "Tạo mật khẩu mới cho tài khoản TOEICGym của bạn.";
+  return <AuthShell eyebrow={activation ? "Chào mừng đến TOEICGym" : "Bảo mật tài khoản"} title={title} intro={intro}>
+    {state.ok ? <AuthSuccessState title={activation ? "Tài khoản đã được kích hoạt" : "Mật khẩu đã được cập nhật"}><p>{state.message}</p><Link className={`${primaryButtonClassName} mt-5`} href="/sign-in">Đăng nhập</Link></AuthSuccessState> : <form action={action} aria-busy={pending} className="mt-7 space-y-4"><input name="token" type="hidden" value={token} /><PasswordField autoComplete="new-password" hint="Mật khẩu cần có ít nhất 10 ký tự." label="Mật khẩu mới" name="password" /><PasswordField autoComplete="new-password" label="Xác nhận mật khẩu" name="confirmPassword" /><button className={primaryButtonClassName} disabled={pending}>{pending ? "Đang lưu…" : activation ? "Kích hoạt tài khoản" : "Lưu mật khẩu mới"}</button></form>}
+    {state.error ? <AuthAlert type="error">{state.error}</AuthAlert> : null}
+    {!state.ok ? <p className="mt-6 text-center text-sm"><Link className={linkClassName} href="/sign-in">← Quay lại đăng nhập</Link></p> : null}
+  </AuthShell>;
+}
+
 export const ResetForm = ({ token }: { token: string }) => <PasswordForm token={token} />;
-export const ActivationForm = ({ token }: { token: string }) => <PasswordForm token={token} activation />;
+export const ActivationForm = ({ token }: { token: string }) => <PasswordForm activation token={token} />;

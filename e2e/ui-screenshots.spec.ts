@@ -1,10 +1,10 @@
-import { expect, test, type Browser, type BrowserContext, type Page } from "@playwright/test";
+import { test, type Browser, type Page } from "@playwright/test";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { createHmac, randomBytes } from "node:crypto";
 import path from "node:path";
 import pg from "pg";
 
 const root = path.resolve("artifacts/ui-screenshots");
-const password = "Ui-review-2026!";
 const records: Array<{ image: string; route: string; state: string; viewport: string; description: string }> = [];
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 
@@ -19,18 +19,14 @@ async function shot(page: Page, folder: string, name: string, route: string, sta
   records.push({ image: relative, route, state, viewport: mobile ? "390×844" : "1440×1000", description });
 }
 
-async function signIn(page: Page, email: string) {
-  await page.goto("/sign-in");
-  await page.locator('input[name="email"]').fill(email);
-  await page.locator('input[name="password"]').fill(password);
-  await page.locator('button[type="submit"]').click();
-  await expect(page).toHaveURL(/\/dashboard/);
-}
-
 async function contextFor(browser: Browser, email: string) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+  const token = randomBytes(32).toString("base64url");
+  const hash = createHmac("sha256", process.env.SESSION_SECRET ?? "").update(token).digest("hex");
+  const user = (await pool.query(`select id from users where email_normalized=$1`, [email])).rows[0];
+  await pool.query(`insert into user_sessions(user_id,session_token_hash,expires_at) values($1,$2,now()+interval '1 day')`, [user.id, hash]);
+  await context.addCookies([{ name: "etg_session", value: token, domain: "127.0.0.1", path: "/", httpOnly: true, sameSite: "Lax", expires: Math.floor(Date.now() / 1000) + 86400 }]);
   const page = await context.newPage();
-  await signIn(page, email);
   return { context, page };
 }
 

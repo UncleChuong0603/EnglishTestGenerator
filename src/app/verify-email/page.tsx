@@ -1,2 +1,16 @@
+import Link from "next/link";
 import { resendVerificationAction, verifyEmailAction } from "@/app/auth/actions";
-export default async function VerifyEmailPage({ searchParams }: { searchParams: Promise<{ token?: string; error?: string; resent?: string }> }) { const params = await searchParams; return <main className="grid min-h-screen place-items-center bg-slate-50 p-6"><section className="w-full max-w-md rounded-2xl border bg-white p-7"><h1 className="text-2xl font-black">Xác minh email</h1>{params.resent ? <p className="mt-4 text-emerald-700">Nếu tài khoản đang chờ xác minh, email mới đã được gửi.</p> : null}{params.token && !params.error ? <form action={verifyEmailAction} className="mt-5"><input name="token" type="hidden" value={params.token} /><button className="rounded-lg bg-teal-700 px-5 py-3 font-bold text-white">Xác minh tài khoản</button></form> : <><p className="mt-4 text-slate-600">{params.error ? "Liên kết không hợp lệ, đã hết hạn hoặc đã được dùng." : "Nhập email để gửi lại liên kết xác minh."}</p><form action={resendVerificationAction} className="mt-5 flex gap-2"><input className="min-w-0 flex-1 rounded-lg border px-3 py-2" name="email" required type="email" /><button className="rounded-lg bg-teal-700 px-4 font-bold text-white">Gửi lại</button></form></>}</section></main>; }
+import { AuthAlert, AuthShell, AuthSuccessState, fieldClassName, linkClassName, primaryButtonClassName } from "@/components/auth/auth-ui";
+
+export default async function VerifyEmailPage({ searchParams }: { searchParams: Promise<{ token?: string; error?: string; resent?: string }> }) {
+  const params = await searchParams;
+  const hasValidTokenContext = Boolean(params.token && !params.error);
+  return <AuthShell eyebrow="Xác minh email" title={hasValidTokenContext ? "Xác minh tài khoản của bạn" : "Kiểm tra hộp thư của bạn"} intro={hasValidTokenContext ? "Liên kết xác minh đã sẵn sàng. Xác nhận để hoàn tất tạo tài khoản." : "Chúng tôi đã gửi liên kết xác minh nếu địa chỉ email đủ điều kiện đăng ký."}>
+    {params.resent ? <AuthSuccessState title="Email xác minh đã được gửi"><p>Nếu tài khoản đang chờ xác minh, bạn sẽ sớm nhận được một email mới. Hãy kiểm tra cả thư mục spam.</p></AuthSuccessState> : null}
+    {hasValidTokenContext ? <form action={verifyEmailAction} className="mt-7"><input name="token" type="hidden" value={params.token} /><button className={primaryButtonClassName}>Xác minh tài khoản</button></form> : !params.resent ? <>
+      {params.error ? <AuthAlert type="error">Liên kết không hợp lệ, đã hết hạn hoặc đã được sử dụng.</AuthAlert> : <AuthAlert type="info">Liên kết có thể mất vài phút để đến. Hãy kiểm tra cả mục Quảng cáo hoặc Thư rác.</AuthAlert>}
+      <form action={resendVerificationAction} className="mt-5 space-y-4"><div><label className="text-sm font-bold text-slate-800" htmlFor="verification-email">Gửi lại đến email</label><input autoComplete="email" className={fieldClassName} id="verification-email" name="email" required type="email" /></div><button className={primaryButtonClassName}>Gửi lại email xác minh</button></form>
+    </> : null}
+    <p className="mt-6 text-center text-sm"><Link className={linkClassName} href="/sign-in">← Quay lại đăng nhập</Link></p>
+  </AuthShell>;
+}

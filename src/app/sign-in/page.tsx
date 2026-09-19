@@ -5,5 +5,5 @@ import { getCookieLanguage, getTranslations } from "@/lib/i18n/get-translations"
 export default async function SignInPage() {
   const locale = await getCookieLanguage();
   const t = getTranslations(locale);
-  return <Suspense fallback={<main className="grid min-h-screen place-items-center bg-slate-50">{t.auth.loading}</main>}><SignInForm locale={locale} /></Suspense>;
+  return <Suspense fallback={<main aria-live="polite" className="grid min-h-[100svh] place-items-center bg-[#f6f8f8] text-sm font-semibold text-slate-600">{t.auth.loading}</main>}><SignInForm locale={locale} /></Suspense>;
 }
