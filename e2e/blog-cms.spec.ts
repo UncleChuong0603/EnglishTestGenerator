@@ -1,0 +1,2 @@
+import { expect,test } from "@playwright/test";
+test.describe("Task 18 public blog",()=>{test("blog index renders on desktop and mobile",async({page})=>{await page.goto("/blog");await expect(page.getByRole("heading",{level:1})).toBeVisible();await page.setViewportSize({width:390,height:844});await page.reload();await expect(page.getByRole("heading",{level:1})).toBeVisible();});test("unknown or draft-like slug is unavailable",async({page})=>{const response=await page.goto("/blog/task18-definitely-not-published");expect(response?.status()).toBe(404);});});

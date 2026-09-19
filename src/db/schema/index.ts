@@ -323,6 +323,42 @@ export const questions = pgTable("questions", {
   check("questions_provenance_check", sql`${table.provenance} in ('SEEDED','ADMIN')`),
 ]);
 
+export const contentPosts = pgTable("content_posts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  title: text("title").notNull(),
+  slug: text("slug").notNull(),
+  excerpt: text("excerpt").notNull().default(""),
+  content: text("content").notNull().default(""),
+  status: text("status").notNull().default("DRAFT"),
+  category: text("category").notNull().default("TOEIC_STRATEGY"),
+  seoTitle: text("seo_title"),
+  seoDescription: text("seo_description"),
+  canonicalPath: text("canonical_path"),
+  coverMediaId: uuid("cover_media_id").references(() => mediaAssets.id, { onDelete: "set null" }),
+  publishedAt: timestamp("published_at", { withTimezone: true, mode: "date" }),
+  createdBy: uuid("created_by").notNull().references(() => users.id, { onDelete: "restrict" }),
+  updatedBy: uuid("updated_by").notNull().references(() => users.id, { onDelete: "restrict" }),
+  ...timestamps,
+}, (table) => [
+  uniqueIndex("content_posts_slug_uidx").on(table.slug),
+  index("content_posts_public_idx").on(table.status, table.publishedAt),
+  index("content_posts_admin_idx").on(table.updatedAt, table.status),
+  check("content_posts_status_check", sql`${table.status} in ('DRAFT','PUBLISHED','UNPUBLISHED')`),
+  check("content_posts_slug_check", sql`${table.slug} ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'`),
+]);
+
+export const contentTags = pgTable("content_tags", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+}, (table) => [uniqueIndex("content_tags_slug_uidx").on(table.slug)]);
+
+export const contentPostTags = pgTable("content_post_tags", {
+  postId: uuid("post_id").notNull().references(() => contentPosts.id, { onDelete: "cascade" }),
+  tagId: uuid("tag_id").notNull().references(() => contentTags.id, { onDelete: "cascade" }),
+}, (table) => [primaryKey({ columns: [table.postId, table.tagId] })]);
+
 export const questionOptions = pgTable("question_options", {
   id: uuid("id").primaryKey().defaultRandom(), questionId: uuid("question_id").notNull().references(() => questions.id, { onDelete: "cascade" }), optionKey: text("option_key").notNull(), optionText: text("option_text").notNull(), displayOrder: smallint("display_order").notNull(), createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
 }, (table) => [unique("question_options_key_unique").on(table.questionId, table.optionKey), unique("question_options_order_unique").on(table.questionId, table.displayOrder), unique("question_options_id_question_unique").on(table.id, table.questionId)]);

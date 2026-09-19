@@ -10,7 +10,8 @@ describe("Task 16 migrations", () => {
   it("appends 0012 through 0014 after protected 0011", () => {
     const parsed = JSON.parse(journal);
     const tags = parsed.entries.map((entry: { tag: string }) => entry.tag);
-    expect(tags.slice(-5, -1)).toEqual([
+    const start = tags.indexOf("0011_practice_session_count_invariants");
+    expect(tags.slice(start, start + 4)).toEqual([
       "0011_practice_session_count_invariants",
       "0012_ranking_challenges",
       "0013_ranked_challenge_runtime",

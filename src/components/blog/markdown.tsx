@@ -1,0 +1,12 @@
+import React from "react";
+import { safeHref } from "../../lib/blog/core";
+
+function inline(text:string,keyPrefix:string):React.ReactNode[]{
+  const pattern=/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|!?\[[^\]]*\]\([^\s)]+\))/g;const out:React.ReactNode[]=[];let last=0;let match:RegExpExecArray|null;
+  while((match=pattern.exec(text))){if(match.index>last)out.push(text.slice(last,match.index));const token=match[0],key=`${keyPrefix}-${match.index}`;
+    if(token.startsWith("**"))out.push(<strong key={key}>{token.slice(2,-2)}</strong>);else if(token.startsWith("*"))out.push(<em key={key}>{token.slice(1,-1)}</em>);else if(token.startsWith("`"))out.push(<code key={key}>{token.slice(1,-1)}</code>);else{const image=token.startsWith("!");const parts=token.match(/^!?\[([^\]]*)\]\(([^)]+)\)$/);const href=parts&&safeHref(parts[2]);if(!parts||!href)out.push(token);else if(image)out.push(<img alt={parts[1]} className="my-6 max-h-[32rem] w-full rounded-2xl object-cover" key={key} loading="lazy" src={href}/>);else out.push(<a className="font-bold text-teal-700 underline" href={href} key={key} rel={href.startsWith("http")?"noopener noreferrer":undefined}>{parts[1]}</a>);}
+    last=pattern.lastIndex;
+  }if(last<text.length)out.push(text.slice(last));return out;
+}
+export function Markdown({content}:{content:string}){const lines=content.replace(/\r/g,"").split("\n"),nodes:React.ReactNode[]=[];let list:string[]=[];let ordered=false;const flush=()=>{if(!list.length)return;const Tag=ordered?"ol":"ul";nodes.push(<Tag className={`my-5 space-y-2 pl-6 ${ordered?"list-decimal":"list-disc"}`} key={`list-${nodes.length}`}>{list.map((x,i)=><li key={i}>{inline(x,`li-${nodes.length}-${i}`)}</li>)}</Tag>);list=[];};
+  lines.forEach((line,i)=>{const item=line.match(/^\s*(?:([-*])|(\d+)\.)\s+(.+)$/);if(item){const nextOrdered=Boolean(item[2]);if(list.length&&ordered!==nextOrdered)flush();ordered=nextOrdered;list.push(item[3]);return;}flush();if(!line.trim())return;const h=line.match(/^(#{1,3})\s+(.+)$/);if(h){const level=h[1].length;const Tag=level===1?"h2":level===2?"h3":"h4";nodes.push(<Tag className="mb-3 mt-9 font-black tracking-tight" key={i}>{inline(h[2],`h-${i}`)}</Tag>);}else if(line.startsWith("> "))nodes.push(<blockquote className="my-6 border-l-4 border-teal-500 bg-teal-50 px-5 py-4 italic" key={i}>{inline(line.slice(2),`q-${i}`)}</blockquote>);else if(/^```/.test(line))nodes.push(null);else nodes.push(<p className="my-4 leading-8 text-slate-700" key={i}>{inline(line,`p-${i}`)}</p>);});flush();return <div className="article-body">{nodes}</div>;}

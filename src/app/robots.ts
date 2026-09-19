@@ -1,2 +1,2 @@
 import type { MetadataRoute } from "next";
-export default function robots(): MetadataRoute.Robots { const base = process.env.APP_URL ?? "http://localhost:3000"; return { rules: { userAgent: "*", allow: "/", disallow: ["/dashboard", "/practice/", "/progress", "/settings", "/demo-test/"] }, sitemap: `${base}/sitemap.xml` }; }
+export default function robots(): MetadataRoute.Robots { const base = process.env.APP_URL ?? "http://localhost:3000"; return { rules: { userAgent: "*", allow: ["/", "/blog", "/blog/"], disallow: ["/admin/", "/dashboard", "/practice/", "/progress", "/settings", "/demo-test/"] }, sitemap: `${base}/sitemap.xml` }; }
