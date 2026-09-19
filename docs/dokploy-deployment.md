@@ -61,7 +61,9 @@ openssl rand -base64 32
 
 SMTP có thể để trống lúc dựng hạ tầng; app vẫn chạy nhưng email xác minh/reset
 sẽ chỉ ghi cảnh báo và **chưa được coi là hoạt động production hoàn chỉnh**.
-Google OAuth vẫn bắt buộc cho cấu hình production hiện tại.
+Google OAuth là tùy chọn: cấu hình cả `GOOGLE_CLIENT_ID` và
+`GOOGLE_CLIENT_SECRET`, hoặc để trống cả hai. Email/password local vẫn hoạt động
+khi Google không được cấu hình hay tạm thời không khả dụng.
 
 ## Build secret Server Actions
 
@@ -186,6 +188,6 @@ kiểm tra log `migrate`, `/api/health`, rồi smoke test. Không stop/reconfigu
 - `toeicgym.net` có HTTPS hợp lệ; `www` redirect về non-www.
 - `/api/health` trả 200 và xác nhận DB reachable.
 - Verifier báo đúng 430 câu và demo-ready.
-- Google login callback thành công.
+- Nếu bật Google OAuth: Google login callback thành công; nếu không bật: local login vẫn thành công.
 - Nếu SMTP trống: ghi nhận email/password flow chưa production-verified.
 - Có backup, test restore gần nhất và bản sao off-server.

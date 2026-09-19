@@ -44,6 +44,24 @@ describe("production server environment", () => {
     expect(() => getServerEnv()).toThrow("R2 configuration must be complete");
   });
 
+  it("keeps Google OAuth optional in production", () => {
+    stubValidProductionEnv();
+    vi.stubEnv("GOOGLE_CLIENT_ID", "");
+    vi.stubEnv("GOOGLE_CLIENT_SECRET", "");
+
+    expect(getServerEnv()).toMatchObject({
+      GOOGLE_CLIENT_ID: undefined,
+      GOOGLE_CLIENT_SECRET: undefined,
+    });
+  });
+
+  it("rejects a partially configured optional Google OAuth integration", () => {
+    stubValidProductionEnv();
+    vi.stubEnv("GOOGLE_CLIENT_SECRET", "");
+
+    expect(() => getServerEnv()).toThrow("must be configured together");
+  });
+
   it("does not expose secret values in validation errors", () => {
     stubValidProductionEnv();
     vi.stubEnv("R2_SECRET_ACCESS_KEY", "do-not-log-this-secret");

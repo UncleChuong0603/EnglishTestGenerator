@@ -41,13 +41,14 @@ async function loadAvailableRows(): Promise<AvailableRow[] | null> {
 export async function getReadingRecommendation(
   userId: string,
   suppliedAnalytics?: LearnerAnalytics,
+  scope?: { part?: ReadingPart },
 ): Promise<ReadingRecommendation> {
   const analytics = suppliedAnalytics ?? await getLearnerAnalytics(userId);
 
   const levels: Array<{ level: FocusLevel; metrics: PerformanceMetric[] }> = [
-    { level: "subskill", metrics: analytics.subskills },
-    { level: "skill", metrics: analytics.skills },
-    { level: "part", metrics: analytics.parts },
+    { level: "subskill", metrics: analytics.subskills.filter((metric) => !scope?.part || metric.part === scope.part) },
+    { level: "skill", metrics: analytics.skills.filter((metric) => !scope?.part || metric.part === scope.part) },
+    { level: "part", metrics: analytics.parts.filter((metric) => !scope?.part || metric.part === scope.part) },
   ];
 
   // New learners do not have enough evidence for a focused recommendation.

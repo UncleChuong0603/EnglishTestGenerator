@@ -20,6 +20,11 @@
 /certbot/
 /backups/
 /migration-export/
+*.dump
+*.backup
+*.sql.gz
+/media-data/
+/local-media/
 
 # Logs and operating-system files
 npm-debug.log*

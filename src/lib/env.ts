@@ -48,7 +48,6 @@ export function getServerEnv() {
   if (parsed.data.MEDIA_ENABLED === "true" && parsed.data.MEDIA_STORAGE_PROVIDER === "R2" && !r2Values.every(Boolean)) throw new Error("R2 configuration is required when MEDIA_STORAGE_PROVIDER=R2");
   if (parsed.data.MEDIA_ENABLED === "true" && parsed.data.MEDIA_STORAGE_PROVIDER === "LOCAL" && (!parsed.data.LOCAL_MEDIA_ROOT || !parsed.data.MEDIA_SIGNING_SECRET)) throw new Error("Local media root and signing secret are required when MEDIA_STORAGE_PROVIDER=LOCAL");
   if (process.env.NODE_ENV === "production") {
-    if (!parsed.data.GOOGLE_CLIENT_ID || !parsed.data.GOOGLE_CLIENT_SECRET) throw new Error("Google OAuth credentials are required in production");
     const appUrl = parseUrl(parsed.data.APP_URL, "APP_URL");
     if (appUrl.protocol !== "https:") throw new Error("APP_URL must use HTTPS in production");
     if (["localhost", "127.0.0.1", "::1"].includes(appUrl.hostname)) throw new Error("APP_URL must not use a local hostname in production");

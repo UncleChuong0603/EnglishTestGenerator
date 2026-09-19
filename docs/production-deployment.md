@@ -7,7 +7,7 @@ Tài liệu này là nguồn vận hành cho kiến trúc `Internet -> Nginx -> 
 - DNS `A` của domain (và `www` nếu dùng) trỏ tới `42.96.4.79`.
 - VPS Ubuntu/Debian cập nhật, có Docker Engine và Compose plugin.
 - Operator đăng nhập bằng SSH key trên cổng `26266`; không đưa password hoặc private key vào repo.
-- Có Google OAuth client, SMTP production và export Supabase đã kiểm tra nếu cần chuyển dữ liệu cũ.
+- Có SMTP production; Google OAuth là tùy chọn. Cần export Supabase đã kiểm tra nếu còn chuyển dữ liệu cũ.
 - Clone repo vào `/opt/toeic-app`, thuộc sở hữu của user deploy, không chạy app trực tiếp từ `/root`.
 
 Tạo secret trên server, không ghi kết quả vào terminal history hoặc log chia sẻ:

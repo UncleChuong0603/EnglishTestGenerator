@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { attemptAnswers, listeningTranscripts, practiceSessionQuestions, practiceSessions, questionOptions, questionSolutions, questions } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth/session";
-import { createGuestListeningPracticeSession, createGuestReadingPracticeSession, createListeningPracticeSession, createReadingPracticeSession, createRecommendedListeningPracticeSession, createRecommendedReadingPracticeSession, validatePracticeConfig } from "@/lib/practice/selector";
+import { createGuestListeningPracticeSession, createGuestReadingPracticeSession, createListeningPracticeSession, createMasteryReviewSession, createPreferUnseenReadingSession, createReadingPracticeSession, createRecommendedListeningPracticeSession, createRecommendedReadingPracticeSession, validatePracticeConfig } from "@/lib/practice/selector";
 import { getGuestOwnerHash, requireGuestOwnerHash } from "@/lib/guest/identity";
 import { createAuthorizedListeningMediaUrl } from "@/lib/listening/media-access";
 import { canUnlockListeningGroupReview, hasExactCompleteGroupAnswers } from "@/lib/listening/group-submission";
@@ -17,13 +17,41 @@ import { isListeningPart, loadRecommendedWorkout } from "@/lib/diagnosis/service
 import { enforceRateLimit } from "@/lib/auth/rate-limit";
 import { reconcileMasteryAnswers } from "@/lib/mastery/persistence";
 import { UsageLimitError } from "@/lib/entitlements/service";
+import { getEffectiveCapabilities } from "@/lib/entitlements/service";
+import { getReadingRecommendation } from "@/lib/practice/recommendation";
+import { getMistakeCounts } from "@/lib/mastery/queries";
 import { awardCompletedLearning } from "@/lib/gamification/award";
 
 function parseConfig(formData: FormData): PracticeConfig | null { const config = { mode: String(formData.get("mode") ?? "") as ReadingPracticeMode, targetQuestionCount: Number(formData.get("questionCount")), source: formData.get("source") === "recommended" ? "recommended" : "custom", skill: String(formData.get("skill") ?? "").trim() || undefined, subSkill: String(formData.get("subSkill") ?? "").trim() || undefined } as PracticeConfig; return validatePracticeConfig(config) ? config : null; }
+export async function loadAdvancedTargetingAccess() { const user = await getCurrentUser(); if (!user) return { enabled: false, unresolvedMistakes: 0 }; const [capabilities, counts] = await Promise.all([getEffectiveCapabilities(user.id), getMistakeCounts(user.id)]); return { enabled: capabilities.canUseAdvancedTargeting, unresolvedMistakes: counts.unresolved }; }
 async function currentOwner() { const user = await getCurrentUser(); if (user) return { userId: user.id, guestOwnerHash: null }; return { userId: null, guestOwnerHash: await getGuestOwnerHash() }; }
 function ownedSessionCondition(sessionId: string, owner: Awaited<ReturnType<typeof currentOwner>>) { return owner.userId ? and(eq(practiceSessions.id, sessionId), eq(practiceSessions.userId, owner.userId)) : owner.guestOwnerHash ? and(eq(practiceSessions.id, sessionId), eq(practiceSessions.guestOwnerHash, owner.guestOwnerHash)) : and(eq(practiceSessions.id, sessionId), eq(practiceSessions.id, "00000000-0000-0000-0000-000000000000")); }
 export async function startGuestPractice(formData: FormData) { const kind = formData.get("kind"); const user = await getCurrentUser(); if (user) redirect("/practice"); const requestHeaders = await headers(); const ip = requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() ?? requestHeaders.get("x-real-ip") ?? "unknown"; try { await enforceRateLimit("guest_practice", ip); const guestOwnerHash = await requireGuestOwnerHash(); redirect(`/practice/${kind === "listening" ? await createGuestListeningPracticeSession(guestOwnerHash) : await createGuestReadingPracticeSession(guestOwnerHash)}`); } catch (error) { if (typeof error === "object" && error && "digest" in error) throw error; console.error("Could not start guest practice", error); redirect("/try?error=start_failed"); } }
 export async function startReadingPractice(formData: FormData) { const config = parseConfig(formData); if (!config) redirect("/practice?error=invalid_config"); const user = await getCurrentUser(); if (!user) redirect("/sign-in"); try { redirect(`/practice/${await createReadingPracticeSession(user.id, config)}`); } catch (error) { if (typeof error === "object" && error && "digest" in error) throw error; if (error instanceof UsageLimitError) redirect(`/practice?error=usage_limit&resetAt=${encodeURIComponent(error.status.resetAt)}`); console.error("Could not start Reading practice", error); redirect(`/practice?error=${error instanceof Error && error.message === "NO_PUBLISHED_CONTENT" ? "not_enough_content" : "start_failed"}`); } }
+export async function startAdvancedTargeting(formData: FormData) {
+  const user = await getCurrentUser(); if (!user) redirect("/sign-in");
+  const capabilities = await getEffectiveCapabilities(user.id);
+  if (!capabilities.canUseAdvancedTargeting) redirect("/practice?error=premium_required");
+  const targetingMode = String(formData.get("targetingMode") ?? "");
+  const config = parseConfig(formData); if (!config) redirect("/practice?error=invalid_config");
+  try {
+    if (targetingMode === "review_mistakes") redirect(`/practice/${await createMasteryReviewSession(user.id, config.mode === "mixed_reading" ? undefined : Number(config.mode.slice(-1)))}`);
+    if (targetingMode === "prefer_unseen") redirect(`/practice/${await createPreferUnseenReadingSession(user.id, config)}`);
+    if (targetingMode === "target_weakness") {
+      const scope = config.mode === "mixed_reading" ? undefined : { part: Number(config.mode.slice(-1)) as 5 | 6 | 7 };
+      const recommendation = await getReadingRecommendation(user.id, undefined, scope);
+      if (!recommendation.part) redirect("/practice?error=not_enough_history");
+      redirect(`/practice/${await createRecommendedReadingPracticeSession(user.id, { part: recommendation.part, skill: recommendation.skill, subSkill: recommendation.subSkill, questionCount: config.targetQuestionCount }, "target_weakness")}`);
+    }
+    if (targetingMode === "adaptive") redirect(`/practice/${await createReadingPracticeSession(user.id, config)}`);
+    redirect("/practice?error=invalid_config");
+  } catch (error) {
+    if (typeof error === "object" && error && "digest" in error) throw error;
+    if (error instanceof UsageLimitError) redirect(`/practice?error=usage_limit&resetAt=${encodeURIComponent(error.status.resetAt)}`);
+    const code = error instanceof Error ? error.message : "";
+    redirect(`/practice?error=${code === "NO_MISTAKES" || code === "NO_REVIEWABLE_MISTAKES" ? "no_mistakes" : code === "NO_PUBLISHED_CONTENT" ? "not_enough_content" : "start_failed"}`);
+  }
+}
 type SubmitResult = { ok: true; sessionId: string } | { ok: false; error: "session_expired" | "submit_failed" };
 export async function submitReadingPractice(sessionId: string, answers: SubmittedAnswer[]): Promise<SubmitResult> {
   const owner = await currentOwner(); if (!owner.userId && !owner.guestOwnerHash) return { ok: false, error: "session_expired" }; if (!sessionId || !Array.isArray(answers) || answers.length > 30 || new Set(answers.map((a) => a.questionId)).size !== answers.length) return { ok: false, error: "submit_failed" };

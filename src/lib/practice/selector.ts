@@ -5,7 +5,7 @@ import { db } from "@/db";
 import { attemptAnswers, listeningTranscripts, mediaAssets, passageSets, passages, practiceSessionQuestions, practiceSessions, questionGroupMedia, questionOptions, questionSolutions, questions } from "@/db/schema";
 import { validateListeningEligibility, validateListeningGroupEligibility } from "@/lib/listening/eligibility";
 import { MIXED_PART_WEIGHTS, READING_TAXONOMY } from "./constants";
-import { flattenUniqueQuestionIds, rankSelectionUnits, RECENT_CONTENT_SESSION_WINDOW, selectClosestUnits, shuffle, type ContentHistory, type SelectionUnit } from "./selection";
+import { flattenUniqueQuestionIds, rankPreferUnseen, rankSelectionUnits, RECENT_CONTENT_SESSION_WINDOW, selectClosestUnits, shuffle, type ContentHistory, type SelectionUnit } from "./selection";
 import type { PracticeConfig, ReadingPart } from "./types";
 import { GUEST_TTL_DAYS } from "@/lib/guest/identity";
 import { MASTERY_REVIEW_BATCH_SIZE } from "@/lib/mastery/constants";
@@ -129,6 +129,34 @@ export async function selectReadingPractice(config: PracticeConfig) {
   else { const parts: ReadingPart[] = [5, 6, 7]; const available = await Promise.all(parts.map((p) => loadUnits(p))); selected = shuffle(parts.flatMap((p, i) => selectClosestUnits(available[i], Math.max(1, Math.round(config.targetQuestionCount * MIXED_PART_WEIGHTS[p]))))); }
   const questionIds = flattenUniqueQuestionIds(selected); if (!questionIds.length) throw new Error("NO_PUBLISHED_CONTENT"); return { units: selected, questionIds, actualQuestionCount: questionIds.length };
 }
+export async function selectPreferUnseenReading(userId: string, config: PracticeConfig) {
+  if (!validatePracticeConfig(config)) throw new Error("INVALID_PRACTICE_CONFIG");
+  const fixed = partForMode(config.mode);
+  const pools = fixed ? [await loadUnits(fixed, config.skill, config.subSkill)] : await Promise.all(([5, 6, 7] as ReadingPart[]).map((part) => loadUnits(part)));
+  const units = pools.flat();
+  const history = await loadContentHistory(userId, flattenUniqueQuestionIds(units));
+  const selected = selectClosestUnits(rankPreferUnseen(units, history), config.targetQuestionCount, keepOrder);
+  const questionIds = flattenUniqueQuestionIds(selected);
+  if (!questionIds.length) throw new Error("NO_PUBLISHED_CONTENT");
+  return { units: selected, questionIds, actualQuestionCount: questionIds.length };
+}
+
+async function persistReadingSelection(userId: string, config: PracticeConfig, selection: Awaited<ReturnType<typeof selectReadingPractice>>, source: "target_weakness" | "prefer_unseen") {
+  const sessionId = randomUUID(); const now = new Date(); const part = partForMode(config.mode);
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${userId}:practice`}, 0))`);
+    await tx.update(practiceSessions).set({ status: "abandoned" }).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), ne(practiceSessions.practiceType, "demo_test"), ne(practiceSessions.source, "diagnostic")));
+    await consumeUsage(tx, { userId, entitlement: "MANUAL_PRACTICE", sourceType: "PRACTICE_SESSION", sourceId: sessionId, now });
+    const [session] = await tx.insert(practiceSessions).values({ id: sessionId, userId, practiceType: config.mode, part, questionCount: selection.actualQuestionCount, source, requestedQuestionCount: config.targetQuestionCount, requestedSkill: config.skill ?? null, requestedSubSkill: config.subSkill ?? null }).returning({ id: practiceSessions.id });
+    const setByQuestion = new Map(selection.units.flatMap((unit) => unit.questionIds.map((id) => [id, unit.part === 5 ? null : unit.id] as const)));
+    await tx.insert(practiceSessionQuestions).values(selection.questionIds.map((questionId, index) => ({ sessionId: session.id, questionId, displayOrder: index + 1, passageSetId: setByQuestion.get(questionId) ?? null })));
+    return session.id;
+  });
+}
+
+export async function createPreferUnseenReadingSession(userId: string, config: PracticeConfig) {
+  return persistReadingSelection(userId, config, await selectPreferUnseenReading(userId, config), "prefer_unseen");
+}
 export async function createReadingPracticeSession(userId: string, config: PracticeConfig) {
   const selection = await selectReadingPractice(config); const part = partForMode(config.mode);
   const sessionId = randomUUID(); const now = new Date();
@@ -170,10 +198,10 @@ export async function createGuestListeningPracticeSession(guestOwnerHash: string
 }
 
 /** Recommended-only 60/20/20 selector. Whole passage units are never split. */
-export async function createRecommendedReadingPracticeSession(userId: string, target: { part: ReadingPart; skill?: string; subSkill?: string; questionCount: number }) {
+export async function createRecommendedReadingPracticeSession(userId: string, target: { part: ReadingPart; skill?: string; subSkill?: string; questionCount: number }, sessionSource: "recommended" | "target_weakness" = "recommended") {
   const primaryPools = [await loadUnits(target.part, target.skill, target.subSkill), await loadUnits(target.part, target.skill), await loadUnits(target.part)];
   const otherParts = ([5, 6, 7] as ReadingPart[]).filter((part) => part !== target.part);
-  const allOtherUnits = (await Promise.all(otherParts.map((part) => loadUnits(part)))).flat();
+  const allOtherUnits = sessionSource === "target_weakness" ? primaryPools[2] : (await Promise.all(otherParts.map((part) => loadUnits(part)))).flat();
   const allCandidateIds = flattenUniqueQuestionIds([...primaryPools.flat(), ...allOtherUnits]);
   const history = await loadContentHistory(userId, allCandidateIds);
   const primarySpecificity = new Map<string, number>();
@@ -191,10 +219,10 @@ export async function createRecommendedReadingPracticeSession(userId: string, ta
   const sessionId = randomUUID(); const now = new Date();
   return db.transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${userId}:practice`}, 0))`);
-    const [existing] = await tx.select({ id: practiceSessions.id }).from(practiceSessions).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), eq(practiceSessions.source, "recommended"))).limit(1); if (existing) return existing.id;
+    if (sessionSource === "recommended") { const [existing] = await tx.select({ id: practiceSessions.id }).from(practiceSessions).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), eq(practiceSessions.source, "recommended"))).limit(1); if (existing) return existing.id; }
     await tx.update(practiceSessions).set({ status: "abandoned" }).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), ne(practiceSessions.practiceType, "demo_test"), ne(practiceSessions.source, "diagnostic")));
-    await consumeUsage(tx, { userId, entitlement: "TODAYS_WORKOUT", sourceType: "PRACTICE_SESSION", sourceId: sessionId, now });
-    const [session] = await tx.insert(practiceSessions).values({ id: sessionId, userId, practiceType: `part_${target.part}`, part: target.part, questionCount: questionIds.length, source: "recommended", requestedQuestionCount: target.questionCount, requestedSkill: target.skill ?? null, requestedSubSkill: target.subSkill ?? null }).returning({ id: practiceSessions.id });
+    await consumeUsage(tx, { userId, entitlement: sessionSource === "recommended" ? "TODAYS_WORKOUT" : "MANUAL_PRACTICE", sourceType: "PRACTICE_SESSION", sourceId: sessionId, now });
+    const [session] = await tx.insert(practiceSessions).values({ id: sessionId, userId, practiceType: `part_${target.part}`, part: target.part, questionCount: questionIds.length, source: sessionSource, requestedQuestionCount: target.questionCount, requestedSkill: target.skill ?? null, requestedSubSkill: target.subSkill ?? null }).returning({ id: practiceSessions.id });
     const setByQuestion = new Map(units.flatMap((unit) => unit.questionIds.map((id) => [id, unit.part === 5 ? null : unit.id] as const)));
     await tx.insert(practiceSessionQuestions).values(questionIds.map((questionId, index) => ({ sessionId: session.id, questionId, displayOrder: index + 1, passageSetId: setByQuestion.get(questionId) ?? null })));
     return session.id;

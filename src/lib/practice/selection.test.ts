@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { contentHistoryRank, flattenUniqueQuestionIds, rankSelectionUnits, RECENT_CONTENT_SESSION_WINDOW, selectClosestUnits } from "./selection";
+import { contentHistoryRank, flattenUniqueQuestionIds, rankPreferUnseen, rankSelectionUnits, RECENT_CONTENT_SESSION_WINDOW, selectClosestUnits } from "./selection";
 
 describe("reading practice set selection", () => {
   const noShuffle = () => 0.999;
@@ -35,6 +35,17 @@ describe("reading practice set selection", () => {
     ];
     const history = { seenQuestionIds: new Set(["q1", "q2"]), recentQuestionIds: new Set(["q1"]) };
     expect(rankSelectionUnits(units, history).map((unit) => unit.id)).toEqual(["unseen", "old", "recent"]);
+  });
+
+  it("defines prefer-unseen fallback deterministically without splitting units", () => {
+    const units = [
+      { id: "recent-group", part: 7, questionIds: ["r1", "r2", "r3"] },
+      { id: "old-group", part: 7, questionIds: ["o1", "o2"] },
+      { id: "unseen-group", part: 7, questionIds: ["u1", "u2"] },
+    ];
+    const history = { seenQuestionIds: new Set(["r1", "o1"]), recentQuestionIds: new Set(["r1"]) };
+    expect(rankPreferUnseen(units, history).map((unit) => unit.id)).toEqual(["unseen-group", "old-group", "recent-group"]);
+    expect(flattenUniqueQuestionIds(selectClosestUnits(rankPreferUnseen(units, history), 4, () => 0.999))).toEqual(["u1", "u2", "o1", "o2"]);
   });
 
   it("deprioritizes a complete group when any child was recent", () => {

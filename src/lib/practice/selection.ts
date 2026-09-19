@@ -28,6 +28,11 @@ export function rankSelectionUnits<T extends SelectionUnit>(
   return [...units].sort((a, b) => score(b) - score(a) || a.id.localeCompare(b.id));
 }
 
+/** Prefer unseen is intentionally non-strict: unseen, then older seen, then recent. */
+export function rankPreferUnseen<T extends SelectionUnit>(units: readonly T[], history: ContentHistory): T[] {
+  return [...units].sort((a, b) => contentHistoryRank(a, history) - contentHistoryRank(b, history) || a.id.localeCompare(b.id));
+}
+
 export function shuffle<T>(items: readonly T[], random = Math.random): T[] {
   const result = [...items];
   for (let index = result.length - 1; index > 0; index -= 1) {
