@@ -1,40 +1,31 @@
 /* eslint-disable react-hooks/error-boundaries */
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ComparisonBars, TrendChart } from "@/components/analytics/charts";
 import { UnifiedRecommendationCard as RecommendationCard } from "@/components/diagnosis/recommendation-card";
 import { LearnerNav } from "@/components/learner-nav";
 import { getCurrentUser } from "@/lib/auth/session";
-import type { InterfaceLanguage } from "@/lib/i18n/config";
-import { getPreferences, getTranslations } from "@/lib/i18n/get-translations";
-import { taxonomyLabel } from "@/lib/i18n/labels";
 import { loadRecommendedWorkout } from "@/lib/diagnosis/service";
-import { getToeicProgress } from "@/lib/progress/queries";
-import type { PartProgress, SkillAreaProgress } from "@/lib/progress/types";
+import { getEffectivePlan } from "@/lib/entitlements/service";
+import { getPreferences, getTranslations } from "@/lib/i18n/get-translations";
+import { getMistakeCounts } from "@/lib/mastery/queries";
+import { getLearnerTrend, getToeicProgress } from "@/lib/progress/queries";
+import type { TrendPeriod } from "@/lib/progress/trends";
 
-function Accuracy({ value, noData }: { value: number | null; noData: string }) { return <>{value === null ? noData : `${value}%`}</>; }
-
-function PartCard({ item, locale }: { item: PartProgress; locale: InterfaceLanguage }) {
-  const t = getTranslations(locale);
-  return <article className="rounded-2xl border border-slate-200 bg-slate-50 p-5"><h3 className="text-lg font-black">Part {item.part}</h3><p className="mt-2 text-3xl font-black"><Accuracy noData={t.progress.noDataYet} value={item.accuracy} /></p><p className="mt-2 text-sm text-slate-600">{item.correctCount}/{item.attemptedCount} {t.progress.correct}</p></article>;
-}
-
-function SkillList({ area, locale }: { area: SkillAreaProgress; locale: InterfaceLanguage }) {
-  const t = getTranslations(locale); if (!area.skills.length) return null;
-  return <div className="mt-7 border-t border-slate-100 pt-6"><h3 className="text-lg font-black">{t.progress.skills}</h3><div className="mt-4 grid gap-3 md:grid-cols-2">{area.skills.map((skill) => <article className="rounded-xl bg-slate-50 p-4" key={skill.name}><div className="flex items-start justify-between gap-3"><div><h4 className="font-black">{taxonomyLabel(skill.name, locale)}</h4><p className="mt-1 text-sm text-slate-500">{skill.correctCount}/{skill.attemptedCount} {t.progress.correct}</p></div><strong><Accuracy noData={t.progress.noDataYet} value={skill.accuracy} /></strong></div>{skill.subskills.length ? <ul className="mt-3 space-y-2" aria-label={t.progress.subskills}>{skill.subskills.map((subskill) => <li className="flex justify-between gap-3 border-t border-slate-200 pt-2 text-sm" key={subskill.name}><span>{taxonomyLabel(subskill.name, locale)}</span><span className="font-bold">{subskill.correctCount}/{subskill.attemptedCount} · <Accuracy noData={t.progress.noDataYet} value={subskill.accuracy} /></span></li>)}</ul> : null}</article>)}</div></div>;
-}
-
-function AreaSection({ area, locale }: { area: SkillAreaProgress; locale: InterfaceLanguage }) {
-  const t = getTranslations(locale); const title = area.skillArea === "LISTENING" ? t.progress.listening : t.progress.reading;
-  return <section className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-8" aria-labelledby={`area-${area.skillArea}`}><div className="flex flex-wrap items-end justify-between gap-4"><div><h2 className="text-2xl font-black" id={`area-${area.skillArea}`}>{title}</h2><p className="mt-2 text-slate-600">{area.attemptedCount ? `${area.attemptedCount} ${t.progress.questionsPracticed}` : t.progress.noDataYet}</p></div><p className="text-4xl font-black"><Accuracy noData="—" value={area.accuracy} /></p></div><div className={`mt-6 grid gap-4 sm:grid-cols-2 ${area.parts.length === 3 ? "lg:grid-cols-3" : "lg:grid-cols-4"}`}>{area.parts.map((part) => <PartCard item={part} key={part.part} locale={locale} />)}</div><SkillList area={area} locale={locale} /></section>;
-}
-
-export default async function ProgressPage() {
+export default async function ProgressPage({ searchParams }: { searchParams: Promise<{ period?: string }> }) {
   const user = await getCurrentUser(); if (!user) redirect("/sign-in");
-  const preferences = await getPreferences(user.id); const locale = preferences.interfaceLanguage; const t = getTranslations(locale);
+  const preferences = await getPreferences(user.id); const locale = preferences.interfaceLanguage; const t = getTranslations(locale); const vi = locale === "vi";
   try {
-    const [progress, recommendation] = await Promise.all([getToeicProgress(user.id), loadRecommendedWorkout(user.id).catch((error) => { console.error("Could not load recommendation", error); return null; })]);
-    return <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 sm:px-6 sm:py-8"><div className="mx-auto max-w-6xl"><LearnerNav locale={locale} /><header className="mt-10"><p className="text-sm font-bold uppercase tracking-wider text-teal-700">{t.progress.eyebrow}</p><h1 className="mt-2 text-3xl font-black sm:text-4xl">{t.progress.toeicTitle}</h1><p className="mt-3 max-w-3xl leading-7 text-slate-600">{t.progress.unifiedIntro}</p></header>{progress.attemptedCount === 0 ? <section className="mt-8 rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center sm:p-12"><h2 className="text-2xl font-black">{t.progress.noPracticeYet}</h2><p className="mt-3 text-slate-600">{t.progress.startBuilding}</p><Link className="mt-6 inline-flex rounded-xl bg-teal-700 px-5 py-3 font-bold text-white" href="/practice">{t.progress.startPracticing}</Link></section> : null}<div className="mt-8 space-y-7"><AreaSection area={progress.listening} locale={locale} /><AreaSection area={progress.reading} locale={locale} /></div>{recommendation ? <div className="mt-7"><RecommendationCard locale={locale} recommendation={recommendation} /></div> : null}<div className="pb-12" /></div></main>;
-  } catch (error) {
-    console.error("Could not load progress page", error); return <main className="grid min-h-screen place-items-center bg-slate-50 p-6 text-center"><div><h1 className="text-2xl font-black">{t.progress.loadError}</h1><p className="mt-2 text-slate-600">{t.progress.tryAgain}</p><Link className="mt-6 inline-flex rounded-xl bg-teal-700 px-5 py-3 font-bold text-white" href="/progress">{t.common.retry}</Link></div></main>;
-  }
+    const requested = Number((await searchParams).period); const plan = await getEffectivePlan(user.id); const allowed: TrendPeriod[] = plan === "PREMIUM" ? [7, 30, 90] : [7, 30]; const period = allowed.includes(requested as TrendPeriod) ? requested as TrendPeriod : 7;
+    const [progress, recommendation, mistakes, trend] = await Promise.all([getToeicProgress(user.id), loadRecommendedWorkout(user.id).catch(() => null), getMistakeCounts(user.id), getLearnerTrend(user.id, period)]);
+    const comparison = [{ label: "Listening", accuracy: progress.listening.accuracy, answered: progress.listening.attemptedCount }, { label: "Reading", accuracy: progress.reading.accuracy, answered: progress.reading.attemptedCount }];
+    const partItems = progress.parts.map((part) => ({ label: `Part ${part.part}`, accuracy: part.accuracy, answered: part.attemptedCount }));
+    return <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 sm:px-6 sm:py-8"><div className="mx-auto max-w-6xl"><LearnerNav locale={locale} /><header className="mt-10"><p className="text-sm font-bold uppercase tracking-wider text-teal-700">{t.progress.eyebrow}</p><h1 className="mt-2 text-3xl font-black sm:text-4xl">{t.progress.toeicTitle}</h1><p className="mt-3 max-w-3xl leading-7 text-slate-600">{t.progress.unifiedIntro}</p></header>
+      {progress.attemptedCount === 0 ? <section className="mt-8 rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center sm:p-12"><h2 className="text-2xl font-black">{t.progress.noPracticeYet}</h2><p className="mt-3 text-slate-600">{t.progress.startBuilding}</p><Link className="mt-6 inline-flex rounded-xl bg-teal-700 px-5 py-3 font-bold text-white" href="/practice">{t.progress.startPracticing}</Link></section> : <>
+        <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label={vi ? "Tóm tắt tiến độ" : "Progress summary"}>{[[vi ? "Độ chính xác tổng" : "Overall accuracy", `${progress.accuracy}%`], [vi ? "Câu đã trả lời" : "Answered questions", progress.attemptedCount], [vi ? "Lỗi chưa xử lý" : "Unresolved mistakes", mistakes.unresolved], [vi ? "Hoạt động gần nhất" : "Latest activity", progress.latestAttemptAt ? new Date(progress.latestAttemptAt).toLocaleDateString(vi ? "vi-VN" : "en-US") : "—"]].map(([label, value]) => <article className="rounded-2xl border border-slate-200 bg-white p-5" key={label}><p className="text-sm text-slate-500">{label}</p><p className="mt-2 text-2xl font-black">{value}</p></article>)}</section>
+        <div className="mt-7 grid gap-7 lg:grid-cols-2"><section className="rounded-2xl border border-slate-200 bg-white p-6"><h2 className="text-xl font-black">Listening vs Reading</h2><p className="mt-2 text-sm text-slate-600">{vi ? "Độ chính xác có kèm cỡ mẫu thực tế." : "Accuracy with actual sample size."}</p><div className="mt-6"><ComparisonBars items={comparison} noData={t.progress.noDataYet} /></div></section><section className="rounded-2xl border border-slate-200 bg-white p-6"><div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-xl font-black">{vi ? "Xu hướng độ chính xác" : "Accuracy trend"}</h2><nav className="flex gap-1" aria-label={vi ? "Khoảng thời gian" : "Period"}>{allowed.map((value) => <Link className={`rounded-lg px-3 py-2 text-sm font-bold ${period === value ? "bg-slate-900 text-white" : "bg-slate-100"}`} href={`/progress?period=${value}`} key={value}>{value}D</Link>)}</nav></div><p className="mt-2 text-sm text-slate-600">{trend.comparison.percentagePointChange === null ? (vi ? "Chưa đủ dữ liệu kỳ trước để so sánh." : "Not enough previous-period data to compare.") : `${trend.comparison.percentagePointChange > 0 ? "+" : ""}${trend.comparison.percentagePointChange} ${vi ? "điểm phần trăm so với kỳ trước" : "percentage points vs previous period"}`}</p><div className="mt-5"><TrendChart points={trend.points} title={vi ? `Xu hướng ${period} ngày` : `${period}-day trend`} emptyText={vi ? "Cần hoạt động trong ít nhất 2 ngày để hiển thị xu hướng." : "Activity on at least two days is needed."} /></div></section></div>
+        <section className="mt-7 rounded-2xl border border-slate-200 bg-white p-6"><h2 className="text-xl font-black">{vi ? "So sánh theo Part" : "Part comparison"}</h2><p className="mt-2 text-sm text-slate-600">{vi ? "Kết quả 100% từ mẫu nhỏ luôn đi kèm số câu." : "Small-sample 100% results always retain their question count."}</p><div className="mt-6"><ComparisonBars items={partItems} noData={t.progress.noDataYet} /></div></section>
+      </>}
+      {recommendation ? <div className="mt-7"><RecommendationCard locale={locale} recommendation={recommendation} /></div> : null}<p className="mt-7 pb-12 text-xs text-slate-500">{vi ? "Ngày được nhóm theo múi giờ Asia/Ho_Chi_Minh. Chỉ bài đã nộp mới được tính." : "Days use Asia/Ho_Chi_Minh. Only submitted sessions are counted."}</p></div></main>;
+  } catch (error) { console.error("Could not load progress page", error); return <main className="grid min-h-screen place-items-center bg-slate-50 p-6 text-center"><div><h1 className="text-2xl font-black">{t.progress.loadError}</h1><p className="mt-2 text-slate-600">{t.progress.tryAgain}</p><Link className="mt-6 inline-flex rounded-xl bg-teal-700 px-5 py-3 font-bold text-white" href="/progress">{t.common.retry}</Link></div></main>; }
 }

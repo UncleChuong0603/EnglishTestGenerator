@@ -12,5 +12,5 @@ describe("full mock security boundaries", () => {
   });
   it("blocks child review until the parent is complete", () => { expect(practice).toContain('parent.status !== "COMPLETED"'); expect(practice).toContain("session.fullMockRunId"); });
   it("isolates incomplete evidence from progress and mistakes", () => { expect(progress).toContain("fullMockRuns.status"); expect(mastery).toContain("fmr.status = 'COMPLETED'"); });
-  it("reconciles mastery only during full completion", () => { expect(service.lastIndexOf("reconcileMasteryAnswers")).toBeGreaterThan(service.indexOf('run.status !== "READING"')); });
+  it("reconciles mastery only in the shared overall-completion path", () => { expect(service.lastIndexOf("reconcileMasteryAnswers")).toBeGreaterThan(service.indexOf("async function completeRun")); expect(service.match(/reconcileMasteryAnswers/g)).toHaveLength(2); });
 });
