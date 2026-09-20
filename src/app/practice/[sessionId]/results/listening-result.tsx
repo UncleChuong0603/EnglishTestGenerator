@@ -6,15 +6,18 @@ import type { WorkoutRecommendation } from "@/lib/diagnosis/types";
 import type { InterfaceLanguage } from "@/lib/i18n/config";
 import { formatMessage, getTranslations } from "@/lib/i18n/get-translations";
 import type { PracticeResult } from "@/lib/practice/types";
+import { ReviewOutcome, type ReviewOutcomeData } from "@/components/mastery/review-outcome";
 
-export function ListeningResult({ result, locale, recommendation }: {
+export function ListeningResult({ result, locale, recommendation, reviewOutcome }: {
   result: PracticeResult;
   locale: InterfaceLanguage;
   recommendation: WorkoutRecommendation | null;
+  reviewOutcome?: ReviewOutcomeData | null;
 }) {
   const t = getTranslations(locale);
   return <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900"><div className="mx-auto max-w-3xl">
     <section className="rounded-3xl bg-slate-900 p-7 text-white"><p className="font-bold uppercase tracking-wider text-teal-300">{t.listening.title} · Part {result.questions[0]?.part}</p><h1 className="mt-3 text-4xl font-black">{formatMessage(t.results.correctCount, { correct: result.scoreCorrect, total: result.scoreTotal })}</h1><Link className="mt-5 inline-flex min-h-12 items-center rounded-xl border border-slate-600 px-5 font-bold" href="/practice">{t.results.again}</Link></section>
+    {reviewOutcome ? <ReviewOutcome data={reviewOutcome} locale={locale} /> : null}
     {recommendation ? <div className="mt-7"><UnifiedRecommendationCard locale={locale} recommendation={recommendation} /></div> : null}
     <div className="mt-7 space-y-6">{result.questions.map((question) => {
       const selected = question.options.find((option) => option.id === question.selectedOptionId);

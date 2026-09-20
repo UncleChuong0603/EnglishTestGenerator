@@ -57,6 +57,30 @@ export async function getMistakeCounts(userId: string) {
   return { unresolved: rows.find((r) => r.status === "UNRESOLVED")?.count ?? 0, mastered: rows.find((r) => r.status === "MASTERED")?.count ?? 0 };
 }
 
+export type MistakeOverview = {
+  unresolvedCount: number;
+  masteredCount: number;
+  reviewableCount: number;
+  repeatedMistakeCount: number;
+};
+
+/** A single aggregate for dashboard/result CTAs; never exposes attempt history. */
+export async function getMistakeOverview(userId: string): Promise<MistakeOverview> {
+  const [row] = await db.select({
+    unresolvedCount: sql<number>`count(*) filter (where ${questionMastery.status} = 'UNRESOLVED')::int`,
+    masteredCount: sql<number>`count(*) filter (where ${questionMastery.status} = 'MASTERED')::int`,
+    reviewableCount: sql<number>`count(*) filter (where ${questionMastery.status} = 'UNRESOLVED' and ${reviewableContent})::int`,
+    repeatedMistakeCount: sql<number>`count(*) filter (where ${questionMastery.status} = 'UNRESOLVED' and ${wrongCount} >= 2)::int`,
+  }).from(questionMastery).innerJoin(questions, eq(questions.id, questionMastery.questionId))
+    .where(and(eq(questionMastery.userId, userId), visibleEvidence));
+  return {
+    unresolvedCount: Number(row?.unresolvedCount ?? 0),
+    masteredCount: Number(row?.masteredCount ?? 0),
+    reviewableCount: Number(row?.reviewableCount ?? 0),
+    repeatedMistakeCount: Number(row?.repeatedMistakeCount ?? 0),
+  };
+}
+
 export async function getReviewCandidates(userId: string, part?: number) {
   const conditions = [eq(questionMastery.userId, userId), eq(questionMastery.status, "UNRESOLVED"), visibleEvidence, reviewableContent];
   if (part) conditions.push(eq(questions.toeicPart, part));
@@ -86,7 +110,15 @@ export async function getMasteryReviewSummary(sessionId: string, userId: string)
   const [session] = await db.select({ source: practiceSessions.source, startedAt: practiceSessions.startedAt }).from(practiceSessions).where(and(eq(practiceSessions.id, sessionId), eq(practiceSessions.userId, userId))).limit(1);
   if (!session || session.source !== "mastery_review") return null;
   const assigned = await db.select({ questionId: practiceSessionQuestions.questionId }).from(practiceSessionQuestions).where(eq(practiceSessionQuestions.sessionId, sessionId));
-  const ids = assigned.map((row) => row.questionId); if (!ids.length) return { masteredThisSession: 0, stillToReview: 0 };
+  const ids = assigned.map((row) => row.questionId); if (!ids.length) return null;
   const rows = await db.select({ status: questionMastery.status, masteredAt: questionMastery.masteredAt }).from(questionMastery).where(and(eq(questionMastery.userId, userId), inArray(questionMastery.questionId, ids)));
-  return { masteredThisSession: rows.filter((row) => row.status === "MASTERED" && row.masteredAt && row.masteredAt >= session.startedAt).length, stillToReview: rows.filter((row) => row.status === "UNRESOLVED").length };
+  const overview = await getMistakeOverview(userId);
+  return {
+    trackedItems: rows.length,
+    answeredQuestions: ids.length,
+    masteredThisSession: rows.filter((row) => row.status === "MASTERED" && row.masteredAt && row.masteredAt >= session.startedAt).length,
+    stillToReview: rows.filter((row) => row.status === "UNRESOLVED").length,
+    remainingReviewable: overview.reviewableCount,
+    unresolvedTotal: overview.unresolvedCount,
+  };
 }
