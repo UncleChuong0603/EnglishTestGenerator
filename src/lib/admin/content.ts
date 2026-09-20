@@ -2,7 +2,7 @@ import "server-only";
 import { and, asc, count, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { adminAuditLogs, listeningTranscripts, mediaAssets, passages, passageSets, questionGroupMedia, questionImportBatches, questionImportItems, questionOptions, questions, questionSolutions, rankedChallengeItems, rankedChallenges, userRoles, users } from "@/db/schema";
-import { IMPORT_SCHEMA_VERSION, validateImportValue, type QuestionImportFile } from "@/lib/question-import/schema";
+import { IMPORT_SCHEMA_VERSION, normalizeContent, sha256, validateImportValue, type QuestionImportFile } from "@/lib/question-import/schema";
 import { assembleFullMock, assembleListeningMock, assembleReadingMock, type MockUnit } from "@/lib/full-mock/blueprint";
 import { ROLE_PERMISSIONS } from "./permissions";
 
@@ -205,6 +205,105 @@ export async function publishImportBatch(actorUserId: string, batchKey: string) 
     await tx.insert(adminAuditLogs).values({ actorUserId, action: "CONTENT_PUBLISHED", metadata: { operation: "BATCH_PUBLISH", importBatchId: summary.id, batchKey, itemCount: ids.length, previousLifecycle: "draft", newLifecycle: "published" } });
     return { published: ids.length };
   });
+}
+
+function contentSignature(detail: NonNullable<Awaited<ReturnType<typeof getAdminContentDetail>>>) {
+  return sha256(JSON.stringify({
+    part: detail.group.toeicPart,
+    setType: detail.group.setType,
+    passages: detail.passages.map((item) => normalizeContent(item.content ?? "")),
+    transcript: normalizeContent(detail.transcript?.content ?? ""),
+    questions: detail.questions.map((question) => ({
+      text: normalizeContent(question.questionText),
+      options: question.options.map((option) => normalizeContent(option.optionText)),
+      answer: question.options.findIndex((option) => option.id === question.solution?.correctOptionId),
+    })),
+  }));
+}
+
+async function matchingGroupIds(filters: ReviewFilters, lifecycle: ContentLifecycle) {
+  return db.select({ id: passageSets.id }).from(passageSets)
+    .where(and(reviewConditions({ ...filters, lifecycle }), eq(passageSets.status, lifecycle)))
+    .orderBy(asc(passageSets.createdAt), asc(passageSets.id));
+}
+
+export type BulkContentResult = { processed: number; published: number; unarchived: number; duplicatesDeleted: number; failed: Array<{ id: string; issues: string[] }> };
+
+export async function publishAllDrafts(actorUserId: string, filters: ReviewFilters): Promise<BulkContentResult> {
+  await db.transaction(async (tx) => { await assertManage(tx, actorUserId); });
+  const groups = await matchingGroupIds(filters, "draft");
+  const result: BulkContentResult = { processed: groups.length, published: 0, unarchived: 0, duplicatesDeleted: 0, failed: [] };
+  for (const group of groups) {
+    try {
+      await publishContent(actorUserId, group.id);
+      result.published++;
+    } catch (error) {
+      result.failed.push({ id: group.id, issues: error instanceof ContentAdminError ? [error.code, ...error.issues] : ["FAILED"] });
+    }
+  }
+  return result;
+}
+
+async function deleteArchivedDuplicate(tx: Tx, actorUserId: string, id: string, duplicateOfId: string) {
+  const questionRows = await tx.select({ id: questions.id }).from(questions).where(eq(questions.passageSetId, id));
+  const questionIds = questionRows.map((question) => question.id);
+  await tx.delete(questionImportItems).where(eq(questionImportItems.questionGroupId, id));
+  if (questionIds.length) {
+    await tx.delete(questionSolutions).where(inArray(questionSolutions.questionId, questionIds));
+    await tx.delete(questionOptions).where(inArray(questionOptions.questionId, questionIds));
+    await tx.delete(questions).where(inArray(questions.id, questionIds));
+  }
+  await tx.delete(listeningTranscripts).where(eq(listeningTranscripts.questionGroupId, id));
+  await tx.delete(questionGroupMedia).where(eq(questionGroupMedia.questionGroupId, id));
+  await tx.delete(passages).where(eq(passages.passageSetId, id));
+  await tx.delete(passageSets).where(and(eq(passageSets.id, id), eq(passageSets.status, "archived")));
+  await tx.insert(adminAuditLogs).values({ actorUserId, action: "CONTENT_DUPLICATE_DELETED", metadata: { groupId: id, duplicateOfId, operation: "BULK_UNARCHIVE" } });
+}
+
+export async function unarchiveAllContent(actorUserId: string, filters: ReviewFilters): Promise<BulkContentResult> {
+  await db.transaction(async (tx) => { await assertManage(tx, actorUserId); });
+  const [archived, published] = await Promise.all([matchingGroupIds(filters, "archived"), matchingGroupIds({}, "published")]);
+  const publishedSignatures = new Map<string, string>();
+  for (const group of published) {
+    const detail = await getAdminContentDetail(group.id);
+    if (detail) publishedSignatures.set(contentSignature(detail), group.id);
+  }
+  const result: BulkContentResult = { processed: archived.length, published: 0, unarchived: 0, duplicatesDeleted: 0, failed: [] };
+  for (const group of archived) {
+    try {
+      const detail = await getAdminContentDetail(group.id);
+      if (!detail) throw new ContentAdminError("NOT_FOUND");
+      const signature = contentSignature(detail);
+      const duplicateOfId = publishedSignatures.get(signature);
+      if (duplicateOfId) {
+        await db.transaction(async (tx) => {
+          await assertManage(tx, actorUserId);
+          const [locked] = await tx.select({ status: passageSets.status }).from(passageSets).where(eq(passageSets.id, group.id)).for("update").limit(1);
+          if (!locked || locked.status !== "archived") throw new ContentAdminError("BULK_CHANGED_RETRY");
+          await deleteArchivedDuplicate(tx, actorUserId, group.id, duplicateOfId);
+        });
+        result.duplicatesDeleted++;
+        continue;
+      }
+      const issues = await validateContent(group.id);
+      if (issues.length) throw new ContentAdminError("VALIDATION_FAILED", issues);
+      await db.transaction(async (tx) => {
+        await assertManage(tx, actorUserId);
+        const [locked] = await tx.select({ status: passageSets.status }).from(passageSets).where(eq(passageSets.id, group.id)).for("update").limit(1);
+        if (!locked || locked.status !== "archived") throw new ContentAdminError("BULK_CHANGED_RETRY");
+        const now = new Date();
+        await tx.update(passageSets).set({ status: "published", archivedAt: null, publishedAt: now, updatedAt: now }).where(eq(passageSets.id, group.id));
+        await tx.update(passages).set({ status: "published", updatedAt: now }).where(eq(passages.passageSetId, group.id));
+        await tx.update(questions).set({ status: "published", archivedAt: null, publishedAt: now, updatedAt: now }).where(eq(questions.passageSetId, group.id));
+        await tx.insert(adminAuditLogs).values({ actorUserId, action: "CONTENT_UNARCHIVED", metadata: { groupId: group.id, previousLifecycle: "archived", newLifecycle: "published", operation: "BULK_UNARCHIVE" } });
+      });
+      publishedSignatures.set(signature, group.id);
+      result.unarchived++;
+    } catch (error) {
+      result.failed.push({ id: group.id, issues: error instanceof ContentAdminError ? [error.code, ...error.issues] : ["FAILED"] });
+    }
+  }
+  return result;
 }
 
 export type ExportFilters = ReviewFilters & { ids?: string[] };

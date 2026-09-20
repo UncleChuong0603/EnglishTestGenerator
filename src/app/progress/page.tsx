@@ -11,25 +11,392 @@ import { getPreferences, getTranslations } from "@/lib/i18n/get-translations";
 import { getMistakeCounts } from "@/lib/mastery/queries";
 import { getLearnerTrend, getToeicProgress } from "@/lib/progress/queries";
 import type { TrendPeriod } from "@/lib/progress/trends";
-import { compareDiagnosticSummaries, getDiagnosticHistory } from "@/lib/diagnostic/service";
+import {
+  compareDiagnosticSummaries,
+  getDiagnosticHistory,
+} from "@/lib/diagnostic/service";
+import { PremiumPreviewCard } from "@/components/premium/premium-preview";
+import { getPremiumPreview } from "@/lib/premium/preview";
 
-export default async function ProgressPage({ searchParams }: { searchParams: Promise<{ period?: string }> }) {
-  const user = await getCurrentUser(); if (!user) redirect("/sign-in");
-  const preferences = await getPreferences(user.id); const locale = preferences.interfaceLanguage; const t = getTranslations(locale); const vi = locale === "vi";
+export default async function ProgressPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ period?: string }>;
+}) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/sign-in");
+  const preferences = await getPreferences(user.id);
+  const locale = preferences.interfaceLanguage;
+  const t = getTranslations(locale);
+  const vi = locale === "vi";
   try {
-    const requested = Number((await searchParams).period); const capabilities = await getEffectiveCapabilities(user.id); const allowed: TrendPeriod[] = capabilities.historyWindowDays >= 90 ? [7, 30, 90] : [7, 30]; const period = allowed.includes(requested as TrendPeriod) ? requested as TrendPeriod : 7;
-    const [progress, recommendation, mistakes, trend, diagnosticHistory] = await Promise.all([getToeicProgress(user.id), loadRecommendedWorkout(user.id).catch(() => null), getMistakeCounts(user.id), getLearnerTrend(user.id, period), capabilities.canUseDiagnosticReassessment ? getDiagnosticHistory(user.id) : Promise.resolve([])]);
-    const latestDiagnostic = diagnosticHistory[0] ?? null; const previousDiagnostic = diagnosticHistory[1] ?? null; const diagnosticComparison = latestDiagnostic && previousDiagnostic ? compareDiagnosticSummaries(latestDiagnostic, previousDiagnostic) : null;
-    const comparison = [{ label: "Listening", accuracy: progress.listening.accuracy, answered: progress.listening.attemptedCount }, { label: "Reading", accuracy: progress.reading.accuracy, answered: progress.reading.attemptedCount }];
-    const partItems = progress.parts.map((part) => ({ label: `Part ${part.part}`, accuracy: part.accuracy, answered: part.attemptedCount }));
-    return <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 sm:px-6 sm:py-8"><div className="mx-auto max-w-6xl"><LearnerNav locale={locale} /><header className="mt-10"><p className="text-sm font-bold uppercase tracking-wider text-teal-700">{t.progress.eyebrow}</p><h1 className="mt-2 text-3xl font-black sm:text-4xl">{t.progress.toeicTitle}</h1><p className="mt-3 max-w-3xl leading-7 text-slate-600">{t.progress.unifiedIntro}</p></header>
-      {progress.attemptedCount === 0 ? <section className="mt-8 rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center sm:p-12"><h2 className="text-2xl font-black">{t.progress.noPracticeYet}</h2><p className="mt-3 text-slate-600">{t.progress.startBuilding}</p><Link className="mt-6 inline-flex rounded-xl bg-teal-700 px-5 py-3 font-bold text-white" href="/practice">{t.progress.startPracticing}</Link></section> : <>
-        <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label={vi ? "Tóm tắt tiến độ" : "Progress summary"}>{[[vi ? "Độ chính xác tổng" : "Overall accuracy", `${progress.accuracy}%`], [vi ? "Câu đã trả lời" : "Answered questions", progress.attemptedCount], [vi ? "Lỗi chưa xử lý" : "Unresolved mistakes", mistakes.unresolved], [vi ? "Hoạt động gần nhất" : "Latest activity", progress.latestAttemptAt ? new Date(progress.latestAttemptAt).toLocaleDateString(vi ? "vi-VN" : "en-US") : "—"]].map(([label, value]) => <article className="rounded-2xl border border-slate-200 bg-white p-5" key={label}><p className="text-sm text-slate-500">{label}</p><p className="mt-2 text-2xl font-black">{value}</p></article>)}</section>
-        <div className="mt-7 grid gap-7 lg:grid-cols-2"><section className="rounded-2xl border border-slate-200 bg-white p-6"><h2 className="text-xl font-black">Listening vs Reading</h2><p className="mt-2 text-sm text-slate-600">{vi ? "Độ chính xác có kèm cỡ mẫu thực tế." : "Accuracy with actual sample size."}</p><div className="mt-6"><ComparisonBars items={comparison} noData={t.progress.noDataYet} /></div></section><section className="rounded-2xl border border-slate-200 bg-white p-6"><div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-xl font-black">{vi ? "Xu hướng độ chính xác" : "Accuracy trend"}</h2><nav className="flex gap-1" aria-label={vi ? "Khoảng thời gian" : "Period"}>{allowed.map((value) => <Link className={`rounded-lg px-3 py-2 text-sm font-bold ${period === value ? "bg-slate-900 text-white" : "bg-slate-100"}`} href={`/progress?period=${value}`} key={value}>{value}D</Link>)}</nav></div><p className="mt-2 text-sm text-slate-600">{trend.comparison.percentagePointChange === null ? (vi ? "Chưa đủ dữ liệu kỳ trước để so sánh." : "Not enough previous-period data to compare.") : `${trend.comparison.percentagePointChange > 0 ? "+" : ""}${trend.comparison.percentagePointChange} ${vi ? "điểm phần trăm so với kỳ trước" : "percentage points vs previous period"}`}</p><div className="mt-5"><TrendChart points={trend.points} title={vi ? `Xu hướng ${period} ngày` : `${period}-day trend`} emptyText={vi ? "Cần hoạt động trong ít nhất 2 ngày để hiển thị xu hướng." : "Activity on at least two days is needed."} /></div></section></div>
-        <section className="mt-7 rounded-2xl border border-slate-200 bg-white p-6"><h2 className="text-xl font-black">{vi ? "So sánh theo Part" : "Part comparison"}</h2><p className="mt-2 text-sm text-slate-600">{vi ? "Kết quả 100% từ mẫu nhỏ luôn đi kèm số câu." : "Small-sample 100% results always retain their question count."}</p><div className="mt-6"><ComparisonBars items={partItems} noData={t.progress.noDataYet} /></div></section>
-        {capabilities.canUseSkillBreakdown ? <section className="mt-7 rounded-2xl border border-slate-200 bg-white p-6"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-wider text-amber-700">Premium</p><h2 className="mt-1 text-xl font-black">{vi ? "Phân tích skill và subskill" : "Skill and subskill analysis"}</h2></div><span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">{vi ? "Chỉ kết luận khi đủ mẫu" : "Sample-aware"}</span></div><div className="mt-6 grid gap-5 lg:grid-cols-2">{progress.parts.filter(part => part.attemptedCount > 0).map(part => <article className="rounded-2xl border border-slate-200 p-5" key={part.part}><h3 className="text-lg font-black">Part {part.part}</h3><div className="mt-4 space-y-5">{part.skills.map(skill => <div key={skill.name}><div className="flex justify-between gap-3"><strong>{skill.name}</strong><span className="text-sm text-slate-600">{skill.accuracy === null ? t.progress.noDataYet : `${skill.accuracy}% · ${skill.attemptedCount} ${vi ? "câu" : "questions"}`}</span></div>{skill.attemptedCount >= 5 ? <ul className="mt-2 space-y-2 border-l-2 border-teal-100 pl-4">{skill.subskills.map(subskill => <li className="flex justify-between gap-3 text-sm" key={subskill.name}><span>{subskill.name}</span><span className="text-slate-600">{subskill.attemptedCount < 3 ? (vi ? `Chưa đủ mẫu · ${subskill.attemptedCount} câu` : `Small sample · ${subskill.attemptedCount}`) : `${subskill.accuracy}% · ${subskill.attemptedCount}`}</span></li>)}</ul> : <p className="mt-2 text-sm text-slate-500">{vi ? `Cần ít nhất 5 câu để phân tích sâu (${skill.attemptedCount}/5).` : `At least 5 answers are needed for deeper analysis (${skill.attemptedCount}/5).`}</p>}</div>)}</div></article>)}</div></section> : <section className="mt-7 rounded-2xl border border-slate-200 bg-white p-6"><h2 className="text-xl font-black">{vi ? "Phân tích sâu hơn khi cần" : "Go deeper when you need it"}</h2><p className="mt-2 max-w-2xl text-slate-600">{vi ? "Free luôn giữ tiến độ tổng, Listening/Reading, từng Part và xu hướng 30 ngày. Premium bổ sung lịch sử 90 ngày và phân tích skill/subskill theo cỡ mẫu thực." : "Free keeps overall, Listening/Reading, Part-level progress and a 30-day trend. Premium adds 90-day history and sample-aware skill/subskill analysis."}</p><Link className="mt-4 inline-flex font-bold text-teal-800 underline" href="/pricing">{vi ? "Xem quyền lợi Premium" : "See Premium benefits"}</Link></section>}
-      </>}
-      {latestDiagnostic ? <section className="mt-7 rounded-2xl border border-teal-200 bg-white p-6" aria-labelledby="diagnostic-checkpoint"><p className="text-xs font-black uppercase tracking-wider text-teal-700">Premium · Diagnostic</p><h2 className="mt-1 text-xl font-black" id="diagnostic-checkpoint">{vi ? "Đánh giá gần nhất" : "Latest diagnostic checkpoint"}</h2><div className="mt-4 grid gap-3 sm:grid-cols-2"><p className="rounded-xl bg-slate-50 p-4"><strong>Listening</strong><br/>{latestDiagnostic.listening.accuracy}% · {latestDiagnostic.listening.correct}/{latestDiagnostic.listening.total}{diagnosticComparison ? <><br/><span className="text-sm text-slate-600">{diagnosticComparison.listeningDelta! > 0 ? "+" : ""}{diagnosticComparison.listeningDelta} {vi ? "điểm %" : "percentage points"}</span></> : null}</p><p className="rounded-xl bg-slate-50 p-4"><strong>Reading</strong><br/>{latestDiagnostic.reading.accuracy}% · {latestDiagnostic.reading.correct}/{latestDiagnostic.reading.total}{diagnosticComparison ? <><br/><span className="text-sm text-slate-600">{diagnosticComparison.readingDelta! > 0 ? "+" : ""}{diagnosticComparison.readingDelta} {vi ? "điểm %" : "percentage points"}</span></> : null}</p></div><Link className="mt-4 inline-flex font-bold text-teal-800 underline" href={`/diagnostic/${latestDiagnostic.id}/result`}>{vi ? "Xem chi tiết" : "View details"}</Link></section> : null}
-      {recommendation ? <div className="mt-7"><RecommendationCard locale={locale} recommendation={recommendation} /></div> : null}<p className="mt-7 pb-12 text-xs text-slate-500">{vi ? "Ngày được nhóm theo múi giờ Asia/Ho_Chi_Minh. Chỉ bài đã nộp mới được tính." : "Days use Asia/Ho_Chi_Minh. Only submitted sessions are counted."}</p></div></main>;
-  } catch (error) { console.error("Could not load progress page", error); return <main className="grid min-h-screen place-items-center bg-slate-50 p-6 text-center"><div><h1 className="text-2xl font-black">{t.progress.loadError}</h1><p className="mt-2 text-slate-600">{t.progress.tryAgain}</p><Link className="mt-6 inline-flex rounded-xl bg-teal-700 px-5 py-3 font-bold text-white" href="/progress">{t.common.retry}</Link></div></main>; }
+    const requested = Number((await searchParams).period);
+    const capabilities = await getEffectiveCapabilities(user.id);
+    const allowed: TrendPeriod[] =
+      capabilities.historyWindowDays >= 90 ? [7, 30, 90] : [7, 30];
+    const period = allowed.includes(requested as TrendPeriod)
+      ? (requested as TrendPeriod)
+      : 7;
+    const [
+      progress,
+      recommendation,
+      mistakes,
+      trend,
+      diagnosticHistory,
+      preview,
+    ] = await Promise.all([
+      getToeicProgress(user.id),
+      loadRecommendedWorkout(user.id).catch(() => null),
+      getMistakeCounts(user.id),
+      getLearnerTrend(user.id, period),
+      capabilities.canUseDiagnosticReassessment
+        ? getDiagnosticHistory(user.id)
+        : Promise.resolve([]),
+      getPremiumPreview(user.id),
+    ]);
+    const latestDiagnostic = diagnosticHistory[0] ?? null;
+    const previousDiagnostic = diagnosticHistory[1] ?? null;
+    const diagnosticComparison =
+      latestDiagnostic && previousDiagnostic
+        ? compareDiagnosticSummaries(latestDiagnostic, previousDiagnostic)
+        : null;
+    const comparison = [
+      {
+        label: "Listening",
+        accuracy: progress.listening.accuracy,
+        answered: progress.listening.attemptedCount,
+      },
+      {
+        label: "Reading",
+        accuracy: progress.reading.accuracy,
+        answered: progress.reading.attemptedCount,
+      },
+    ];
+    const partItems = progress.parts.map((part) => ({
+      label: `Part ${part.part}`,
+      accuracy: part.accuracy,
+      answered: part.attemptedCount,
+    }));
+    return (
+      <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 sm:px-6 sm:py-8">
+        <div className="mx-auto max-w-6xl">
+          <LearnerNav locale={locale} />
+          <header className="mt-10">
+            <p className="text-sm font-bold uppercase tracking-wider text-teal-700">
+              {t.progress.eyebrow}
+            </p>
+            <h1 className="mt-2 text-3xl font-black sm:text-4xl">
+              {t.progress.toeicTitle}
+            </h1>
+            <p className="mt-3 max-w-3xl leading-7 text-slate-600">
+              {t.progress.unifiedIntro}
+            </p>
+          </header>
+          {progress.attemptedCount === 0 ? (
+            <section className="mt-8 rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center sm:p-12">
+              <h2 className="text-2xl font-black">
+                {t.progress.noPracticeYet}
+              </h2>
+              <p className="mt-3 text-slate-600">{t.progress.startBuilding}</p>
+              <Link
+                className="mt-6 inline-flex rounded-xl bg-teal-700 px-5 py-3 font-bold text-white"
+                href="/practice"
+              >
+                {t.progress.startPracticing}
+              </Link>
+            </section>
+          ) : (
+            <>
+              <section
+                className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+                aria-label={vi ? "Tóm tắt tiến độ" : "Progress summary"}
+              >
+                {[
+                  [
+                    vi ? "Độ chính xác tổng" : "Overall accuracy",
+                    `${progress.accuracy}%`,
+                  ],
+                  [
+                    vi ? "Câu đã trả lời" : "Answered questions",
+                    progress.attemptedCount,
+                  ],
+                  [
+                    vi ? "Lỗi chưa xử lý" : "Unresolved mistakes",
+                    mistakes.unresolved,
+                  ],
+                  [
+                    vi ? "Hoạt động gần nhất" : "Latest activity",
+                    progress.latestAttemptAt
+                      ? new Date(progress.latestAttemptAt).toLocaleDateString(
+                          vi ? "vi-VN" : "en-US",
+                        )
+                      : "—",
+                  ],
+                ].map(([label, value]) => (
+                  <article
+                    className="rounded-2xl border border-slate-200 bg-white p-5"
+                    key={label}
+                  >
+                    <p className="text-sm text-slate-500">{label}</p>
+                    <p className="mt-2 text-2xl font-black">{value}</p>
+                  </article>
+                ))}
+              </section>
+              <div className="mt-7 grid gap-7 lg:grid-cols-2">
+                <section className="rounded-2xl border border-slate-200 bg-white p-6">
+                  <h2 className="text-xl font-black">Listening vs Reading</h2>
+                  <p className="mt-2 text-sm text-slate-600">
+                    {vi
+                      ? "Độ chính xác có kèm cỡ mẫu thực tế."
+                      : "Accuracy with actual sample size."}
+                  </p>
+                  <div className="mt-6">
+                    <ComparisonBars
+                      items={comparison}
+                      noData={t.progress.noDataYet}
+                    />
+                  </div>
+                </section>
+                <section className="rounded-2xl border border-slate-200 bg-white p-6">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <h2 className="text-xl font-black">
+                      {vi ? "Xu hướng độ chính xác" : "Accuracy trend"}
+                    </h2>
+                    <nav
+                      className="flex gap-1"
+                      aria-label={vi ? "Khoảng thời gian" : "Period"}
+                    >
+                      {allowed.map((value) => (
+                        <Link
+                          className={`rounded-lg px-3 py-2 text-sm font-bold ${period === value ? "bg-slate-900 text-white" : "bg-slate-100"}`}
+                          href={`/progress?period=${value}`}
+                          key={value}
+                        >
+                          {value}D
+                        </Link>
+                      ))}
+                    </nav>
+                  </div>
+                  <p className="mt-2 text-sm text-slate-600">
+                    {trend.comparison.percentagePointChange === null
+                      ? vi
+                        ? "Chưa đủ dữ liệu kỳ trước để so sánh."
+                        : "Not enough previous-period data to compare."
+                      : `${trend.comparison.percentagePointChange > 0 ? "+" : ""}${trend.comparison.percentagePointChange} ${vi ? "điểm phần trăm so với kỳ trước" : "percentage points vs previous period"}`}
+                  </p>
+                  <div className="mt-5">
+                    <TrendChart
+                      points={trend.points}
+                      title={
+                        vi ? `Xu hướng ${period} ngày` : `${period}-day trend`
+                      }
+                      emptyText={
+                        vi
+                          ? "Cần hoạt động trong ít nhất 2 ngày để hiển thị xu hướng."
+                          : "Activity on at least two days is needed."
+                      }
+                    />
+                  </div>
+                </section>
+              </div>
+              <section className="mt-7 rounded-2xl border border-slate-200 bg-white p-6">
+                <h2 className="text-xl font-black">
+                  {vi ? "So sánh theo Part" : "Part comparison"}
+                </h2>
+                <p className="mt-2 text-sm text-slate-600">
+                  {vi
+                    ? "Kết quả 100% từ mẫu nhỏ luôn đi kèm số câu."
+                    : "Small-sample 100% results always retain their question count."}
+                </p>
+                <div className="mt-6">
+                  <ComparisonBars
+                    items={partItems}
+                    noData={t.progress.noDataYet}
+                  />
+                </div>
+              </section>
+              {capabilities.canUseSkillBreakdown ? (
+                <section className="mt-7 rounded-2xl border border-slate-200 bg-white p-6">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-wider text-amber-700">
+                        Premium
+                      </p>
+                      <h2 className="mt-1 text-xl font-black">
+                        {vi
+                          ? "Phân tích skill và subskill"
+                          : "Skill and subskill analysis"}
+                      </h2>
+                    </div>
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+                      {vi ? "Chỉ kết luận khi đủ mẫu" : "Sample-aware"}
+                    </span>
+                  </div>
+                  <div className="mt-6 grid gap-5 lg:grid-cols-2">
+                    {progress.parts
+                      .filter((part) => part.attemptedCount > 0)
+                      .map((part) => (
+                        <article
+                          className="rounded-2xl border border-slate-200 p-5"
+                          key={part.part}
+                        >
+                          <h3 className="text-lg font-black">
+                            Part {part.part}
+                          </h3>
+                          <div className="mt-4 space-y-5">
+                            {part.skills.map((skill) => (
+                              <div key={skill.name}>
+                                <div className="flex justify-between gap-3">
+                                  <strong>{skill.name}</strong>
+                                  <span className="text-sm text-slate-600">
+                                    {skill.accuracy === null
+                                      ? t.progress.noDataYet
+                                      : `${skill.accuracy}% · ${skill.attemptedCount} ${vi ? "câu" : "questions"}`}
+                                  </span>
+                                </div>
+                                {skill.attemptedCount >= 5 ? (
+                                  <ul className="mt-2 space-y-2 border-l-2 border-teal-100 pl-4">
+                                    {skill.subskills.map((subskill) => (
+                                      <li
+                                        className="flex justify-between gap-3 text-sm"
+                                        key={subskill.name}
+                                      >
+                                        <span>{subskill.name}</span>
+                                        <span className="text-slate-600">
+                                          {subskill.attemptedCount < 3
+                                            ? vi
+                                              ? `Chưa đủ mẫu · ${subskill.attemptedCount} câu`
+                                              : `Small sample · ${subskill.attemptedCount}`
+                                            : `${subskill.accuracy}% · ${subskill.attemptedCount}`}
+                                        </span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                ) : (
+                                  <p className="mt-2 text-sm text-slate-500">
+                                    {vi
+                                      ? `Cần ít nhất 5 câu để phân tích sâu (${skill.attemptedCount}/5).`
+                                      : `At least 5 answers are needed for deeper analysis (${skill.attemptedCount}/5).`}
+                                  </p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </article>
+                      ))}
+                  </div>
+                </section>
+              ) : (
+                <section className="mt-7 rounded-2xl border border-slate-200 bg-white p-6">
+                  <h2 className="text-xl font-black">
+                    {vi
+                      ? "Phân tích sâu hơn khi cần"
+                      : "Go deeper when you need it"}
+                  </h2>
+                  <p className="mt-2 max-w-2xl text-slate-600">
+                    {vi
+                      ? "Free luôn giữ tiến độ tổng, Listening/Reading, từng Part và xu hướng 30 ngày. Premium bổ sung lịch sử 90 ngày và phân tích skill/subskill theo cỡ mẫu thực."
+                      : "Free keeps overall, Listening/Reading, Part-level progress and a 30-day trend. Premium adds 90-day history and sample-aware skill/subskill analysis."}
+                  </p>
+                  <Link
+                    className="mt-4 inline-flex font-bold text-teal-800 underline"
+                    href="/pricing"
+                  >
+                    {vi ? "Xem quyền lợi Premium" : "See Premium benefits"}
+                  </Link>
+                </section>
+              )}
+            </>
+          )}
+          {latestDiagnostic ? (
+            <section
+              className="mt-7 rounded-2xl border border-teal-200 bg-white p-6"
+              aria-labelledby="diagnostic-checkpoint"
+            >
+              <p className="text-xs font-black uppercase tracking-wider text-teal-700">
+                Premium · Diagnostic
+              </p>
+              <h2
+                className="mt-1 text-xl font-black"
+                id="diagnostic-checkpoint"
+              >
+                {vi ? "Đánh giá gần nhất" : "Latest diagnostic checkpoint"}
+              </h2>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <p className="rounded-xl bg-slate-50 p-4">
+                  <strong>Listening</strong>
+                  <br />
+                  {latestDiagnostic.listening.accuracy}% ·{" "}
+                  {latestDiagnostic.listening.correct}/
+                  {latestDiagnostic.listening.total}
+                  {diagnosticComparison ? (
+                    <>
+                      <br />
+                      <span className="text-sm text-slate-600">
+                        {diagnosticComparison.listeningDelta! > 0 ? "+" : ""}
+                        {diagnosticComparison.listeningDelta}{" "}
+                        {vi ? "điểm %" : "percentage points"}
+                      </span>
+                    </>
+                  ) : null}
+                </p>
+                <p className="rounded-xl bg-slate-50 p-4">
+                  <strong>Reading</strong>
+                  <br />
+                  {latestDiagnostic.reading.accuracy}% ·{" "}
+                  {latestDiagnostic.reading.correct}/
+                  {latestDiagnostic.reading.total}
+                  {diagnosticComparison ? (
+                    <>
+                      <br />
+                      <span className="text-sm text-slate-600">
+                        {diagnosticComparison.readingDelta! > 0 ? "+" : ""}
+                        {diagnosticComparison.readingDelta}{" "}
+                        {vi ? "điểm %" : "percentage points"}
+                      </span>
+                    </>
+                  ) : null}
+                </p>
+              </div>
+              <Link
+                className="mt-4 inline-flex font-bold text-teal-800 underline"
+                href={`/diagnostic/${latestDiagnostic.id}/result`}
+              >
+                {vi ? "Xem chi tiết" : "View details"}
+              </Link>
+            </section>
+          ) : null}
+          {recommendation ? (
+            <div className="mt-7">
+              <RecommendationCard
+                locale={locale}
+                recommendation={recommendation}
+              />
+            </div>
+          ) : null}
+          <p className="mt-7 pb-12 text-xs text-slate-500">
+            {vi
+              ? "Ngày được nhóm theo múi giờ Asia/Ho_Chi_Minh. Chỉ bài đã nộp mới được tính."
+              : "Days use Asia/Ho_Chi_Minh. Only submitted sessions are counted."}
+          </p>
+        </div>
+      </main>
+    );
+  } catch (error) {
+    console.error("Could not load progress page", error);
+    return (
+      <main className="grid min-h-screen place-items-center bg-slate-50 p-6 text-center">
+        <div>
+          <h1 className="text-2xl font-black">{t.progress.loadError}</h1>
+          <p className="mt-2 text-slate-600">{t.progress.tryAgain}</p>
+          <Link
+            className="mt-6 inline-flex rounded-xl bg-teal-700 px-5 py-3 font-bold text-white"
+            href="/progress"
+          >
+            {t.common.retry}
+          </Link>
+        </div>
+      </main>
+    );
+  }
 }

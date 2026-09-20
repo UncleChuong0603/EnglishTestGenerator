@@ -48,6 +48,18 @@ describe("Admin content review workflow", () => {
     expect(exportRoute).toContain('requireAdmin("CONTENT_READ")');
   });
 
+  it("supports filtered bulk publish and duplicate-safe unarchive", () => {
+    expect(service).toContain("export async function publishAllDrafts");
+    expect(service).toContain("export async function unarchiveAllContent");
+    expect(service).toContain("contentSignature(detail)");
+    expect(service).toContain("CONTENT_DUPLICATE_DELETED");
+    expect(service).toContain("CONTENT_UNARCHIVED");
+    expect(actions).toContain("publishAllDraftsAction");
+    expect(actions).toContain("unarchiveAllContentAction");
+    expect(bank).toContain("Duyệt toàn bộ Draft");
+    expect(bank).toContain("Unarchive toàn bộ");
+  });
+
   it("exports filtered, group-preserving schema v1 JSON without canonical content IDs or secrets", () => {
     expect(bank).toContain("content-export");
     expect(service).toContain("schemaVersion: IMPORT_SCHEMA_VERSION");
