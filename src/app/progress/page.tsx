@@ -186,6 +186,7 @@ export default async function ProgressPage({
                   <div className="mt-5">
                     <TrendChart
                       points={trend.points}
+                      locale={locale}
                       title={
                         vi ? `Xu hướng ${period} ngày` : `${period}-day trend`
                       }

@@ -502,40 +502,67 @@ export default async function DashboardPage() {
                 {locale === "vi" ? "Phân tích chi tiết" : "Detailed analytics"}
               </Link>
             </div>
-            <div className="mt-5 grid gap-3 sm:grid-cols-4">
-              <div className="rounded-xl bg-slate-50 p-4">
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-50 to-white p-4">
                 <p className="text-sm text-slate-500">
                   {locale === "vi" ? "Độ chính xác gần đây" : "Recent accuracy"}
                 </p>
                 <p className="mt-1 text-2xl font-black">
                   {recentAccuracy === null ? "—" : `${recentAccuracy}%`}
                 </p>
+                <p className="mt-1 text-xs text-slate-500">
+                  {locale === "vi"
+                    ? `${recentCorrect}/${recentAnswered} câu đúng`
+                    : `${recentCorrect}/${recentAnswered} correct`}
+                </p>
               </div>
-              <div className="rounded-xl bg-slate-50 p-4">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
                 <p className="text-sm text-slate-500">
                   {locale === "vi" ? "Câu trong 7 ngày" : "7-day answers"}
                 </p>
                 <p className="mt-1 text-2xl font-black">{recentAnswered}</p>
+                <p className="mt-1 text-xs text-slate-500">
+                  {locale === "vi" ? "Tổng lượt trả lời" : "Total responses"}
+                </p>
               </div>
-              <div className="rounded-xl bg-slate-50 p-4">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
                 <p className="text-sm text-slate-500">
                   {locale === "vi" ? "Ngày có học" : "Learning days"}
                 </p>
                 <p className="mt-1 text-2xl font-black">{recentLearningDays}</p>
+                <p className="mt-1 text-xs text-slate-500">
+                  {locale === "vi" ? "Trong 7 ngày gần nhất" : "Within the last 7 days"}
+                </p>
               </div>
-              <div className="rounded-xl bg-slate-50 p-4">
+              <div className="rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50 to-white p-4">
                 <p className="text-sm text-slate-500">
                   {locale === "vi" ? "Lỗi chưa xử lý" : "Unresolved mistakes"}
                 </p>
                 <p className="mt-1 text-2xl font-black">
                   {dashboardResult.mistakes.unresolvedCount}
                 </p>
+                <p className="mt-1 text-xs text-slate-500">
+                  {locale === "vi" ? "Đang chờ ôn lại" : "Waiting for review"}
+                </p>
               </div>
             </div>
             {trend ? (
-              <div className="mt-6">
+              <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50/50 p-4 sm:p-5">
+                <div className="mb-5">
+                  <h3 className="font-black">
+                    {locale === "vi"
+                      ? "Độ chính xác và khối lượng luyện tập"
+                      : "Accuracy and practice volume"}
+                  </h3>
+                  <p className="mt-1 text-sm text-slate-600">
+                    {locale === "vi"
+                      ? "Mỗi điểm phần trăm chỉ phản ánh những câu đã trả lời trong ngày đó."
+                      : "Each percentage point reflects only the questions answered on that day."}
+                  </p>
+                </div>
                 <TrendChart
                   points={trend.points}
+                  locale={locale}
                   title={
                     locale === "vi"
                       ? "Xu hướng độ chính xác 7 ngày"

@@ -4,7 +4,28 @@ TOEICGym uses a private R2 bucket through its S3-compatible endpoint. PostgreSQL
 
 ## Dokploy variables
 
-Set `MEDIA_ENABLED=true` when media operations are enabled, plus `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, and `R2_ENDPOINT`. The access key and secret are secrets. `R2_PUBLIC_BASE_URL` is optional/reserved and is not used by the current private-bucket strategy. A redeploy is required after environment changes. Reading-only local/test use keeps `MEDIA_ENABLED=false`, so no R2 credentials or network calls are required.
+Set `MEDIA_ENABLED=true` and `MEDIA_STORAGE_PROVIDER=R2` when media operations are enabled, plus `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, and `R2_ENDPOINT`. The access key and secret are secrets. `R2_PUBLIC_BASE_URL` is optional/reserved and is not used by the current private-bucket strategy. A redeploy is required after environment changes. Reading-only local/test use keeps `MEDIA_ENABLED=false`, so no R2 credentials or network calls are required.
+
+For Dokploy, add these values in the Compose service's Environment tab rather than creating a committed `.env` file:
+
+```dotenv
+MEDIA_ENABLED=true
+MEDIA_STORAGE_PROVIDER=R2
+R2_ACCOUNT_ID=<cloudflare-account-id>
+R2_ACCESS_KEY_ID=<bucket-scoped-access-key>
+R2_SECRET_ACCESS_KEY=<bucket-scoped-secret-key>
+R2_BUCKET_NAME=toeicgym
+R2_ENDPOINT=https://<cloudflare-account-id>.r2.cloudflarestorage.com
+R2_PUBLIC_BASE_URL=
+```
+
+Redeploy after saving the variables. Then verify from the VPS checkout:
+
+```sh
+docker compose --env-file .env -f docker-compose.dokploy.yml run --rm preflight
+docker compose --env-file .env -f docker-compose.dokploy.yml --profile tools run --rm db-tools npm run media:preflight
+docker compose --env-file .env -f docker-compose.dokploy.yml --profile tools run --rm db-tools npm run media:status
+```
 
 Use an R2 token restricted to the selected bucket. The endpoint is normally `https://<account-id>.r2.cloudflarestorage.com`. Never prefix any of these names with `NEXT_PUBLIC_`.
 
