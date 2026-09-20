@@ -9,6 +9,8 @@ import { reconcileMasteryAnswers } from "@/lib/mastery/persistence";
 import { getSafeSessionContent } from "@/lib/practice/queries";
 import { loadUnits, selectListeningPractice } from "@/lib/practice/selector";
 import { assembleFullMock, assembleListeningMock, assembleReadingMock, deadlineFrom, type MockForm, type MockMode, type MockUnit } from "./blueprint";
+import type { MockHistoryEntry } from "./history";
+import { getEffectiveCapabilities } from "@/lib/entitlements/service";
 
 export type MockReadiness = { ready: boolean; form?: MockForm };
 export type MockHubReadiness = {
@@ -79,4 +81,23 @@ async function completeRun(tx: Tx, run: typeof fullMockRuns.$inferSelect, userId
 export async function finalizeFullMockSection(runId: string, userId: string) { return db.transaction(async (tx) => { const [run] = await tx.select().from(fullMockRuns).where(and(eq(fullMockRuns.id, runId), eq(fullMockRuns.userId, userId))).for("update").limit(1); if (!run) return { ok: false as const }; if (run.status === "COMPLETED") return { ok: true as const, status: "COMPLETED" as const }; const now = new Date(); if (run.status === "LISTENING") { await scoreSection(tx, run.id, userId, "LISTENING", now); if (run.mode === "FULL") { await tx.update(fullMockRuns).set({ status: "READING", listeningCompletedAt: now, readingStartedAt: now, readingDeadline: deadlineFrom(now, "READING"), updatedAt: now }).where(eq(fullMockRuns.id, run.id)); return { ok: true as const, status: "READING" as const }; } await completeRun(tx, run, userId, now); return { ok: true as const, status: "COMPLETED" as const }; } if (run.status !== "READING") return { ok: false as const }; await scoreSection(tx, run.id, userId, "READING", now); await completeRun(tx, run, userId, now); return { ok: true as const, status: "COMPLETED" as const }; }); }
 
 export async function getFullMockResult(runId: string, userId: string) { const run = await getFullMockRun(runId, userId); if (!run || run.status !== "COMPLETED") return null; const parts = run.children.map((s) => ({ part: s.part!, correct: s.scoreCorrect!, attempted: s.scoreTotal!, accuracy: s.scoreTotal ? Math.round((s.scoreCorrect! / s.scoreTotal) * 100) : 0 })); const aggregate = (from: number, to: number) => { const rows = parts.filter((p) => p.part >= from && p.part <= to), correct = rows.reduce((n, p) => n + p.correct, 0), attempted = rows.reduce((n, p) => n + p.attempted, 0); return { correct, attempted, accuracy: attempted ? Math.round(correct / attempted * 100) : 0 }; }; return { id: run.id, mode: run.mode as MockMode, completedAt: run.completedAt!.toISOString(), listening: aggregate(1,4), reading: aggregate(5,7), overall: aggregate(1,7), parts }; }
-export async function getFullMockHistory(userId: string) { const runs = await db.select().from(fullMockRuns).where(and(eq(fullMockRuns.userId, userId), eq(fullMockRuns.status, "COMPLETED"))).orderBy(desc(fullMockRuns.completedAt)).limit(20); return Promise.all(runs.map((run) => getFullMockResult(run.id, userId))); }
+export async function getFullMockHistory(userId: string, limit = 20) { const runs = await db.select().from(fullMockRuns).where(and(eq(fullMockRuns.userId, userId), eq(fullMockRuns.status, "COMPLETED"))).orderBy(desc(fullMockRuns.completedAt)).limit(limit); return Promise.all(runs.map((run) => getFullMockResult(run.id, userId))); }
+
+/** Premium-only, server-authorized, set-based aggregation. No staged answers or answer keys leave the server. */
+export async function getAdvancedMockHistory(userId: string): Promise<MockHistoryEntry[] | null> {
+  if (!(await getEffectiveCapabilities(userId)).canUseAdvancedMockHistory) return null;
+  const rows = await db.select({ runId: fullMockRuns.id, mode: fullMockRuns.mode, completedAt: fullMockRuns.completedAt, part: practiceSessions.part, correct: practiceSessions.scoreCorrect, total: practiceSessions.scoreTotal, answered: sql<number>`count(${attemptAnswers.selectedOptionId})::int` })
+    .from(fullMockRuns).innerJoin(practiceSessions, eq(practiceSessions.fullMockRunId, fullMockRuns.id)).leftJoin(attemptAnswers, eq(attemptAnswers.sessionId, practiceSessions.id))
+    .where(and(eq(fullMockRuns.userId, userId), eq(fullMockRuns.status, "COMPLETED"), eq(practiceSessions.status, "submitted")))
+    .groupBy(fullMockRuns.id, fullMockRuns.mode, fullMockRuns.completedAt, practiceSessions.id, practiceSessions.part, practiceSessions.scoreCorrect, practiceSessions.scoreTotal)
+    .orderBy(desc(fullMockRuns.completedAt), asc(practiceSessions.part));
+  const grouped = new Map<string, MockHistoryEntry>();
+  for (const row of rows) {
+    if (!row.completedAt || row.part === null || row.correct === null || row.total === null) continue;
+    let entry = grouped.get(row.runId);
+    if (!entry) { entry = { runId: row.runId, mode: row.mode as MockMode, completedAt: row.completedAt.toISOString(), listening: null, reading: null, overall: { correct: 0, total: 0 }, parts: [] }; grouped.set(row.runId, entry); }
+    entry.parts.push({ part: row.part, correct: row.correct, answered: Number(row.answered), total: row.total, accuracy: row.total ? Math.round(row.correct / row.total * 100) : 0 }); entry.overall.correct += row.correct; entry.overall.total += row.total;
+  }
+  for (const entry of grouped.values()) { const section = (from: number, to: number) => { const parts = entry.parts.filter((p) => p.part >= from && p.part <= to); return parts.length ? { correct: parts.reduce((n,p) => n + p.correct, 0), total: parts.reduce((n,p) => n + p.total, 0) } : null; }; entry.listening = section(1,4); entry.reading = section(5,7); }
+  return [...grouped.values()];
+}

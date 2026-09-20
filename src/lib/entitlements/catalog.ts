@@ -9,6 +9,7 @@ export type PlanCapabilities = {
   canUseAdvancedAnalytics: boolean;
   canUseAdvancedTargeting: boolean;
   canUseSmartMistakeReview: boolean;
+  canUseAdvancedMockHistory: boolean;
   canUseSkillBreakdown: boolean;
   historyWindowDays: HistoryWindowDays;
 };
@@ -26,8 +27,8 @@ export const PLAN_CATALOG: Record<PlanKey, { key: PlanKey; entitlements: Record<
 
 /** Canonical product capabilities used by both UI and server-side query policy. */
 export const PLAN_CAPABILITIES: Record<PlanKey, PlanCapabilities> = {
-  FREE: { canUseAdvancedAnalytics: false, canUseAdvancedTargeting: false, canUseSmartMistakeReview: false, canUseSkillBreakdown: false, historyWindowDays: 30 },
-  PREMIUM: { canUseAdvancedAnalytics: true, canUseAdvancedTargeting: true, canUseSmartMistakeReview: true, canUseSkillBreakdown: true, historyWindowDays: 90 },
+  FREE: { canUseAdvancedAnalytics: false, canUseAdvancedTargeting: false, canUseSmartMistakeReview: false, canUseAdvancedMockHistory: false, canUseSkillBreakdown: false, historyWindowDays: 30 },
+  PREMIUM: { canUseAdvancedAnalytics: true, canUseAdvancedTargeting: true, canUseSmartMistakeReview: true, canUseAdvancedMockHistory: true, canUseSkillBreakdown: true, historyWindowDays: 90 },
 };
 
 export function getPlanCapabilities(plan: PlanKey): PlanCapabilities { return PLAN_CAPABILITIES[plan]; }

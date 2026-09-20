@@ -1,0 +1,8 @@
+import type { MockHistoryEntry } from "@/lib/full-mock/history";
+
+export function MockTrendChart({ entries, mode }: { entries: MockHistoryEntry[]; mode: MockHistoryEntry["mode"] }) {
+  const points = [...entries].reverse();
+  if (points.length < 2) return <p className="rounded-xl border border-dashed p-4 text-sm text-slate-600">Hoàn thành thêm một bài cùng loại để bắt đầu so sánh.</p>;
+  const series = mode === "FULL" ? [{ key: "listening", label: "Listening", color: "#0f766e" }, { key: "reading", label: "Reading", color: "#d97706" }] as const : [{ key: mode === "LISTENING" ? "listening" : "reading", label: mode === "LISTENING" ? "Listening" : "Reading", color: "#0f766e" }] as const;
+  return <figure><svg className="h-48 w-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label={`Xu hướng ${mode}`}><line x1="0" x2="100" y1="100" y2="100" stroke="#cbd5e1" vectorEffect="non-scaling-stroke"/><line x1="0" x2="100" y1="50" y2="50" stroke="#e2e8f0" strokeDasharray="3 3" vectorEffect="non-scaling-stroke"/>{series.map((item) => { const values = points.map((entry) => entry[item.key]!); const coords = values.map((value,index) => `${index/(values.length-1)*100},${100-value.correct/value.total*100}`).join(" "); return <polyline key={item.key} fill="none" points={coords} stroke={item.color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"><title>{item.label}: {values.map(v => `${v.correct}/${v.total}`).join(", ")}</title></polyline>; })}</svg><figcaption className="mt-3 flex flex-wrap gap-4 text-sm">{series.map(s => <span key={s.key} className="font-semibold" style={{color:s.color}}>— {s.label} / 100</span>)}</figcaption></figure>;
+}
