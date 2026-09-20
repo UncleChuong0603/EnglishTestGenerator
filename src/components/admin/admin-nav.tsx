@@ -6,7 +6,7 @@ export function AdminNav({locale}:{locale:InterfaceLanguage}) {
   const vi=locale==="vi";
   const groups=[
     {name:vi?"Bắt đầu":"Start",links:[["/admin",vi?"Tổng quan":"Overview"]]},
-    {name:vi?"Học liệu":"Learning content",links:[["/admin/content",vi?"Nội dung":"Content"],["/admin/content/questions",vi?"Ngân hàng câu hỏi":"Question bank"],["/admin/content/import",vi?"Nhập câu hỏi":"Question import"],["/admin/content/media","Media"],["/admin/content/posts",vi?"Bài viết":"Posts"]]},
+    {name:vi?"Học liệu":"Learning content",links:[["/admin/content",vi?"Ngân hàng câu hỏi":"Question bank"],["/admin/content/media","Media"],["/admin/content/posts",vi?"Bài viết":"Posts"]]},
     {name:vi?"Người học":"Learners",links:[["/admin/users",vi?"Người dùng":"Users"]]},
     {name:vi?"Vận hành":"Operations",links:[["/admin/challenges",vi?"Sự kiện xếp hạng":"Ranking events"],["/admin/payments",vi?"Thanh toán":"Payments"],["/admin/audit",vi?"Nhật ký":"Audit log"]]},
   ];

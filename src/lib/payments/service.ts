@@ -1,6 +1,6 @@
 import "server-only";
 import { randomBytes } from "node:crypto";
-import { and, desc, eq, gt, sql } from "drizzle-orm";
+import { and, desc, eq, gt, sql, count, or, gte } from "drizzle-orm";
 import { db } from "@/db";
 import { paymentEvents, paymentOrders, userPlanMemberships, users } from "@/db/schema";
 import { grantPremiumWithTx } from "@/lib/entitlements/service";
@@ -95,4 +95,30 @@ export async function getPaidOrderResult(userId: string, id: string) {
   return { order, resultingExpiry: membership?.endsAt ?? null };
 }
 export async function getPremiumExpiry(userId: string) { const [row] = await db.select({ endsAt: userPlanMemberships.endsAt }).from(userPlanMemberships).where(and(eq(userPlanMemberships.userId, userId), sql`${userPlanMemberships.revokedAt} is null`, gt(userPlanMemberships.endsAt, new Date()))).orderBy(sql`${userPlanMemberships.endsAt} desc nulls first`).limit(1); return row?.endsAt ?? null; }
-export async function listAdminPayments(search: string, page: number) { const q = search.trim().toLowerCase().slice(0, 200); return db.select({ id: paymentOrders.id, email: users.email, productKey: paymentOrders.productKey, amount: paymentOrders.amount, status: paymentOrders.status, provider: paymentOrders.provider, providerPaymentId: paymentOrders.providerPaymentId, createdAt: paymentOrders.createdAt, paidAt: paymentOrders.paidAt }).from(paymentOrders).innerJoin(users, eq(users.id, paymentOrders.userId)).where(q ? sql`${users.emailNormalized} like ${`%${q}%`}` : undefined).orderBy(desc(paymentOrders.createdAt)).limit(30).offset((Math.max(1, page) - 1) * 30); }
+export type AdminPaymentFilters = { q?: string; status?: string; product?: string; days?: string; page?: number };
+export async function listAdminPayments(filters: AdminPaymentFilters) {
+  const q = (filters.q ?? "").trim().toLowerCase().slice(0, 100);
+  const status = ["PENDING", "PAID", "EXPIRED", "CANCELLED", "FAILED"].includes(filters.status ?? "") ? filters.status : undefined;
+  const product = ["PREMIUM_30_DAYS", "PREMIUM_90_DAYS", "PREMIUM_365_DAYS"].includes(filters.product ?? "") ? filters.product : undefined;
+  const days = ["7", "30", "90"].includes(filters.days ?? "") ? Number(filters.days) : undefined;
+  const page = Math.min(100000, Math.max(1, filters.page ?? 1));
+  const search = q ? or(sql`${users.emailNormalized} like ${`%${q}%`}`, sql`cast(${paymentOrders.orderCode} as text) like ${`%${q}%`}`, /^[0-9a-f-]{36}$/i.test(q) ? eq(paymentOrders.id, q) : undefined) : undefined;
+  const where = and(search, status ? eq(paymentOrders.status, status) : undefined, product ? eq(paymentOrders.productKey, product) : undefined, days ? gte(paymentOrders.createdAt, new Date(Date.now() - days * 86400000)) : undefined);
+  const base = db.select({ id: paymentOrders.id, orderCode: paymentOrders.orderCode, email: users.email, productKey: paymentOrders.productKey, amount: paymentOrders.amount, currency: paymentOrders.currency, status: paymentOrders.status, createdAt: paymentOrders.createdAt, paidAt: paymentOrders.paidAt }).from(paymentOrders).innerJoin(users, eq(users.id, paymentOrders.userId));
+  const [rows, totals, summary] = await Promise.all([
+    base.where(where).orderBy(desc(paymentOrders.createdAt)).limit(30).offset((page - 1) * 30),
+    db.select({ total: count() }).from(paymentOrders).innerJoin(users, eq(users.id, paymentOrders.userId)).where(where),
+    db.select({ status: paymentOrders.status, total: count() }).from(paymentOrders).groupBy(paymentOrders.status),
+  ]);
+  return { rows, total: totals[0]?.total ?? 0, summary: Object.fromEntries(summary.map(item => [item.status, item.total])), page, pageSize: 30 };
+}
+export async function getAdminPayment(id: string) {
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
+  const [order] = await db.select({ id: paymentOrders.id, orderCode: paymentOrders.orderCode, userId: paymentOrders.userId, email: users.email, productKey: paymentOrders.productKey, amount: paymentOrders.amount, currency: paymentOrders.currency, status: paymentOrders.status, provider: paymentOrders.provider, providerPaymentId: paymentOrders.providerPaymentId, createdAt: paymentOrders.createdAt, expiresAt: paymentOrders.expiresAt, paidAt: paymentOrders.paidAt, cancelledAt: paymentOrders.cancelledAt }).from(paymentOrders).innerJoin(users, eq(users.id, paymentOrders.userId)).where(eq(paymentOrders.id, id)).limit(1);
+  if (!order) return null;
+  const [membership, events] = await Promise.all([
+    db.select({ startsAt: userPlanMemberships.startsAt, endsAt: userPlanMemberships.endsAt, revokedAt: userPlanMemberships.revokedAt }).from(userPlanMemberships).where(eq(userPlanMemberships.paymentOrderId, id)).limit(1),
+    db.select({ eventType: paymentEvents.eventType, processingStatus: paymentEvents.processingStatus, receivedAt: paymentEvents.receivedAt }).from(paymentEvents).where(eq(paymentEvents.orderId, id)).orderBy(desc(paymentEvents.receivedAt)).limit(10),
+  ]);
+  return { order, membership: membership[0] ?? null, events };
+}

@@ -169,6 +169,13 @@
       "when": 1791331200000,
       "tag": "0023_diagnostic_reassessment",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1791417600000,
+      "tag": "0024_seo_workspace",
+      "breakpoints": true
     }
   ]
 }

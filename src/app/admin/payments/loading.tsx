@@ -1,0 +1,3 @@
+import { AdminNav } from "@/components/admin/admin-nav";
+import { getCookieLanguage } from "@/lib/i18n/get-translations";
+export default async function Loading() { const locale = await getCookieLanguage(); return <main className="min-h-screen bg-slate-50 px-4 py-6"><div className="mx-auto max-w-7xl"><AdminNav locale={locale}/><div className="mt-8 animate-pulse space-y-5" aria-label={locale==="vi"?"Đang tải thanh toán":"Loading payments"}><div className="h-10 w-56 rounded-lg bg-slate-200"/><div className="grid gap-3 sm:grid-cols-4">{[1,2,3,4].map(i=><div key={i} className="h-24 rounded-2xl bg-slate-200"/>)}</div><div className="h-20 rounded-2xl bg-slate-200"/><div className="h-72 rounded-2xl bg-slate-200"/></div></div></main>; }

@@ -17,17 +17,18 @@ export function slugify(value: string) {
 export function isValidSlug(value: string) { return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value) && value.length <= 120; }
 export function safeHref(value: string) {
   const href = value.trim();
-  return href.startsWith("/") || href.startsWith("#") || /^https?:\/\//i.test(href) || /^mailto:/i.test(href) ? href : null;
+  return (href.startsWith("/") && !href.startsWith("//")) || href.startsWith("#") || /^https?:\/\//i.test(href) || /^mailto:/i.test(href) ? href : null;
 }
+export const STATUS_LABELS: Record<PostStatus,string> = { DRAFT:"Bản nháp", PUBLISHED:"Đã xuất bản", UNPUBLISHED:"Chưa xuất bản" };
+export function validCanonical(path:string) { return !path || /^\/(?!\/)[a-z0-9/_-]*$/.test(path); }
 export function validatePost(input: PostInput, publishing = false) {
   const errors: string[] = [];
   if (!input.title.trim()) errors.push("TITLE_REQUIRED");
   if (!isValidSlug(input.slug)) errors.push("SLUG_INVALID");
   if (input.excerpt.length > 320) errors.push("EXCERPT_TOO_LONG");
-  if ((input.seoDescription ?? "").length > 180) errors.push("SEO_DESCRIPTION_TOO_LONG");
-  if (input.canonicalPath && (!input.canonicalPath.startsWith("/") || input.canonicalPath.startsWith("//"))) errors.push("CANONICAL_PATH_INVALID");
+  if (input.canonicalPath && !validCanonical(input.canonicalPath)) errors.push("CANONICAL_PATH_INVALID");
   if (publishing && !input.content.trim()) errors.push("CONTENT_REQUIRED");
   if (publishing && !input.excerpt.trim()) errors.push("EXCERPT_REQUIRED");
   return errors;
 }
-export type PostInput = { title: string; slug: string; excerpt: string; content: string; category: PostCategory; seoTitle?: string; seoDescription?: string; canonicalPath?: string; coverMediaId?: string; tags: string[] };
+export type PostInput = { title: string; slug: string; excerpt: string; content: string; category: PostCategory; seoTitle?: string; seoDescription?: string; canonicalPath?: string; coverMediaId?: string; coverAlt?: string; socialTitle?: string; socialDescription?: string; authorName?: string; targetTopic?: string; searchIntent?: string; noindex?: boolean; tags: string[] };
