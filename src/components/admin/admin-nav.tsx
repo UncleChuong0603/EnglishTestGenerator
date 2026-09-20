@@ -17,6 +17,7 @@ export function AdminNav({ locale }: { locale: InterfaceLanguage }) {
       name: vi ? "Học liệu" : "Learning content",
       links: [
         ["/admin/content", vi ? "Ngân hàng câu hỏi" : "Question bank"],
+        ["/admin/content/similarity", vi ? "Rà soát trùng lặp" : "Similarity review"],
         ["/admin/content/media", "Media"],
         ["/admin/content/posts", vi ? "Bài viết" : "Posts"],
       ],

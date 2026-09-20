@@ -5,6 +5,8 @@ import { adminAuditLogs, listeningTranscripts, mediaAssets, passages, passageSet
 import { IMPORT_SCHEMA_VERSION, normalizeContent, sha256, validateImportValue, type QuestionImportFile } from "@/lib/question-import/schema";
 import { assembleFullMock, assembleListeningMock, assembleReadingMock, type MockUnit } from "@/lib/full-mock/blueprint";
 import { ROLE_PERMISSIONS } from "./permissions";
+import { calculateContentSimilarity, similarityTokens } from "./content-similarity";
+export { calculateContentSimilarity } from "./content-similarity";
 
 export const CONTENT_PAGE_SIZE = 20;
 export const CONTENT_LIFECYCLES = ["draft", "published", "archived"] as const;
@@ -162,6 +164,27 @@ export async function getReviewQueue(currentId: string, filters: ReviewFilters) 
   return { total: rows.length, position: index < 0 ? null : index + 1, previous: index > 0 ? rows[index - 1] : null, next: index >= 0 && index + 1 < rows.length ? rows[index + 1] : null };
 }
 
+export type SimilarContentItem = {
+  id: string; title: string; lifecycle: ContentLifecycle; provenance: string; questionCount: number;
+  preview: string; createdAt: Date; updatedAt: Date;
+};
+export type SimilarContentPair = { key: string; score: number; exact: boolean; sharedTerms: string[]; left: SimilarContentItem; right: SimilarContentItem };
+
+function similarityText(detail: NonNullable<Awaited<ReturnType<typeof getAdminContentDetail>>>) { return [...detail.passages.map((item) => item.content ?? ""), detail.transcript?.content ?? "", ...detail.questions.flatMap((question) => [question.questionText, ...question.options.map((option) => option.optionText)])].join(" "); }
+
+export async function findSimilarContent(part: number, options?: { lifecycle?: string; threshold?: number }) {
+  if (!Number.isInteger(part) || part < 1 || part > 7) throw new ContentAdminError("INVALID_PART");
+  const lifecycle = CONTENT_LIFECYCLES.includes(options?.lifecycle as ContentLifecycle) ? options?.lifecycle as ContentLifecycle : undefined;
+  const threshold = Math.min(0.95, Math.max(0.25, options?.threshold ?? 0.58));
+  const rows = await db.select({ id: passageSets.id }).from(passageSets).where(and(eq(passageSets.toeicPart, part), lifecycle ? eq(passageSets.status, lifecycle) : undefined)).orderBy(asc(passageSets.createdAt), asc(passageSets.id));
+  const details = (await Promise.all(rows.map((row) => getAdminContentDetail(row.id)))).filter((detail): detail is NonNullable<typeof detail> => Boolean(detail));
+  const prepared = details.map((detail) => { const text = similarityText(detail); return { detail, text, signature: contentSignature(detail), terms: new Set(similarityTokens(text)), item: { id: detail.group.id, title: detail.group.title, lifecycle: detail.group.status as ContentLifecycle, provenance: detail.group.provenance, questionCount: detail.questions.length, preview: (detail.questions[0]?.questionText || detail.transcript?.content || detail.passages[0]?.content || detail.group.title).slice(0, 240), createdAt: detail.group.createdAt, updatedAt: detail.group.updatedAt } satisfies SimilarContentItem }; });
+  const pairs: SimilarContentPair[] = [];
+  for (let leftIndex = 0; leftIndex < prepared.length; leftIndex++) for (let rightIndex = leftIndex + 1; rightIndex < prepared.length; rightIndex++) { const left = prepared[leftIndex]; const right = prepared[rightIndex]; const exact = left.signature === right.signature; const score = exact ? 1 : calculateContentSimilarity(left.text, right.text); if (score < threshold) continue; const sharedTerms = [...left.terms].filter((term) => right.terms.has(term) && term.length > 4).sort((a, b) => b.length - a.length || a.localeCompare(b)).slice(0, 8); pairs.push({ key: `${left.item.id}:${right.item.id}`, score, exact, sharedTerms, left: left.item, right: right.item }); }
+  pairs.sort((a, b) => Number(b.exact) - Number(a.exact) || b.score - a.score || b.right.updatedAt.getTime() - a.right.updatedAt.getTime());
+  return { part, threshold, scanned: prepared.length, pairs };
+}
+
 export async function getImportContextForGroup(groupId: string) {
   const [row] = await db.select({ id: questionImportBatches.id, batchKey: questionImportBatches.batchKey, name: questionImportBatches.name, externalItemId: questionImportItems.externalItemId })
     .from(questionImportItems).innerJoin(questionImportBatches, eq(questionImportBatches.id, questionImportItems.importBatchId))
@@ -257,7 +280,17 @@ async function deleteArchivedDuplicate(tx: Tx, actorUserId: string, id: string, 
   await tx.delete(questionGroupMedia).where(eq(questionGroupMedia.questionGroupId, id));
   await tx.delete(passages).where(eq(passages.passageSetId, id));
   await tx.delete(passageSets).where(and(eq(passageSets.id, id), eq(passageSets.status, "archived")));
-  await tx.insert(adminAuditLogs).values({ actorUserId, action: "CONTENT_DUPLICATE_DELETED", metadata: { groupId: id, duplicateOfId, operation: "BULK_UNARCHIVE" } });
+  await tx.insert(adminAuditLogs).values({ actorUserId, action: "CONTENT_DUPLICATE_DELETED", metadata: { groupId: id, duplicateOfId, operation: duplicateOfId === "MANUAL_REVIEW" ? "SIMILARITY_REVIEW" : "BULK_UNARCHIVE" } });
+}
+
+export async function deleteArchivedContent(actorUserId: string, id: string) {
+  try {
+    return await db.transaction(async (tx) => { await assertManage(tx, actorUserId); const [group] = await tx.select({ id: passageSets.id, status: passageSets.status }).from(passageSets).where(eq(passageSets.id, id)).for("update").limit(1); if (!group) throw new ContentAdminError("NOT_FOUND"); if (group.status !== "archived") throw new ContentAdminError("DELETE_REQUIRES_ARCHIVED"); await deleteArchivedDuplicate(tx, actorUserId, id, "MANUAL_REVIEW"); });
+  } catch (error) {
+    if (error instanceof ContentAdminError) throw error;
+    if ((error as { code?: string })?.code === "23503") throw new ContentAdminError("CONTENT_HAS_HISTORY");
+    throw error;
+  }
 }
 
 export async function unarchiveAllContent(actorUserId: string, filters: ReviewFilters): Promise<BulkContentResult> {
