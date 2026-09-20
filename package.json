@@ -26,6 +26,7 @@
     "payments:preflight": "node --env-file-if-exists=.env.local scripts/payments-preflight.mjs",
     "production:preflight": "node --env-file-if-exists=.env.local scripts/production-preflight.mjs",
     "production:verify": "node --env-file-if-exists=.env.local scripts/production-verify.mjs",
+    "task23:verify:production": "node --env-file-if-exists=.env.local scripts/task23-verify-production.mjs",
     "task22:verify:postgres": "node scripts/task22-verify-postgres.mjs",
     "task22:verify:postgres:cleanup": "docker compose -f docker-compose.test.yml down --remove-orphans",
     "db:generate": "drizzle-kit generate",
