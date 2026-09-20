@@ -1,7 +1,7 @@
 import "server-only";
-import { and, asc, count, desc, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, ilike, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { adminAuditLogs, attemptAnswers, diagnosticRuns, fullMockRuns, practiceSessions, profiles, questionMastery, userPlanMemberships, userRoles, userSessions, users } from "@/db/schema";
+import { adminAuditLogs, attemptAnswers, authIdentities, diagnosticRuns, fullMockRuns, paymentOrders, practiceSessions, profiles, questionMastery, securityEvents, userPlanMemberships, userRoles, userSessions, users } from "@/db/schema";
 import { grantPremiumWithTx, revokePremiumWithTx } from "@/lib/entitlements/service";
 import type { AdminPermission } from "./permissions";
 import { ROLE_PERMISSIONS } from "./permissions";
@@ -36,6 +36,8 @@ export async function grantPremiumAsAdmin(actorUserId: string, targetUserId: str
 export async function revokePremiumAsAdmin(actorUserId: string, targetUserId: string) {
   return db.transaction(async (tx) => {
     await assertPermission(tx, actorUserId, "PLAN_MANAGE"); await assertUser(tx, targetUserId);
+    const [paid] = await tx.select({ id: userPlanMemberships.id }).from(userPlanMemberships).where(and(eq(userPlanMemberships.userId, targetUserId), eq(userPlanMemberships.source, "PAYMENT"), isNull(userPlanMemberships.revokedAt), lteNow(userPlanMemberships.startsAt), sql`(${userPlanMemberships.endsAt} is null or ${userPlanMemberships.endsAt} > now())`)).limit(1);
+    if (paid) throw new AdminActionError("INVALID_OPERATION");
     const revoked = await revokePremiumWithTx(tx, { userId: targetUserId });
     if (revoked.length) await tx.insert(adminAuditLogs).values({ actorUserId, targetUserId, action: "PREMIUM_REVOKED", metadata: { membershipIds: revoked.map((row) => row.id) } });
     return revoked.length;
@@ -88,20 +90,40 @@ export async function revokeAdminRole(targetUserId: string, actorUserId: string 
 
 export async function getAdminOverview() {
   const now = new Date(); const seven = new Date(now.getTime() - 7 * 86_400_000); const thirty = new Date(now.getTime() - 30 * 86_400_000);
-  const [row] = await db.select({ total: count(), active: sql<number>`count(*) filter (where ${users.status} = 'active')::int`, suspended: sql<number>`count(*) filter (where ${users.status} = 'disabled')::int`, new7: sql<number>`count(*) filter (where ${users.createdAt} >= ${seven})::int`, new30: sql<number>`count(*) filter (where ${users.createdAt} >= ${thirty})::int`, premium: sql<number>`count(*) filter (where exists (select 1 from ${userPlanMemberships} m where m.user_id = ${users.id} and m.revoked_at is null and m.starts_at <= ${now} and (m.ends_at is null or m.ends_at > ${now})))::int` }).from(users);
+  const [row] = await db.select({ total: count(), active: sql<number>`count(*) filter (where ${users.status} = 'active')::int`, suspended: sql<number>`count(*) filter (where ${users.status} = 'disabled')::int`, unverified: sql<number>`count(*) filter (where ${users.emailVerifiedAt} is null)::int`, new7: sql<number>`count(*) filter (where ${users.createdAt} >= ${seven})::int`, new30: sql<number>`count(*) filter (where ${users.createdAt} >= ${thirty})::int`, premium: sql<number>`count(*) filter (where exists (select 1 from ${userPlanMemberships} m where m.user_id = ${users.id} and m.revoked_at is null and m.starts_at <= ${now} and (m.ends_at is null or m.ends_at > ${now})))::int` }).from(users);
   return { ...row, free: Number(row.total) - Number(row.premium) };
 }
 
-export async function listAdminUsers(search: string, page: number) {
-  const normalized = search.trim().toLowerCase().slice(0, 200); const where = normalized ? or(ilike(users.emailNormalized, `%${normalized}%`), ilike(profiles.fullName, `%${normalized}%`)) : undefined; const now = new Date();
+const lteNow = (column: typeof userPlanMemberships.startsAt) => sql`${column} <= now()`;
+export type AdminUserFilters = { search?: string; plan?: string; status?: string; role?: string; verified?: string; activity?: string; sort?: string; page?: number };
+export async function listAdminUsers(filters: AdminUserFilters) {
+  const normalized = filters.search?.trim().toLowerCase().slice(0, 200) ?? ""; const page = Math.min(100000, Math.max(1, filters.page ?? 1)); const now = new Date();
+  const premium = sql`exists (select 1 from ${userPlanMemberships} m where m.user_id = ${users.id} and m.revoked_at is null and m.starts_at <= ${now} and (m.ends_at is null or m.ends_at > ${now}))`;
+  const admin = sql`exists (select 1 from ${userRoles} r where r.user_id = ${users.id} and r.role = 'ADMIN' and r.revoked_at is null)`;
+  const conditions = [normalized ? or(ilike(users.emailNormalized, `%${normalized}%`), ilike(profiles.fullName, `%${normalized}%`)) : undefined,
+    ["active","disabled","pending_verification"].includes(filters.status ?? "") ? eq(users.status, filters.status!) : undefined,
+    filters.plan === "premium" ? premium : filters.plan === "free" ? sql`not ${premium}` : undefined,
+    filters.role === "admin" ? admin : filters.role === "learner" ? sql`not ${admin}` : undefined,
+    filters.verified === "yes" ? isNotNull(users.emailVerifiedAt) : filters.verified === "no" ? isNull(users.emailVerifiedAt) : undefined,
+    filters.activity === "recent" ? sql`${users.lastLoginAt} >= ${new Date(now.getTime() - 30 * 86_400_000)}` : filters.activity === "never" ? isNull(users.lastLoginAt) : undefined];
+  const where = and(...conditions); const order = filters.sort === "login" ? [sql`${users.lastLoginAt} desc nulls last`, asc(users.id)] : filters.sort === "identity" ? [asc(users.emailNormalized), asc(users.id)] : [desc(users.createdAt), asc(users.id)];
   const [rows, [total]] = await Promise.all([
-    db.select({ id: users.id, email: users.email, name: profiles.fullName, status: users.status, createdAt: users.createdAt, lastLoginAt: users.lastLoginAt, premium: sql<boolean>`exists (select 1 from ${userPlanMemberships} m where m.user_id = ${users.id} and m.revoked_at is null and m.starts_at <= ${now} and (m.ends_at is null or m.ends_at > ${now}))` }).from(users).leftJoin(profiles, eq(profiles.id, users.id)).where(where).orderBy(desc(users.createdAt), asc(users.id)).limit(USER_PAGE_SIZE).offset((page - 1) * USER_PAGE_SIZE),
+    db.select({ id: users.id, email: users.email, name: profiles.fullName, status: users.status, emailVerifiedAt: users.emailVerifiedAt, createdAt: users.createdAt, lastLoginAt: users.lastLoginAt, premium: sql<boolean>`${premium}`, admin: sql<boolean>`${admin}` }).from(users).leftJoin(profiles, eq(profiles.id, users.id)).where(where).orderBy(...order).limit(USER_PAGE_SIZE).offset((page - 1) * USER_PAGE_SIZE),
     db.select({ value: count() }).from(users).leftJoin(profiles, eq(profiles.id, users.id)).where(where),
   ]); return { rows, total: Number(total.value), page, pageSize: USER_PAGE_SIZE };
 }
 
 export async function getAdminUser(userId: string) {
-  const [user] = await db.select({ id: users.id, email: users.email, name: profiles.fullName, avatarUrl: profiles.avatarUrl, status: users.status, emailVerifiedAt: users.emailVerifiedAt, createdAt: users.createdAt, lastLoginAt: users.lastLoginAt }).from(users).leftJoin(profiles, eq(profiles.id, users.id)).where(eq(users.id, userId)).limit(1); return user ?? null;
+  const [user] = await db.select({ id: users.id, email: users.email, name: profiles.fullName, avatarUrl: profiles.avatarUrl, status: users.status, emailVerifiedAt: users.emailVerifiedAt, createdAt: users.createdAt, lastLoginAt: users.lastLoginAt, hasPassword: sql<boolean>`${users.passwordHash} is not null`, admin: sql<boolean>`exists (select 1 from ${userRoles} r where r.user_id=${users.id} and r.role='ADMIN' and r.revoked_at is null)`, googleLinked: sql<boolean>`exists (select 1 from ${authIdentities} a where a.user_id=${users.id} and a.provider='google')`, activeSessions: sql<number>`(select count(*)::int from ${userSessions} s where s.user_id=${users.id} and s.revoked_at is null and s.expires_at > now())` }).from(users).leftJoin(profiles, eq(profiles.id, users.id)).where(eq(users.id, userId)).limit(1); return user ?? null;
+}
+
+export async function getUserOperations(userId: string) {
+  const [recentLearning, audit, security, payments] = await Promise.all([
+    db.select({ id: practiceSessions.id, skillArea: practiceSessions.skillArea, part: practiceSessions.part, source: practiceSessions.source, total: practiceSessions.scoreTotal, correct: practiceSessions.scoreCorrect, submittedAt: practiceSessions.submittedAt }).from(practiceSessions).where(and(eq(practiceSessions.userId,userId),eq(practiceSessions.status,"submitted"))).orderBy(desc(practiceSessions.submittedAt)).limit(8),
+    db.select({ id: adminAuditLogs.id, action: adminAuditLogs.action, createdAt: adminAuditLogs.createdAt, metadata: adminAuditLogs.metadata }).from(adminAuditLogs).where(eq(adminAuditLogs.targetUserId,userId)).orderBy(desc(adminAuditLogs.createdAt)).limit(20),
+    db.select({ id: securityEvents.id, eventType: securityEvents.eventType, createdAt: securityEvents.createdAt }).from(securityEvents).where(eq(securityEvents.userId,userId)).orderBy(desc(securityEvents.createdAt)).limit(10),
+    db.select({ id: paymentOrders.id, orderCode: paymentOrders.orderCode, status: paymentOrders.status, productKey: paymentOrders.productKey, createdAt: paymentOrders.createdAt, paidAt: paymentOrders.paidAt }).from(paymentOrders).where(eq(paymentOrders.userId,userId)).orderBy(desc(paymentOrders.createdAt)).limit(10),
+  ]); return { recentLearning, audit, security, payments };
 }
 
 export async function getLearningSummary(userId: string) {

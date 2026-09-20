@@ -72,7 +72,7 @@ export async function revokePremiumWithTx(tx: Tx, input: { userId: string; now?:
 }
 
 export async function getMembershipHistory(userId: string, page = 1, pageSize = 20) {
-  return db.select({ id: userPlanMemberships.id, planKey: userPlanMemberships.planKey, source: userPlanMemberships.source, startsAt: userPlanMemberships.startsAt, endsAt: userPlanMemberships.endsAt, revokedAt: userPlanMemberships.revokedAt, createdAt: userPlanMemberships.createdAt })
+  return db.select({ id: userPlanMemberships.id, planKey: userPlanMemberships.planKey, source: userPlanMemberships.source, paymentOrderId: userPlanMemberships.paymentOrderId, startsAt: userPlanMemberships.startsAt, endsAt: userPlanMemberships.endsAt, revokedAt: userPlanMemberships.revokedAt, createdAt: userPlanMemberships.createdAt })
     .from(userPlanMemberships).where(eq(userPlanMemberships.userId, userId)).orderBy(desc(userPlanMemberships.createdAt), desc(userPlanMemberships.id)).limit(pageSize).offset((page - 1) * pageSize);
 }
 export class UsageLimitError extends Error { readonly code = "USAGE_LIMIT_REACHED"; constructor(readonly status: { entitlement: EntitlementKey; used: number; limit: number; remaining: 0; resetAt: string; effectivePlan: PlanKey }) { super("USAGE_LIMIT_REACHED"); } }
