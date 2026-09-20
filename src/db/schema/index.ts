@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { bigint, boolean, check, index, integer, jsonb, pgTable, primaryKey, smallint, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { bigint, boolean, check, date, index, integer, jsonb, pgTable, primaryKey, smallint, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
@@ -243,6 +243,19 @@ export const supportTickets = pgTable("support_tickets", {
   index("support_tickets_user_created_idx").on(table.userId, table.createdAt),
   check("support_tickets_category_check", sql`${table.category} in ('TECHNICAL','CONTENT','PAYMENT','SUGGESTION','OTHER')`),
   check("support_tickets_status_check", sql`${table.status} in ('NEW','IN_PROGRESS','RESOLVED')`),
+]);
+
+export const learnerGoals = pgTable("learner_goals", {
+  userId: uuid("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+  targetScore: smallint("target_score"),
+  examDate: date("exam_date", { mode: "string" }),
+  dailyStudyMinutes: smallint("daily_study_minutes"),
+  studyDaysPerWeek: smallint("study_days_per_week"),
+  ...timestamps,
+}, (table) => [
+  check("learner_goals_target_score_check", sql`${table.targetScore} is null or (${table.targetScore} between 10 and 990 and ${table.targetScore} % 5 = 0)`),
+  check("learner_goals_daily_minutes_check", sql`${table.dailyStudyMinutes} is null or ${table.dailyStudyMinutes} in (10, 20, 30, 45, 60)`),
+  check("learner_goals_study_days_check", sql`${table.studyDaysPerWeek} is null or ${table.studyDaysPerWeek} in (3, 5, 7)`),
 ]);
 
 export const productEvents = pgTable("product_events", {

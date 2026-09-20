@@ -1,20 +1,30 @@
 import { describe, expect, it } from "vitest";
-import { recommendContentCoverage, type ContentCoverage } from "./content-coverage";
+import {
+  calculateContentCoverage,
+  getQuestionBankCapacity,
+  recommendContentCoverage,
+  type ContentCoverage,
+} from "./content-coverage";
 
-const row = (part: number, groups: number, questions: number, targetGroups: number, targetQuestions: number): ContentCoverage => ({ part, label: `Part ${part}`, groups, questions, targetGroups, targetQuestions });
+const row = (part: number, groups: number, questions: number, groupsPerForm: number, questionsPerForm: number): ContentCoverage => ({ part, label: `Part ${part}`, groups, questions, groupsPerForm, questionsPerForm });
 
 describe("admin content coverage recommendations", () => {
-  it("prioritizes the lowest structural coverage and limits the result", () => {
-    const result = recommendContentCoverage([row(1, 3, 3, 6, 6), row(2, 20, 20, 25, 25), row(3, 2, 6, 13, 39), row(4, 8, 24, 10, 30)]);
+  it("prioritizes growth against a multi-form bank target", () => {
+    const result = recommendContentCoverage([row(1, 30, 30, 6, 6), row(2, 200, 200, 25, 25), row(3, 26, 78, 13, 39), row(4, 80, 240, 10, 30)]);
     expect(result.map((item) => item.part)).toEqual([3, 1, 4]);
+    expect(result[0].targetQuestions).toBe(390);
   });
-  it("does not recommend coverage that already meets or exceeds the blueprint", () => {
-    expect(recommendContentCoverage([row(5, 35, 35, 30, 30)])).toEqual([]);
+  it("does not recommend coverage that meets the bank-size target", () => {
+    expect(recommendContentCoverage([row(5, 300, 300, 30, 30)])).toEqual([]);
   });
   it("uses both group and question requirements for grouped content", () => {
-    const [result] = recommendContentCoverage([row(7, 10, 20, 10, 29)]);
-    expect(result.coverage).toBeCloseTo(20 / 29);
+    const result = calculateContentCoverage(row(7, 100, 200, 10, 29));
+    expect(result.coverage).toBeCloseTo(200 / 290);
     expect(result.groupDeficit).toBe(0);
-    expect(result.questionDeficit).toBe(9);
+    expect(result.questionDeficit).toBe(90);
+    expect(result.uniqueFormCapacity).toBe(6);
+  });
+  it("reports the weakest Part as the no-repeat full-mock capacity", () => {
+    expect(getQuestionBankCapacity([row(1, 18, 18, 6, 6), row(2, 50, 50, 25, 25), row(3, 52, 156, 13, 39)])).toBe(2);
   });
 });

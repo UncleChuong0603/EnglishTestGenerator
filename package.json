@@ -24,6 +24,7 @@
     "test:e2e:blog:seed": "node --env-file=.env.local scripts/task18b-browser-seed.mjs",
     "test:e2e:blog": "node --env-file=.env.local node_modules/@playwright/test/cli.js test e2e/blog-cms.spec.ts",
     "payments:preflight": "node --env-file-if-exists=.env.local scripts/payments-preflight.mjs",
+    "payments:clear-test-data": "node --env-file-if-exists=.env.local scripts/clear-payment-test-data.mjs",
     "production:preflight": "node --env-file-if-exists=.env.local scripts/production-preflight.mjs",
     "production:verify": "node --env-file-if-exists=.env.local scripts/production-verify.mjs",
     "task23:verify:production": "node --env-file-if-exists=.env.local scripts/task23-verify-production.mjs",

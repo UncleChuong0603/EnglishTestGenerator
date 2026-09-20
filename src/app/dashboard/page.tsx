@@ -10,6 +10,8 @@ import { getDashboardData } from "@/lib/dashboard/service";
 import { formatTimer, remainingSeconds } from "@/lib/demo-test/composition";
 import { getActiveDemoTest } from "@/lib/demo-test/queries";
 import { getPreferences, getTranslations } from "@/lib/i18n/get-translations";
+import { daysUntilExam, formatExamDate } from "@/lib/goals/domain";
+import { getLearnerGoal } from "@/lib/goals/service";
 import type { InterfaceLanguage } from "@/lib/i18n/config";
 import { getCurrentProfile } from "@/lib/profiles/profile";
 import type { SkillAreaProgress } from "@/lib/progress/types";
@@ -63,10 +65,11 @@ function ProgressCard({
 export default async function DashboardPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/sign-in");
-  const [profileResult, preferences, account] = await Promise.all([
+  const [profileResult, preferences, account, goal] = await Promise.all([
     getCurrentProfile(user.id),
     getPreferences(user.id),
     getPremiumAccount(user.id, user.email),
+    getLearnerGoal(user.id).catch(() => null),
   ]);
   const locale = preferences.interfaceLanguage;
   const translations = getTranslations(locale);
@@ -121,6 +124,7 @@ export default async function DashboardPage() {
   const latestMockComparison = latestMock
     ? compareCompatible(mockHistory!, latestMock.mode)
     : null;
+  const examDaysRemaining = goal?.examDate ? daysUntilExam(goal.examDate) : null;
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-6 pb-24 text-slate-900 sm:px-6 sm:py-8 lg:pb-8">
@@ -180,7 +184,19 @@ export default async function DashboardPage() {
             </p>
           ) : null}
         </header>
+        <section className="mt-6 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-white p-5" aria-labelledby="goal-summary-heading">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-black uppercase tracking-wider text-amber-800">{locale === "vi" ? "Mục tiêu học tập" : "Learning goal"}</p>
+              <h2 className="mt-1 text-xl font-black" id="goal-summary-heading">{goal ? (goal.targetScore ? `${locale === "vi" ? "Mục tiêu TOEIC" : "Target TOEIC"}: ${goal.targetScore}` : (locale === "vi" ? "Kế hoạch học của bạn" : "Your study plan")) : (locale === "vi" ? "Chưa thiết lập mục tiêu" : "No goal set yet")}</h2>
+              {goal ? <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-600">{goal.examDate ? <span>{locale === "vi" ? "Ngày thi" : "Test date"}: {formatExamDate(goal.examDate, locale)}</span> : null}{goal.dailyStudyMinutes ? <span>{goal.dailyStudyMinutes} {locale === "vi" ? "phút/ngày" : "min/day"}</span> : null}{goal.studyDaysPerWeek ? <span>{goal.studyDaysPerWeek} {locale === "vi" ? "ngày/tuần" : "days/week"}</span> : null}</div> : <p className="mt-2 max-w-2xl text-sm text-slate-600">{locale === "vi" ? "Cho TOEICGym biết mục tiêu và khả năng học thực tế của bạn. Bạn có thể bỏ qua và thiết lập sau." : "Tell TOEICGym your target and realistic study capacity. You can skip this and set it later."}</p>}
+              {examDaysRemaining !== null ? <p className="mt-2 text-sm font-semibold text-slate-700">{examDaysRemaining < 0 ? (locale === "vi" ? "Ngày thi đã qua. Cập nhật ngày thi mới?" : "The test date has passed. Update it?") : examDaysRemaining === 0 ? (locale === "vi" ? "Ngày thi là hôm nay." : "Your test date is today.") : (locale === "vi" ? `Còn ${examDaysRemaining} ngày đến ngày thi` : `${examDaysRemaining} days until the test`)}</p> : null}
+            </div>
+            <div className="flex shrink-0 flex-col gap-2 sm:items-end"><Link className="inline-flex min-h-11 items-center justify-center rounded-xl border border-amber-700 px-4 font-bold text-amber-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-700" href="/settings?section=goal">{goal ? (locale === "vi" ? "Chỉnh sửa mục tiêu" : "Edit goal") : (locale === "vi" ? "Thiết lập mục tiêu" : "Set a goal")}</Link>{!goal ? <a className="inline-flex min-h-10 items-center justify-center text-sm font-semibold text-slate-500" href="#today-workout">{locale === "vi" ? "Bỏ qua lúc này" : "Skip for now"}</a> : null}</div>
+          </div>
+        </section>
         <div className="mt-7">
+          <span className="sr-only" id="today-workout">{locale === "vi" ? "Bài tập hôm nay" : "Today's workout"}</span>
           {dashboardResult?.recommendDiagnostic ? (
             <section className="rounded-3xl bg-slate-900 p-6 text-white sm:p-8">
               <p className="text-sm font-black uppercase tracking-wider text-teal-300">
