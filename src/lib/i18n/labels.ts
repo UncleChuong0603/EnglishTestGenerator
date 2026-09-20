@@ -6,6 +6,7 @@ import type { InterfaceLanguage } from "./config";
 import { getTranslations } from "./runtime";
 
 const taxonomyVi: Record<string, string> = {
+  visual_detail: "Chi tiết hình ảnh", action: "Hành động", location: "Địa điểm", question_response: "Hỏi – đáp", direct_response: "Phản hồi trực tiếp", indirect_response: "Phản hồi gián tiếp", intent: "Ý định", conversation: "Hội thoại", talk: "Bài nói", next_action: "Hành động tiếp theo", graphic: "Thông tin hình ảnh",
   grammar: "Ngữ pháp", vocabulary: "Từ vựng", cohesion: "Liên kết", context: "Ngữ cảnh", sentence_insertion: "Chèn câu",
   detail: "Thông tin chi tiết", inference: "Suy luận", purpose: "Mục đích", vocabulary_in_context: "Từ vựng trong ngữ cảnh", reference: "Tham chiếu", sentence_placement: "Vị trí câu", cross_text: "Liên kết thông tin giữa các văn bản",
   verb_tense: "Thì của động từ", subject_verb_agreement: "Hòa hợp chủ ngữ – động từ", passive_voice: "Câu bị động", word_form: "Từ loại", prepositions: "Giới từ", conjunctions_connectors: "Liên từ và từ nối", relative_clauses: "Mệnh đề quan hệ", pronouns_determiners: "Đại từ và từ hạn định", gerunds_infinitives: "Danh động từ và động từ nguyên mẫu", comparatives: "So sánh", modifiers: "Từ bổ nghĩa", contextual_vocabulary: "Từ vựng theo ngữ cảnh", business_vocabulary: "Từ vựng thương mại", collocations: "Cụm từ kết hợp", phrasal_expressions: "Cụm từ cố định",
@@ -14,6 +15,7 @@ const taxonomyVi: Record<string, string> = {
 };
 
 const taxonomyEn: Record<string, string> = {
+  visual_detail: "Visual Details", next_action: "Next Action", direct_response: "Direct Response", indirect_response: "Indirect Response", question_response: "Question–Response",
   vocabulary_in_context: "Vocabulary in Context", cross_text: "Cross-text Understanding", sentence_insertion: "Sentence Insertion", subject_verb_agreement: "Subject–Verb Agreement", conjunctions_connectors: "Conjunctions & Connectors", pronouns_determiners: "Pronouns & Determiners", gerunds_infinitives: "Gerunds & Infinitives", contextual_vocabulary: "Vocabulary in Context", phrasal_expressions: "Phrasal Expressions", explicit_information: "Explicit Information", implied_information: "Implied Information", document_purpose: "Document Purpose", word_meaning: "Word Meaning", reference_words: "Reference Words", logical_flow: "Logical Flow", document_context: "Document Context", sentence_fit: "Sentence Fit", logical_position: "Logical Position", information_synthesis: "Information Synthesis", word_form: "Word Forms", verb_tense: "Verb Tense", passive_voice: "Passive Voice", business_vocabulary: "Business Vocabulary",
 };
 

@@ -1,3 +1,5 @@
+"use client";
+
 import { setInterfaceLanguage } from "@/app/settings/actions";
 import type { InterfaceLanguage } from "@/lib/i18n/config";
 

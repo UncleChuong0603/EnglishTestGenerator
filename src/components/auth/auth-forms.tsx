@@ -44,10 +44,13 @@ export function SignInForm({ locale }: { locale: InterfaceLanguage }) {
 }
 
 export function SignUpForm({ locale }: { locale: InterfaceLanguage }) {
+  const params = useSearchParams();
   const [state, action, pending] = useActionState(signUpAction, initial);
   const vi = locale === "vi";
-  return <AuthShell eyebrow="Bắt đầu cùng TOEICGym" title={vi ? "Tạo tài khoản" : "Create your account"} intro={vi ? "Bắt đầu luyện TOEIC miễn phí." : "Start practicing TOEIC for free."}>
-    <GoogleButton label={vi ? "Đăng ký với Google" : "Sign up with Google"} />
+  const fromResult = params.get("from") === "guest-result";
+  return <AuthShell eyebrow={vi ? "Bắt đầu cùng TOEICGym" : "Start with TOEICGym"} title={fromResult ? (vi ? "Lưu kết quả của bạn" : "Save your result") : (vi ? "Tạo tài khoản" : "Create your account")} intro={fromResult ? (vi ? "Giữ kết quả vừa làm, nhận bài luyện đề xuất và bắt đầu xây dựng Ngân hàng câu sai." : "Keep this result, receive recommended practice, and start building your Mistake Bank.") : (vi ? "Bắt đầu luyện TOEIC miễn phí." : "Start practicing TOEIC for free.")}>
+    {fromResult ? <div className="mt-5 rounded-xl bg-teal-50 p-4 text-sm leading-6 text-teal-950">✓ {vi ? "Kết quả guest hiện tại sẽ được gắn vào tài khoản sau khi bạn đăng nhập thành công." : "Your current guest result will be attached after you successfully sign in."}</div> : null}
+    <GoogleButton next={params.get("next")} label={vi ? "Đăng ký với Google" : "Sign up with Google"} />
     <AuthDivider />
     <form action={action} aria-busy={pending} className="space-y-4">
       <div><label className="text-sm font-bold text-slate-800" htmlFor="sign-up-email">Email</label><input autoComplete="email" className={fieldClassName} id="sign-up-email" name="email" required type="email" /></div>

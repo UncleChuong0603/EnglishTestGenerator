@@ -8,13 +8,38 @@ import { getPracticeSession, type PracticeOwner } from "@/lib/practice/queries";
 import { flattenUniqueQuestionIds, RECENT_CONTENT_SESSION_WINDOW, type ContentHistory, type SelectionUnit } from "@/lib/practice/selection";
 import { loadUnits, selectListeningPractice } from "@/lib/practice/selector";
 import { getToeicProgress } from "@/lib/progress/queries";
-import { chooseDiverseUnits } from "./policy";
+import { getEffectiveCapabilities } from "@/lib/entitlements/service";
+import { chooseDiverseUnits, DIAGNOSTIC_BLUEPRINT_VERSION, nextDiagnosticEligibleAt, percentagePointDelta } from "./policy";
 export { shouldRecommendDiagnostic } from "./policy";
 
 export const DIAGNOSTIC_TTL_DAYS = 7;
 export const DIAGNOSTIC_PARTS = [1, 2, 3, 4, 5, 6, 7] as const;
 
 export type DiagnosticOwner = PracticeOwner;
+export type DiagnosticEligibilityStatus = "NEEDS_BASELINE" | "ACTIVE" | "COOLDOWN" | "ELIGIBLE" | "FREE_NOT_ELIGIBLE";
+export type DiagnosticEligibility = { status: DiagnosticEligibilityStatus; activeRunId: string | null; lastCompletedAt: Date | null; nextEligibleAt: Date | null; canUseDiagnosticReassessment: boolean };
+export class DiagnosticEligibilityError extends Error {
+  constructor(readonly code: "FREE_NOT_ELIGIBLE" | "COOLDOWN") { super(code); }
+}
+
+export async function getDiagnosticEligibility(userId: string, now = new Date()): Promise<DiagnosticEligibility> {
+  const [active, latestAny, latest, capabilities] = await Promise.all([
+    db.select({ id: diagnosticRuns.id }).from(diagnosticRuns).where(and(eq(diagnosticRuns.userId, userId), eq(diagnosticRuns.status, "IN_PROGRESS"), gt(diagnosticRuns.expiresAt, now))).limit(1),
+    db.select({ completedAt: diagnosticRuns.completedAt }).from(diagnosticRuns).where(and(eq(diagnosticRuns.userId, userId), eq(diagnosticRuns.status, "COMPLETED"))).orderBy(desc(diagnosticRuns.completedAt)).limit(1),
+    db.select({ completedAt: diagnosticRuns.completedAt }).from(diagnosticRuns).where(and(eq(diagnosticRuns.userId, userId), eq(diagnosticRuns.status, "COMPLETED"), eq(diagnosticRuns.blueprintVersion, DIAGNOSTIC_BLUEPRINT_VERSION))).orderBy(desc(diagnosticRuns.completedAt)).limit(1),
+    getEffectiveCapabilities(userId, now),
+  ]);
+  const hasBaseline = latestAny.length > 0;
+  const lastCompletedAt = latest[0]?.completedAt ?? latestAny[0]?.completedAt ?? null;
+  const compatibleCompletedAt = latest[0]?.completedAt ?? null;
+  const nextEligibleAt = compatibleCompletedAt ? nextDiagnosticEligibleAt(compatibleCompletedAt) : null;
+  const base = { activeRunId: active[0]?.id ?? null, lastCompletedAt, nextEligibleAt, canUseDiagnosticReassessment: capabilities.canUseDiagnosticReassessment };
+  if (base.activeRunId) return { status: "ACTIVE", ...base };
+  if (!hasBaseline) return { status: "NEEDS_BASELINE", ...base };
+  if (!capabilities.canUseDiagnosticReassessment) return { status: "FREE_NOT_ELIGIBLE", ...base };
+  if (nextEligibleAt && nextEligibleAt > now) return { status: "COOLDOWN", ...base };
+  return { status: "ELIGIBLE", ...base };
+}
 export async function hasResumableDiagnostic(owner: DiagnosticOwner) {
   const active = await db.select({ id: diagnosticRuns.id }).from(diagnosticRuns)
     .where(and(ownerWhere(owner), eq(diagnosticRuns.status, "IN_PROGRESS"), gt(diagnosticRuns.expiresAt, new Date())))
@@ -69,8 +94,19 @@ export async function getOrCreateDiagnostic(owner: DiagnosticOwner) {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${lockKey}:diagnostic`}, 0))`);
     const active = (await tx.select({ id: diagnosticRuns.id }).from(diagnosticRuns).where(and(ownerWhere(owner), eq(diagnosticRuns.status, "IN_PROGRESS"), gt(diagnosticRuns.expiresAt, now))).limit(1))[0];
     if (active) return active.id;
+    let purpose: "BASELINE" | "REASSESSMENT" = "BASELINE";
+    if ("userId" in owner) {
+      const [latestAny] = await tx.select({ completedAt: diagnosticRuns.completedAt }).from(diagnosticRuns).where(and(eq(diagnosticRuns.userId, owner.userId!), eq(diagnosticRuns.status, "COMPLETED"))).orderBy(desc(diagnosticRuns.completedAt)).limit(1);
+      const [latestCompatible] = await tx.select({ completedAt: diagnosticRuns.completedAt }).from(diagnosticRuns).where(and(eq(diagnosticRuns.userId, owner.userId!), eq(diagnosticRuns.status, "COMPLETED"), eq(diagnosticRuns.blueprintVersion, DIAGNOSTIC_BLUEPRINT_VERSION))).orderBy(desc(diagnosticRuns.completedAt)).limit(1);
+      if (latestAny?.completedAt) {
+        const capabilities = await getEffectiveCapabilities(owner.userId!, now);
+        if (!capabilities.canUseDiagnosticReassessment) throw new DiagnosticEligibilityError("FREE_NOT_ELIGIBLE");
+        if (latestCompatible?.completedAt && nextDiagnosticEligibleAt(latestCompatible.completedAt) > now) throw new DiagnosticEligibilityError("COOLDOWN");
+        purpose = "REASSESSMENT";
+      }
+    }
     const expiresAt = new Date(now.getTime() + DIAGNOSTIC_TTL_DAYS * 86_400_000);
-    const [run] = await tx.insert(diagnosticRuns).values({ ...ownerValues(owner), expiresAt }).returning({ id: diagnosticRuns.id });
+    const [run] = await tx.insert(diagnosticRuns).values({ ...ownerValues(owner), expiresAt, purpose, blueprintVersion: DIAGNOSTIC_BLUEPRINT_VERSION }).returning({ id: diagnosticRuns.id });
     for (let index = 0; index < drafts.length; index++) {
       const draft = drafts[index];
       const [session] = await tx.insert(practiceSessions).values({ ...ownerValues(owner), skillArea: draft.skillArea, practiceType: draft.practiceType, part: draft.part, status: "in_progress", questionCount: draft.questionIds.length, requestedQuestionCount: draft.questionIds.length, source: "diagnostic", expiresAt, diagnosticRunId: run.id, diagnosticOrder: index + 1 }).returning({ id: practiceSessions.id });
@@ -99,8 +135,32 @@ export async function hasCompletedDiagnostic(userId: string) { return Boolean((a
 export async function getDiagnosticResult(runId: string, owner: DiagnosticOwner) {
   const run = await getDiagnosticRun(runId, owner); if (!run || run.status !== "COMPLETED") return null;
   if (!("userId" in owner)) return { run, progress: null, diagnosis: null, recommendation: null };
-  const progress = await getToeicProgress(owner.userId!); const diagnosis = calculateToeicDiagnosis(progress); const recommendation = await loadRecommendedWorkout(owner.userId!).catch(() => null);
-  return { run, progress, diagnosis, recommendation };
+  const [progress, capabilities] = await Promise.all([getToeicProgress(owner.userId!), getEffectiveCapabilities(owner.userId!)]); const diagnosis = calculateToeicDiagnosis(progress); const recommendation = await loadRecommendedWorkout(owner.userId!).catch(() => null);
+  const history = capabilities.canUseDiagnosticReassessment ? await getDiagnosticHistory(owner.userId!, run.blueprintVersion) : [];
+  const index = history.findIndex((item) => item.id === run.id);
+  const previous = index >= 0 ? history[index + 1] ?? null : null;
+  return { run, progress, diagnosis, recommendation, summary: history[index] ?? summarizeRun({ ...run, completedAt: run.completedAt!, children: run.children }), previous, history };
+}
+
+export type DiagnosticMetric = { correct: number; total: number; accuracy: number | null };
+export type DiagnosticSummary = { id: string; completedAt: Date; blueprintVersion: string | null; purpose: string; overall: DiagnosticMetric; listening: DiagnosticMetric; reading: DiagnosticMetric; parts: Array<DiagnosticMetric & { part: number }> };
+const metric = (correct: number, total: number): DiagnosticMetric => ({ correct, total, accuracy: total ? Math.round(correct / total * 100) : null });
+function summarizeRun(run: { id: string; completedAt: Date; blueprintVersion: string | null; purpose: string; children: Array<typeof practiceSessions.$inferSelect> }): DiagnosticSummary {
+  const rows = run.children; const forRows = (items: typeof rows) => metric(items.reduce((n, row) => n + (row.scoreCorrect ?? 0), 0), items.reduce((n, row) => n + (row.scoreTotal ?? 0), 0));
+  return { id: run.id, completedAt: run.completedAt, blueprintVersion: run.blueprintVersion, purpose: run.purpose, overall: forRows(rows), listening: forRows(rows.filter((row) => row.skillArea === "LISTENING")), reading: forRows(rows.filter((row) => row.skillArea === "READING")), parts: DIAGNOSTIC_PARTS.map((part) => ({ part, ...forRows(rows.filter((row) => row.part === part)) })) };
+}
+
+export async function getDiagnosticHistory(userId: string, blueprintVersion: string | null = DIAGNOSTIC_BLUEPRINT_VERSION): Promise<DiagnosticSummary[]> {
+  if (!blueprintVersion) return [];
+  const runs = await db.select({ id: diagnosticRuns.id, completedAt: diagnosticRuns.completedAt, blueprintVersion: diagnosticRuns.blueprintVersion, purpose: diagnosticRuns.purpose }).from(diagnosticRuns).where(and(eq(diagnosticRuns.userId, userId), eq(diagnosticRuns.status, "COMPLETED"), eq(diagnosticRuns.blueprintVersion, blueprintVersion))).orderBy(desc(diagnosticRuns.completedAt));
+  if (!runs.length) return [];
+  const children = await db.select().from(practiceSessions).where(inArray(practiceSessions.diagnosticRunId, runs.map((run) => run.id)));
+  return runs.map((run) => summarizeRun({ ...run, completedAt: run.completedAt!, blueprintVersion: run.blueprintVersion!, children: children.filter((child) => child.diagnosticRunId === run.id) }));
+}
+
+export function compareDiagnosticSummaries(latest: DiagnosticSummary, previous: DiagnosticSummary) {
+  const delta = (a: DiagnosticMetric, b: DiagnosticMetric) => percentagePointDelta(b.correct, b.total, a.correct, a.total);
+  return { overallDelta: delta(latest.overall, previous.overall), listeningDelta: delta(latest.listening, previous.listening), readingDelta: delta(latest.reading, previous.reading), parts: latest.parts.map((part) => ({ part: part.part, delta: delta(part, previous.parts.find((item) => item.part === part.part) ?? metric(0, 0)) })) };
 }
 
 export async function diagnosticRunForSession(sessionId: string) {

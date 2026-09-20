@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+vi.mock("@/app/settings/actions", () => ({ setInterfaceLanguage: vi.fn() }));
 import { AuthAlert } from "./auth-ui";
 import { PasswordField } from "./password-field";
 

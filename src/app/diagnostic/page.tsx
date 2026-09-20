@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/session";
-import { hasResumableDiagnostic } from "@/lib/diagnostic/service";
+import { getDiagnosticEligibility, hasResumableDiagnostic } from "@/lib/diagnostic/service";
 import { getGuestOwnerHash } from "@/lib/guest/identity";
 import { getCookieLanguage } from "@/lib/i18n/get-translations";
 import { startDiagnostic } from "./actions";
@@ -44,6 +44,8 @@ export default async function DiagnosticLandingPage({ searchParams }: { searchPa
   const [user, locale, query] = await Promise.all([getCurrentUser(), getCookieLanguage(), searchParams]);
   const guestHash = user ? null : await getGuestOwnerHash();
   const resumable = user || guestHash ? await hasResumableDiagnostic(user ? { userId: user.id } : { guestOwnerHash: guestHash! }) : false;
+  const eligibility = user ? await getDiagnosticEligibility(user.id) : null;
+  const mayStart = !eligibility || eligibility.status === "NEEDS_BASELINE" || eligibility.status === "ACTIVE" || eligibility.status === "ELIGIBLE";
   const t = copy[locale === "vi" ? "vi" : "en"];
 
   return <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 sm:px-6 sm:py-10 lg:py-14">
@@ -63,8 +65,8 @@ export default async function DiagnosticLandingPage({ searchParams }: { searchPa
                 {t.benefits.map((benefit) => <li className="flex gap-3" key={benefit}><span aria-hidden="true" className="mt-1 flex size-5 shrink-0 items-center justify-center rounded-full bg-teal-100 text-xs font-black text-teal-800">✓</span><span>{benefit}</span></li>)}
               </ul>
             </div>
-            <form action={startDiagnostic} className="mt-9"><button className="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-teal-700 px-6 py-3 text-base font-bold text-white shadow-sm transition-colors hover:bg-teal-800 sm:w-auto" type="submit">{resumable ? t.resume : t.start}<span aria-hidden="true" className="ml-3">→</span></button></form>
-            <p className="mt-3 max-w-lg text-sm leading-6 text-slate-600">{resumable ? t.resumeNote : t.startNote}</p>
+            {mayStart ? <form action={startDiagnostic} className="mt-9"><button className="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-teal-700 px-6 py-3 text-base font-bold text-white shadow-sm transition-colors hover:bg-teal-800 sm:w-auto" type="submit">{resumable ? t.resume : eligibility?.status === "ELIGIBLE" ? (locale === "vi" ? "Đánh giá lại" : "Reassess") : t.start}<span aria-hidden="true" className="ml-3">→</span></button></form> : <div className="mt-9 rounded-xl border border-slate-200 bg-slate-50 p-4"><p className="font-semibold">{eligibility?.status === "COOLDOWN" && eligibility.nextEligibleAt ? (locale === "vi" ? `Bạn có thể đánh giá lại sau ${eligibility.nextEligibleAt.toLocaleDateString("vi-VN")}.` : `You can reassess after ${eligibility.nextEligibleAt.toLocaleDateString("en-US")}.`) : (locale === "vi" ? "Đánh giá lại là quyền lợi Premium." : "Reassessment is a Premium capability.")}</p><Link className="mt-3 inline-flex font-bold text-teal-800 underline" href={eligibility?.status === "FREE_NOT_ELIGIBLE" ? "/pricing" : "/dashboard"}>{eligibility?.status === "FREE_NOT_ELIGIBLE" ? (locale === "vi" ? "Xem Premium" : "View Premium") : (locale === "vi" ? "Về trang chủ" : "Back to dashboard")}</Link></div>}
+            {mayStart ? <p className="mt-3 max-w-lg text-sm leading-6 text-slate-600">{resumable ? t.resumeNote : t.startNote}</p> : null}
           </div>
           <aside aria-labelledby="diagnostic-summary" className="min-w-0 border-t border-slate-200 bg-slate-50 px-6 py-8 sm:px-10 lg:flex lg:flex-col lg:justify-center lg:border-l lg:border-t-0 lg:px-9">
             <h2 id="diagnostic-summary" className="text-lg font-bold text-slate-950">{t.summary}</h2>

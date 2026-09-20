@@ -415,6 +415,8 @@ export const diagnosticRuns = pgTable("diagnostic_runs", {
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
   expiresAt: timestamp("expires_at", { withTimezone: true, mode: "date" }).notNull(),
   completedAt: timestamp("completed_at", { withTimezone: true, mode: "date" }),
+  blueprintVersion: text("blueprint_version"),
+  purpose: text("purpose").notNull().default("BASELINE"),
 }, (table) => [
   index("diagnostic_runs_user_created_idx").on(table.userId, table.createdAt),
   index("diagnostic_runs_guest_created_idx").on(table.guestOwnerHash, table.createdAt),
@@ -423,6 +425,7 @@ export const diagnosticRuns = pgTable("diagnostic_runs", {
   check("diagnostic_runs_owner_check", sql`num_nonnulls(${table.userId}, ${table.guestOwnerHash}) = 1`),
   check("diagnostic_runs_status_check", sql`${table.status} in ('IN_PROGRESS','COMPLETED','EXPIRED')`),
   check("diagnostic_runs_lifecycle_check", sql`(${table.status} = 'COMPLETED' and ${table.completedAt} is not null) or (${table.status} <> 'COMPLETED' and ${table.completedAt} is null)`),
+  check("diagnostic_runs_purpose_check", sql`${table.purpose} in ('BASELINE','REASSESSMENT')`),
 ]);
 
 export const fullMockRuns = pgTable("full_mock_runs", {

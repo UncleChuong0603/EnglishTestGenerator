@@ -1,6 +1,19 @@
 import type { SelectionUnit } from "@/lib/practice/selection";
 import type { ToeicProgress } from "@/lib/progress/types";
 
+export const DIAGNOSTIC_BLUEPRINT_VERSION = "v1";
+export const DIAGNOSTIC_REASSESSMENT_INTERVAL_DAYS = 30;
+export const DIAGNOSTIC_REASSESSMENT_INTERVAL_MS = DIAGNOSTIC_REASSESSMENT_INTERVAL_DAYS * 86_400_000;
+
+export function nextDiagnosticEligibleAt(completedAt: Date) {
+  return new Date(completedAt.getTime() + DIAGNOSTIC_REASSESSMENT_INTERVAL_MS);
+}
+
+export function percentagePointDelta(previousCorrect: number, previousTotal: number, latestCorrect: number, latestTotal: number) {
+  if (!previousTotal || !latestTotal) return null;
+  return Math.round(latestCorrect / latestTotal * 100) - Math.round(previousCorrect / previousTotal * 100);
+}
+
 export function shouldRecommendDiagnostic(progress: ToeicProgress, hasCompletedDiagnostic: boolean) {
   if (hasCompletedDiagnostic) return false;
   const coveredParts = progress.parts.filter((part) => part.attemptedCount >= 3).length;

@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { attemptAnswers, diagnosticRuns, practiceSessionQuestions, practiceSessions, questionOptions, questionSolutions } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth/session";
-import { getOrCreateDiagnostic } from "@/lib/diagnostic/service";
+import { DiagnosticEligibilityError, getOrCreateDiagnostic } from "@/lib/diagnostic/service";
 import { getGuestOwnerHash, requireGuestOwnerHash } from "@/lib/guest/identity";
 import type { SubmittedAnswer } from "@/lib/practice/types";
 import { evaluateMultipleChoice } from "@/lib/toeic/evaluation";
@@ -13,7 +13,7 @@ import { reconcileMasteryAnswers } from "@/lib/mastery/persistence";
 import { awardCompletedLearning } from "@/lib/gamification/award";
 
 async function owner() { const user = await getCurrentUser(); return user ? { userId: user.id } as const : { guestOwnerHash: await requireGuestOwnerHash() } as const; }
-export async function startDiagnostic() { let runId: string; try { runId = await getOrCreateDiagnostic(await owner()); } catch (error) { console.error("Could not create diagnostic", error); redirect("/diagnostic?error=unavailable"); } redirect(`/diagnostic/${runId}`); }
+export async function startDiagnostic() { let runId: string; try { runId = await getOrCreateDiagnostic(await owner()); } catch (error) { if (error instanceof DiagnosticEligibilityError) redirect(`/diagnostic?error=${error.code.toLowerCase()}`); console.error("Could not create diagnostic", error); redirect("/diagnostic?error=unavailable"); } redirect(`/diagnostic/${runId}`); }
 
 export async function submitDiagnosticPart(runId: string, sessionId: string, answers: SubmittedAnswer[]) {
   const current = await owner();
