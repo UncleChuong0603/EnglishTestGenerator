@@ -5,7 +5,7 @@ import type { InterfaceLanguage } from "@/lib/i18n/config";
 export function AdminNav({locale}:{locale:InterfaceLanguage}) {
   const vi=locale==="vi";
   const groups=[
-    {name:vi?"Bắt đầu":"Start",links:[["/admin",vi?"Tổng quan":"Overview"]]},
+    {name:vi?"Bắt đầu":"Start",links:[["/admin",vi?"Tổng quan":"Overview"],["/admin/analytics",vi?"Phân tích sản phẩm":"Product analytics"]]},
     {name:vi?"Học liệu":"Learning content",links:[["/admin/content",vi?"Ngân hàng câu hỏi":"Question bank"],["/admin/content/media","Media"],["/admin/content/posts",vi?"Bài viết":"Posts"]]},
     {name:vi?"Người học":"Learners",links:[["/admin/users",vi?"Người dùng":"Users"]]},
     {name:vi?"Vận hành":"Operations",links:[["/admin/challenges",vi?"Sự kiện xếp hạng":"Ranking events"],["/admin/payments",vi?"Thanh toán":"Payments"],["/admin/audit",vi?"Nhật ký":"Audit log"]]},

@@ -227,6 +227,29 @@ export const securityEvents = pgTable("security_events", {
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
 }, (table) => [index("security_events_user_created_idx").on(table.userId, table.createdAt)]);
 
+export const productEvents = pgTable("product_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  eventName: text("event_name").notNull(),
+  occurredAt: timestamp("occurred_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+  guestReference: text("guest_reference"),
+  sessionId: uuid("session_id"),
+  source: text("source").notNull().default("server"),
+  route: text("route"),
+  deduplicationKey: text("deduplication_key"),
+  properties: jsonb("properties").$type<Record<string, string | number | boolean | null>>().notNull().default({}),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+}, (table) => [
+  index("product_events_name_occurred_idx").on(table.eventName, table.occurredAt),
+  index("product_events_occurred_idx").on(table.occurredAt),
+  index("product_events_user_occurred_idx").on(table.userId, table.occurredAt),
+  index("product_events_guest_occurred_idx").on(table.guestReference, table.occurredAt),
+  uniqueIndex("product_events_dedup_uidx").on(table.deduplicationKey).where(sql`${table.deduplicationKey} is not null`),
+  check("product_events_actor_check", sql`num_nonnulls(${table.userId}, ${table.guestReference}) <= 1`),
+  check("product_events_name_check", sql`${table.eventName} in ('landing_viewed','try_viewed','guest_practice_started','guest_practice_completed','diagnostic_started','diagnostic_completed','signup_started','signup_completed','login_completed','first_authenticated_practice_started','first_authenticated_practice_completed','first_workout_completed','first_mistake_review_completed','practice_started','practice_completed','workout_started','workout_completed','mistake_review_started','mistake_review_completed','smart_review_started','smart_review_completed','diagnostic_reassessment_started','diagnostic_reassessment_completed','mock_started','mock_completed','pricing_viewed','checkout_started','checkout_created','premium_activated','premium_renewed')`),
+  check("product_events_source_check", sql`${table.source} in ('browser','server','payment')`),
+]);
+
 export const passageSets = pgTable("passage_sets", {
   id: uuid("id").primaryKey().defaultRandom(), toeicPart: smallint("toeic_part").notNull(), skillArea: text("skill_area").notNull().default("READING"), setType: text("set_type").notNull(),
   title: text("title").notNull(), metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}), status: text("status").notNull().default("draft"), provenance: text("provenance").notNull().default("SEEDED"), revisionOfId: uuid("revision_of_id"), publishedAt: timestamp("published_at", { withTimezone: true, mode: "date" }), archivedAt: timestamp("archived_at", { withTimezone: true, mode: "date" }), ...timestamps,

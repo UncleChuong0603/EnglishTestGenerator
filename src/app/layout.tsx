@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Be_Vietnam_Pro } from "next/font/google";
 import { LocaleProvider } from "@/components/locale-provider";
+import { ProductEvent } from "@/components/product-event";
 import { getCookieLanguage } from "@/lib/i18n/get-translations";
 import { getTranslations } from "@/lib/i18n/runtime";
 import "./globals.css";
@@ -25,7 +26,7 @@ export default async function RootLayout({
   const locale = await getCookieLanguage();
   return (
     <html className={beVietnamPro.variable} lang={locale}>
-      <body><LocaleProvider locale={locale}>{children}</LocaleProvider></body>
+      <body><ProductEvent/><LocaleProvider locale={locale}>{children}</LocaleProvider></body>
     </html>
   );
 }

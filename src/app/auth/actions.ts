@@ -2,11 +2,13 @@
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { PASSWORD_MIN_LENGTH } from "@/lib/auth/crypto";
+import { hashToken, PASSWORD_MIN_LENGTH } from "@/lib/auth/crypto";
 import { enforceRateLimit } from "@/lib/auth/rate-limit";
 import { authenticatePassword, changePassword, consumeActivationToken, registerPasswordUser, requestPasswordReset, resendVerification, resetPassword, verifyEmailToken } from "@/lib/auth/service";
 import { createSession, getCurrentSession, requireUser, revokeAllUserSessions, revokeCurrentSession } from "@/lib/auth/session";
 import { migrateGuestAttempts } from "@/lib/guest/migration";
+import { resolveProductActor } from "@/lib/product-analytics/actor";
+import { recordProductEvent } from "@/lib/product-analytics/service";
 
 export type AuthActionState = { ok: boolean; error?: string; message?: string };
 const passwordSchema = z.string().min(PASSWORD_MIN_LENGTH).max(1024);
@@ -19,14 +21,14 @@ function logAuthFailure(action: string, error: unknown) {
 export async function signUpAction(_state: AuthActionState, formData: FormData): Promise<AuthActionState> {
   const parsed = z.object({ email: emailSchema, password: passwordSchema, confirmPassword: z.string() }).safeParse(Object.fromEntries(formData));
   if (!parsed.success || parsed.data.password !== parsed.data.confirmPassword) return { ok: false, error: "Thông tin đăng ký không hợp lệ hoặc mật khẩu xác nhận không khớp." };
-  try { await enforceRateLimit("signup", await clientKey(parsed.data.email)); const outcome = await registerPasswordUser(parsed.data.email, parsed.data.password); console.info("[auth:signup] completed", { outcome }); return { ok: true, message: "Nếu địa chỉ này có thể đăng ký, hướng dẫn xác minh đã được gửi." }; }
+  try { await enforceRateLimit("signup", await clientKey(parsed.data.email)); const actor=await resolveProductActor(); const outcome = await registerPasswordUser(parsed.data.email, parsed.data.password); if(outcome==="created") await recordProductEvent({eventName:"signup_completed",...actor,deduplicationKey:`signup:${hashToken(parsed.data.email.toLowerCase())}`}); console.info("[auth:signup] completed", { outcome }); return { ok: true, message: "Nếu địa chỉ này có thể đăng ký, hướng dẫn xác minh đã được gửi." }; }
   catch (error) { if (!(error instanceof Error && error.message === "RATE_LIMITED")) logAuthFailure("signup", error); return { ok: false, error: error instanceof Error && error.message === "RATE_LIMITED" ? "Bạn thao tác quá nhanh. Vui lòng thử lại sau." : "Không thể tạo tài khoản lúc này." }; }
 }
 
 export async function signInAction(_state: AuthActionState, formData: FormData): Promise<AuthActionState> {
   const parsed = z.object({ email: emailSchema, password: z.string().max(1024), next: z.string().optional() }).safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { ok: false, error: "Email hoặc mật khẩu không đúng." };
-  try { await enforceRateLimit("login", await clientKey(parsed.data.email)); const user = await authenticatePassword(parsed.data.email, parsed.data.password); if (!user) return { ok: false, error: "Email hoặc mật khẩu không đúng." }; await createSession(user.id); await migrateGuestAttempts(user.id); const next = parsed.data.next?.startsWith("/") && !parsed.data.next.startsWith("//") ? parsed.data.next : "/dashboard"; redirect(next); }
+  try { await enforceRateLimit("login", await clientKey(parsed.data.email)); const user = await authenticatePassword(parsed.data.email, parsed.data.password); if (!user) return { ok: false, error: "Email hoặc mật khẩu không đúng." }; await createSession(user.id); await migrateGuestAttempts(user.id); await recordProductEvent({eventName:"login_completed",userId:user.id,deduplicationKey:`login:${user.id}:${Math.floor(Date.now()/1_800_000)}`}); const next = parsed.data.next?.startsWith("/") && !parsed.data.next.startsWith("//") ? parsed.data.next : "/dashboard"; redirect(next); }
   catch (error) { if (typeof error === "object" && error && "digest" in error) throw error; return { ok: false, error: error instanceof Error && error.message === "RATE_LIMITED" ? "Bạn thao tác quá nhanh. Vui lòng thử lại sau." : "Email hoặc mật khẩu không đúng." }; }
 }
 
