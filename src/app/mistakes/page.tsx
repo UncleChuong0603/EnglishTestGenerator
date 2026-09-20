@@ -73,6 +73,7 @@ export default async function MistakesPage({
     `/mistakes?${new URLSearchParams(Object.entries({ tab: status === "MASTERED" ? "mastered" : "review", area, part: part?.toString(), filter: repeated ? "repeated" : undefined, sort: premium ? sort : undefined, ...changes }).filter((entry): entry is [string, string] => Boolean(entry[1])))}`;
   const total = counts.unresolved + counts.mastered;
   const eligible = rows.filter((row) => row.available).length;
+  const reviewUsage = preview.usage.MASTERY_REVIEW;
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-6 pb-20 text-slate-900 sm:px-6">
       <div className="mx-auto max-w-5xl">
@@ -90,7 +91,61 @@ export default async function MistakesPage({
               : "Review real mistakes and track your progress toward mastery."}
           </p>
         </header>
-        {query.error ? (
+        {query.error === "usage_limit" && preview.visible ? (
+          <div className="mt-5">
+            <PremiumPreviewCard
+              locale={preferences.interfaceLanguage}
+              title={
+                vi
+                  ? `Bạn đã dùng ${reviewUsage.used}/${reviewUsage.type === "LIMITED" ? reviewUsage.limit : reviewUsage.used} lượt ôn Free hôm nay`
+                  : `You used ${reviewUsage.used}/${reviewUsage.type === "LIMITED" ? reviewUsage.limit : reviewUsage.used} Free reviews today`
+              }
+              body={
+                vi ? (
+                  <>
+                    Bạn vẫn còn{" "}
+                    <strong>{preview.mistakes.unresolvedCount}</strong> lỗi chưa
+                    làm chủ
+                    {preview.mistakes.repeatedMistakeCount > 0 ? (
+                      <>
+                        {" "}
+                        và{" "}
+                        <strong>
+                          {preview.mistakes.repeatedMistakeCount}
+                        </strong>{" "}
+                        câu đã sai nhiều lần
+                      </>
+                    ) : null}
+                    .
+                  </>
+                ) : (
+                  <>
+                    You still have{" "}
+                    <strong>{preview.mistakes.unresolvedCount}</strong>{" "}
+                    unresolved mistakes
+                    {preview.mistakes.repeatedMistakeCount > 0 ? (
+                      <>
+                        {" "}
+                        and{" "}
+                        <strong>
+                          {preview.mistakes.repeatedMistakeCount}
+                        </strong>{" "}
+                        repeatedly missed questions
+                      </>
+                    ) : null}
+                    .
+                  </>
+                )
+              }
+              values={
+                preview.mistakes.repeatedMistakeCount > 0
+                  ? ["smartReview", "smartPriority"]
+                  : ["smartReview"]
+              }
+              cta={vi ? "Xem Smart Review" : "See Smart Review"}
+            />
+          </div>
+        ) : query.error ? (
           <p
             className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900"
             role="alert"
@@ -107,6 +162,36 @@ export default async function MistakesPage({
                   ? "Hiện chưa có câu đủ điều kiện để tạo phiên ôn."
                   : "No eligible questions are available for a review session."}
           </p>
+        ) : null}
+        {!premium &&
+        preview.visible &&
+        preview.mistakes.unresolvedCount > 0 &&
+        query.error !== "usage_limit" ? (
+          <div className="mt-6">
+            <PremiumPreviewCard
+              locale={preferences.interfaceLanguage}
+              title={
+                vi
+                  ? `${preview.mistakes.unresolvedCount} lỗi chưa làm chủ`
+                  : `${preview.mistakes.unresolvedCount} unresolved mistakes`
+              }
+              body={
+                preview.mistakes.repeatedMistakeCount > 0
+                  ? vi
+                    ? `${preview.mistakes.repeatedMistakeCount} câu đã sai nhiều lần. Premium có thể ưu tiên chúng trước.`
+                    : `${preview.mistakes.repeatedMistakeCount} questions were missed repeatedly. Premium can prioritize them first.`
+                  : vi
+                    ? "Premium Smart Review có thể sắp xếp các lỗi cần ôn trước."
+                    : "Premium Smart Review can prioritize what to review first."
+              }
+              values={
+                preview.mistakes.repeatedMistakeCount > 0
+                  ? ["smartReview", "smartPriority"]
+                  : ["smartReview"]
+              }
+              cta={vi ? "Xem Smart Review" : "See Smart Review"}
+            />
+          </div>
         ) : null}
         {total > 0 ? (
           <section

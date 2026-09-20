@@ -290,6 +290,42 @@ export default async function DashboardPage() {
           </section>
         ) : null}
 
+        {preview.visible && preview.progress.hasSkillBreakdownPotential ? (
+          <div className="mt-8">
+            <PremiumPreviewCard
+              locale={locale}
+              title={
+                locale === "vi"
+                  ? "Phân tích sâu hơn từ dữ liệu của bạn"
+                  : "Go deeper with your learning data"
+              }
+              body={
+                locale === "vi" ? (
+                  <>
+                    Bạn đã luyện{" "}
+                    <strong>{preview.progress.answeredCount}</strong> câu.
+                    TOEICGym đã có đủ mẫu cho{" "}
+                    <strong>{preview.progress.eligibleSkillCount}</strong> skill
+                    và <strong>{preview.progress.eligibleSubskillCount}</strong>{" "}
+                    subskill.
+                  </>
+                ) : (
+                  <>
+                    You answered{" "}
+                    <strong>{preview.progress.answeredCount}</strong> questions.
+                    TOEICGym has enough evidence for{" "}
+                    <strong>{preview.progress.eligibleSkillCount}</strong>{" "}
+                    skills and{" "}
+                    <strong>{preview.progress.eligibleSubskillCount}</strong>{" "}
+                    subskills.
+                  </>
+                )
+              }
+              values={["analytics"]}
+            />
+          </div>
+        ) : null}
+
         {usage.effectivePlan === "PREMIUM" ? (
           <section
             className="mt-8 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-5 sm:flex-row sm:items-center sm:justify-between"

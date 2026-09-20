@@ -15,7 +15,6 @@ import {
   compareDiagnosticSummaries,
   getDiagnosticHistory,
 } from "@/lib/diagnostic/service";
-import { PremiumPreviewCard } from "@/components/premium/premium-preview";
 import { getPremiumPreview } from "@/lib/premium/preview";
 
 export default async function ProgressPage({
@@ -286,13 +285,42 @@ export default async function ProgressPage({
                       ))}
                   </div>
                 </section>
-              ) : (
+              ) : preview.visible ? (
                 <section className="mt-7 rounded-2xl border border-slate-200 bg-white p-6">
                   <h2 className="text-xl font-black">
                     {vi
                       ? "Phân tích sâu hơn khi cần"
                       : "Go deeper when you need it"}
                   </h2>
+                  {preview.progress.hasSkillBreakdownPotential ? (
+                    <p className="mt-2 max-w-2xl font-semibold text-slate-800">
+                      {vi ? (
+                        <>
+                          Dựa trên{" "}
+                          <strong>{preview.progress.answeredCount}</strong> câu
+                          đã làm, TOEICGym có đủ mẫu cho{" "}
+                          <strong>{preview.progress.eligibleSkillCount}</strong>{" "}
+                          skill và{" "}
+                          <strong>
+                            {preview.progress.eligibleSubskillCount}
+                          </strong>{" "}
+                          subskill.
+                        </>
+                      ) : (
+                        <>
+                          Based on{" "}
+                          <strong>{preview.progress.answeredCount}</strong>{" "}
+                          answers, TOEICGym has enough evidence for{" "}
+                          <strong>{preview.progress.eligibleSkillCount}</strong>{" "}
+                          skills and{" "}
+                          <strong>
+                            {preview.progress.eligibleSubskillCount}
+                          </strong>{" "}
+                          subskills.
+                        </>
+                      )}
+                    </p>
+                  ) : null}
                   <p className="mt-2 max-w-2xl text-slate-600">
                     {vi
                       ? "Free luôn giữ tiến độ tổng, Listening/Reading, từng Part và xu hướng 30 ngày. Premium bổ sung lịch sử 90 ngày và phân tích skill/subskill theo cỡ mẫu thực."
@@ -305,7 +333,7 @@ export default async function ProgressPage({
                     {vi ? "Xem quyền lợi Premium" : "See Premium benefits"}
                   </Link>
                 </section>
-              )}
+              ) : null}
             </>
           )}
           {latestDiagnostic ? (

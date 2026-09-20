@@ -62,6 +62,7 @@ export default async function PracticePage({ searchParams }: Props) {
     3: t.listening.conversations,
     4: t.listening.talks,
   };
+  const practiceUsage = preview.usage.MANUAL_PRACTICE;
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 sm:px-6 sm:py-8">
       <div className="mx-auto max-w-6xl">
@@ -75,8 +76,16 @@ export default async function PracticePage({ searchParams }: Props) {
           <div className="mt-6">
             <PremiumPreviewCard
               locale={locale}
-              title={locale === "vi" ? "Bạn đã dùng 3/3 lượt luyện hôm nay" : "You used 3/3 practice sessions today"}
-              body={locale === "vi" ? "Premium mở luyện không giới hạn và các mục tiêu luyện nâng cao từ chính lịch sử của bạn." : "Premium unlocks unlimited practice and advanced targets based on your history."}
+              title={
+                locale === "vi"
+                  ? `Bạn đã dùng ${practiceUsage.used}/${practiceUsage.type === "LIMITED" ? practiceUsage.limit : practiceUsage.used} lượt luyện hôm nay`
+                  : `You used ${practiceUsage.used}/${practiceUsage.type === "LIMITED" ? practiceUsage.limit : practiceUsage.used} practice sessions today`
+              }
+              body={
+                locale === "vi"
+                  ? "Premium mở luyện không giới hạn và các mục tiêu luyện nâng cao từ chính lịch sử của bạn."
+                  : "Premium unlocks unlimited practice and advanced targets based on your history."
+              }
               values={["targeting"]}
             />
           </div>

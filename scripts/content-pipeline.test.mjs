@@ -7,6 +7,8 @@ const choose = (sets, groups, questions, at = 0) => groups === 0 ? questions ===
 describe("Task 12 production manifests", () => {
   it("has stable unique Listening keys and exact Full Mock coverage", () => {
     expect(new Set(productionListening.map(item => item.externalId)).size).toBe(productionListening.length);
+    expect(productionListening.every(item => item.externalId.startsWith("L-"))).toBe(true);
+    expect(JSON.stringify(productionListening)).not.toMatch(/dev-listening|original synthetic/i);
     expect(productionListening.filter(item => item.part === 1).length).toBeGreaterThanOrEqual(6);
     expect(productionListening.filter(item => item.part === 2).length).toBeGreaterThanOrEqual(25);
     expect(productionListening.filter(item => item.part === 3).length).toBeGreaterThanOrEqual(13);

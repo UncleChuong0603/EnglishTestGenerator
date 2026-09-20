@@ -127,29 +127,34 @@ export default async function FullMockPage({
       active: actives[2],
     },
   ];
+  const mockUsage = preview.usage.FULL_MOCK;
   return (
     <main className="min-h-screen overflow-x-hidden bg-slate-50 px-4 py-6 text-slate-900">
       <div className="mx-auto max-w-6xl">
         <LearnerNav locale={preferences.interfaceLanguage} />
-        {query.error === "usage_limit" ? (
-          <div
-            className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-950"
-            role="alert"
-          >
-            {locale === "vi"
-              ? "Bạn đã dùng hết lượt thi thử miễn phí tháng này."
-              : "You have used this month's free mock test allowance."}{" "}
-            <Link className="font-bold underline" href="/pricing">
-              Premium
-            </Link>
-          </div>
-        ) : null}
         <header className="mt-8 max-w-3xl">
           <h1 className="text-3xl font-black tracking-tight sm:text-4xl">
             {t.title}
           </h1>
           <p className="mt-3 text-base leading-7 text-slate-600">{t.intro}</p>
         </header>
+        {query.error === "usage_limit" && preview.visible ? (
+          <div className="mt-6">
+            <PremiumPreviewCard
+              locale={preferences.interfaceLanguage}
+              title={
+                locale === "vi"
+                  ? `Bạn đã dùng ${mockUsage.used}/${mockUsage.type === "LIMITED" ? mockUsage.limit : mockUsage.used} lượt Mock tháng này`
+                  : `You used ${mockUsage.used}/${mockUsage.type === "LIMITED" ? mockUsage.limit : mockUsage.used} mocks this month`
+              }
+              body={
+                locale === "vi"
+                  ? "Premium mở thi thử không giới hạn đối với các mode đang READY; không vượt qua trạng thái sẵn sàng của nội dung."
+                  : "Premium unlocks unlimited mocks for modes that are READY; it does not bypass content readiness."
+              }
+            />
+          </div>
+        ) : null}
         <section
           aria-label={t.title}
           className="mt-7 grid gap-4 lg:grid-cols-3"
@@ -293,6 +298,29 @@ export default async function FullMockPage({
               )}
             </div>
           </section>
+        ) : null}
+        {!capabilities.canUseAdvancedMockHistory &&
+        preview.visible &&
+        preview.mock.hasComparableHistory ? (
+          <div className="mt-8">
+            <PremiumPreviewCard
+              locale={preferences.interfaceLanguage}
+              title={
+                locale === "vi"
+                  ? `Bạn đã hoàn thành ${preview.mock.completedCount} bài Mock`
+                  : `You completed ${preview.mock.completedCount} mocks`
+              }
+              body={
+                locale === "vi"
+                  ? "Premium mở so sánh các lần thi cùng mode, xu hướng kết quả và breakdown Part theo thời gian."
+                  : "Premium unlocks same-mode comparisons, result trends, and Part breakdowns over time."
+              }
+              values={["mockHistory"]}
+              cta={
+                locale === "vi" ? "Mở khóa Mock History" : "Unlock Mock History"
+              }
+            />
+          </div>
         ) : null}
       </div>
     </main>

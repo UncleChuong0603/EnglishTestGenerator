@@ -227,6 +227,24 @@ export const securityEvents = pgTable("security_events", {
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
 }, (table) => [index("security_events_user_created_idx").on(table.userId, table.createdAt)]);
 
+export const supportTickets = pgTable("support_tickets", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+  email: text("email").notNull(),
+  category: text("category").notNull(),
+  subject: text("subject").notNull(),
+  message: text("message").notNull(),
+  pageUrl: text("page_url"),
+  status: text("status").notNull().default("NEW"),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+}, (table) => [
+  index("support_tickets_status_created_idx").on(table.status, table.createdAt),
+  index("support_tickets_user_created_idx").on(table.userId, table.createdAt),
+  check("support_tickets_category_check", sql`${table.category} in ('TECHNICAL','CONTENT','PAYMENT','SUGGESTION','OTHER')`),
+  check("support_tickets_status_check", sql`${table.status} in ('NEW','IN_PROGRESS','RESOLVED')`),
+]);
+
 export const productEvents = pgTable("product_events", {
   id: uuid("id").primaryKey().defaultRandom(),
   eventName: text("event_name").notNull(),

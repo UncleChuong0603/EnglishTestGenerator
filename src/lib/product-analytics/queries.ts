@@ -1,7 +1,7 @@
 import "server-only";
 import { sql } from "drizzle-orm";
 import { db } from "@/db";
-import type { AnalyticsPeriod } from "./calculate";
+import type { AnalyticsPeriod, ProductAnalyticsSnapshot } from "./calculate";
 
 const daysFor = (period: AnalyticsPeriod) => period === "today" ? 1 : period === "30d" ? 30 : 7;
 
@@ -39,5 +39,5 @@ export async function getProductAnalytics(period: AnalyticsPeriod) {
       'checkoutCreated',(select checkout_created from payments),'premiumActivated',(select premium_activated from payments),
       'retention',coalesce((select json_object_agg(n,json_build_object('cohort',cohort,'returned',returned)) from retention),'{}'::json)
     ) data`);
-  return result.rows[0].data as { events: Record<string, number>; sessions: number; questions: number; active: number; signups: number; activated: number; dau: number; wau: number; checkoutCreated: number; premiumActivated: number; retention: Record<string, { cohort: number; returned: number }> };
+  return result.rows[0].data as ProductAnalyticsSnapshot;
 }
