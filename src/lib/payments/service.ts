@@ -6,6 +6,8 @@ import { paymentEvents, paymentOrders, userPlanMemberships, users } from "@/db/s
 import { grantPremiumWithTx } from "@/lib/entitlements/service";
 import { resolveProduct, resolveProductDuration } from "./catalog";
 import { getPaymentProvider, type VerifiedPayment } from "./provider";
+import { getMembershipState } from "@/lib/entitlements/service";
+import { quoteResultingExpiry } from "@/lib/premium/lifecycle";
 
 const ORDER_TTL_MS = 30 * 60_000;
 function newOrderCode() { return Number(BigInt(`0x${randomBytes(6).toString("hex")}`)); }
@@ -25,6 +27,20 @@ export async function createPaymentOrder(userId: string, productKey: string, pro
     const origin = safeOrigin(), created = await provider.create({ orderCode: reserved.order.orderCode, amountVnd: product.amountVnd, description: `TG${reserved.order.orderCode}`, returnUrl: `${origin}/billing/return?order=${reserved.order.id}`, cancelUrl: `${origin}/billing/cancel?order=${reserved.order.id}`, expiresAt });
     const [updated] = await db.update(paymentOrders).set({ checkoutUrl: created.checkoutUrl, providerPaymentId: created.providerPaymentId, updatedAt: new Date() }).where(eq(paymentOrders.id, reserved.order.id)).returning(); return updated;
   } catch (error) { await db.update(paymentOrders).set({ status: "FAILED", updatedAt: new Date() }).where(eq(paymentOrders.id, reserved.order.id)); throw error; }
+}
+
+export async function getRenewalQuote(userId: string, productKey: string, now = new Date()) {
+  const product = resolveProduct(productKey);
+  const membership = await getMembershipState(userId, now);
+  return {
+    productKey: product.key,
+    durationDays: product.days,
+    amount: product.amountVnd,
+    currency: product.currency,
+    currentExpiry: membership.status === "ACTIVE" ? membership.expiresAt : null,
+    resultingExpiry: quoteResultingExpiry(membership, product.days, now),
+    membershipStatus: membership.status,
+  };
 }
 
 export async function applyVerifiedPayment(event: VerifiedPayment, providerName: "PAYOS" | "FAKE", injectFailure = false) {
@@ -72,5 +88,11 @@ export async function cancelOrder(orderId: string, actorUserId: string, provider
 }
 export async function listUserOrders(userId: string) { return db.select().from(paymentOrders).where(eq(paymentOrders.userId, userId)).orderBy(desc(paymentOrders.createdAt)).limit(20); }
 export async function getUserOrder(userId: string, id: string) { const identity = /^\d+$/.test(id) ? eq(paymentOrders.orderCode, Number(id)) : eq(paymentOrders.id, id); const [row] = await db.select().from(paymentOrders).where(and(identity, eq(paymentOrders.userId, userId))).limit(1); return row ?? null; }
+export async function getPaidOrderResult(userId: string, id: string) {
+  const order = await getUserOrder(userId, id);
+  if (!order || order.status !== "PAID") return { order, resultingExpiry: null };
+  const [membership] = await db.select({ endsAt: userPlanMemberships.endsAt }).from(userPlanMemberships).where(and(eq(userPlanMemberships.userId, userId), eq(userPlanMemberships.paymentOrderId, order.id))).limit(1);
+  return { order, resultingExpiry: membership?.endsAt ?? null };
+}
 export async function getPremiumExpiry(userId: string) { const [row] = await db.select({ endsAt: userPlanMemberships.endsAt }).from(userPlanMemberships).where(and(eq(userPlanMemberships.userId, userId), sql`${userPlanMemberships.revokedAt} is null`, gt(userPlanMemberships.endsAt, new Date()))).orderBy(sql`${userPlanMemberships.endsAt} desc nulls first`).limit(1); return row?.endsAt ?? null; }
 export async function listAdminPayments(search: string, page: number) { const q = search.trim().toLowerCase().slice(0, 200); return db.select({ id: paymentOrders.id, email: users.email, productKey: paymentOrders.productKey, amount: paymentOrders.amount, status: paymentOrders.status, provider: paymentOrders.provider, providerPaymentId: paymentOrders.providerPaymentId, createdAt: paymentOrders.createdAt, paidAt: paymentOrders.paidAt }).from(paymentOrders).innerJoin(users, eq(users.id, paymentOrders.userId)).where(q ? sql`${users.emailNormalized} like ${`%${q}%`}` : undefined).orderBy(desc(paymentOrders.createdAt)).limit(30).offset((Math.max(1, page) - 1) * 30); }

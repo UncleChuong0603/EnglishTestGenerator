@@ -2,6 +2,7 @@ import { and, desc, eq, gt, isNull, lte, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { usageConsumptions, userPlanMemberships } from "@/db/schema";
 import { getPlanCapabilities, getUsageWindow, PLAN_CATALOG, type EntitlementKey, type PlanKey } from "./catalog";
+import { quoteResultingExpiry } from "@/lib/premium/lifecycle";
 
 export async function getEffectivePlan(userId: string, now = new Date()): Promise<PlanKey> {
   const row = await db.select({ id: userPlanMemberships.id }).from(userPlanMemberships).where(and(
@@ -54,8 +55,7 @@ export async function grantPremiumWithTx(tx: Tx, input: { userId: string; days: 
     or(isNull(userPlanMemberships.endsAt), gt(userPlanMemberships.endsAt, now)),
   )).orderBy(sql`${userPlanMemberships.endsAt} desc nulls first`).limit(1);
   if (latest?.endsAt === null) return { membershipId: null, endsAt: null, unchanged: true as const };
-  const base = latest?.endsAt && latest.endsAt > now ? latest.endsAt : now;
-  const endsAt = new Date(base.getTime() + input.days * 86_400_000);
+  const endsAt = quoteResultingExpiry(latest ? { status: "ACTIVE", expiresAt: latest.endsAt, daysRemaining: null } : { status: "FREE", expiresAt: null, daysRemaining: null }, input.days, now);
   const source = input.source ?? "MANUAL";
   if ((source === "PAYMENT") !== Boolean(input.paymentOrderId)) throw new Error("INVALID_MEMBERSHIP_SOURCE");
   const [membership] = await tx.insert(userPlanMemberships).values({ userId: input.userId, planKey: "PREMIUM", source, paymentOrderId: input.paymentOrderId, startsAt: now, endsAt }).returning({ id: userPlanMemberships.id });

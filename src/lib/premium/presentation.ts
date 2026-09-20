@@ -2,12 +2,14 @@ import "server-only";
 import { cache } from "react";
 import { getEffectivePlan, getMembershipState } from "@/lib/entitlements/service";
 import { getCurrentProfile } from "@/lib/profiles/profile";
+import { getPremiumLifecycle, type PremiumLifecycle } from "./lifecycle";
 
-export type PremiumAccount = { name: string; avatarUrl: string | null; isPremium: boolean; membershipStatus: "ACTIVE" | "EXPIRED" | "FREE"; expiresAt: Date | null; daysRemaining: number | null };
+export type PremiumAccount = { name: string; avatarUrl: string | null; isPremium: boolean; membershipStatus: "ACTIVE" | "EXPIRED" | "FREE"; lifecycle: PremiumLifecycle; expiresAt: Date | null; daysRemaining: number | null };
 
 export const getPremiumAccount = cache(async (userId: string, fallbackName: string): Promise<PremiumAccount> => {
-  const [profile, plan, membership] = await Promise.all([getCurrentProfile(userId), getEffectivePlan(userId), getMembershipState(userId)]);
-  return { name: profile.profile?.full_name ?? fallbackName, avatarUrl: profile.profile?.avatar_url ?? null, isPremium: plan === "PREMIUM", membershipStatus: membership.status, expiresAt: membership.expiresAt, daysRemaining: membership.daysRemaining };
+  const now = new Date();
+  const [profile, plan, membership] = await Promise.all([getCurrentProfile(userId), getEffectivePlan(userId, now), getMembershipState(userId, now)]);
+  return { name: profile.profile?.full_name ?? fallbackName, avatarUrl: profile.profile?.avatar_url ?? null, isPremium: plan === "PREMIUM", membershipStatus: membership.status, lifecycle: getPremiumLifecycle(membership), expiresAt: membership.expiresAt, daysRemaining: membership.daysRemaining };
 });
 
 export function premiumCopy(locale: "vi" | "en") {
