@@ -17,6 +17,13 @@ describe("Admin content review workflow", () => {
     expect(detail).toContain("End of queue");
   });
 
+  it("qualifies correlated passage-set IDs so draft-bank queries are not ambiguous", () => {
+    expect(service).toContain("const outerPassageSetId = sql.raw");
+    expect(service).toContain('"passage_sets"."id"');
+    expect(service).not.toContain("q.passage_set_id=${passageSets.id}");
+    expect(service).not.toContain("qi.question_group_id=${passageSets.id}");
+  });
+
   it("publishes and advances only after canonical publish succeeds", () => {
     const publishNext = actions.slice(actions.indexOf("export async function publishAndNextAction"));
     const queueIndex = publishNext.indexOf("getReviewQueue(id,filters)");
