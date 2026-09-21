@@ -33,6 +33,7 @@ export function AdminNav({ locale }: { locale: InterfaceLanguage }) {
         ["/admin/payments", vi ? "Thanh toán" : "Payments"],
         ["/admin/support", vi ? "Phản hồi" : "Feedback"],
         ["/admin/audit", vi ? "Nhật ký" : "Audit log"],
+        ["/admin/settings", vi ? "Cài đặt" : "Settings"],
       ],
     },
   ];

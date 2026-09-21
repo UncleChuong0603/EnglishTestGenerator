@@ -1,5 +1,5 @@
 "use client";
-/* Signed R2 hosts are dynamic. */
+/* Signed local-media URLs are generated dynamically. */
 /* eslint-disable @next/next/no-img-element */
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";

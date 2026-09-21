@@ -14,7 +14,7 @@ export const en = {
   mastery: { title: "Mistake Bank", toReview: "To Review", mastered: "Mastered", review: "Review mistakes", streak: "Review streak", lastMissed: "Last missed", reviewTitle: "Mastery Review", complete: "Review complete", masteredSession: "Mastered this session", stillReview: "Still to review", unavailable: "Temporarily unavailable for review", emptyTitle: "You're caught up.", emptyBody: "No mistakes need review right now.", successfulReviews: "{count} of 2 successful reviews" },
   common: { brand: "TOEIC GYM", loading: "Loading…", retry: "Try again", backHome: "Back to home", unavailable: "Unavailable", document: "Document" },
   metadata: { title: "TOEIC GYM | Focused Reading practice", description: "Focused TOEIC Reading practice with bilingual explanations and skill progress for Vietnamese learners." },
-  navigation: { mainLabel: "Main navigation", dashboard: "Dashboard", practice: "Practice", progress: "Progress", settings: "Settings", signOut: "Sign out" },
+  navigation: { mainLabel: "Main navigation", dashboard: "My learning", practice: "Practice", progress: "Progress", settings: "Settings", signOut: "Sign out" },
   language: { interface: "Interface language", explanations: "Answer explanations", english: "English", vietnamese: "Tiếng Việt", both: "English + Tiếng Việt", save: "Save preferences", saving: "Saving…", saved: "Preferences saved." },
   landing: {
     eyebrow: "TOEIC GYM for Vietnamese learners", title: "Practice TOEIC Reading smarter.",

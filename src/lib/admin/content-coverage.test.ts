@@ -17,6 +17,13 @@ describe("admin content coverage recommendations", () => {
   it("does not recommend coverage that meets the bank-size target", () => {
     expect(recommendContentCoverage([row(5, 300, 300, 30, 30)])).toEqual([]);
   });
+  it("uses the admin-configured target instead of the default", () => {
+    const [result] = recommendContentCoverage([row(5, 300, 300, 30, 30)], 20);
+    expect(result.targetForms).toBe(20);
+    expect(result.targetQuestions).toBe(600);
+    expect(result.questionDeficit).toBe(300);
+    expect(result.coverage).toBe(0.5);
+  });
   it("uses both group and question requirements for grouped content", () => {
     const result = calculateContentCoverage(row(7, 100, 200, 10, 29));
     expect(result.coverage).toBeCloseTo(200 / 290);

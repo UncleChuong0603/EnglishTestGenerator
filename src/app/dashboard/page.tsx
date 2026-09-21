@@ -2,7 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   RecommendationUnavailable,
-  UnifiedRecommendationCard,
 } from "@/components/diagnosis/recommendation-card";
 import { LearnerNav } from "@/components/learner-nav";
 import { getCurrentUser } from "@/lib/auth/session";
@@ -25,6 +24,8 @@ import { compareCompatible } from "@/lib/full-mock/history";
 import { getDiagnosticEligibility } from "@/lib/diagnostic/service";
 import { PremiumPreviewCard } from "@/components/premium/premium-preview";
 import { getPremiumPreview } from "@/lib/premium/preview";
+import { startRecommendedPractice } from "@/app/practice/actions";
+import { dailyGoalProgress, getDailyWorkload, getDashboardLifecycle, getGroupSafeWorkoutSize } from "@/lib/workout/policy";
 
 function ProgressCard({
   area,
@@ -125,6 +126,21 @@ export default async function DashboardPage() {
     ? compareCompatible(mockHistory!, latestMock.mode)
     : null;
   const examDaysRemaining = goal?.examDate ? daysUntilExam(goal.examDate) : null;
+  const workload = getDailyWorkload({ goal, plan: usage.effectivePlan, workoutUsage: usage.entitlements.TODAYS_WORKOUT });
+  const dailyGoal = dailyGoalProgress(dashboardResult?.completedQuestionsToday ?? 0, workload.targetQuestions);
+  const workoutSize = dashboardResult?.recommendation
+    ? getGroupSafeWorkoutSize(dashboardResult.recommendation.part, workload.targetQuestions)
+    : null;
+  const recommendation = dashboardResult?.recommendation && workoutSize
+    ? { ...dashboardResult.recommendation, requestedQuestionCount: workload.targetQuestions, ...workoutSize }
+    : null;
+  const focusLabel = recommendation?.primarySubskill ?? recommendation?.primarySkill;
+  const lifecycle = getDashboardLifecycle({
+    recommendDiagnostic: dashboardResult?.recommendDiagnostic ?? false,
+    hasResumablePractice: Boolean(dashboardResult?.resumablePractice),
+    dailyGoalComplete: dailyGoal.complete,
+    completedLearningSessions: dashboardResult?.completedLearningSessions ?? 0,
+  });
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-6 pb-24 text-slate-900 sm:px-6 sm:py-8 lg:pb-8">
@@ -184,20 +200,9 @@ export default async function DashboardPage() {
             </p>
           ) : null}
         </header>
-        <section className="mt-6 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-white p-5" aria-labelledby="goal-summary-heading">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-xs font-black uppercase tracking-wider text-amber-800">{locale === "vi" ? "Mục tiêu học tập" : "Learning goal"}</p>
-              <h2 className="mt-1 text-xl font-black" id="goal-summary-heading">{goal ? (goal.targetScore ? `${locale === "vi" ? "Mục tiêu TOEIC" : "Target TOEIC"}: ${goal.targetScore}` : (locale === "vi" ? "Kế hoạch học của bạn" : "Your study plan")) : (locale === "vi" ? "Chưa thiết lập mục tiêu" : "No goal set yet")}</h2>
-              {goal ? <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-600">{goal.examDate ? <span>{locale === "vi" ? "Ngày thi" : "Test date"}: {formatExamDate(goal.examDate, locale)}</span> : null}{goal.dailyStudyMinutes ? <span>{goal.dailyStudyMinutes} {locale === "vi" ? "phút/ngày" : "min/day"}</span> : null}{goal.studyDaysPerWeek ? <span>{goal.studyDaysPerWeek} {locale === "vi" ? "ngày/tuần" : "days/week"}</span> : null}</div> : <p className="mt-2 max-w-2xl text-sm text-slate-600">{locale === "vi" ? "Cho TOEICGym biết mục tiêu và khả năng học thực tế của bạn. Bạn có thể bỏ qua và thiết lập sau." : "Tell TOEICGym your target and realistic study capacity. You can skip this and set it later."}</p>}
-              {examDaysRemaining !== null ? <p className="mt-2 text-sm font-semibold text-slate-700">{examDaysRemaining < 0 ? (locale === "vi" ? "Ngày thi đã qua. Cập nhật ngày thi mới?" : "The test date has passed. Update it?") : examDaysRemaining === 0 ? (locale === "vi" ? "Ngày thi là hôm nay." : "Your test date is today.") : (locale === "vi" ? `Còn ${examDaysRemaining} ngày đến ngày thi` : `${examDaysRemaining} days until the test`)}</p> : null}
-            </div>
-            <div className="flex shrink-0 flex-col gap-2 sm:items-end"><Link className="inline-flex min-h-11 items-center justify-center rounded-xl border border-amber-700 px-4 font-bold text-amber-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-700" href="/settings?section=goal">{goal ? (locale === "vi" ? "Chỉnh sửa mục tiêu" : "Edit goal") : (locale === "vi" ? "Thiết lập mục tiêu" : "Set a goal")}</Link>{!goal ? <a className="inline-flex min-h-10 items-center justify-center text-sm font-semibold text-slate-500" href="#today-workout">{locale === "vi" ? "Bỏ qua lúc này" : "Skip for now"}</a> : null}</div>
-          </div>
-        </section>
         <div className="mt-7">
           <span className="sr-only" id="today-workout">{locale === "vi" ? "Bài tập hôm nay" : "Today's workout"}</span>
-          {dashboardResult?.recommendDiagnostic ? (
+          {lifecycle === "NEW" && dashboardResult ? (
             <section className="rounded-3xl bg-slate-900 p-6 text-white sm:p-8">
               <p className="text-sm font-black uppercase tracking-wider text-teal-300">
                 {locale === "vi"
@@ -235,16 +240,55 @@ export default async function DashboardPage() {
                     : "Start diagnostic"}
               </Link>
             </section>
-          ) : dashboardResult?.recommendation ? (
-            <UnifiedRecommendationCard
-              dashboard
-              locale={locale}
-              recommendation={dashboardResult.recommendation}
-            />
+          ) : lifecycle === "RESUMABLE" && dashboardResult?.resumablePractice ? (
+            <section className="rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-teal-950 p-6 text-white shadow-xl sm:p-8" aria-labelledby="today-heading">
+              <p className="text-xs font-black uppercase tracking-[.18em] text-teal-300">{locale === "vi" ? "Bài hôm nay" : "Today's Workout"}</p>
+              <h2 className="mt-2 text-2xl font-black sm:text-3xl" id="today-heading">{locale === "vi" ? "Tiếp tục bài đang làm" : "Continue your session"}</h2>
+              <p className="mt-3 text-slate-300">{dashboardResult.resumablePractice.questionCount} {locale === "vi" ? "câu" : "questions"}{dashboardResult.resumablePractice.part ? ` · Part ${dashboardResult.resumablePractice.part}` : ""}</p>
+              <p className="mt-2 max-w-2xl text-sm text-slate-300">{locale === "vi" ? "Hoàn thành phiên hợp lệ đang dở trước khi tạo một bài mới." : "Finish your valid in-progress session before creating another one."}</p>
+              <Link className="mt-5 inline-flex min-h-12 items-center rounded-xl bg-teal-300 px-5 font-black text-slate-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-200" href={`/practice/${dashboardResult.resumablePractice.id}`}>{locale === "vi" ? "Tiếp tục bài" : "Continue session"}</Link>
+            </section>
+          ) : lifecycle === "DAILY_GOAL_COMPLETE" ? (
+            <section className="rounded-3xl bg-gradient-to-br from-emerald-950 via-teal-900 to-slate-950 p-6 text-white shadow-xl sm:p-8" aria-labelledby="today-heading">
+              <p className="text-xs font-black uppercase tracking-[.18em] text-emerald-300">{locale === "vi" ? "Bài hôm nay" : "Today's Workout"}</p>
+              <h2 className="mt-2 text-2xl font-black sm:text-3xl" id="today-heading">{locale === "vi" ? "✓ Mục tiêu hôm nay đã hoàn thành" : "✓ Today's goal is complete"}</h2>
+              <p className="mt-3 max-w-2xl text-slate-200">{locale === "vi" ? `Bạn đã hoàn thành ${dailyGoal.completedQuestions} câu học có ý nghĩa hôm nay. Có thể ôn câu sai hoặc luyện thêm nếu quyền hiện tại cho phép.` : `You completed ${dailyGoal.completedQuestions} meaningful learning questions today. Review mistakes or keep practicing if your current access allows it.`}</p>
+              <div className="mt-5 flex flex-wrap gap-3"><Link className="inline-flex min-h-12 items-center rounded-xl bg-emerald-300 px-5 font-black text-slate-950" href={dashboardResult?.mistakes.unresolvedCount ? "/mistakes" : "/practice"}>{dashboardResult?.mistakes.unresolvedCount ? (locale === "vi" ? "Ôn câu sai" : "Review mistakes") : (locale === "vi" ? "Luyện thêm" : "Keep practicing")}</Link><Link className="inline-flex min-h-12 items-center px-3 font-bold text-emerald-200" href="/progress">{locale === "vi" ? "Xem tiến độ" : "View progress"}</Link></div>
+            </section>
+          ) : recommendation ? (
+            <section className="rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-teal-950 p-6 text-white shadow-xl sm:p-8" aria-labelledby="today-heading">
+              <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <div className="flex flex-wrap gap-2 text-xs font-black uppercase tracking-[.14em] text-teal-300">
+                    <span>{locale === "vi" ? "Bài hôm nay" : "Today's Workout"}</span>
+                    {goal?.targetScore ? <span>· {locale === "vi" ? "Mục tiêu TOEIC" : "Target TOEIC"} {goal.targetScore}</span> : null}
+                    {examDaysRemaining !== null && examDaysRemaining >= 0 ? <span>· {locale === "vi" ? `còn ${examDaysRemaining} ngày` : `${examDaysRemaining} days left`}</span> : null}
+                  </div>
+                  <h2 className="mt-3 text-3xl font-black" id="today-heading">{recommendation.skillArea === "LISTENING" ? "Listening" : "Reading"}{recommendation.part ? ` · Part ${recommendation.part}` : ""}</h2>
+                  {focusLabel ? <p className="mt-2 text-lg font-bold text-teal-100">{focusLabel.replaceAll("_", " ")}</p> : null}
+                  <p className="mt-3 font-semibold text-slate-200">~{workload.approximateMinutes} {locale === "vi" ? "phút" : "minutes"} · {recommendation.questionCount} {locale === "vi" ? "câu" : "questions"}{recommendation.groupCount ? ` · ${recommendation.groupCount} ${locale === "vi" ? "bộ" : "sets"}` : ""}</p>
+                  <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300"><strong className="text-white">{locale === "vi" ? "Vì sao?" : "Why?"}</strong> {recommendation.reasonCode === "SUPPORTED_WEAKNESS" ? (locale === "vi" ? "Đây là một trong những vùng đã luyện có ưu tiên cải thiện cao nhất của bạn." : "This is one of your highest-priority practiced areas for improvement.") : recommendation.reasonCode === "EARLY_EXPLORATION" ? (locale === "vi" ? "Dữ liệu còn sớm; bài này giúp xây dựng đề xuất đáng tin cậy hơn." : "Your data is still early; this workout builds a more reliable recommendation.") : (locale === "vi" ? "Bài cân bằng này giúp TOEICGym hiểu hồ sơ học tập của bạn mà không giả định điểm yếu." : "This balanced workout builds your learning profile without inventing a weakness.")}</p>
+                </div>
+                <div className="flex shrink-0 flex-col gap-3">
+                  {workload.workoutAvailable ? <form action={startRecommendedPractice}><button className="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-teal-300 px-6 font-black text-slate-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-200">{locale === "vi" ? "Bắt đầu bài hôm nay" : "Start today's workout"}</button></form> : <Link className="inline-flex min-h-12 items-center justify-center rounded-xl border border-teal-300 px-6 font-bold text-teal-100" href="/practice">{locale === "vi" ? "Chọn bài luyện khác" : "Choose other practice"}</Link>}
+                  <Link className="text-center text-sm font-bold text-teal-200 underline-offset-4 hover:underline" href="/practice">{locale === "vi" ? "Tự chọn bài luyện" : "Choose your own practice"}</Link>
+                </div>
+              </div>
+            </section>
           ) : (
             <RecommendationUnavailable locale={locale} />
           )}
         </div>
+
+        <section className="mt-4 rounded-2xl border border-teal-200 bg-white p-5 shadow-sm" aria-labelledby="daily-goal-heading">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div><p className="text-xs font-black uppercase tracking-wider text-teal-700">{locale === "vi" ? "Nhịp học mỗi ngày" : "Daily pace"}</p><h2 className="mt-1 text-xl font-black" id="daily-goal-heading">{dailyGoal.complete ? (locale === "vi" ? "✓ Hoàn thành mục tiêu hôm nay" : "✓ Today's goal completed") : (locale === "vi" ? "Mục tiêu hôm nay" : "Today's Goal")}</h2></div>
+            <p className="text-2xl font-black" aria-label={`${dailyGoal.completedQuestions} / ${dailyGoal.targetQuestions}`}>{dailyGoal.completedQuestions} / {dailyGoal.targetQuestions} <span className="text-sm font-semibold text-slate-500">{locale === "vi" ? "câu" : "questions"}</span></p>
+          </div>
+          <div className="mt-4 h-3 overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-valuemin={0} aria-valuemax={dailyGoal.targetQuestions} aria-valuenow={Math.min(dailyGoal.completedQuestions, dailyGoal.targetQuestions)} aria-label={locale === "vi" ? "Tiến độ mục tiêu hôm nay" : "Today's goal progress"}><div className="h-full rounded-full bg-gradient-to-r from-teal-500 to-emerald-400" style={{ width: `${dailyGoal.percent}%` }} /></div>
+          <div className="mt-3 flex flex-col gap-2 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between"><p>{dailyGoal.complete ? (locale === "vi" ? "Bạn vẫn có thể tiếp tục học nếu gói hiện tại cho phép." : "You can keep learning when your current plan allows it.") : (locale === "vi" ? `Còn ${dailyGoal.remainingQuestions} câu để hoàn thành mục tiêu hôm nay.` : `${dailyGoal.remainingQuestions} questions remaining today.`)}</p><Link className="font-bold text-teal-800" href="/settings?section=goal">{goal ? (locale === "vi" ? "Chỉnh sửa mục tiêu" : "Edit goal") : (locale === "vi" ? "Thiết lập mục tiêu" : "Set your goal")}</Link></div>
+          {goal ? <p className="mt-3 text-xs text-slate-500">{goal.examDate ? `${locale === "vi" ? "Ngày thi" : "Test date"}: ${formatExamDate(goal.examDate, locale)} · ` : ""}{goal.studyDaysPerWeek ? `${goal.studyDaysPerWeek} ${locale === "vi" ? "ngày/tuần" : "days/week"} · ` : ""}{workload.studyMinutes} {locale === "vi" ? "phút/ngày" : "min/day"}</p> : null}
+        </section>
 
         {usage.effectivePlan === "PREMIUM" &&
         diagnosticState.status !== "NEEDS_BASELINE" ? (

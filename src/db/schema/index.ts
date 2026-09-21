@@ -113,7 +113,17 @@ export const adminAuditLogs = pgTable("admin_audit_logs", {
   index("admin_audit_logs_actor_idx").on(table.actorUserId),
   index("admin_audit_logs_target_idx").on(table.targetUserId),
   index("admin_audit_logs_action_idx").on(table.action),
-  check("admin_audit_logs_action_check", sql`${table.action} in ('ADMIN_ROLE_GRANTED','ADMIN_ROLE_REVOKED','USER_SUSPENDED','USER_REACTIVATED','PREMIUM_GRANTED','PREMIUM_REVOKED','CONTENT_DRAFT_CREATED','CONTENT_DRAFT_UPDATED','CONTENT_CLONED','CONTENT_PUBLISHED','CONTENT_ARCHIVED','CONTENT_DRAFT_DISCARDED','MEDIA_UPLOADED','CHALLENGE_DRAFT_CREATED','CHALLENGE_FORM_GENERATED','CHALLENGE_PUBLISHED','CHALLENGE_CANCELLED','SEO_POST_CREATED','SEO_POST_UPDATED','SEO_POST_PUBLISHED','SEO_POST_UNPUBLISHED','SEO_POST_DELETED','IMPORT_VALIDATED','IMPORT_COMMITTED','IMPORT_FAILED')`),
+  check("admin_audit_logs_action_check", sql`${table.action} in ('ADMIN_ROLE_GRANTED','ADMIN_ROLE_REVOKED','USER_SUSPENDED','USER_REACTIVATED','PREMIUM_GRANTED','PREMIUM_REVOKED','CONTENT_DRAFT_CREATED','CONTENT_DRAFT_UPDATED','CONTENT_CLONED','CONTENT_PUBLISHED','CONTENT_ARCHIVED','CONTENT_DRAFT_DISCARDED','CONTENT_UNARCHIVED','CONTENT_DUPLICATE_DELETED','MEDIA_UPLOADED','CHALLENGE_DRAFT_CREATED','CHALLENGE_FORM_GENERATED','CHALLENGE_PUBLISHED','CHALLENGE_CANCELLED','SEO_POST_CREATED','SEO_POST_UPDATED','SEO_POST_PUBLISHED','SEO_POST_UNPUBLISHED','SEO_POST_DELETED','IMPORT_VALIDATED','IMPORT_COMMITTED','IMPORT_FAILED','QUESTION_BANK_BLUEPRINT_UPDATED')`),
+]);
+
+export const questionBankSettings = pgTable("question_bank_settings", {
+  id: text("id").primaryKey().default("default"),
+  targetForms: smallint("target_forms").notNull().default(10),
+  updatedBy: uuid("updated_by").references(() => users.id, { onDelete: "set null" }),
+  ...timestamps,
+}, (table) => [
+  check("question_bank_settings_singleton_check", sql`${table.id} = 'default'`),
+  check("question_bank_settings_target_forms_check", sql`${table.targetForms} between 1 and 100`),
 ]);
 
 export const profiles = pgTable("profiles", {
@@ -301,7 +311,7 @@ export const mediaAssets = pgTable("media_assets", {
   id: uuid("id").primaryKey().defaultRandom(),
   kind: text("kind").notNull(),
   accessScope: text("access_scope").notNull(),
-  storageProvider: text("storage_provider").notNull().default("R2"),
+  storageProvider: text("storage_provider").notNull().default("LOCAL"),
   storageKey: text("storage_key").notNull(),
   mimeType: text("mime_type").notNull(),
   byteSize: integer("byte_size").notNull(),
@@ -319,7 +329,7 @@ export const mediaAssets = pgTable("media_assets", {
   index("media_assets_owner_idx").on(table.ownerUserId),
   check("media_assets_kind_check", sql`${table.kind} in ('AUDIO','IMAGE')`),
   check("media_assets_access_scope_check", sql`${table.accessScope} in ('CONTENT','PRIVATE_USER')`),
-  check("media_assets_provider_check", sql`${table.storageProvider} in ('R2', 'LOCAL')`),
+  check("media_assets_provider_check", sql`${table.storageProvider} = 'LOCAL'`),
   check("media_assets_status_check", sql`${table.status} in ('UPLOADING','READY','FAILED','ARCHIVED')`),
   check("media_assets_size_check", sql`${table.byteSize} > 0`),
   check("media_assets_owner_scope_check", sql`(${table.accessScope} = 'CONTENT' and ${table.ownerUserId} is null) or (${table.accessScope} = 'PRIVATE_USER' and ${table.ownerUserId} is not null)`),

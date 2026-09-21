@@ -27,6 +27,8 @@ Sao chép `.env.example` thành `.env.production`, thay toàn bộ placeholder v
 - `DATABASE_URL=postgresql://USER:PASSWORD@postgres:5432/DB` (URL-encode password khi cần).
 - `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` phải khớp URL.
 - `SESSION_SECRET`, `APP_URL=https://domain`, `DOMAIN=domain`.
+- `MEDIA_ENABLED=true`, `MEDIA_STORAGE_PROVIDER=LOCAL`, `LOCAL_MEDIA_ROOT=/var/lib/toeicgym/media`.
+- `MEDIA_SIGNING_SECRET` ngẫu nhiên tối thiểu 32 ký tự. Không cấu hình credential R2/S3/object storage.
 - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`.
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `SMTP_SECURE`.
 - `NGINX_CONFIG=http.conf.template` trong giai đoạn cấp certificate; đổi thành `https.conf.template` sau đó.

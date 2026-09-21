@@ -14,12 +14,10 @@ requireGroup("Core config", ["SESSION_SECRET", "APP_URL"]);
 requireGroup("Database config", ["DATABASE_URL"]);
 
 const mediaEnabled = process.env.MEDIA_ENABLED === "true";
-const mediaProvider = process.env.MEDIA_STORAGE_PROVIDER ?? "R2";
+const mediaProvider = process.env.MEDIA_STORAGE_PROVIDER ?? "LOCAL";
 let mediaState = mediaEnabled ? mediaProvider : "DISABLED";
 if (mediaEnabled && mediaProvider === "LOCAL") {
   if (!complete(["LOCAL_MEDIA_ROOT", "MEDIA_SIGNING_SECRET"])) { mediaState = "INVALID"; failed = true; }
-} else if (mediaEnabled && mediaProvider === "R2") {
-  if (!complete(["R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_BUCKET_NAME", "R2_ENDPOINT"])) { mediaState = "INVALID"; failed = true; }
 } else if (mediaEnabled) { mediaState = "INVALID"; failed = true; }
 line("Media provider", mediaState);
 
@@ -38,4 +36,3 @@ if (partial(googleNames)) failed = true;
 line("External AI dependency", "NONE (runtime core)");
 line("Network calls", "NONE");
 if (failed) process.exitCode = 1;
-

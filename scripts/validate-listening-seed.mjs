@@ -1,6 +1,8 @@
 import { productionListening as listeningFixtures } from "./content-manifest.mjs";
 
 const ids = new Set();
+const distractorSets = new Map();
+const mojibake = /(?:Ã.|Â.|Ä.|Æ.|â€|ï¿½)/;
 const taxonomy = {
   1: { photographs: ["visual_detail"] },
   2: { question_response: ["direct_response", "when", "who", "where", "why", "how", "what", "request", "suggestion", "offer", "confirmation", "which", "indirect_response", "frequency"] },
@@ -19,7 +21,14 @@ for (const item of listeningFixtures) {
     const expected = item.part === 2 ? 3 : 4;
     if (question.options.length !== expected || new Set(question.options.map((option) => option.text.trim().toLowerCase())).size !== expected || question.options.filter((option) => option.key === question.correctKey).length !== 1) throw new Error(`Invalid options: ${item.externalId}`);
     if (!question.explanationEn?.trim() || !question.explanationVi?.trim()) throw new Error(`Missing explanation: ${item.externalId}`);
+    if ([item.transcript, question.text, question.explanationEn, question.explanationVi, ...question.options.map((option) => option.text)].some((text) => mojibake.test(text))) throw new Error(`Mojibake detected: ${item.externalId}`);
     if (!taxonomy[item.part]?.[question.skill]?.includes(question.subSkill)) throw new Error(`Unknown taxonomy: ${item.externalId}/${question.skill}/${question.subSkill}`);
+    if (item.part >= 3) {
+      const distractors = question.options.filter((option) => option.key !== question.correctKey).map((option) => option.text.trim().toLowerCase()).sort().join("|");
+      const previous = distractorSets.get(distractors);
+      if (previous) throw new Error(`Reused distractor set: ${previous} and ${item.externalId}/Q${question.order}`);
+      distractorSets.set(distractors, `${item.externalId}/Q${question.order}`);
+    }
   }
   if (!item.transcript.trim()) throw new Error(`Missing transcript: ${item.externalId}`);
   if (item.media.some((media) => /https?:\/\//.test(media.assetRef))) throw new Error(`Signed URL not allowed: ${item.externalId}`);

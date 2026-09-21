@@ -24,7 +24,7 @@ describe("GET /api/health", () => {
   });
 
   it("does not require an unrelated optional integration", async () => {
-    getServerEnv.mockReturnValue({ MEDIA_ENABLED: "false", R2_ENDPOINT: undefined });
+    getServerEnv.mockReturnValue({ MEDIA_ENABLED: "false", MEDIA_STORAGE_PROVIDER: "LOCAL" });
     expect((await GET()).status).toBe(200);
   });
 

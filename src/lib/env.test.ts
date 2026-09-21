@@ -24,24 +24,20 @@ describe("production server environment", () => {
     stubValidProductionEnv();
     for (const name of [
       "SMTP_HOST", "SMTP_USER", "SMTP_PASSWORD", "MEDIA_SIGNING_SECRET",
-      "R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY",
-      "R2_BUCKET_NAME", "R2_ENDPOINT", "R2_PUBLIC_BASE_URL",
     ]) vi.stubEnv(name, "");
     vi.stubEnv("MEDIA_ENABLED", "false");
 
     expect(getServerEnv()).toMatchObject({
       DATABASE_URL: validProductionEnv.DATABASE_URL,
-      R2_ENDPOINT: undefined,
-      R2_PUBLIC_BASE_URL: undefined,
+      MEDIA_STORAGE_PROVIDER: "LOCAL",
     });
   });
 
-  it("still rejects incomplete R2 configuration", () => {
+  it("rejects non-local media providers", () => {
     stubValidProductionEnv();
-    vi.stubEnv("R2_ACCOUNT_ID", "configured-account");
-    vi.stubEnv("R2_ACCESS_KEY_ID", "");
+    vi.stubEnv("MEDIA_STORAGE_PROVIDER", "R2");
 
-    expect(() => getServerEnv()).toThrow("R2 configuration must be complete");
+    expect(() => getServerEnv()).toThrow("MEDIA_STORAGE_PROVIDER");
   });
 
   it("keeps Google OAuth optional in production", () => {
@@ -64,12 +60,12 @@ describe("production server environment", () => {
 
   it("does not expose secret values in validation errors", () => {
     stubValidProductionEnv();
-    vi.stubEnv("R2_SECRET_ACCESS_KEY", "do-not-log-this-secret");
-    vi.stubEnv("R2_ENDPOINT", "not-a-url");
+    vi.stubEnv("SESSION_SECRET", "do-not-log-this-secret");
+    vi.stubEnv("MEDIA_STORAGE_PROVIDER", "external-provider");
 
     let message = "";
     try { getServerEnv(); } catch (error) { message = error instanceof Error ? error.message : String(error); }
-    expect(message).toContain("R2_ENDPOINT");
+    expect(message).toContain("MEDIA_STORAGE_PROVIDER");
     expect(message).not.toContain("do-not-log-this-secret");
   });
 });

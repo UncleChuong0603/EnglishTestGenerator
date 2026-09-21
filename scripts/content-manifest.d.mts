@@ -24,3 +24,4 @@ export type ListeningContentItem = ListeningContentBase & (
   | { questions: ContentQuestion[]; question?: never }
 );
 export const productionListening: ListeningContentItem[];
+export const listeningManifest: ListeningContentItem[];

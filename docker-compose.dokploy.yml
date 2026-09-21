@@ -23,15 +23,9 @@ x-app-environment: &app-environment
   SMTP_FROM: ${SMTP_FROM:-TOEICGym <noreply@toeicgym.net>}
   SMTP_SECURE: ${SMTP_SECURE:-false}
   MEDIA_ENABLED: ${MEDIA_ENABLED:-false}
-  MEDIA_STORAGE_PROVIDER: ${MEDIA_STORAGE_PROVIDER:-R2}
+  MEDIA_STORAGE_PROVIDER: LOCAL
   LOCAL_MEDIA_ROOT: ${LOCAL_MEDIA_ROOT:-/var/lib/toeicgym/media}
   MEDIA_SIGNING_SECRET: ${MEDIA_SIGNING_SECRET:-}
-  R2_ACCOUNT_ID: ${R2_ACCOUNT_ID:-}
-  R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
-  R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
-  R2_BUCKET_NAME: ${R2_BUCKET_NAME:-}
-  R2_ENDPOINT: ${R2_ENDPOINT:-}
-  R2_PUBLIC_BASE_URL: ${R2_PUBLIC_BASE_URL:-}
 
 services:
   media-init:
@@ -53,14 +47,9 @@ services:
       APP_DATABASE_PASSWORD: ${APP_DATABASE_PASSWORD:?APP_DATABASE_PASSWORD is required}
       NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: ${NEXT_SERVER_ACTIONS_ENCRYPTION_KEY:?NEXT_SERVER_ACTIONS_ENCRYPTION_KEY is required}
       MEDIA_ENABLED: ${MEDIA_ENABLED:-false}
-      MEDIA_STORAGE_PROVIDER: ${MEDIA_STORAGE_PROVIDER:-R2}
+      MEDIA_STORAGE_PROVIDER: LOCAL
       LOCAL_MEDIA_ROOT: ${LOCAL_MEDIA_ROOT:-/var/lib/toeicgym/media}
       MEDIA_SIGNING_SECRET: ${MEDIA_SIGNING_SECRET:-}
-      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID:-}
-      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
-      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
-      R2_BUCKET_NAME: ${R2_BUCKET_NAME:-}
-      R2_ENDPOINT: ${R2_ENDPOINT:-}
     command:
       - /bin/sh
       - -ec
@@ -71,14 +60,7 @@ services:
         test "$${#APP_DATABASE_PASSWORD}" -ge 24
         key_bytes="$$(printf '%s' "$${NEXT_SERVER_ACTIONS_ENCRYPTION_KEY}" | base64 -d | wc -c)"
         case "$${key_bytes}" in 16|24|32) ;; *) exit 1 ;; esac
-        if [ "$${MEDIA_ENABLED}" = "true" ] && [ "$${MEDIA_STORAGE_PROVIDER}" = "R2" ]; then
-          test -n "$${R2_ACCOUNT_ID}"
-          test -n "$${R2_ACCESS_KEY_ID}"
-          test -n "$${R2_SECRET_ACCESS_KEY}"
-          test -n "$${R2_BUCKET_NAME}"
-          case "$${R2_ENDPOINT}" in https://*) ;; *) exit 1 ;; esac
-        fi
-        if [ "$${MEDIA_ENABLED}" = "true" ] && [ "$${MEDIA_STORAGE_PROVIDER}" = "LOCAL" ]; then
+        if [ "$${MEDIA_ENABLED}" = "true" ]; then
           test -n "$${LOCAL_MEDIA_ROOT}"
           test "$${#MEDIA_SIGNING_SECRET}" -ge 32
         fi

@@ -4,16 +4,21 @@ import { requireAdmin } from "@/lib/admin/authorization";
 import { getContentOverview } from "@/lib/admin/content";
 import {
   getQuestionBankCapacity,
-  QUESTION_BANK_TARGET_FORMS,
   recommendContentCoverage,
   type ContentCoverage,
 } from "@/lib/admin/content-coverage";
+import { getQuestionBankSettings } from "@/lib/admin/question-bank-settings";
 import { getPreferences } from "@/lib/i18n/get-translations";
 
 export default async function Page() {
   const actor = await requireAdmin("CONTENT_READ");
-  const [prefs, data] = await Promise.all([getPreferences(actor.id), getContentOverview()]);
+  const [prefs, data, blueprint] = await Promise.all([
+    getPreferences(actor.id),
+    getContentOverview(),
+    getQuestionBankSettings(),
+  ]);
   const vi = prefs.interfaceLanguage === "vi";
+  const targetForms = blueprint.targetForms;
 
   const coverageRows: ContentCoverage[] = [
     { part: 1, label: "Part 1", groups: data.listening.p1, questions: data.listening.p1, groupsPerForm: 6, questionsPerForm: 6 },
@@ -25,7 +30,7 @@ export default async function Page() {
     { part: 7, label: "Part 7 · Single", setType: "single", groups: data.reading.p7SingleGroups, questions: data.reading.p7SingleQuestions, groupsPerForm: 10, questionsPerForm: 29 },
     { part: 7, label: "Part 7 · Multiple", setType: "multiple", groups: data.reading.p7MultipleGroups, questions: data.reading.p7MultipleQuestions, groupsPerForm: 5, questionsPerForm: 25 },
   ];
-  const recommendations = recommendContentCoverage(coverageRows);
+  const recommendations = recommendContentCoverage(coverageRows, targetForms);
   const bankCapacity = getQuestionBankCapacity(coverageRows);
   const statuses = [
     [vi ? "Đề Listening" : "Listening mock", data.listeningReady],
@@ -60,10 +65,10 @@ export default async function Page() {
         <section className="mt-8">
           <h2 className="text-sm font-black uppercase tracking-widest text-slate-500">{vi ? "Khả năng tạo đề" : "Mock capacity"}</h2>
           <div className="mt-3 grid gap-3 lg:grid-cols-4">
-            <article className={`rounded-2xl border p-5 lg:col-span-1 ${bankCapacity >= QUESTION_BANK_TARGET_FORMS ? "border-emerald-300 bg-emerald-50" : "border-orange-300 bg-orange-50"}`}>
+            <article className={`rounded-2xl border p-5 lg:col-span-1 ${bankCapacity >= targetForms ? "border-emerald-300 bg-emerald-50" : "border-orange-300 bg-orange-50"}`}>
               <p className="text-sm font-bold text-slate-600">{vi ? "Đề full không lặp câu" : "No-repeat full mocks"}</p>
               <p className="mt-2 text-4xl font-black">{bankCapacity}</p>
-              <p className="mt-2 text-sm leading-5 text-slate-700">{vi ? `Mục tiêu vận hành: ít nhất ${QUESTION_BANK_TARGET_FORMS} đề. Part yếu nhất quyết định con số này.` : `Operating target: at least ${QUESTION_BANK_TARGET_FORMS}. The weakest Part sets this number.`}</p>
+              <p className="mt-2 text-sm leading-5 text-slate-700">{vi ? `Mục tiêu vận hành: ít nhất ${targetForms} đề. Part yếu nhất quyết định con số này.` : `Operating target: at least ${targetForms}. The weakest Part sets this number.`}</p>
             </article>
             <div className="grid gap-3 sm:grid-cols-3 lg:col-span-3">
               {statuses.map(([label, ready]) => (
@@ -91,9 +96,9 @@ export default async function Page() {
             <div>
               <p className="text-xs font-black uppercase tracking-[.18em] text-orange-700">{vi ? "Kế hoạch mở rộng ngân hàng" : "Question bank growth plan"}</p>
               <h2 className="mt-2 text-2xl font-black">{vi ? "Part nào đang gây nguy cơ lặp câu?" : "Which Part creates the highest repeat risk?"}</h2>
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{vi ? `Blueprint ở đây là cơ cấu câu hỏi chính thức của một đề TOEIC, nhân với mục tiêu ${QUESTION_BANK_TARGET_FORMS} đề full không dùng lại câu (2.000 câu). Chỉ tính nội dung đã xuất bản và đúng cấu trúc nhóm.` : `Here, blueprint means the official TOEIC form structure multiplied by a target of ${QUESTION_BANK_TARGET_FORMS} full mocks without reusing questions (2,000 questions). Only published, structurally valid content counts.`}</p>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{vi ? `Blueprint ở đây là cơ cấu câu hỏi chính thức của một đề TOEIC, nhân với mục tiêu ${targetForms} đề full không dùng lại câu (${(targetForms * 200).toLocaleString(vi ? "vi-VN" : "en-US")} câu). Chỉ tính nội dung đã xuất bản và đúng cấu trúc nhóm.` : `Here, blueprint means the official TOEIC form structure multiplied by a target of ${targetForms} full mocks without reusing questions (${(targetForms * 200).toLocaleString("en-US")} questions). Only published, structurally valid content counts.`}</p>
             </div>
-            <Link className="rounded-xl bg-slate-900 px-4 py-3 text-sm font-black text-white" href="/admin/content/new">{vi ? "+ Tạo draft" : "+ Create draft"}</Link>
+            <div className="flex flex-wrap gap-2"><Link className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-black text-slate-900" href="/admin/settings#question-bank-blueprint">{vi ? "Cài đặt blueprint" : "Blueprint settings"}</Link><Link className="rounded-xl bg-slate-900 px-4 py-3 text-sm font-black text-white" href="/admin/content/new">{vi ? "+ Tạo draft" : "+ Create draft"}</Link></div>
           </div>
           {recommendations.length ? (
             <div className="mt-5 grid gap-3 lg:grid-cols-3">
@@ -112,7 +117,7 @@ export default async function Page() {
               ))}
             </div>
           ) : (
-            <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 font-bold text-emerald-900">{vi ? `Tất cả Part đã đủ cho mục tiêu ${QUESTION_BANK_TARGET_FORMS} đề không lặp. Bước tiếp theo là cân bằng kỹ năng, chủ đề và độ khó.` : `Every Part meets the ${QUESTION_BANK_TARGET_FORMS}-form no-repeat target. Next, balance skills, topics and difficulty.`}</div>
+            <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 font-bold text-emerald-900">{vi ? `Tất cả Part đã đủ cho mục tiêu ${targetForms} đề không lặp. Bước tiếp theo là cân bằng kỹ năng, chủ đề và độ khó.` : `Every Part meets the ${targetForms}-form no-repeat target. Next, balance skills, topics and difficulty.`}</div>
           )}
         </section>
 

@@ -21,6 +21,9 @@ import { getEffectiveCapabilities } from "@/lib/entitlements/service";
 import { getReadingRecommendation } from "@/lib/practice/recommendation";
 import { getMistakeCounts } from "@/lib/mastery/queries";
 import { awardCompletedLearning } from "@/lib/gamification/award";
+import { getLearnerGoal } from "@/lib/goals/service";
+import { getUsageStatus } from "@/lib/entitlements/service";
+import { getDailyWorkload, getGroupSafeWorkoutSize } from "@/lib/workout/policy";
 
 function parseConfig(formData: FormData): PracticeConfig | null { const config = { mode: String(formData.get("mode") ?? "") as ReadingPracticeMode, targetQuestionCount: Number(formData.get("questionCount")), source: formData.get("source") === "recommended" ? "recommended" : "custom", skill: String(formData.get("skill") ?? "").trim() || undefined, subSkill: String(formData.get("subSkill") ?? "").trim() || undefined } as PracticeConfig; return validatePracticeConfig(config) ? config : null; }
 export async function loadAdvancedTargetingAccess() { const user = await getCurrentUser(); if (!user) return { enabled: false, unresolvedMistakes: 0 }; const [capabilities, counts] = await Promise.all([getEffectiveCapabilities(user.id), getMistakeCounts(user.id)]); return { enabled: capabilities.canUseAdvancedTargeting, unresolvedMistakes: counts.unresolved }; }
@@ -77,14 +80,16 @@ export async function startListeningPractice(formData: FormData) {
 export async function startRecommendedPractice() {
   const user = await getCurrentUser(); if (!user) redirect("/sign-in");
   try {
-    const recommendation = await loadRecommendedWorkout(user.id);
+    const [recommendation, goal, usage] = await Promise.all([loadRecommendedWorkout(user.id), getLearnerGoal(user.id), getUsageStatus(user.id)]);
+    const workload = getDailyWorkload({ goal, plan: usage.effectivePlan, workoutUsage: usage.entitlements.TODAYS_WORKOUT });
+    const safeSize = getGroupSafeWorkoutSize(recommendation.part, workload.targetQuestions);
     if (recommendation.skillArea === "LISTENING" && isListeningPart(recommendation.part)) {
-      const target = recommendation.part === 1 ? 5 : recommendation.part === 2 ? 10 : recommendation.groupCount ?? 3;
+      const target = recommendation.part >= 3 ? safeSize.groupCount! : safeSize.questionCount;
       redirect(`/practice/${await createRecommendedListeningPracticeSession(user.id, { part: recommendation.part, skill: recommendation.primarySkill ?? undefined, subSkill: recommendation.primarySubskill ?? undefined, count: target })}`);
     }
     if (recommendation.skillArea === "READING") {
       const part = recommendation.part && recommendation.part >= 5 ? recommendation.part as 5 | 6 | 7 : null;
-      if (part) redirect(`/practice/${await createRecommendedReadingPracticeSession(user.id, { part, skill: recommendation.primarySkill ?? undefined, subSkill: recommendation.primarySubskill ?? undefined, questionCount: recommendation.requestedQuestionCount })}`);
+      if (part) redirect(`/practice/${await createRecommendedReadingPracticeSession(user.id, { part, skill: recommendation.primarySkill ?? undefined, subSkill: recommendation.primarySubskill ?? undefined, questionCount: safeSize.questionCount })}`);
       const attempts: PracticeConfig[] = part ? [
         { mode: `part_${part}` as ReadingPracticeMode, skill: recommendation.primarySkill ?? undefined, subSkill: recommendation.primarySubskill ?? undefined, targetQuestionCount: 10, source: "recommended" },
         { mode: `part_${part}` as ReadingPracticeMode, skill: recommendation.primarySkill ?? undefined, targetQuestionCount: 10, source: "recommended" },

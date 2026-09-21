@@ -7,7 +7,7 @@ const requiredTables = ["users", "questions", "media_assets", "passage_sets"];
 let pool;
 try {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL_REQUIRED");
-  if (provider !== "LOCAL" && provider !== "R2") throw new Error("MEDIA_STORAGE_PROVIDER_INVALID");
+  if (provider !== "LOCAL") throw new Error("MEDIA_STORAGE_PROVIDER_MUST_BE_LOCAL");
   pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 1, connectionTimeoutMillis: 5000 });
   const client = await pool.connect();
   try {
@@ -23,12 +23,10 @@ try {
     await client.query("rollback");
   } finally { client.release(); }
   console.log(`Media provider: ${provider}`);
-  if (provider === "LOCAL") {
-    if (!process.env.LOCAL_MEDIA_ROOT) throw new Error("LOCAL_MEDIA_ROOT_REQUIRED");
-    const root = await realpath(process.env.LOCAL_MEDIA_ROOT);
-    await access(root, constants.R_OK);
-    console.log("LOCAL media root: READABLE");
-  }
+  if (!process.env.LOCAL_MEDIA_ROOT) throw new Error("LOCAL_MEDIA_ROOT_REQUIRED");
+  const root = await realpath(process.env.LOCAL_MEDIA_ROOT);
+  await access(root, constants.R_OK);
+  console.log("LOCAL media root: READABLE");
   console.log("Production read-only verification: PASS");
 } catch (error) {
   console.error(`Production read-only verification: FAIL (${error instanceof Error ? error.message : "unknown error"})`);

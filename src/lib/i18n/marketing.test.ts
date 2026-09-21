@@ -12,10 +12,10 @@ describe("marketing translations", () => {
     expect(vi.pricing.rows).toHaveLength(en.pricing.rows.length);
   });
 
-  it("clearly separates available and unavailable pricing", () => {
+  it("describes Premium as purchasable without automatic renewal", () => {
     const en = getMarketingTranslations("en");
     expect(en.pricing.price).toBe("0₫");
-    expect(en.pricing.soon).toBe("Coming soon");
-    expect(en.pricing.notice).toContain("no checkout");
+    expect(en.pricing.soon).toBe("Available");
+    expect(en.pricing.notice).toContain("one-time payment");
   });
 });

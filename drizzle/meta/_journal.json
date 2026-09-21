@@ -204,6 +204,20 @@
       "when": 1791763200000,
       "tag": "0028_learner_goal_profile",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1791849600000,
+      "tag": "0029_question_bank_settings",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1791936000000,
+      "tag": "0030_local_only_media",
+      "breakpoints": true
     }
   ]
 }

@@ -45,13 +45,10 @@ SMTP_PASSWORD=
 SMTP_FROM=TOEICGym <noreply@toeicgym.net>
 SMTP_SECURE=false
 MEDIA_ENABLED=true
-MEDIA_STORAGE_PROVIDER=R2
-R2_ACCOUNT_ID=...
-R2_ACCESS_KEY_ID=...
-R2_SECRET_ACCESS_KEY=...
-R2_BUCKET_NAME=toeicgym
-R2_ENDPOINT=https://ACCOUNT_ID.r2.cloudflarestorage.com
-R2_PUBLIC_BASE_URL=
+MEDIA_ENABLED=true
+MEDIA_STORAGE_PROVIDER=LOCAL
+LOCAL_MEDIA_ROOT=/var/lib/toeicgym/media
+MEDIA_SIGNING_SECRET=<random secret, at least 32 characters>
 ```
 
 `POSTGRES_ADMIN_*` chỉ bootstrap/backup; app và migration dùng `DATABASE_URL`

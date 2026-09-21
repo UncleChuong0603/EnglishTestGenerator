@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const post = await getPublishedPost(slug);
   if (!post) return { title: "Không tìm thấy bài viết", robots: { index: false, follow: false } };
-  const image = await coverUrl(post.coverMediaId);
+  const image = await coverUrl(post.coverMediaId) || `/blog/cover/${post.category.toLowerCase()}`;
   const canonical = post.canonicalPath || `/blog/${post.slug}`;
   const title = post.seoTitle || post.title;
   const description = post.seoDescription || post.excerpt;
@@ -23,7 +23,8 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   const post = await getPublishedPost(slug);
   if (!post) notFound();
   const user = await getCurrentUser();
-  const [prefs, image, posts] = await Promise.all([getPreferences(user?.id), coverUrl(post.coverMediaId), listPublishedPosts()]);
+  const [prefs, storedImage, posts] = await Promise.all([getPreferences(user?.id), coverUrl(post.coverMediaId), listPublishedPosts()]);
+  const image = storedImage || `/blog/cover/${post.category.toLowerCase()}`;
   const related = posts.filter(item => item.slug !== post.slug && item.category === post.category).slice(0, 2);
   const base = process.env.APP_URL ?? "http://localhost:3000";
   const url = new URL(post.canonicalPath || `/blog/${post.slug}`, base).toString();

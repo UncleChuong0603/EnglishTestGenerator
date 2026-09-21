@@ -1,10 +1,11 @@
 import { z } from "zod";
 import type { InterfaceLanguage } from "@/lib/i18n/config";
+import { PRODUCT_TIME_ZONE } from "@/lib/entitlements/catalog";
 
 export const TARGET_SCORE_PRESETS = [450, 550, 650, 750, 850] as const;
 export const DAILY_STUDY_MINUTES = [10, 20, 30, 45, 60] as const;
 export const STUDY_DAYS_PER_WEEK = [3, 5, 7] as const;
-export const GOAL_TIME_ZONE = "Asia/Bangkok";
+export const GOAL_TIME_ZONE = PRODUCT_TIME_ZONE;
 
 const optionalInteger = (schema: z.ZodType<number>) =>
   z.preprocess((value) => value === "" || value === null || value === undefined ? null : Number(value), schema.nullable());

@@ -6,7 +6,7 @@ export type MediaKind = (typeof MEDIA_KINDS)[number];
 export type MediaAccessScope = (typeof MEDIA_ACCESS_SCOPES)[number];
 export type MediaStatus = (typeof MEDIA_STATUSES)[number];
 
-export type MediaProvider = "R2" | "LOCAL";
+export type MediaProvider = "LOCAL";
 export type MediaObject = { key: string; body: Uint8Array; contentType: string };
 export type MediaStorage = {
   upload(object: MediaObject): Promise<void>;

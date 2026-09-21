@@ -1,4 +1,5 @@
 /var/log/toeic-backup.log {
+  su root root
   daily
   rotate 14
   compress

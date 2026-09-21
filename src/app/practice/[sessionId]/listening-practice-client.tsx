@@ -1,5 +1,5 @@
 "use client";
-/* Signed private R2 URLs have dynamic hosts; native img avoids widening image allowlists. */
+/* Signed private media URLs are dynamic; native img avoids widening image allowlists. */
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { useRouter } from "next/navigation";
