@@ -26,8 +26,10 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY drizzle.config.ts ./
 COPY drizzle ./drizzle
+COPY content ./content
 COPY scripts ./scripts
 COPY src/db ./src/db
+COPY src/lib/content ./src/lib/content
 COPY src/lib/media ./src/lib/media
 COPY src/lib/env.ts ./src/lib/env.ts
 

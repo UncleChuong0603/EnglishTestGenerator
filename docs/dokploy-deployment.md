@@ -45,7 +45,6 @@ SMTP_PASSWORD=
 SMTP_FROM=TOEICGym <noreply@toeicgym.net>
 SMTP_SECURE=false
 MEDIA_ENABLED=true
-MEDIA_ENABLED=true
 MEDIA_STORAGE_PROVIDER=LOCAL
 LOCAL_MEDIA_ROOT=/var/lib/toeicgym/media
 MEDIA_SIGNING_SECRET=<random secret, at least 32 characters>
@@ -108,7 +107,8 @@ nếu hệ thống đã cấu hình vault.
 7. Bấm Deploy. Thứ tự tự động là: `preflight` thành công → PostgreSQL healthy →
    `migrate` chạy `drizzle-kit migrate` → `app` khởi động. Migration chỉ áp dụng
    file pending; không drop/recreate database. Xem log riêng của `preflight`,
-   `postgres`, `migrate`, `app` nếu deployment fail.
+   `postgres`, `migrate`, `app` nếu deployment fail. `preflight` chỉ báo tên biến
+   hoặc quy tắc không hợp lệ và không ghi giá trị secret ra log.
 8. Seed đúng **một lần** sau deploy bằng Terminal của Compose (hoặc SSH tại thư
    mục checkout do Dokploy quản lý):
 

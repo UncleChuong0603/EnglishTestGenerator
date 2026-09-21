@@ -54,16 +54,36 @@ services:
       - /bin/sh
       - -ec
       - |
-        test "$${POSTGRES_ADMIN_USER}" != "$${APP_DATABASE_USER}"
-        test "$${POSTGRES_ADMIN_PASSWORD}" != "$${APP_DATABASE_PASSWORD}"
-        test "$${#POSTGRES_ADMIN_PASSWORD}" -ge 24
-        test "$${#APP_DATABASE_PASSWORD}" -ge 24
-        key_bytes="$$(printf '%s' "$${NEXT_SERVER_ACTIONS_ENCRYPTION_KEY}" | base64 -d | wc -c)"
-        case "$${key_bytes}" in 16|24|32) ;; *) exit 1 ;; esac
+        fail() {
+          echo "Preflight failed: $$1" >&2
+          exit 1
+        }
+
+        [ "$${POSTGRES_ADMIN_USER}" != "$${APP_DATABASE_USER}" ] || \
+          fail "POSTGRES_ADMIN_USER and APP_DATABASE_USER must be different"
+        [ "$${POSTGRES_ADMIN_PASSWORD}" != "$${APP_DATABASE_PASSWORD}" ] || \
+          fail "POSTGRES_ADMIN_PASSWORD and APP_DATABASE_PASSWORD must be different"
+        [ "$${#POSTGRES_ADMIN_PASSWORD}" -ge 24 ] || \
+          fail "POSTGRES_ADMIN_PASSWORD must contain at least 24 characters"
+        [ "$${#APP_DATABASE_PASSWORD}" -ge 24 ] || \
+          fail "APP_DATABASE_PASSWORD must contain at least 24 characters"
+
+        decoded_key="$$(mktemp)"
+        trap 'rm -f "$$decoded_key"' EXIT
+        printf '%s' "$${NEXT_SERVER_ACTIONS_ENCRYPTION_KEY}" | base64 -d >"$$decoded_key" 2>/dev/null || \
+          fail "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY must be valid base64"
+        key_bytes="$$(wc -c <"$$decoded_key" | tr -d ' ')"
+        case "$${key_bytes}" in
+          16|24|32) ;;
+          *) fail "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY must decode to 16, 24, or 32 bytes" ;;
+        esac
+
         if [ "$${MEDIA_ENABLED}" = "true" ]; then
-          test -n "$${LOCAL_MEDIA_ROOT}"
-          test "$${#MEDIA_SIGNING_SECRET}" -ge 32
+          [ -n "$${LOCAL_MEDIA_ROOT}" ] || fail "LOCAL_MEDIA_ROOT is required when MEDIA_ENABLED=true"
+          [ "$${#MEDIA_SIGNING_SECRET}" -ge 32 ] || \
+            fail "MEDIA_SIGNING_SECRET must contain at least 32 characters when MEDIA_ENABLED=true"
         fi
+        echo "Preflight passed"
     security_opt: [no-new-privileges:true]
     logging: *default-logging
 
