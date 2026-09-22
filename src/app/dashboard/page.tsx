@@ -23,7 +23,7 @@ import { getAdvancedMockHistory } from "@/lib/full-mock/service";
 import { compareCompatible } from "@/lib/full-mock/history";
 import { getDiagnosticEligibility } from "@/lib/diagnostic/service";
 import { PremiumPreviewCard } from "@/components/premium/premium-preview";
-import { getPremiumPreview } from "@/lib/premium/preview";
+import { progressPreviewFrom } from "@/lib/premium/preview-policy";
 import { startRecommendedPractice } from "@/app/practice/actions";
 import { dailyGoalProgress, getDailyWorkload, getDashboardLifecycle, getGroupSafeWorkoutSize } from "@/lib/workout/policy";
 
@@ -89,7 +89,7 @@ export default async function DashboardPage() {
       </main>
     );
 
-  const [dashboardResult, activeDemo, usage, diagnosticState, preview] =
+  const [dashboardResult, activeDemo, usage, diagnosticState] =
     await Promise.all([
       getDashboardData(user.id).catch((error) => {
         console.error("Could not load dashboard data", error);
@@ -101,7 +101,6 @@ export default async function DashboardPage() {
       }),
       getUsageStatus(user.id),
       getDiagnosticEligibility(user.id),
-      getPremiumPreview(user.id),
     ]);
   const profile = profileResult.profile!;
   const t = translations.workout;
@@ -141,6 +140,9 @@ export default async function DashboardPage() {
     dailyGoalComplete: dailyGoal.complete,
     completedLearningSessions: dashboardResult?.completedLearningSessions ?? 0,
   });
+  const dashboardPremiumPreview = dashboardResult
+    ? progressPreviewFrom(dashboardResult.progress)
+    : null;
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-6 pb-24 text-slate-900 sm:px-6 sm:py-8 lg:pb-8">
@@ -348,42 +350,6 @@ export default async function DashboardPage() {
               </Link>
             ) : null}
           </section>
-        ) : null}
-
-        {preview.visible && preview.progress.hasSkillBreakdownPotential ? (
-          <div className="mt-8">
-            <PremiumPreviewCard
-              locale={locale}
-              title={
-                locale === "vi"
-                  ? "Phân tích sâu hơn từ dữ liệu của bạn"
-                  : "Go deeper with your learning data"
-              }
-              body={
-                locale === "vi" ? (
-                  <>
-                    Bạn đã luyện{" "}
-                    <strong>{preview.progress.answeredCount}</strong> câu.
-                    TOEICGym đã có đủ mẫu cho{" "}
-                    <strong>{preview.progress.eligibleSkillCount}</strong> skill
-                    và <strong>{preview.progress.eligibleSubskillCount}</strong>{" "}
-                    subskill.
-                  </>
-                ) : (
-                  <>
-                    You answered{" "}
-                    <strong>{preview.progress.answeredCount}</strong> questions.
-                    TOEICGym has enough evidence for{" "}
-                    <strong>{preview.progress.eligibleSkillCount}</strong>{" "}
-                    skills and{" "}
-                    <strong>{preview.progress.eligibleSubskillCount}</strong>{" "}
-                    subskills.
-                  </>
-                )
-              }
-              values={["analytics"]}
-            />
-          </div>
         ) : null}
 
         {usage.effectivePlan === "PREMIUM" ? (
@@ -637,6 +603,52 @@ export default async function DashboardPage() {
               </div>
             ) : null}
           </section>
+        ) : null}
+
+        {account.lifecycle === "FREE" &&
+        dashboardPremiumPreview?.hasSkillBreakdownPotential ? (
+          <div className="mt-8">
+            <PremiumPreviewCard
+              locale={locale}
+              title={
+                locale === "vi"
+                  ? "Dữ liệu của bạn đã sẵn sàng để phân tích sâu hơn"
+                  : "Your data is ready for deeper analysis"
+              }
+              body={
+                locale === "vi" ? (
+                  <>
+                    Bạn đã luyện{" "}
+                    <strong>{dashboardPremiumPreview.answeredCount}</strong> câu.
+                    TOEICGym hiện có đủ mẫu cho{" "}
+                    <strong>
+                      {dashboardPremiumPreview.eligibleSkillCount}
+                    </strong>{" "}
+                    skill và{" "}
+                    <strong>
+                      {dashboardPremiumPreview.eligibleSubskillCount}
+                    </strong>{" "}
+                    subskill.
+                  </>
+                ) : (
+                  <>
+                    You answered{" "}
+                    <strong>{dashboardPremiumPreview.answeredCount}</strong>{" "}
+                    questions. TOEICGym now has enough evidence for{" "}
+                    <strong>
+                      {dashboardPremiumPreview.eligibleSkillCount}
+                    </strong>{" "}
+                    skills and{" "}
+                    <strong>
+                      {dashboardPremiumPreview.eligibleSubskillCount}
+                    </strong>{" "}
+                    subskills.
+                  </>
+                )
+              }
+              values={["analytics"]}
+            />
+          </div>
         ) : null}
 
         {dashboardResult &&

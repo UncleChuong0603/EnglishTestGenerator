@@ -3,23 +3,20 @@ import { cache } from "react";
 import { and, count, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { fullMockRuns } from "@/db/schema";
-import { getDiagnosticEligibility } from "@/lib/diagnostic/service";
+import { requireUser } from "@/lib/auth/session";
+import { hasCompletedDiagnostic } from "@/lib/diagnostic/service";
 import { getMembershipState, getUsageStatus } from "@/lib/entitlements/service";
 import { getMistakeOverview } from "@/lib/mastery/queries";
 import { getToeicProgress } from "@/lib/progress/queries";
 import { getPremiumLifecycle } from "./lifecycle";
 import {
-  eligibleBreakdownCounts,
-  hasComparableMockHistory,
+  mockPreviewFrom,
+  premiumValuesFrom,
+  progressPreviewFrom,
+  type PremiumValueKey,
 } from "./preview-policy";
 
-export type PremiumValueKey =
-  | "analytics"
-  | "smartReview"
-  | "smartPriority"
-  | "mockHistory"
-  | "reassessment"
-  | "targeting";
+export type { PremiumValueKey } from "./preview-policy";
 export type PremiumPreviewData = {
   visible: boolean;
   lifecycle: ReturnType<typeof getPremiumLifecycle>;
@@ -42,7 +39,9 @@ export type PremiumPreviewData = {
 
 /** Current-user presentation summary only; raw answers and records never leave server services. */
 export const getPremiumPreview = cache(
-  async (userId: string): Promise<PremiumPreviewData> => {
+  async (): Promise<PremiumPreviewData> => {
+    const user = await requireUser();
+    const userId = user.id;
     const [membership, progress, mistakes, mocks, diagnostic, usage] =
       await Promise.all([
         getMembershipState(userId),
@@ -61,49 +60,35 @@ export const getPremiumPreview = cache(
             ),
           )
           .groupBy(fullMockRuns.mode),
-        getDiagnosticEligibility(userId),
+        hasCompletedDiagnostic(userId),
         getUsageStatus(userId),
       ]);
     const lifecycle = getPremiumLifecycle(membership);
-    const breakdown = eligibleBreakdownCounts(progress);
-    const values: PremiumValueKey[] = [];
-    if (breakdown.skillCount > 0 || breakdown.subskillCount > 0)
-      values.push("analytics");
-    if (mistakes.unresolvedCount > 0) values.push("smartReview");
-    if (mistakes.repeatedMistakeCount > 0) values.push("smartPriority");
-    if (
-      hasComparableMockHistory(
-        mocks.flatMap((mock) =>
-          Array.from({ length: Number(mock.completedCount) }, () => mock.mode),
-        ),
-      )
-    )
-      values.push("mockHistory");
-    if (diagnostic.status !== "NEEDS_BASELINE") values.push("reassessment");
-    if (progress.attemptedCount > 0) values.push("targeting");
+    const progressPreview = progressPreviewFrom(progress);
+    const mistakePreview = {
+      unresolvedCount: mistakes.unresolvedCount,
+      repeatedMistakeCount: mistakes.repeatedMistakeCount,
+      reviewableCount: mistakes.reviewableCount,
+    };
+    const mockPreview = mockPreviewFrom(
+      mocks.map((mock) => ({
+        mode: mock.mode,
+        completedCount: Number(mock.completedCount),
+      })),
+    );
+    const values = premiumValuesFrom({
+      progress: progressPreview,
+      mistakes: mistakePreview,
+      mock: mockPreview,
+      hasBaseline: diagnostic,
+    });
     return {
       visible: lifecycle === "FREE",
       lifecycle,
-      progress: {
-        answeredCount: progress.attemptedCount,
-        eligibleSkillCount: breakdown.skillCount,
-        eligibleSubskillCount: breakdown.subskillCount,
-        hasSkillBreakdownPotential:
-          breakdown.skillCount > 0 || breakdown.subskillCount > 0,
-      },
-      mistakes: {
-        unresolvedCount: mistakes.unresolvedCount,
-        repeatedMistakeCount: mistakes.repeatedMistakeCount,
-        reviewableCount: mistakes.reviewableCount,
-      },
-      mock: {
-        completedCount: mocks.reduce(
-          (sum, mock) => sum + Number(mock.completedCount),
-          0,
-        ),
-        hasComparableHistory: values.includes("mockHistory"),
-      },
-      diagnostic: { hasBaseline: diagnostic.status !== "NEEDS_BASELINE" },
+      progress: progressPreview,
+      mistakes: mistakePreview,
+      mock: mockPreview,
+      diagnostic: { hasBaseline: diagnostic },
       usage: usage.entitlements,
       values,
     };

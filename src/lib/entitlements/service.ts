@@ -4,11 +4,18 @@ import { usageConsumptions, userPlanMemberships } from "@/db/schema";
 import { getPlanCapabilities, getUsageWindow, PLAN_CATALOG, type EntitlementKey, type PlanKey } from "./catalog";
 import { quoteResultingExpiry } from "@/lib/premium/lifecycle";
 
+function activePremiumMembership(userId: string, now: Date) {
+  return and(
+    eq(userPlanMemberships.userId, userId),
+    eq(userPlanMemberships.planKey, "PREMIUM"),
+    isNull(userPlanMemberships.revokedAt),
+    lte(userPlanMemberships.startsAt, now),
+    or(isNull(userPlanMemberships.endsAt), gt(userPlanMemberships.endsAt, now)),
+  );
+}
+
 export async function getEffectivePlan(userId: string, now = new Date()): Promise<PlanKey> {
-  const row = await db.select({ id: userPlanMemberships.id }).from(userPlanMemberships).where(and(
-    eq(userPlanMemberships.userId, userId), eq(userPlanMemberships.planKey, "PREMIUM"), isNull(userPlanMemberships.revokedAt),
-    lte(userPlanMemberships.startsAt, now), or(isNull(userPlanMemberships.endsAt), gt(userPlanMemberships.endsAt, now)),
-  )).orderBy(sql`${userPlanMemberships.endsAt} desc nulls first`, sql`${userPlanMemberships.createdAt} desc`).limit(1);
+  const row = await db.select({ id: userPlanMemberships.id }).from(userPlanMemberships).where(activePremiumMembership(userId, now)).orderBy(sql`${userPlanMemberships.endsAt} desc nulls first`, sql`${userPlanMemberships.createdAt} desc`).limit(1);
   return row.length ? "PREMIUM" : "FREE";
 }
 
@@ -19,10 +26,7 @@ export async function getEffectiveCapabilities(userId: string, now = new Date())
 
 export type MembershipState = { status: "ACTIVE" | "EXPIRED" | "FREE"; expiresAt: Date | null; daysRemaining: number | null };
 export async function getMembershipState(userId: string, now = new Date()): Promise<MembershipState> {
-  const [active] = await db.select({ endsAt: userPlanMemberships.endsAt }).from(userPlanMemberships).where(and(
-    eq(userPlanMemberships.userId, userId), eq(userPlanMemberships.planKey, "PREMIUM"), isNull(userPlanMemberships.revokedAt),
-    lte(userPlanMemberships.startsAt, now), or(isNull(userPlanMemberships.endsAt), gt(userPlanMemberships.endsAt, now)),
-  )).orderBy(sql`${userPlanMemberships.endsAt} desc nulls first`, desc(userPlanMemberships.createdAt)).limit(1);
+  const [active] = await db.select({ endsAt: userPlanMemberships.endsAt }).from(userPlanMemberships).where(activePremiumMembership(userId, now)).orderBy(sql`${userPlanMemberships.endsAt} desc nulls first`, desc(userPlanMemberships.createdAt)).limit(1);
   if (active) return { status: "ACTIVE", expiresAt: active.endsAt, daysRemaining: active.endsAt ? Math.max(1, Math.ceil((active.endsAt.getTime() - now.getTime()) / 86_400_000)) : null };
   const [row] = await db.select({ endsAt: userPlanMemberships.endsAt }).from(userPlanMemberships).where(and(eq(userPlanMemberships.userId, userId), eq(userPlanMemberships.planKey, "PREMIUM")))
     .orderBy(sql`${userPlanMemberships.endsAt} desc nulls first`, desc(userPlanMemberships.createdAt)).limit(1);
@@ -50,10 +54,7 @@ export async function grantPremiumWithTx(tx: Tx, input: { userId: string; days: 
   const now = input.now ?? new Date();
   if (!Number.isInteger(input.days) || input.days < 1 || input.days > 3650) throw new Error("INVALID_DURATION");
   await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${input.userId}:plan`}, 0))`);
-  const [latest] = await tx.select({ endsAt: userPlanMemberships.endsAt }).from(userPlanMemberships).where(and(
-    eq(userPlanMemberships.userId, input.userId), isNull(userPlanMemberships.revokedAt),
-    or(isNull(userPlanMemberships.endsAt), gt(userPlanMemberships.endsAt, now)),
-  )).orderBy(sql`${userPlanMemberships.endsAt} desc nulls first`).limit(1);
+  const [latest] = await tx.select({ endsAt: userPlanMemberships.endsAt }).from(userPlanMemberships).where(activePremiumMembership(input.userId, now)).orderBy(sql`${userPlanMemberships.endsAt} desc nulls first`).limit(1);
   if (latest?.endsAt === null) return { membershipId: null, endsAt: null, unchanged: true as const };
   const endsAt = quoteResultingExpiry(latest ? { status: "ACTIVE", expiresAt: latest.endsAt, daysRemaining: null } : { status: "FREE", expiresAt: null, daysRemaining: null }, input.days, now);
   const source = input.source ?? "MANUAL";
@@ -65,10 +66,7 @@ export async function grantPremiumWithTx(tx: Tx, input: { userId: string; days: 
 export async function revokePremiumWithTx(tx: Tx, input: { userId: string; now?: Date }) {
   const now = input.now ?? new Date();
   await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${input.userId}:plan`}, 0))`);
-  return tx.update(userPlanMemberships).set({ revokedAt: now, updatedAt: now }).where(and(
-    eq(userPlanMemberships.userId, input.userId), isNull(userPlanMemberships.revokedAt),
-    lte(userPlanMemberships.startsAt, now), or(isNull(userPlanMemberships.endsAt), gt(userPlanMemberships.endsAt, now)),
-  )).returning({ id: userPlanMemberships.id });
+  return tx.update(userPlanMemberships).set({ revokedAt: now, updatedAt: now }).where(activePremiumMembership(input.userId, now)).returning({ id: userPlanMemberships.id });
 }
 
 export async function getMembershipHistory(userId: string, page = 1, pageSize = 20) {
@@ -79,7 +77,7 @@ export class UsageLimitError extends Error { readonly code = "USAGE_LIMIT_REACHE
 
 export async function consumeUsage(tx: Tx, input: { userId: string; entitlement: EntitlementKey; sourceType: "PRACTICE_SESSION" | "FULL_MOCK_RUN"; sourceId: string; now: Date }) {
   await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${input.userId}:entitlements`}, 0))`);
-  const active = await tx.select({ id: userPlanMemberships.id }).from(userPlanMemberships).where(and(eq(userPlanMemberships.userId, input.userId), isNull(userPlanMemberships.revokedAt), lte(userPlanMemberships.startsAt, input.now), or(isNull(userPlanMemberships.endsAt), gt(userPlanMemberships.endsAt, input.now)))).limit(1);
+  const active = await tx.select({ id: userPlanMemberships.id }).from(userPlanMemberships).where(activePremiumMembership(input.userId, input.now)).limit(1);
   if (active.length) return;
   const limit = PLAN_CATALOG.FREE.entitlements[input.entitlement];
   if (limit.type !== "LIMITED") return;

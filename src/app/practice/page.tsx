@@ -9,7 +9,10 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { startListeningPractice } from "./actions";
 import { PracticeConfigurator } from "./practice-configurator";
 import { getToeicProgress } from "@/lib/progress/queries";
-import { PremiumPreviewCard } from "@/components/premium/premium-preview";
+import {
+  PremiumPreviewCard,
+  PremiumRenewalCard,
+} from "@/components/premium/premium-preview";
 import { getPremiumPreview } from "@/lib/premium/preview";
 
 type Props = { searchParams: Promise<{ error?: string }> };
@@ -20,7 +23,7 @@ export default async function PracticePage({ searchParams }: Props) {
     getCurrentProfile(user.id),
     getPreferences(user.id),
     getToeicProgress(user.id),
-    getPremiumPreview(user.id),
+    getPremiumPreview(),
   ]);
   if (profile.status === "missing") redirect("/onboarding");
   const locale = preferences.interfaceLanguage;
@@ -87,6 +90,22 @@ export default async function PracticePage({ searchParams }: Props) {
                   : "Premium unlocks unlimited practice and advanced targets based on your history."
               }
               values={["targeting"]}
+            />
+          </div>
+        ) : error === "usage_limit" && preview.lifecycle === "EXPIRED" ? (
+          <div className="mt-6">
+            <PremiumRenewalCard
+              locale={locale}
+              title={
+                locale === "vi"
+                  ? "Khôi phục hạn mức luyện tập Premium"
+                  : "Restore your Premium practice allowance"
+              }
+              body={
+                locale === "vi"
+                  ? "Gói trước đây đã hết hạn. Dữ liệu học tập vẫn được giữ nguyên; khôi phục Premium để tiếp tục luyện không giới hạn và dùng các mục tiêu nâng cao."
+                  : "Your previous plan expired. Your learning data is intact; restore Premium to continue unlimited practice and advanced targets."
+              }
             />
           </div>
         ) : null}

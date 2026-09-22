@@ -14,7 +14,10 @@ import {
   REPEATED_MISS_THRESHOLD,
 } from "@/lib/mastery/priority";
 import { startMasteryReview } from "./actions";
-import { PremiumPreviewCard } from "@/components/premium/premium-preview";
+import {
+  PremiumPreviewCard,
+  PremiumRenewalCard,
+} from "@/components/premium/premium-preview";
 import { getPremiumPreview } from "@/lib/premium/preview";
 
 export default async function MistakesPage({
@@ -28,7 +31,7 @@ export default async function MistakesPage({
     getPreferences(user.id),
     getEffectiveCapabilities(user.id),
     getMistakeCounts(user.id),
-    getPremiumPreview(user.id),
+    getPremiumPreview(),
   ]);
   const premium = capabilities.canUseSmartMistakeReview;
   const vi = preferences.interfaceLanguage === "vi";
@@ -143,6 +146,23 @@ export default async function MistakesPage({
                   : ["smartReview"]
               }
               cta={vi ? "Xem Smart Review" : "See Smart Review"}
+            />
+          </div>
+        ) : query.error === "usage_limit" &&
+          preview.lifecycle === "EXPIRED" ? (
+          <div className="mt-5">
+            <PremiumRenewalCard
+              locale={preferences.interfaceLanguage}
+              title={
+                vi
+                  ? "Khôi phục Smart Review của bạn"
+                  : "Restore your Smart Review access"
+              }
+              body={
+                vi
+                  ? `Gói trước đây đã hết hạn. ${preview.mistakes.unresolvedCount} lỗi chưa làm chủ vẫn được lưu an toàn để bạn tiếp tục ôn sau khi khôi phục.`
+                  : `Your previous plan expired. ${preview.mistakes.unresolvedCount} unresolved mistakes remain safely saved for your next review.`
+              }
             />
           </div>
         ) : query.error ? (

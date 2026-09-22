@@ -30,6 +30,7 @@
     "task23:verify:production": "node --env-file-if-exists=.env.local scripts/task23-verify-production.mjs",
     "task22:verify:postgres": "node scripts/task22-verify-postgres.mjs",
     "task22:verify:postgres:cleanup": "docker compose -f docker-compose.test.yml down --remove-orphans",
+    "test:integration:task27": "node --conditions=react-server --import tsx scripts/task27-integration.mts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",

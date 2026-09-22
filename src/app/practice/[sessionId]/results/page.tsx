@@ -54,7 +54,7 @@ export default async function PracticeResultsPage({
     user && result.source === "mastery_review"
       ? getMasteryReviewSummary(result.id, user.id)
       : null,
-    user ? getPremiumPreview(user.id) : null,
+    user ? getPremiumPreview() : null,
   ]);
   const locale = preferences.interfaceLanguage;
   if (result.skillArea === "LISTENING")
@@ -62,6 +62,7 @@ export default async function PracticeResultsPage({
       <>
         <ListeningResult
           locale={locale}
+          premiumPreview={preview}
           recommendation={recommendation}
           result={result}
           reviewOutcome={reviewOutcome}
@@ -251,7 +252,7 @@ export default async function PracticeResultsPage({
             />
           </div>
         ) : null}
-        {preview?.visible && preview.progress.answeredCount > 0 ? (
+        {preview?.visible && preview.progress.hasSkillBreakdownPotential ? (
           <div className="mt-6">
             <PremiumPreviewCard
               locale={locale}

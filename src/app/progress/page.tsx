@@ -51,7 +51,7 @@ export default async function ProgressPage({
       capabilities.canUseDiagnosticReassessment
         ? getDiagnosticHistory(user.id)
         : Promise.resolve([]),
-      getPremiumPreview(user.id),
+      getPremiumPreview(),
     ]);
     const latestDiagnostic = diagnosticHistory[0] ?? null;
     const previousDiagnostic = diagnosticHistory[1] ?? null;
@@ -286,15 +286,15 @@ export default async function ProgressPage({
                       ))}
                   </div>
                 </section>
-              ) : preview.visible ? (
+              ) : preview.visible &&
+                preview.progress.hasSkillBreakdownPotential ? (
                 <section className="mt-7 rounded-2xl border border-slate-200 bg-white p-6">
                   <h2 className="text-xl font-black">
                     {vi
                       ? "Phân tích sâu hơn khi cần"
                       : "Go deeper when you need it"}
                   </h2>
-                  {preview.progress.hasSkillBreakdownPotential ? (
-                    <p className="mt-2 max-w-2xl font-semibold text-slate-800">
+                  <p className="mt-2 max-w-2xl font-semibold text-slate-800">
                       {vi ? (
                         <>
                           Dựa trên{" "}
@@ -320,8 +320,7 @@ export default async function ProgressPage({
                           subskills.
                         </>
                       )}
-                    </p>
-                  ) : null}
+                  </p>
                   <p className="mt-2 max-w-2xl text-slate-600">
                     {vi
                       ? "Free luôn giữ tiến độ tổng, Listening/Reading, từng Part và xu hướng 30 ngày. Premium bổ sung lịch sử 90 ngày và phân tích skill/subskill theo cỡ mẫu thực."

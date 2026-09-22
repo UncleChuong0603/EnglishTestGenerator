@@ -110,6 +110,36 @@ export function PremiumPreviewCard({
   );
 }
 
+export function PremiumRenewalCard({
+  locale,
+  title,
+  body,
+}: {
+  locale: InterfaceLanguage;
+  title: string;
+  body: React.ReactNode;
+}) {
+  return (
+    <section
+      className="rounded-2xl border border-amber-200 bg-amber-50 p-5 sm:p-6"
+      aria-label={title}
+    >
+      <p className="text-xs font-black uppercase tracking-[.14em] text-amber-800">
+        {locale === "vi" ? "Premium đã hết hạn" : "Premium expired"}
+      </p>
+      <h2 className="mt-2 text-xl font-black">{title}</h2>
+      <div className="mt-2 leading-7 text-slate-700">{body}</div>
+      <div className="mt-5">
+        <PremiumUpgradeCTA
+          href="/billing"
+          label={locale === "vi" ? "Khôi phục Premium" : "Restore Premium"}
+          locale={locale}
+        />
+      </div>
+    </section>
+  );
+}
+
 export function PersonalizedPremiumSummary({
   locale,
   preview,
@@ -151,7 +181,7 @@ export function PersonalizedPremiumSummary({
       </h2>
       <p className="mt-2 text-slate-600">
         {locale === "vi"
-          ? "Dựa trên dữ liệu học tập hiện có, Premium có thể mở các giá trị phù hợp sau."
+          ? "Đây là những quyền lợi Premium đã phù hợp với dữ liệu học tập hiện tại của bạn."
           : "Based on your current learning data, these Premium capabilities are relevant now."}
       </p>
       {metrics.length ? (
@@ -165,6 +195,9 @@ export function PersonalizedPremiumSummary({
         </dl>
       ) : null}
       <div className="mt-6">
+        <h3 className="mb-3 text-sm font-black uppercase tracking-[.12em] text-slate-500">
+          {locale === "vi" ? "Premium có thể mở" : "Premium can unlock"}
+        </h3>
         <PremiumValueList locale={locale} values={preview.values} />
       </div>
     </section>
