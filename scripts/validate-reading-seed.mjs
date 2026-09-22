@@ -27,7 +27,10 @@ export function validateReadingSeed({ part5 = part5Questions, sets = readingPass
     seenKeys.add(key);
     if (!q.text?.trim()) errors.push(`${label}: missing question text.`);
     else {
-      const normalized = normalize(q.text);
+      // Repeated TOEIC stems such as "What is suggested...?" are valid across
+      // different documents; reject duplicates only inside the same content group.
+      const groupLabel = label.includes("/") ? label.split("/")[0] : "standalone";
+      const normalized = `${part}:${groupLabel}:${normalize(q.text)}`;
       if (seenQuestions.has(normalized)) errors.push(`${label}: duplicate normalized question text.`);
       seenQuestions.add(normalized);
     }
@@ -91,9 +94,14 @@ export function validateReadingSeed({ part5 = part5Questions, sets = readingPass
     }
   }
 
-  if (report.part[5] < 200 || report.part[5] > 300) errors.push(`Part 5 count out of target: ${report.part[5]}.`);
-  if (report.part[6] < 80 || report.part[6] > 120) errors.push(`Part 6 count out of target: ${report.part[6]}.`);
-  if (report.part[7] < 150 || report.part[7] > 250) errors.push(`Part 7 count out of target: ${report.part[7]}.`);
+  if (report.part[5] < 300) errors.push(`Part 5 needs at least 300 questions for ten non-repeating forms; found ${report.part[5]}.`);
+  if (report.passageSets.part6 < 40 || report.part[6] < 160) errors.push(`Part 6 needs 40 complete four-question sets for ten non-repeating forms; found ${report.passageSets.part6} sets and ${report.part[6]} questions.`);
+  const singleSets = sets.filter((set) => set.toeicPart === 7 && set.setType === "single");
+  const multipleSets = sets.filter((set) => set.toeicPart === 7 && ["double", "triple"].includes(set.setType));
+  const singleQuestions = singleSets.reduce((total, set) => total + set.questions.length, 0);
+  const multipleQuestions = multipleSets.reduce((total, set) => total + set.questions.length, 0);
+  if (singleSets.length < 100 || singleQuestions < 290) errors.push(`Part 7 single passages need 100 groups and 290 questions for ten forms; found ${singleSets.length} groups and ${singleQuestions} questions.`);
+  if (multipleSets.length < 50 || multipleQuestions < 250) errors.push(`Part 7 multiple passages need 50 groups and 250 questions for ten forms; found ${multipleSets.length} groups and ${multipleQuestions} questions.`);
   return { errors, report };
 }
 

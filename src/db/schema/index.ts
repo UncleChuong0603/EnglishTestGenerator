@@ -272,6 +272,23 @@ export const learnerGoals = pgTable("learner_goals", {
   check("learner_goals_study_days_check", sql`${table.studyDaysPerWeek} is null or ${table.studyDaysPerWeek} in (3, 5, 7)`),
 ]);
 
+export const learnerContexts = pgTable("learner_contexts", {
+  userId: uuid("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+  studyPurpose: text("study_purpose"),
+  studyPurposeOther: text("study_purpose_other"),
+  acquisitionSource: text("acquisition_source"),
+  acquisitionSourceOther: text("acquisition_source_other"),
+  promptDismissedAt: timestamp("prompt_dismissed_at", { withTimezone: true, mode: "date" }),
+  ...timestamps,
+}, (table) => [
+  check("learner_contexts_study_purpose_check", sql`${table.studyPurpose} is null or ${table.studyPurpose} in ('GRADUATION_REQUIREMENT','JOB_CAREER','UPCOMING_EXAM','ENGLISH_IMPROVEMENT','OTHER')`),
+  check("learner_contexts_acquisition_source_check", sql`${table.acquisitionSource} is null or ${table.acquisitionSource} in ('FACEBOOK_GROUP','FACEBOOK_PAGE','THREADS','LINKEDIN','GOOGLE','FRIEND_REFERRAL','OTHER')`),
+  check("learner_contexts_study_other_length_check", sql`${table.studyPurposeOther} is null or char_length(${table.studyPurposeOther}) between 1 and 120`),
+  check("learner_contexts_acquisition_other_length_check", sql`${table.acquisitionSourceOther} is null or char_length(${table.acquisitionSourceOther}) between 1 and 120`),
+  check("learner_contexts_study_other_consistency_check", sql`${table.studyPurpose} = 'OTHER' or ${table.studyPurposeOther} is null`),
+  check("learner_contexts_acquisition_other_consistency_check", sql`${table.acquisitionSource} = 'OTHER' or ${table.acquisitionSourceOther} is null`),
+]);
+
 export const productEvents = pgTable("product_events", {
   id: uuid("id").primaryKey().defaultRandom(),
   eventName: text("event_name").notNull(),

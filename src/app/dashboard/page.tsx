@@ -26,6 +26,8 @@ import { PremiumPreviewCard } from "@/components/premium/premium-preview";
 import { progressPreviewFrom } from "@/lib/premium/preview-policy";
 import { startRecommendedPractice } from "@/app/practice/actions";
 import { dailyGoalProgress, getDailyWorkload, getDashboardLifecycle, getGroupSafeWorkoutSize } from "@/lib/workout/policy";
+import { shouldPromptForLearnerContext } from "@/lib/learner-context/service";
+import { LearnerContextPrompt } from "@/components/learner-context-prompt";
 
 function ProgressCard({
   area,
@@ -66,11 +68,12 @@ function ProgressCard({
 export default async function DashboardPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/sign-in");
-  const [profileResult, preferences, account, goal] = await Promise.all([
+  const [profileResult, preferences, account, goal, showContextPrompt] = await Promise.all([
     getCurrentProfile(user.id),
     getPreferences(user.id),
     getPremiumAccount(user.id, user.email),
     getLearnerGoal(user.id).catch(() => null),
+    shouldPromptForLearnerContext(user.id).catch(() => false),
   ]);
   const locale = preferences.interfaceLanguage;
   const translations = getTranslations(locale);
@@ -281,6 +284,8 @@ export default async function DashboardPage() {
             <RecommendationUnavailable locale={locale} />
           )}
         </div>
+
+        {showContextPrompt ? <LearnerContextPrompt locale={locale} /> : null}
 
         <section className="mt-4 rounded-2xl border border-teal-200 bg-white p-5 shadow-sm" aria-labelledby="daily-goal-heading">
           <div className="flex flex-wrap items-end justify-between gap-3">

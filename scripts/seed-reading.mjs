@@ -72,6 +72,16 @@ function buildRows() {
   return { setRows, passageRows, questionRows, optionRows, solutionRows };
 }
 
+function withoutPart5(rows) {
+  const questionIds = new Set(rows.questionRows.filter((row) => row.toeic_part !== 5).map((row) => row.id));
+  return {
+    ...rows,
+    questionRows: rows.questionRows.filter((row) => questionIds.has(row.id)),
+    optionRows: rows.optionRows.filter((row) => questionIds.has(row.question_id)),
+    solutionRows: rows.solutionRows.filter((row) => questionIds.has(row.question_id)),
+  };
+}
+
 async function verifyDatabase(client, rows) {
   const counts = {
     sets: await countIds(client, "passage_sets", rows.setRows.map((r) => r.id)), passages: await countIds(client, "passages", rows.passageRows.map((r) => r.id)), questions: await countIds(client, "questions", rows.questionRows.map((r) => r.id)), options: await countIds(client, "question_options", rows.optionRows.map((r) => r.id)), solutions: await countIds(client, "question_solutions", rows.solutionRows.map((r) => r.question_id), "question_id"),
@@ -89,12 +99,17 @@ async function run() {
   const validation = validateReadingSeed();
   if (validation.errors.length) throw new Error(validation.errors.join("\n"));
   console.log(`Local validation passed.\n\n${formatReadingDistribution(validation.report)}\n`);
-  const rows = buildRows();
+  let rows = buildRows();
   if (process.argv.includes("--dry-run")) {
     console.log(`DRY RUN: would upsert ${rows.setRows.length} sets, ${rows.passageRows.length} passages, ${rows.questionRows.length} questions, ${rows.optionRows.length} options, and ${rows.solutionRows.length} solutions.`);
     return;
   }
   const pool = createPool(); const client = await pool.connect();
+  const existingPart5 = Number((await client.query(`select count(*)::int as count from questions where skill_area='READING' and toeic_part=5 and status='published'`)).rows[0].count);
+  if (process.argv.includes("--skip-part5") || (existingPart5 >= 300 && !process.argv.includes("--include-part5"))) {
+    rows = withoutPart5(rows);
+    console.log(`Part 5 upsert skipped because the database already has ${existingPart5} published questions.`);
+  }
   if (!process.argv.includes("--verify-only")) {
     await client.query("begin"); await upsertRows(client, "passage_sets", rows.setRows, "id"); await upsertRows(client, "passages", rows.passageRows, "id"); await upsertRows(client, "questions", rows.questionRows, "id"); await upsertRows(client, "question_options", rows.optionRows, "id"); await upsertRows(client, "question_solutions", rows.solutionRows, "question_id"); await client.query("commit");
     console.log("Idempotent Reading seed upsert completed.");
