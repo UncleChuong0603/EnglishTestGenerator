@@ -110,6 +110,36 @@ export function PremiumPreviewCard({
   );
 }
 
+export function PremiumRenewalCard({
+  locale,
+  title,
+  body,
+}: {
+  locale: InterfaceLanguage;
+  title: string;
+  body: React.ReactNode;
+}) {
+  return (
+    <section
+      className="rounded-2xl border border-amber-200 bg-amber-50 p-5 sm:p-6"
+      aria-label={title}
+    >
+      <p className="text-xs font-black uppercase tracking-[.14em] text-amber-800">
+        {locale === "vi" ? "Premium đã hết hạn" : "Premium expired"}
+      </p>
+      <h2 className="mt-2 text-xl font-black">{title}</h2>
+      <div className="mt-2 leading-7 text-slate-700">{body}</div>
+      <div className="mt-5">
+        <PremiumUpgradeCTA
+          href="/billing"
+          label={locale === "vi" ? "Khôi phục Premium" : "Restore Premium"}
+          locale={locale}
+        />
+      </div>
+    </section>
+  );
+}
+
 export function PersonalizedPremiumSummary({
   locale,
   preview,
@@ -143,25 +173,32 @@ export function PersonalizedPremiumSummary({
       className="mx-auto mt-8 max-w-7xl px-5 sm:px-6"
       aria-labelledby="personal-premium"
     >
-      <div className="overflow-hidden rounded-3xl border border-teal-200 bg-[linear-gradient(120deg,#f0fdfa_0%,#ffffff_55%,#fffbeb_100%)] p-6 shadow-sm sm:p-8">
-        <div className="grid gap-7 lg:grid-cols-[.9fr_1.1fr] lg:items-center">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[.16em] text-teal-700">Premium insight</p>
-            <h2 className="mt-2 text-2xl font-black sm:text-3xl" id="personal-premium">
-              {locale === "vi" ? "Dữ liệu của bạn đã sẵn sàng để tăng tốc" : "Your learning data is ready to work harder"}
-            </h2>
-            <p className="mt-3 leading-7 text-slate-600">
-              {locale === "vi" ? "Premium dùng chính các lỗi và tiến độ này để quyết định bạn nên luyện gì tiếp theo." : "Premium uses these mistakes and progress signals to decide what you should train next."}
-            </p>
-            <Link className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-slate-950 px-5 font-black text-white hover:bg-slate-800" href="#plans">
-              {locale === "vi" ? "Xem gói phù hợp" : "See Premium options"}<span className="ml-2" aria-hidden="true">↓</span>
-            </Link>
-          </div>
-          <div>
-            {metrics.length ? <dl className="grid gap-3 sm:grid-cols-3">{metrics.map(([value, label]) => <div className="rounded-2xl border border-white bg-white/80 p-4 shadow-sm" key={label}><dd className="text-3xl font-black text-slate-950">{value}</dd><dt className="mt-1 text-sm text-slate-600">{label}</dt></div>)}</dl> : null}
-            <div className="mt-4 rounded-2xl bg-white/70 p-4"><PremiumValueList locale={locale} values={preview.values.slice(0, 3)} /></div>
-          </div>
-        </div>
+      <p className="text-xs font-black uppercase tracking-[.16em] text-teal-700">
+        Premium
+      </p>
+      <h2 className="mt-2 text-2xl font-black" id="personal-premium">
+        {locale === "vi" ? "Premium dành cho bạn" : "Premium for you"}
+      </h2>
+      <p className="mt-2 text-slate-600">
+        {locale === "vi"
+          ? "Đây là những quyền lợi Premium đã phù hợp với dữ liệu học tập hiện tại của bạn."
+          : "Based on your current learning data, these Premium capabilities are relevant now."}
+      </p>
+      {metrics.length ? (
+        <dl className="mt-6 grid gap-3 sm:grid-cols-3">
+          {metrics.map(([value, label]) => (
+            <div className="rounded-xl bg-slate-50 p-4" key={label}>
+              <dd className="text-3xl font-black">{value}</dd>
+              <dt className="mt-1 text-sm text-slate-600">{label}</dt>
+            </div>
+          ))}
+        </dl>
+      ) : null}
+      <div className="mt-6">
+        <h3 className="mb-3 text-sm font-black uppercase tracking-[.12em] text-slate-500">
+          {locale === "vi" ? "Premium có thể mở" : "Premium can unlock"}
+        </h3>
+        <PremiumValueList locale={locale} values={preview.values} />
       </div>
     </section>
   );

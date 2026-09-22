@@ -11,7 +11,10 @@ import { getPreferences } from "@/lib/i18n/get-translations";
 import { startMock } from "./actions";
 import { getActiveDemoTest } from "@/lib/demo-test/queries";
 import { getEffectiveCapabilities } from "@/lib/entitlements/service";
-import { PremiumPreviewCard } from "@/components/premium/premium-preview";
+import {
+  PremiumPreviewCard,
+  PremiumRenewalCard,
+} from "@/components/premium/premium-preview";
 import { getPremiumPreview } from "@/lib/premium/preview";
 
 const copy = {
@@ -79,7 +82,7 @@ export default async function FullMockPage({
     getPreferences(user.id),
     getActiveDemoTest(user.id),
     getEffectiveCapabilities(user.id),
-    getPremiumPreview(user.id),
+    getPremiumPreview(),
   ]);
   const locale = preferences.interfaceLanguage === "en" ? "en" : "vi",
     t = copy[locale];
@@ -151,6 +154,23 @@ export default async function FullMockPage({
                 locale === "vi"
                   ? "Premium mở thi thử không giới hạn đối với các mode đang READY; không vượt qua trạng thái sẵn sàng của nội dung."
                   : "Premium unlocks unlimited mocks for modes that are READY; it does not bypass content readiness."
+              }
+            />
+          </div>
+        ) : query.error === "usage_limit" &&
+          preview.lifecycle === "EXPIRED" ? (
+          <div className="mt-6">
+            <PremiumRenewalCard
+              locale={preferences.interfaceLanguage}
+              title={
+                locale === "vi"
+                  ? "Khôi phục hạn mức thi thử Premium"
+                  : "Restore your Premium mock allowance"
+              }
+              body={
+                locale === "vi"
+                  ? "Gói trước đây đã hết hạn. Lịch sử thi thử vẫn được giữ nguyên; khôi phục Premium để tiếp tục các mode đang READY."
+                  : "Your previous plan expired. Your mock history remains intact; restore Premium to continue modes that are READY."
               }
             />
           </div>
