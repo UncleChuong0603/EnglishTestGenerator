@@ -113,17 +113,21 @@ export const adminAuditLogs = pgTable("admin_audit_logs", {
   index("admin_audit_logs_actor_idx").on(table.actorUserId),
   index("admin_audit_logs_target_idx").on(table.targetUserId),
   index("admin_audit_logs_action_idx").on(table.action),
-  check("admin_audit_logs_action_check", sql`${table.action} in ('ADMIN_ROLE_GRANTED','ADMIN_ROLE_REVOKED','USER_SUSPENDED','USER_REACTIVATED','PREMIUM_GRANTED','PREMIUM_REVOKED','CONTENT_DRAFT_CREATED','CONTENT_DRAFT_UPDATED','CONTENT_CLONED','CONTENT_PUBLISHED','CONTENT_ARCHIVED','CONTENT_DRAFT_DISCARDED','CONTENT_UNARCHIVED','CONTENT_DUPLICATE_DELETED','MEDIA_UPLOADED','CHALLENGE_DRAFT_CREATED','CHALLENGE_FORM_GENERATED','CHALLENGE_PUBLISHED','CHALLENGE_CANCELLED','SEO_POST_CREATED','SEO_POST_UPDATED','SEO_POST_PUBLISHED','SEO_POST_UNPUBLISHED','SEO_POST_DELETED','IMPORT_VALIDATED','IMPORT_COMMITTED','IMPORT_FAILED','QUESTION_BANK_BLUEPRINT_UPDATED')`),
+  check("admin_audit_logs_action_check", sql`${table.action} in ('ADMIN_ROLE_GRANTED','ADMIN_ROLE_REVOKED','USER_SUSPENDED','USER_REACTIVATED','PREMIUM_GRANTED','PREMIUM_REVOKED','CONTENT_DRAFT_CREATED','CONTENT_DRAFT_UPDATED','CONTENT_CLONED','CONTENT_PUBLISHED','CONTENT_ARCHIVED','CONTENT_DRAFT_DISCARDED','CONTENT_UNARCHIVED','CONTENT_DUPLICATE_DELETED','MEDIA_UPLOADED','CHALLENGE_DRAFT_CREATED','CHALLENGE_FORM_GENERATED','CHALLENGE_PUBLISHED','CHALLENGE_CANCELLED','SEO_POST_CREATED','SEO_POST_UPDATED','SEO_POST_PUBLISHED','SEO_POST_UNPUBLISHED','SEO_POST_DELETED','IMPORT_VALIDATED','IMPORT_COMMITTED','IMPORT_FAILED','QUESTION_BANK_BLUEPRINT_UPDATED','CONTENT_QUALITY_SETTINGS_UPDATED','SUPPORT_SETTINGS_UPDATED')`),
 ]);
 
 export const questionBankSettings = pgTable("question_bank_settings", {
   id: text("id").primaryKey().default("default"),
   targetForms: smallint("target_forms").notNull().default(10),
+  similarityThresholdPercent: smallint("similarity_threshold_percent").notNull().default(58),
+  supportResponseTargetHours: smallint("support_response_target_hours").notNull().default(24),
   updatedBy: uuid("updated_by").references(() => users.id, { onDelete: "set null" }),
   ...timestamps,
 }, (table) => [
   check("question_bank_settings_singleton_check", sql`${table.id} = 'default'`),
   check("question_bank_settings_target_forms_check", sql`${table.targetForms} between 1 and 100`),
+  check("question_bank_settings_similarity_threshold_check", sql`${table.similarityThresholdPercent} between 25 and 95`),
+  check("question_bank_settings_support_response_target_check", sql`${table.supportResponseTargetHours} between 1 and 168`),
 ]);
 
 export const profiles = pgTable("profiles", {

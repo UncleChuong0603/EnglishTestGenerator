@@ -10,6 +10,7 @@ export type ProductAnalyticsSnapshot = {
   wau: number;
   checkoutCreated: number;
   premiumActivated: number;
+  activePremiumUsers: number;
   retention: Record<string, { cohort: number; returned: number }>;
 };
 
@@ -63,7 +64,7 @@ export function productAnalyticsCsv(data: ProductAnalyticsSnapshot, period: Anal
   add("overview", "signups", data.signups); add("overview", "activated", data.activated); add("overview", "dau", data.dau); add("overview", "wau", data.wau); add("overview", "completed_sessions", data.sessions); add("overview", "questions_practiced", data.questions); add("overview", "active_learners", data.active);
   for (const [event, value] of Object.entries(data.events).sort(([a], [b]) => a.localeCompare(b))) add("event", event, value);
   funnelRows(data.events, data.activated).forEach((row, index) => { add("funnel_count", String(index + 1), row.count); add("funnel_conversion_pct", String(index + 1), row.conversion, index ? funnelRows(data.events, data.activated)[index - 1].count : row.count); add("funnel_dropoff_pct", String(index + 1), row.dropoff, index ? funnelRows(data.events, data.activated)[index - 1].count : row.count); });
-  add("premium", "checkout_created", data.checkoutCreated); add("premium", "premium_activated", data.premiumActivated);
+  add("premium", "checkout_created", data.checkoutCreated); add("premium", "premium_activated", data.premiumActivated); add("premium", "active_premium_users", data.activePremiumUsers);
   for (const day of [1, 7, 30]) { const value = data.retention[String(day)] ?? { cohort: 0, returned: 0 }; add("retention", `d${day}_returned`, value.returned, value.cohort); add("retention", `d${day}_rate_pct`, value.cohort ? Math.round(value.returned / value.cohort * 1000) / 10 : 0, value.cohort); }
   for (const item of analyticsRecommendations(data)) add("recommendation", item.key, item.value, item.sample);
   return `\uFEFF${rows.map((row) => row.map(csvCell).join(",")).join("\r\n")}\r\n`;

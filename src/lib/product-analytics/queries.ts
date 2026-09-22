@@ -28,6 +28,7 @@ export async function getProductAnalytics(period: AnalyticsPeriod) {
     wau as (select count(distinct user_id)::int value from practice_sessions where status='submitted' and submitted_at >= now() - interval '7 day' and user_id is not null),
     dau as (select count(distinct user_id)::int value from practice_sessions where status='submitted' and submitted_at >= date_trunc('day', now() at time zone 'Asia/Ho_Chi_Minh') at time zone 'Asia/Ho_Chi_Minh' and user_id is not null),
     payments as (select count(*) filter (where created_at >= (select since from bounds))::int checkout_created, count(*) filter (where paid_at >= (select since from bounds))::int premium_activated from payment_orders),
+    active_premium as (select count(distinct user_id)::int value from user_plan_memberships where plan_key = 'PREMIUM' and revoked_at is null and starts_at <= now() and (ends_at is null or ends_at > now())),
     retention as (
       select n, count(*)::int cohort, count(*) filter (where exists(select 1 from practice_sessions p where p.user_id=u.id and p.status='submitted' and p.submitted_at >= u.created_at + (n || ' day')::interval and p.submitted_at < u.created_at + ((n+1) || ' day')::interval))::int returned
       from users u cross join (values (1),(7),(30)) d(n) where u.created_at < now() - (n || ' day')::interval group by n
@@ -36,7 +37,7 @@ export async function getProductAnalytics(period: AnalyticsPeriod) {
       'events', coalesce((select json_object_agg(event_name,value) from event_counts),'{}'::json),
       'sessions',(select sessions from completed),'questions',(select questions from completed),'active',(select active from completed),
       'signups',(select value from signups),'activated',(select value from activated),'dau',(select value from dau),'wau',(select value from wau),
-      'checkoutCreated',(select checkout_created from payments),'premiumActivated',(select premium_activated from payments),
+      'checkoutCreated',(select checkout_created from payments),'premiumActivated',(select premium_activated from payments),'activePremiumUsers',(select value from active_premium),
       'retention',coalesce((select json_object_agg(n,json_build_object('cohort',cohort,'returned',returned)) from retention),'{}'::json)
     ) data`);
   return result.rows[0].data as ProductAnalyticsSnapshot;

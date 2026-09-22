@@ -18,15 +18,16 @@ const pool = new pg.Pool({ connectionString: source.href, max: 12 });
 async function freshMigrate() {
   await pool.query("drop schema public cascade"); await pool.query("create schema public");
   const journal = JSON.parse(readFileSync("drizzle/meta/_journal.json", "utf8"));
+  assert.ok(journal.entries.length > 0, "MIGRATION_JOURNAL_EMPTY");
   for (const entry of journal.entries) { const client=await pool.connect(); try { await client.query("begin"); await client.query(readFileSync(`drizzle/${entry.tag}.sql`,"utf8")); await client.query("commit"); } catch(e){await client.query("rollback");throw e} finally{client.release()} }
-  assert.equal(journal.entries.at(-1).tag,"0022_advanced_practice_targeting");
+  return { first: journal.entries[0].tag, latest: journal.entries.at(-1).tag };
 }
 async function user(email:string){const id=randomUUID();await pool.query(`insert into users(id,email,email_normalized,status,email_verified_at) values($1,$2,$2,'active',now())`,[id,email]);await pool.query(`insert into profiles(id,full_name) values($1,$2)`,[id,email]);return id}
 async function orderRow(id:string){return (await pool.query(`select * from payment_orders where id=$1`,[id])).rows[0]}
 async function memberships(userId:string){return (await pool.query(`select * from user_plan_memberships where user_id=$1 order by created_at`,[userId])).rows}
 
 async function main(){
-  await freshMigrate();
+  const migrations=await freshMigrate();
   const version=(await pool.query(`show server_version`)).rows[0].server_version; assert.match(version,/^17\./);
   const constraints=(await pool.query(`select constraint_name from information_schema.table_constraints where table_name in ('payment_orders','payment_events','user_plan_memberships')`)).rows.map(r=>r.constraint_name);
   for(const name of ["payment_orders_amount_check","payment_orders_currency_check","payment_orders_provider_check","payment_orders_status_check","payment_events_provider_key_unique","user_plan_memberships_payment_source_check"])assert.ok(constraints.includes(name),name);
@@ -60,6 +61,6 @@ async function main(){
   const manual=await user("manual@task17.invalid");await db.transaction(tx=>grantPremiumWithTx(tx,{userId:manual,days:30}));const manualRows=await memberships(manual);assert.equal(manualRows[0].source,"MANUAL");assert.equal(manualRows[0].payment_order_id,null);assert.equal((await pool.query(`select count(*)::int n from payment_orders where user_id=$1`,[manual])).rows[0].n,0);
   const expired=await user("expired@task17.invalid");await pool.query(`insert into user_plan_memberships(user_id,plan_key,source,starts_at,ends_at) values($1,'PREMIUM','MANUAL',now()-interval '2 day',now()-interval '1 day')`,[expired]);assert.equal(await getEffectivePlan(expired),"FREE");
   const eventCounts=(await pool.query(`select count(*)::int events,count(*) filter(where processing_status='REJECTED')::int rejected from payment_events`)).rows[0];assert.ok(eventCounts.rejected>=1);
-  console.log("TASK17B_POSTGRES_INTEGRATION_PASS");console.log(JSON.stringify({postgresVersion:version.split(".")[0],host:"127.0.0.1",port:15433,migrations:"0000-0015",sameEvent:true,differentEvents:true,concurrency:true,rollback:true,amountMismatch:true,crossUser:true,latePayment:true,realPayosCalls:0}));
+  console.log("TASK17B_POSTGRES_INTEGRATION_PASS");console.log(JSON.stringify({postgresVersion:version.split(".")[0],host:"127.0.0.1",port:15433,migrations:`${migrations.first}-${migrations.latest}`,sameEvent:true,differentEvents:true,concurrency:true,rollback:true,amountMismatch:true,crossUser:true,latePayment:true,realPayosCalls:0}));
 }
 try{await main()}finally{await pool.end();const {pool:appPool}=await import("../src/db/index.ts");await appPool.end()}

@@ -1,8 +1,9 @@
 import "server-only";
 import { and, asc, count, desc, eq, ilike, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { adminAuditLogs, attemptAnswers, authIdentities, contentPosts, diagnosticRuns, fullMockRuns, mediaAssets, passageSets, paymentOrders, practiceSessions, productEvents, profiles, questionMastery, questions, rankedChallenges, securityEvents, userPlanMemberships, userRoles, userSessions, users } from "@/db/schema";
+import { adminAuditLogs, attemptAnswers, authIdentities, contentPosts, diagnosticRuns, fullMockRuns, learnerGoals, mediaAssets, passageSets, paymentOrders, practiceSessions, productEvents, profiles, questionMastery, questions, rankedChallenges, securityEvents, userPlanMemberships, userRoles, userSessions, users } from "@/db/schema";
 import { grantPremiumWithTx, revokePremiumWithTx } from "@/lib/entitlements/service";
+import { retentionState, retentionWindow, sortAndLimitTimeline, type UserActivityItem } from "./retention";
 import type { AdminPermission } from "./permissions";
 import { ROLE_PERMISSIONS } from "./permissions";
 
@@ -91,7 +92,7 @@ export async function revokeAdminRole(targetUserId: string, actorUserId: string 
 export async function getAdminOverview() {
   const now = new Date(); const seven = new Date(now.getTime() - 7 * 86_400_000); const thirty = new Date(now.getTime() - 30 * 86_400_000);
   const [userRows, learningRows, contentRows, paymentRows, challengeRows, analyticsRows, recentAudit] = await Promise.all([
-    db.select({ total: count(), active: sql<number>`count(*) filter (where ${users.status} = 'active')::int`, suspended: sql<number>`count(*) filter (where ${users.status} = 'disabled')::int`, unverified: sql<number>`count(*) filter (where ${users.emailVerifiedAt} is null)::int`, new7: sql<number>`count(*) filter (where ${users.createdAt} >= ${seven})::int`, new30: sql<number>`count(*) filter (where ${users.createdAt} >= ${thirty})::int`, premium: sql<number>`count(*) filter (where exists (select 1 from ${userPlanMemberships} m where m.user_id = ${users.id} and m.revoked_at is null and m.starts_at <= ${now} and (m.ends_at is null or m.ends_at > ${now})))::int` }).from(users),
+    db.select({ total: count(), active: sql<number>`count(*) filter (where ${users.status} = 'active')::int`, suspended: sql<number>`count(*) filter (where ${users.status} = 'disabled')::int`, unverified: sql<number>`count(*) filter (where ${users.emailVerifiedAt} is null)::int`, new7: sql<number>`count(*) filter (where ${users.createdAt} >= ${seven})::int`, new30: sql<number>`count(*) filter (where ${users.createdAt} >= ${thirty})::int`, premium: sql<number>`count(*) filter (where exists (select 1 from ${userPlanMemberships} m where m.user_id = ${users.id} and m.plan_key = 'PREMIUM' and m.revoked_at is null and m.starts_at <= ${now} and (m.ends_at is null or m.ends_at > ${now})))::int` }).from(users),
     db.select({ practice7: sql<number>`count(*) filter (where ${practiceSessions.status} = 'submitted' and ${practiceSessions.submittedAt} >= ${seven})::int`, learners7: sql<number>`count(distinct ${practiceSessions.userId}) filter (where ${practiceSessions.status} = 'submitted' and ${practiceSessions.submittedAt} >= ${seven})::int`, practice30: sql<number>`count(*) filter (where ${practiceSessions.status} = 'submitted' and ${practiceSessions.submittedAt} >= ${thirty})::int` }).from(practiceSessions),
     db.select({ publishedQuestions: sql<number>`count(*) filter (where ${questions.status} = 'published')::int`, draftQuestions: sql<number>`count(*) filter (where ${questions.status} = 'draft')::int`, publishedGroups: sql<number>`(select count(*)::int from ${passageSets} where ${passageSets.status} = 'published')`, draftGroups: sql<number>`(select count(*)::int from ${passageSets} where ${passageSets.status} = 'draft')`, readyMedia: sql<number>`(select count(*)::int from ${mediaAssets} where ${mediaAssets.status} = 'READY')`, publishedPosts: sql<number>`(select count(*)::int from ${contentPosts} where ${contentPosts.status} = 'PUBLISHED')` }).from(questions),
     db.select({ paid30: sql<number>`count(*) filter (where ${paymentOrders.status} = 'PAID' and ${paymentOrders.paidAt} >= ${thirty})::int`, revenue30: sql<number>`coalesce(sum(${paymentOrders.amount}) filter (where ${paymentOrders.status} = 'PAID' and ${paymentOrders.paidAt} >= ${thirty}), 0)::int`, pending: sql<number>`count(*) filter (where ${paymentOrders.status} = 'PENDING' and ${paymentOrders.expiresAt} > ${now})::int`, failed7: sql<number>`count(*) filter (where ${paymentOrders.status} = 'FAILED' and ${paymentOrders.createdAt} >= ${seven})::int` }).from(paymentOrders),
@@ -104,22 +105,32 @@ export async function getAdminOverview() {
 }
 
 const lteNow = (column: typeof userPlanMemberships.startsAt) => sql`${column} <= now()`;
-export type AdminUserFilters = { search?: string; plan?: string; status?: string; role?: string; verified?: string; activity?: string; sort?: string; page?: number };
+export type AdminUserFilters = { search?: string; plan?: string; status?: string; role?: string; verified?: string; activity?: string; learning?: string; sort?: string; page?: number };
 export async function listAdminUsers(filters: AdminUserFilters) {
   const normalized = filters.search?.trim().toLowerCase().slice(0, 200) ?? ""; const page = Math.min(100000, Math.max(1, filters.page ?? 1)); const now = new Date();
-  const premium = sql`exists (select 1 from ${userPlanMemberships} m where m.user_id = ${users.id} and m.revoked_at is null and m.starts_at <= ${now} and (m.ends_at is null or m.ends_at > ${now}))`;
+  const premium = sql`exists (select 1 from ${userPlanMemberships} m where m.user_id = ${users.id} and m.plan_key = 'PREMIUM' and m.revoked_at is null and m.starts_at <= ${now} and (m.ends_at is null or m.ends_at > ${now}))`;
   const admin = sql`exists (select 1 from ${userRoles} r where r.user_id = ${users.id} and r.role = 'ADMIN' and r.revoked_at is null)`;
+  const eligible = sql`ps.status = 'submitted' and ps.user_id = ${users.id} and ps.source not in ('diagnostic','full_mock','ranked_challenge') and ps.practice_type <> 'demo_test' and ps.submitted_at is not null`;
+  const learningDays = sql<number>`(select count(distinct timezone('Asia/Ho_Chi_Minh', ps.submitted_at)::date)::int from practice_sessions ps where ${eligible})`;
+  const lastLearning = sql<Date | null>`(select max(ps.submitted_at) from practice_sessions ps where ${eligible})`;
   const conditions = [normalized ? or(ilike(users.emailNormalized, `%${normalized}%`), ilike(profiles.fullName, `%${normalized}%`)) : undefined,
     ["active","disabled","pending_verification"].includes(filters.status ?? "") ? eq(users.status, filters.status!) : undefined,
     filters.plan === "premium" ? premium : filters.plan === "free" ? sql`not ${premium}` : undefined,
     filters.role === "admin" ? admin : filters.role === "learner" ? sql`not ${admin}` : undefined,
     filters.verified === "yes" ? isNotNull(users.emailVerifiedAt) : filters.verified === "no" ? isNull(users.emailVerifiedAt) : undefined,
-    filters.activity === "recent" ? sql`${users.lastLoginAt} >= ${new Date(now.getTime() - 30 * 86_400_000)}` : filters.activity === "never" ? isNull(users.lastLoginAt) : undefined];
-  const where = and(...conditions); const order = filters.sort === "login" ? [sql`${users.lastLoginAt} desc nulls last`, asc(users.id)] : filters.sort === "identity" ? [asc(users.emailNormalized), asc(users.id)] : [desc(users.createdAt), asc(users.id)];
+    filters.activity === "recent" ? sql`${users.lastLoginAt} >= ${new Date(now.getTime() - 30 * 86_400_000)}` : filters.activity === "never" ? isNull(users.lastLoginAt) : undefined,
+    filters.learning === "none" ? sql`${learningDays} = 0` : filters.learning === "one" ? sql`${learningDays} = 1` : filters.learning === "two" ? sql`${learningDays} >= 2` : filters.learning === "three" ? sql`${learningDays} >= 3` : undefined];
+  const where = and(...conditions); const order = filters.sort === "login" ? [sql`${users.lastLoginAt} desc nulls last`, asc(users.id)] : filters.sort === "learning_recent" ? [sql`${lastLearning} desc nulls last`, asc(users.id)] : filters.sort === "learning_oldest" ? [sql`${lastLearning} asc nulls last`, asc(users.id)] : filters.sort === "oldest" ? [asc(users.createdAt), asc(users.id)] : filters.sort === "identity" ? [asc(users.emailNormalized), asc(users.id)] : [desc(users.createdAt), asc(users.id)];
   const [rows, [total]] = await Promise.all([
-    db.select({ id: users.id, email: users.email, name: profiles.fullName, status: users.status, emailVerifiedAt: users.emailVerifiedAt, createdAt: users.createdAt, lastLoginAt: users.lastLoginAt, premium: sql<boolean>`${premium}`, admin: sql<boolean>`${admin}` }).from(users).leftJoin(profiles, eq(profiles.id, users.id)).where(where).orderBy(...order).limit(USER_PAGE_SIZE).offset((page - 1) * USER_PAGE_SIZE),
-    db.select({ value: count() }).from(users).leftJoin(profiles, eq(profiles.id, users.id)).where(where),
-  ]); return { rows, total: Number(total.value), page, pageSize: USER_PAGE_SIZE };
+    db.select({ id: users.id, email: users.email, name: profiles.fullName, status: users.status, emailVerifiedAt: users.emailVerifiedAt, createdAt: users.createdAt, lastLoginAt: users.lastLoginAt, premium: sql<boolean>`${premium}`, admin: sql<boolean>`${admin}`, learningDays, lastLearning, sessions: sql<number>`(select count(*)::int from practice_sessions ps where ${eligible})`, questions: sql<number>`(select count(*)::int from attempt_answers aa inner join practice_sessions ps on ps.id=aa.session_id where aa.user_id=${users.id} and aa.answered_at is not null and ${eligible})`, goalTarget: learnerGoals.targetScore, goalAt: learnerGoals.updatedAt, diagnosticAt: sql<Date | null>`(select max(dr.completed_at) from diagnostic_runs dr where dr.user_id=${users.id} and dr.status='COMPLETED')`, anyLearningAt: sql<Date | null>`(select max(ps.submitted_at) from practice_sessions ps where ps.user_id=${users.id} and ps.status='submitted')`, mockAt: sql<Date | null>`(select max(fm.completed_at) from full_mock_runs fm where fm.user_id=${users.id} and fm.status='COMPLETED')`, checkoutAt: sql<Date | null>`(select max(po.created_at) from payment_orders po where po.user_id=${users.id})`, premiumAt: sql<Date | null>`(select max(pm.starts_at) from user_plan_memberships pm where pm.user_id=${users.id})` }).from(users).leftJoin(profiles, eq(profiles.id, users.id)).leftJoin(learnerGoals, eq(learnerGoals.userId, users.id)).where(where).orderBy(...order).limit(USER_PAGE_SIZE).offset((page - 1) * USER_PAGE_SIZE),
+    db.select({ value: count() }).from(users).leftJoin(profiles, eq(profiles.id, users.id)).leftJoin(learnerGoals, eq(learnerGoals.userId, users.id)).where(where),
+  ]);
+  const mapped = rows.map((row) => {
+    const actions = [["ACCOUNT_CREATED", row.createdAt], ["GOAL_CONFIGURED", row.goalAt], ["DIAGNOSTIC_COMPLETED", row.diagnosticAt], ["LEARNING_COMPLETED", row.anyLearningAt], ["MOCK_COMPLETED", row.mockAt], ["CHECKOUT_STARTED", row.checkoutAt], ["PREMIUM_ACTIVATED", row.premiumAt]] as const;
+    const latest = actions.filter((item): item is readonly [typeof item[0], Date] => item[1] instanceof Date).sort((a, b) => b[1].getTime() - a[1].getTime())[0];
+    return { ...row, retentionState: retentionState(Number(row.learningDays), row.lastLearning, now), lastMeaningfulAction: latest[0], lastMeaningfulAt: latest[1] };
+  });
+  return { rows: mapped, total: Number(total.value), page, pageSize: USER_PAGE_SIZE };
 }
 
 export async function getAdminUser(userId: string) {
@@ -143,6 +154,63 @@ export async function getLearningSummary(userId: string) {
     db.select({ count: count() }).from(fullMockRuns).where(eq(fullMockRuns.userId, userId)),
     db.select({ count: count() }).from(questionMastery).where(and(eq(questionMastery.userId, userId), eq(questionMastery.status, "UNRESOLVED"))),
   ]); const total = Number(answers.total); return { submittedSessions: Number(sessions.count), answeredQuestions: total, accuracy: total ? Math.round(Number(answers.correct) / total * 100) : null, diagnosticCompleted: Number(diagnostic.count) > 0, fullMockCount: Number(mocks.count), unresolvedMistakes: Number(mistakes.count) };
+}
+
+export async function getAdminRetentionMetrics(now = new Date()) {
+  const window = retentionWindow(now);
+  const result = await db.execute(sql`
+    with learner_days as (
+      select user_id, count(distinct timezone('Asia/Ho_Chi_Minh', submitted_at)::date)::int learning_days
+      from practice_sessions
+      where status='submitted' and user_id is not null and submitted_at >= ${window.start} and submitted_at < ${window.end}
+        and source not in ('diagnostic','full_mock','ranked_challenge') and practice_type <> 'demo_test'
+      group by user_id
+    ), lifetime as (
+      select distinct user_id from practice_sessions
+      where status='submitted' and user_id is not null and source not in ('diagnostic','full_mock','ranked_challenge') and practice_type <> 'demo_test'
+    )
+    select count(*)::int total_learners,
+      count(*) filter (where u.created_at >= ${window.start} and u.created_at < ${window.end})::int signups_7d,
+      count(*) filter (where lifetime.user_id is not null)::int activated,
+      count(*) filter (where coalesce(learner_days.learning_days,0)=1)::int one_day,
+      count(*) filter (where coalesce(learner_days.learning_days,0)>=2)::int two_plus_days,
+      count(*) filter (where coalesce(learner_days.learning_days,0)>=3)::int three_plus_days,
+      count(*) filter (where lifetime.user_id is null)::int no_learning
+    from users u left join learner_days on learner_days.user_id=u.id left join lifetime on lifetime.user_id=u.id
+  `);
+  const row = result.rows[0] as Record<string, number | string>;
+  return { totalLearners: Number(row.total_learners), signups7d: Number(row.signups_7d), activated: Number(row.activated), oneDay: Number(row.one_day), twoPlusDays: Number(row.two_plus_days), threePlusDays: Number(row.three_plus_days), noLearning: Number(row.no_learning), window };
+}
+
+export async function getAdminUserLearningSummary(userId: string) {
+  const [row] = await db.select({
+    learningDays: sql<number>`count(distinct timezone('Asia/Ho_Chi_Minh', ${practiceSessions.submittedAt})::date)::int`,
+    sessions: sql<number>`count(distinct ${practiceSessions.id})::int`,
+    questions: sql<number>`count(distinct ${attemptAnswers.id})::int`,
+    lastLearning: sql<Date | null>`max(${practiceSessions.submittedAt})`,
+  }).from(practiceSessions).leftJoin(attemptAnswers, and(eq(attemptAnswers.sessionId, practiceSessions.id), isNotNull(attemptAnswers.answeredAt))).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "submitted"), sql`${practiceSessions.source} not in ('diagnostic','full_mock','ranked_challenge')`, sql`${practiceSessions.practiceType} <> 'demo_test'`));
+  const [goal] = await db.select({ targetScore: learnerGoals.targetScore, examDate: learnerGoals.examDate, dailyStudyMinutes: learnerGoals.dailyStudyMinutes, studyDaysPerWeek: learnerGoals.studyDaysPerWeek }).from(learnerGoals).where(eq(learnerGoals.userId, userId)).limit(1);
+  return { learningDays: Number(row?.learningDays ?? 0), sessions: Number(row?.sessions ?? 0), questions: Number(row?.questions ?? 0), lastLearning: row?.lastLearning ?? null, goal: goal ?? null };
+}
+
+export async function getUserActivityTimeline(userId: string, limit = 100) {
+  const [account, goals, diagnostics, practices, mocks, payments, memberships] = await Promise.all([
+    db.select({ id: users.id, occurredAt: users.createdAt }).from(users).where(eq(users.id, userId)).limit(1),
+    db.select({ occurredAt: learnerGoals.updatedAt, targetScore: learnerGoals.targetScore, examDate: learnerGoals.examDate, dailyStudyMinutes: learnerGoals.dailyStudyMinutes, studyDaysPerWeek: learnerGoals.studyDaysPerWeek }).from(learnerGoals).where(eq(learnerGoals.userId, userId)).limit(1),
+    db.select({ id: diagnosticRuns.id, status: diagnosticRuns.status, purpose: diagnosticRuns.purpose, createdAt: diagnosticRuns.createdAt, completedAt: diagnosticRuns.completedAt }).from(diagnosticRuns).where(eq(diagnosticRuns.userId, userId)).orderBy(desc(diagnosticRuns.createdAt)).limit(20),
+    db.select({ id: practiceSessions.id, source: practiceSessions.source, part: practiceSessions.part, status: practiceSessions.status, startedAt: practiceSessions.startedAt, submittedAt: practiceSessions.submittedAt, total: practiceSessions.scoreTotal, correct: practiceSessions.scoreCorrect }).from(practiceSessions).where(eq(practiceSessions.userId, userId)).orderBy(desc(practiceSessions.startedAt)).limit(50),
+    db.select({ id: fullMockRuns.id, mode: fullMockRuns.mode, status: fullMockRuns.status, createdAt: fullMockRuns.createdAt, completedAt: fullMockRuns.completedAt }).from(fullMockRuns).where(eq(fullMockRuns.userId, userId)).orderBy(desc(fullMockRuns.createdAt)).limit(20),
+    db.select({ id: paymentOrders.id, status: paymentOrders.status, productKey: paymentOrders.productKey, createdAt: paymentOrders.createdAt, paidAt: paymentOrders.paidAt }).from(paymentOrders).where(eq(paymentOrders.userId, userId)).orderBy(desc(paymentOrders.createdAt)).limit(20),
+    db.select({ id: userPlanMemberships.id, startsAt: userPlanMemberships.startsAt, endsAt: userPlanMemberships.endsAt, source: userPlanMemberships.source }).from(userPlanMemberships).where(eq(userPlanMemberships.userId, userId)).orderBy(desc(userPlanMemberships.startsAt)).limit(20),
+  ]);
+  const items: UserActivityItem[] = account.map((x) => ({ id: `account:${x.id}`, occurredAt: x.occurredAt, category: "ACCOUNT", action: "ACCOUNT_CREATED", source: "users", summary: null, metadata: {} }));
+  for (const x of goals) items.push({ id: `goal:${userId}`, occurredAt: x.occurredAt, category: "GOAL", action: "GOAL_CONFIGURED", source: "learner_goals", summary: null, metadata: { targetScore: x.targetScore, examDate: x.examDate, dailyStudyMinutes: x.dailyStudyMinutes, studyDaysPerWeek: x.studyDaysPerWeek } });
+  for (const x of diagnostics) { items.push({ id: `diagnostic:${x.id}:started`, occurredAt: x.createdAt, category: "DIAGNOSTIC", action: "DIAGNOSTIC_STARTED", source: "diagnostic_runs", summary: x.purpose, metadata: {} }); if (x.completedAt) items.push({ id: `diagnostic:${x.id}:completed`, occurredAt: x.completedAt, category: "DIAGNOSTIC", action: "DIAGNOSTIC_COMPLETED", source: "diagnostic_runs", summary: x.purpose, metadata: {} }); }
+  for (const x of practices) { const category = x.source === "recommended" ? "WORKOUT" : x.source === "mastery_review" ? "REVIEW" : x.source === "diagnostic" ? "DIAGNOSTIC" : x.source === "full_mock" ? "MOCK" : "PRACTICE"; if (category === "PRACTICE" || category === "WORKOUT" || category === "REVIEW") items.push({ id: `practice:${x.id}:started`, occurredAt: x.startedAt, category, action: `${category}_STARTED`, source: "practice_sessions", summary: x.part ? `Part ${x.part}` : null, metadata: {} }); if (x.submittedAt && (category === "PRACTICE" || category === "WORKOUT" || category === "REVIEW")) items.push({ id: `practice:${x.id}:completed`, occurredAt: x.submittedAt, category, action: `${category}_COMPLETED`, source: "practice_sessions", summary: x.part ? `Part ${x.part}` : null, metadata: { questions: x.total, correct: x.correct, accuracy: x.total && x.correct !== null ? Math.round(x.correct / x.total * 100) : null } }); }
+  for (const x of mocks) { items.push({ id: `mock:${x.id}:started`, occurredAt: x.createdAt, category: "MOCK", action: "MOCK_STARTED", source: "full_mock_runs", summary: x.mode, metadata: {} }); if (x.completedAt) items.push({ id: `mock:${x.id}:completed`, occurredAt: x.completedAt, category: "MOCK", action: "MOCK_COMPLETED", source: "full_mock_runs", summary: x.mode, metadata: {} }); }
+  for (const x of payments) { items.push({ id: `payment:${x.id}:created`, occurredAt: x.createdAt, category: "PREMIUM", action: "CHECKOUT_STARTED", source: "payment_orders", summary: x.productKey, metadata: { status: x.status } }); }
+  for (const x of memberships) items.push({ id: `membership:${x.id}`, occurredAt: x.startsAt, category: "PREMIUM", action: "PREMIUM_ACTIVATED", source: "user_plan_memberships", summary: x.source, metadata: { endsAt: x.endsAt?.toISOString() ?? null } });
+  return sortAndLimitTimeline(items, limit);
 }
 
 export async function listAuditLogs(page: number) {

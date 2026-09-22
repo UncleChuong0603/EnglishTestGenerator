@@ -218,6 +218,13 @@
       "when": 1791936000000,
       "tag": "0030_local_only_media",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1792022400000,
+      "tag": "0031_good_blur",
+      "breakpoints": true
     }
   ]
 }

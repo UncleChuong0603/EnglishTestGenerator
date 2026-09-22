@@ -19,10 +19,10 @@ describe("admin user operations center", () => {
     expect(detail).toContain("Đang hiệu lực");
     expect(detail).toContain("Quản trị viên cấp");
   });
-  it("distinguishes admins and the current actor", () => {
+  it("distinguishes plans and learner retention state", () => {
     expect(service).toContain("userRoles");
-    expect(list).toContain('user.admin?"Admin":"Learner"');
-    expect(list).toContain("actor.id===user.id");
+    expect(list).toContain('user.premium?"Premium":"Free"');
+    expect(list).toContain('user.retentionState==="NO_LEARNING"');
   });
   it("organizes detail into support tabs and confirms sensitive actions", () => {
     for (const tab of ["overview", "learning", "plan", "security", "activity"]) expect(detail).toContain(`key:\"${tab}\"`);

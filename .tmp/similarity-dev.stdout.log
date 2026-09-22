@@ -1,0 +1,15 @@
+
+> english-test-generator@0.1.0 dev
+> next dev -p 3000
+
+▲ Next.js 16.3.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.250:3000
+- Environments: .env.local
+✓ Ready in 1909ms
+✓ Running next.config.ts took 342ms
+Creating turbopack project {
+  dir: 'C:\\Users\\CHUONG\\OneDrive\\Tài liệu\\0. Code Project\\EnglishTestGenerator',
+  testMode: true
+}
+
