@@ -21,8 +21,8 @@ describe("admin user operations center", () => {
   });
   it("distinguishes plans and learner retention state", () => {
     expect(service).toContain("userRoles");
-    expect(list).toContain('user.premium?"Premium":"Free"');
-    expect(list).toContain('user.retentionState==="NO_LEARNING"');
+    expect(list).toContain('user.plan==="PREMIUM"');
+    expect(list).toContain("getLearnerActivityState({learningDays:user.learningDays,lastLearningAt:user.lastLearningAt})");
   });
   it("organizes detail into support tabs and confirms sensitive actions", () => {
     for (const tab of ["overview", "learning", "plan", "security", "activity"]) expect(detail).toContain(`key:\"${tab}\"`);
