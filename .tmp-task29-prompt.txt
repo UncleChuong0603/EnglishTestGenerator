@@ -1,0 +1,1772 @@
+﻿Đúng roadmap mới, task tiếp theo là **Task 29 — Guest → Signup → Continue Learning**.
+
+Task này rất quan trọng vì nó xử lý activation loop ngay tại thời điểm user đã vừa nhận value từ `/try`. Mục tiêu là tránh flow kiểu:
+
+> làm guest → thấy kết quả → signup → rớt về Dashboard generic → mất context → bỏ đi.
+
+Một edge case cần khóa chặt sau Task 28: **learner-context survey không được chen vào giữa guest result → signup → next workout**. Nếu guest activity được migrate và vô tình khiến user đủ điều kiện prompt, Task 29 phải đảm bảo continuation vẫn là CTA chính.
+
+Paste nguyên prompt này vào Codex:
+
+```text id="task29-guest-signup-continue"
+TASK 29 — GUEST → SIGNUP → CONTINUE LEARNING
+
+IMPORTANT PRODUCTION MODEL
+
+Every code change may reach `main`
+and auto-deploy to production through Dokploy.
+
+Codex is authorized to use:
+
+ssh english-vps
+
+for SAFE:
+
+- Docker work
+- PostgreSQL 17 integration
+- Playwright/browser QA
+- production migration verification
+- production read-only verification
+- deployment health checks
+
+If Docker/PostgreSQL/browser capability is needed:
+
+USE `ssh english-vps`.
+
+Do NOT stop merely because the local environment lacks Docker/browser support.
+
+Production safety first.
+
+==================================================
+0. CURRENT PRODUCT STATE
+==================================================
+
+Task 28 is COMPLETE and production healthy.
+
+Relevant current capabilities include:
+
+- guest `/try`
+- guest identity/session infrastructure
+- guest result
+- signup / sign-in
+- guest attempt migration
+- authenticated Dashboard
+- Diagnostic
+- adaptive recommendation
+- Today’s Workout 2.0
+- Daily Goal
+- Goal Profile
+- Learner Context prompt
+- Admin retention diagnostics
+- PostgreSQL 17
+- Docker/Dokploy
+- self-hosted analytics
+
+Current production observations from recent tasks include:
+
+- 17 learner accounts
+- retention remains very low
+- no learners currently have 2+ meaningful learning days in the recent 7-day
+  window observed during Task 27
+- learner-context data has just been deployed and may initially contain zero rows
+
+Do not over-interpret the small sample statistically.
+
+Task 29 has ONE primary product outcome:
+
+A GUEST WHO GETS VALUE FROM `/try`
+SHOULD BE ABLE TO CREATE AN ACCOUNT
+AND IMMEDIATELY CONTINUE THE SAME LEARNING JOURNEY
+WITHOUT LOSING CONTEXT.
+
+==================================================
+1. PRIMARY USER JOURNEY
+==================================================
+
+The desired conceptual flow is:
+
+Visitor
+↓
+Guest `/try`
+↓
+Completes meaningful guest exercise
+↓
+Sees real result/value
+↓
+"Lưu kết quả & tiếp tục miễn phí"
+↓
+Sign up / sign in
+↓
+Guest learning data safely attached to authenticated learner
+↓
+Result context preserved
+↓
+Next recommended action preserved
+↓
+Learner continues learning immediately
+
+Avoid:
+
+Guest result
+↓
+Signup
+↓
+Generic Dashboard
+↓
+User has to figure out what to do again
+
+The learner must feel:
+
+"TOEICGym remembers what I just did."
+
+==================================================
+2. DO NOT REDESIGN THE ENTIRE GUEST EXPERIENCE
+==================================================
+
+Task 29 is continuity work.
+
+Do NOT turn it into:
+
+- complete `/try` redesign
+- new Diagnostic engine
+- new question selection algorithm
+- new recommendation engine
+- new onboarding wizard
+- new Goal system
+- new marketing landing page
+- new Premium conversion system
+
+Preserve existing validated guest experience unless continuity requires a small
+change.
+
+==================================================
+3. AUDIT CURRENT HEAD FIRST
+==================================================
+
+Before changing anything inspect:
+
+- git status
+- current branch
+- HEAD
+- origin/main
+
+Then inspect CURRENT implementation of:
+
+- `/try`
+- guest cookie / guest identity
+- guest Practice creation
+- guest attempt storage
+- guest result
+- signup route
+- sign-in route
+- Google OAuth flow
+- email/password signup
+- callback/redirect handling
+- `from=guest-result` or equivalent
+- `migrateGuestAttempts`
+- guest → authenticated ownership migration
+- Dashboard
+- adaptive recommendation
+- Today’s Workout
+- learner Goal prompt
+- learner-context prompt
+- Product Analytics
+- quota logic
+- session types
+- existing redirect validation
+- CSRF/state/PKCE behavior
+- current test helpers
+
+Do not assume historical names remain exact.
+
+Document the actual current flow before designing changes.
+
+==================================================
+4. PRESERVE CURRENT GUEST PRIVACY MODEL
+==================================================
+
+Audit and preserve the current guest identity architecture.
+
+Expected historical principle:
+
+- short-lived guest identity
+- hashed/server-safe representation
+- no browser fingerprint
+- no device fingerprint
+- no cross-device tracking
+- no localStorage identity graph
+
+Do not introduce fingerprinting.
+
+Do not build a permanent anonymous profile.
+
+Do not expose guest token/hash to Admin.
+
+==================================================
+5. PRIMARY CTA ON GUEST RESULT
+==================================================
+
+The guest result must have ONE clear primary continuation CTA.
+
+Preferred Vietnamese concept:
+
+"Lưu kết quả & tiếp tục miễn phí"
+
+English equivalent:
+
+"Save results & continue free"
+
+This CTA should communicate:
+
+- account creation preserves learning
+- continuation remains free
+- no payment required
+
+Do not make Premium the primary CTA.
+
+Premium may remain secondary only if current product policy already supports it,
+but continuation/signup must dominate.
+
+==================================================
+6. EXISTING ACCOUNT PATH
+==================================================
+
+If visitor already has an account but is not signed in:
+
+guest result should support:
+
+"Đăng nhập để lưu kết quả"
+
+or current equivalent.
+
+After sign-in:
+
+same guest continuity logic should apply.
+
+Do not create a separate inferior flow for existing users.
+
+Test both:
+
+NEW SIGNUP
+
+and:
+
+EXISTING ACCOUNT SIGN-IN
+
+==================================================
+7. PRESERVE RESULT CONTEXT THROUGH AUTH
+==================================================
+
+The authentication round trip must preserve enough safe context to continue.
+
+Do NOT place:
+
+- question answers
+- correct answers
+- protected question content
+- guest token
+- arbitrary userId
+
+inside an unsafe redirect query.
+
+Use existing server-side guest/session infrastructure.
+
+Preserve only safe continuation state.
+
+Possible continuation concepts:
+
+- guest-result
+- result session reference
+- next recommended action
+- return destination
+
+But inspect current architecture first.
+
+Prefer a server-authoritative continuation mechanism.
+
+==================================================
+8. OPEN REDIRECT SAFETY
+==================================================
+
+Any `next`, `returnTo`, `from`, or continuation URL must be validated.
+
+Allow only safe internal routes.
+
+Do NOT accept:
+
+https://evil.example
+
+protocol-relative URLs
+
+javascript:
+
+encoded external destinations
+
+or arbitrary user-supplied redirects.
+
+Reuse existing safe redirect helper if present.
+
+Add one if genuinely missing.
+
+==================================================
+9. GUEST ATTEMPT MIGRATION
+==================================================
+
+Audit current `migrateGuestAttempts` or equivalent.
+
+Verify migration is:
+
+- server-authoritative
+- current authenticated user only
+- guest identity resolved securely
+- idempotent
+- transactional where appropriate
+- safe to retry after OAuth callback
+- no cross-user attachment
+- no duplicate sessions/answers
+- no score mutation
+- no answer disclosure change
+
+Do NOT accept arbitrary:
+
+guestId
+userId
+
+from browser as authority.
+
+==================================================
+10. IDEMPOTENCY IS CRITICAL
+==================================================
+
+Auth callbacks may be retried or refreshed.
+
+Guest migration must NOT create duplicates if:
+
+- callback executes twice
+- user refreshes
+- network retries
+- OAuth redirect repeats
+- post-signup redirect reloads
+
+Test:
+
+first migration
+→ data attached
+
+second migration
+→ no duplicate learning data
+
+The operation should become a safe no-op once complete.
+
+==================================================
+11. PARTIAL FAILURE SAFETY
+==================================================
+
+Audit what happens if:
+
+- account creation succeeds
+- guest migration temporarily fails
+
+Do not leave the learner permanently unable to continue.
+
+Preferred behavior:
+
+- account remains valid
+- safe retry is possible
+- learner receives truthful fallback
+- no duplicate migration
+- no database corruption
+
+Do not delete guest source data before migration is safely committed if current
+architecture depends on it.
+
+==================================================
+12. WHAT DATA SHOULD MIGRATE
+==================================================
+
+Audit actual guest data model.
+
+Migrate only legitimate learner-owned educational data supported by current
+product semantics.
+
+Likely:
+
+- eligible guest Practice session
+- answers
+- submitted state
+- result data derivable from authoritative answers
+- timestamps where valid
+
+Do NOT migrate:
+
+- arbitrary browser events as learner truth
+- marketing attribution guesses
+- fingerprint data
+- stale unrelated guest data
+- protected answer content into client storage
+
+==================================================
+13. MIGRATED DATA MUST COUNT CORRECTLY
+==================================================
+
+Task 26/27 use authoritative meaningful-learning semantics.
+
+After guest migration, determine intentionally whether migrated activity counts
+toward:
+
+- learner history
+- Progress
+- Daily Goal
+- learning-day retention
+- activation
+
+Use current shared policy.
+
+Do not create inconsistent definitions.
+
+If migrated guest learning historically counts as meaningful authenticated
+learning after ownership migration, preserve that only if domain semantics are
+correct.
+
+Document final behavior.
+
+==================================================
+14. IMPORTANT — LEARNER CONTEXT PROMPT MUST NOT HIJACK CONTINUATION
+==================================================
+
+Task 28 added a learner-context prompt after meaningful learning.
+
+Potential edge case:
+
+guest completes `/try`
+→ signup
+→ guest activity migrated
+→ learner now appears "activated"
+→ learner-context prompt becomes eligible immediately
+
+Task 29 must audit this interaction.
+
+PRIMARY RULE:
+
+Guest continuation MUST remain more important than the learner-context survey.
+
+Do NOT create:
+
+guest result
+→ signup
+→ survey
+→ user loses learning momentum
+
+Preferred behavior:
+
+guest result
+→ signup
+→ preserved next learning action
+→ user continues
+→ learner-context prompt may appear later in its normal secondary location
+
+If current Dashboard already places the context prompt safely BELOW the primary
+continuation hero and does not interrupt navigation, that may already satisfy
+the rule.
+
+If not:
+
+make the smallest safe adjustment.
+
+Do NOT disable Task 28 globally.
+
+==================================================
+15. GOAL PROFILE MUST NOT BLOCK CONTINUATION
+==================================================
+
+Task 25 Goal Profile remains optional.
+
+After signup:
+
+do NOT force:
+
+target score
+exam date
+study time
+study days
+
+before learner can continue.
+
+A small secondary Goal prompt is fine.
+
+The primary path remains:
+
+continue learning.
+
+==================================================
+16. POST-SIGNUP DESTINATION
+==================================================
+
+Choose destination based on ACTUAL current architecture.
+
+Preferred priority:
+
+1. preserved guest result / continuation state
+2. recommended next learning action
+3. Dashboard with continuation hero if direct continuation is not safe
+
+Avoid blindly routing every new user to:
+
+`/dashboard`
+
+without context.
+
+If direct next workout creation is not appropriate before authenticated
+recommendation recomputation:
+
+Dashboard continuation hero is acceptable.
+
+But it must clearly connect to what the learner just did.
+
+==================================================
+17. PRESERVE RESULT VALUE
+==================================================
+
+After auth, user should still be able to access or understand their previous
+guest result.
+
+Do not make them redo the guest exercise merely to see it again.
+
+Potential safe patterns:
+
+A. migrated session gets an authenticated result URL
+
+or
+
+B. Dashboard shows:
+
+"Kết quả vừa lưu"
+
+with link to migrated result
+
+or
+
+C. post-auth redirect resolves the migrated session to its authenticated result
+
+Choose the cleanest architecture.
+
+Do not duplicate result records.
+
+==================================================
+18. PRESERVE NEXT RECOMMENDATION
+==================================================
+
+If guest result already produced a useful next recommendation:
+
+do not simply discard it.
+
+However:
+
+the authenticated server should recompute/validate recommendation using current
+authoritative learner state.
+
+Do not blindly trust a client-carried recommendation.
+
+Correct principle:
+
+PRESERVE INTENT / CONTEXT
+
+but:
+
+REVALIDATE SERVER-SIDE
+
+==================================================
+19. RECOMMENDATION COPY
+==================================================
+
+Good:
+
+"Dựa trên bài bạn vừa làm, tiếp theo hãy luyện Part 5 · Word Forms."
+
+Only if the data genuinely supports it.
+
+If guest sample is too small for a real weakness classification:
+
+use truthful copy such as:
+
+"Tiếp tục luyện để TOEICGym hiểu điểm mạnh và điểm cần cải thiện của bạn."
+
+Do not fabricate weakness.
+
+Reuse existing recommendation reason policy.
+
+==================================================
+20. FIRST AUTHENTICATED ACTION
+==================================================
+
+The post-signup page should have ONE obvious primary action.
+
+Examples:
+
+"Tiếp tục luyện"
+
+"Làm bài được đề xuất"
+
+"Tiếp tục Bài hôm nay"
+
+Do not present five equal CTAs.
+
+The user already made a commitment by signing up.
+
+Reduce decision friction.
+
+==================================================
+21. SIGNUP FORM CONTEXT
+==================================================
+
+If user arrives from guest result, signup page may display a small contextual
+message:
+
+"Đăng ký để lưu kết quả và tiếp tục từ bài vừa làm."
+
+Do not redesign auth layout heavily.
+
+Do not add marketing clutter.
+
+Do not claim data will be saved if migration cannot actually do so.
+
+==================================================
+22. GOOGLE OAUTH
+==================================================
+
+Test guest continuation through Google OAuth architecture where practical.
+
+Remember:
+
+OAuth must use normal full-page navigation.
+
+Do not initiate Google authorization via fetch.
+
+Preserve:
+
+- state
+- PKCE
+- callback security
+- internal continuation state
+
+Do not use real Google OAuth credentials in isolated test unless existing test
+architecture explicitly supports fake/mocked provider.
+
+At minimum test continuation helper/callback contract.
+
+==================================================
+23. EMAIL/PASSWORD SIGNUP
+==================================================
+
+Test the normal local account path.
+
+If email verification is required before authenticated access:
+
+audit the exact current lifecycle.
+
+Continuation must survive:
+
+signup
+→ verification requirement
+→ verify
+→ sign in / session
+→ migration
+→ continue
+
+Do not create a continuation that expires too early for normal email
+verification.
+
+If current product permits immediate limited session before verification, follow
+actual business logic.
+
+Do not weaken verification.
+
+==================================================
+24. SIGN-IN PATH
+==================================================
+
+Existing account:
+
+guest result
+→ sign in
+→ migrate/associate guest learning where policy allows
+→ continue
+
+Ensure:
+
+sign-in errors do not erase continuation state.
+
+Do not attach guest learning to an account until authentication succeeds.
+
+==================================================
+25. GUEST DATA OWNERSHIP CONFLICT
+==================================================
+
+Test unusual cases:
+
+guest activity already migrated to User A
+
+then same guest browser signs into User B.
+
+The data must NOT migrate again.
+
+Do not create duplicate ownership.
+
+Prefer server-side consumed/claimed semantics where current architecture supports
+it.
+
+==================================================
+26. GUEST EXPIRATION
+==================================================
+
+Audit current guest expiration policy.
+
+If guest identity/result expires:
+
+show a truthful fallback.
+
+Do not crash.
+
+Do not claim result was saved if it was no longer available.
+
+Do not extend anonymous tracking indefinitely merely for continuity.
+
+==================================================
+27. QUOTA AFTER MIGRATION
+==================================================
+
+Audit how migrated guest activity interacts with:
+
+- Free Practice quota
+- Today’s Workout quota
+- Daily Goal
+
+Do not accidentally:
+
+- consume quota twice
+- grant extra quota
+- block immediately due to double counting
+- bypass quota
+
+Use existing authoritative quota policy.
+
+==================================================
+28. DAILY GOAL AFTER MIGRATION
+==================================================
+
+If migrated guest answers legitimately count toward today's learning:
+
+Daily Goal may reflect them.
+
+But use the existing Task 26 rule.
+
+Do not add special client-side Daily Goal adjustment.
+
+Server data remains authoritative.
+
+==================================================
+29. PRODUCT ANALYTICS
+==================================================
+
+Use current Product Analytics sparingly.
+
+Potential events ONLY if existing catalog supports them cleanly:
+
+guest_result_signup_started
+guest_result_account_created
+guest_learning_migrated
+guest_continuation_started
+
+But do NOT add them automatically.
+
+First audit existing events.
+
+Domain records may already answer the important questions.
+
+If new events require migration or significant scope:
+
+skip them.
+
+Important outcome can also be measured as:
+
+guest submitted session
+→ account created
+→ authenticated meaningful learning session
+
+derived from domain data.
+
+==================================================
+30. ADMIN OBSERVABILITY
+==================================================
+
+Task 27 Admin Timeline should naturally display migrated learning under the
+authenticated learner if domain ownership changes.
+
+Do not add:
+
+"Guest ID X migrated"
+
+with guest identity exposure.
+
+A safe timeline event might be:
+
+"Guest practice saved to account"
+
+ONLY if existing event architecture has a clean factual source.
+
+Not required.
+
+Do not expand Task 27 unnecessarily.
+
+==================================================
+31. RETENTION / ACTIVATION METRIC COMPATIBILITY
+==================================================
+
+Task 27 definitions must remain authoritative.
+
+Verify:
+
+guest-only user
+→ not an authenticated learner retention row
+
+after account creation + valid migration:
+→ activation behavior follows the current meaningful-learning definition
+
+Document whether migrated guest session itself qualifies as the first meaningful
+authenticated learning activity.
+
+Do not silently change retention semantics.
+
+==================================================
+32. DO NOT FORCE LEARNER CONTEXT SURVEY
+==================================================
+
+Reconfirm:
+
+Task 28 questions remain optional.
+
+Do NOT insert:
+
+"Bạn học TOEIC để làm gì?"
+
+between:
+
+guest result
+and
+signup continuation.
+
+No survey gate.
+
+==================================================
+33. FREE / PREMIUM
+==================================================
+
+Guest continuation is a Free core experience.
+
+Do not Premium-gate:
+
+- result saving
+- migration
+- continuation
+- basic recommendation
+
+Premium Preview may remain secondary if current policy allows.
+
+Do not upsell before the learner has successfully continued.
+
+==================================================
+34. ERROR STATES
+==================================================
+
+Design truthful error/fallback states.
+
+Examples:
+
+ACCOUNT CREATED, MIGRATION FAILED TEMPORARILY
+
+"Đã tạo tài khoản. TOEICGym chưa thể lưu bài vừa làm. Bạn vẫn có thể tiếp tục
+luyện."
+
+Provide safe retry only if architecture supports it.
+
+GUEST RESULT EXPIRED
+
+"Phiên luyện thử đã hết hạn. Bạn vẫn có thể bắt đầu bài luyện đầu tiên."
+
+Do not show technical DB errors.
+
+==================================================
+35. LOADING / DUPLICATE CLICK SAFETY
+==================================================
+
+Primary auth/continue CTA should handle:
+
+- pending state
+- double click
+- refresh
+- back button
+
+Do not create duplicate sessions or duplicate migration.
+
+==================================================
+36. MOBILE UX
+==================================================
+
+Guest acquisition is likely mobile-heavy.
+
+Test:
+
+360
+390
+430
+
+At minimum:
+
+- guest result
+- signup from guest result
+- sign-in from guest result
+- post-auth continuation
+- migrated result
+- Dashboard continuation hero if used
+
+Verify:
+
+- no horizontal overflow
+- primary CTA visible
+- result remains readable
+- signup context does not push form too far down
+- learner-context prompt does not dominate
+- bottom navigation does not cover primary CTA
+
+==================================================
+37. DESKTOP UX
+==================================================
+
+Test:
+
+1024
+1440
+
+Verify:
+
+- result/signup transition feels coherent
+- no excessive whitespace
+- primary CTA obvious
+- post-auth continuation obvious
+
+Do not redesign auth page broadly.
+
+==================================================
+38. ACCESSIBILITY
+==================================================
+
+Verify:
+
+- result heading semantic
+- primary CTA descriptive
+- auth context message associated naturally
+- loading states announced where appropriate
+- errors accessible
+- keyboard navigation
+- focus after auth/redirect reasonable
+- no color-only success state
+
+==================================================
+39. LOCALIZATION
+==================================================
+
+Respect existing EN/VI architecture.
+
+Suggested Vietnamese concepts:
+
+"Lưu kết quả & tiếp tục miễn phí"
+
+"Đăng ký để lưu kết quả vừa làm"
+
+"Kết quả của bạn đã được lưu"
+
+"Tiếp tục luyện"
+
+"Bài nên làm tiếp theo"
+
+"Đăng nhập để lưu kết quả"
+
+Do not introduce machine-like Vietnamese.
+
+Use existing product tone where available.
+
+==================================================
+40. PERSISTENCE / SCHEMA POLICY
+==================================================
+
+Preferred:
+
+NEW MIGRATION: NONE
+
+Guest continuation should ideally reuse existing:
+
+- guest identity
+- practice session ownership
+- session data
+- auth callback state
+
+Do not create a new continuation table unless genuinely required.
+
+If existing schema cannot safely support idempotent migration:
+
+STOP and explain before adding schema.
+
+Do not create persistence merely for UI convenience.
+
+==================================================
+41. SECURITY TESTS
+==================================================
+
+Add focused coverage for:
+
+- arbitrary guest token cannot claim another guest's data
+- arbitrary userId rejected
+- guest data cannot migrate before authentication
+- same guest data cannot migrate to two accounts
+- migration idempotent
+- retry safe
+- open redirect blocked
+- external next URL blocked
+- correct answer disclosure unchanged
+- protected result ownership enforced after migration
+
+==================================================
+42. DOMAIN TESTS
+==================================================
+
+Test:
+
+GUEST SUBMITTED
+→ signup
+→ migrated
+
+GUEST SUBMITTED
+→ existing sign-in
+→ migrated
+
+GUEST UNSUBMITTED
+→ auth
+→ correct current policy
+
+GUEST EXPIRED
+→ fallback
+
+ALREADY MIGRATED
+→ retry no-op
+
+MIGRATION FAILURE
+→ account safe
+
+NO GUEST DATA
+→ normal signup unchanged
+
+==================================================
+43. RESULT TESTS
+==================================================
+
+Verify:
+
+- migrated result accessible to owner
+- old guest result URL behavior correct
+- another user cannot access it
+- no duplicate result
+- correct/incorrect counts preserved
+- answer explanations follow existing post-submit rules
+- grouped content integrity preserved
+
+==================================================
+44. RECOMMENDATION TESTS
+==================================================
+
+Verify after migration:
+
+- server recomputes/validates next recommendation
+- authenticated history considered
+- no fake weakness for insufficient data
+- next action valid under content availability
+- quota respected
+- entitlement respected
+
+==================================================
+45. TASK 28 INTERACTION TEST
+==================================================
+
+Explicitly test:
+
+guest meaningful learning
+→ signup
+→ migration
+→ post-signup continuation
+
+Confirm learner-context survey:
+
+- does not block continuation
+- does not become primary CTA
+- still remains available later according to Task 28 policy
+
+This is a required acceptance criterion.
+
+==================================================
+46. TASK 25 / 26 INTERACTION
+==================================================
+
+Confirm:
+
+Goal Profile absent
+→ continuation still works
+
+Goal Profile exists for returning user
+→ continuation works
+
+Daily Goal:
+→ migrated activity handled correctly
+
+Today’s Workout:
+→ server-authoritative next action remains valid
+
+==================================================
+47. USE VPS FOR POSTGRESQL 17 INTEGRATION
+==================================================
+
+Use:
+
+ssh english-vps
+
+Reuse proven isolated infrastructure from Task 26B/27/28B.
+
+Use:
+
+temporary PostgreSQL 17
+temporary app
+test fixtures
+
+Do NOT use production DB for behavioral testing.
+
+Use a unique Compose project.
+
+Do not expose database publicly.
+
+==================================================
+48. POSTGRESQL INTEGRATION FIXTURES
+==================================================
+
+Create deterministic isolated fixtures for:
+
+A.
+guest result + new account
+
+B.
+guest result + existing account
+
+C.
+guest result already migrated
+
+D.
+expired guest
+
+E.
+migration retry
+
+F.
+migration failure/rollback where testable
+
+G.
+quota-sensitive Free learner
+
+H.
+Premium learner
+
+Verify relational ownership and answer counts directly in PostgreSQL.
+
+==================================================
+49. PLAYWRIGHT E2E
+==================================================
+
+Use VPS Docker browser infrastructure.
+
+Required flows:
+
+FLOW 1 — NEW USER
+
+guest `/try`
+→ complete
+→ result
+→ primary signup CTA
+→ create account using isolated test auth path
+→ migrate
+→ continue
+
+FLOW 2 — EXISTING USER
+
+guest result
+→ sign in
+→ migrate
+→ continue
+
+FLOW 3 — CONTEXT SURVEY INTERACTION
+
+guest result
+→ signup
+→ continuation remains primary
+→ context prompt does not interrupt
+
+FLOW 4 — MOBILE
+
+repeat core flow at 390px
+
+Do not require real email delivery or real Google OAuth for isolated E2E.
+
+Use supported test-auth mechanism.
+
+==================================================
+50. PLAYWRIGHT VIEWPORT MATRIX
+==================================================
+
+Required:
+
+360
+390
+430
+1024
+1440
+
+Core NEW USER flow at:
+
+390
+1440
+
+Guest result visual QA at all five.
+
+Post-auth continuation at:
+
+390
+1024
+1440
+
+Additional viewports where cheap.
+
+Do not infer PASS from CSS alone.
+
+==================================================
+51. PRODUCTION DEPLOYMENT
+==================================================
+
+Because code may auto-deploy:
+
+after implementation and commit/push according to normal workflow, use:
+
+ssh english-vps
+
+to verify actual deployment.
+
+Do NOT assume Git push == successful deployment.
+
+Verify:
+
+- expected revision
+- migrate service
+- app startup
+- `/api/health`
+- no crash loop
+
+If no migration:
+
+confirm migrate still exits successfully.
+
+==================================================
+52. PRODUCTION READ-ONLY SMOKE
+==================================================
+
+Do NOT create a production guest QA account.
+
+Use read-only checks only.
+
+Verify:
+
+- app healthy
+- guest `/try` route reachable
+- signup route reachable
+- sign-in reachable
+- protected Dashboard behavior
+- guest-related DB schema/query compatibility
+- existing guest/session rows structurally readable
+
+Do not print guest tokens or learner identities.
+
+==================================================
+53. PRODUCTION AGGREGATE OBSERVATION
+==================================================
+
+If safely useful, report aggregate-only funnel context such as:
+
+guest submitted sessions
+accounts created
+migrated guest sessions
+
+ONLY if current schema supports those counts reliably.
+
+Do not invent attribution.
+
+Do not expose identities.
+
+If counts are not reliably derivable:
+
+report NOT AVAILABLE.
+
+==================================================
+54. NO REAL PRODUCTION MUTATION QA
+==================================================
+
+Do NOT:
+
+- create real production account
+- submit production guest answers
+- claim guest data
+- change real user's sessions
+- dismiss real context prompt
+- generate payment
+- send email
+
+Behavioral proof comes from isolated PostgreSQL + Playwright.
+
+Production verification is deployment/read-only smoke only.
+
+==================================================
+55. PERFORMANCE
+==================================================
+
+Guest migration happens at an important conversion moment.
+
+Avoid:
+
+- loading entire question bank
+- full historical scan
+- N+1 answer migration
+- unnecessary sequential queries
+
+Use transactions/batch updates where appropriate.
+
+Measure query shape qualitatively.
+
+Do not add indexes unless integration evidence shows a need.
+
+==================================================
+56. OBSERVABILITY
+==================================================
+
+Errors should be diagnosable without exposing guest secrets.
+
+Allowed sanitized logs may contain:
+
+migration failed
+session count
+operation type
+
+Do NOT log:
+
+guest cookie
+guest token/hash
+answers
+email unnecessarily
+OAuth secrets
+
+==================================================
+57. OUT OF SCOPE
+==================================================
+
+Do NOT implement:
+
+- Weekly Study Plan
+- Road to Target
+- Weekly Review
+- lifecycle email
+- reminders
+- Premium Trial
+- Shareable Cards
+- Referral Rewards
+- mobile nav redesign
+- Practice Result full redesign
+- Question Report
+- Vocabulary
+- Dictation
+- AI Tutor
+- complex attribution
+
+Task 30 owns:
+
+ROAD TO TARGET + PERSONALIZED WEEKLY STUDY PLAN V1
+
+==================================================
+58. MIGRATION POLICY
+==================================================
+
+Expected:
+
+NEW MIGRATION: NONE
+
+If no migration is needed:
+
+do not create one.
+
+If a migration becomes genuinely necessary:
+
+STOP and document the exact invariant that cannot be satisfied with current
+schema before proceeding.
+
+==================================================
+59. QUALITY GATES
+==================================================
+
+Run actual final:
+
+- lint
+- typecheck
+- guest migration unit tests
+- auth/redirect security tests
+- result ownership tests
+- recommendation tests
+- quota/entitlement regression tests
+- Task 28 interaction tests
+- PostgreSQL 17 integration on VPS
+- Playwright E2E on VPS
+- full suite
+- production build
+- git diff --check
+
+Then after deployment:
+
+- production revision
+- migration/migrate service
+- app health
+- production read-only smoke
+
+Do not report historical test counts.
+
+==================================================
+60. VPS CLEANUP
+==================================================
+
+Remove ONLY temporary Task 29 resources.
+
+No global prune.
+
+Do not affect:
+
+- production app
+- production postgres
+- production media
+- production volumes
+- other projects
+
+Report cleanup.
+
+==================================================
+61. DEFINITION OF DONE
+==================================================
+
+Task 29 is COMPLETE only when:
+
+GUEST RESULT:
+
+- clear signup/save CTA exists
+- existing-account sign-in path exists
+- result value remains visible
+
+AUTH:
+
+- continuation survives signup
+- continuation survives sign-in
+- redirect safe
+- OAuth architecture not broken
+- email/password path safe
+
+MIGRATION:
+
+- guest data safely attached
+- ownership correct
+- idempotent
+- retry safe
+- no duplicate sessions/answers
+- cross-account claim prevented
+
+CONTINUATION:
+
+- learner does not land in generic dead end
+- migrated result remains accessible
+- server-valid next action exists
+- one primary continuation CTA exists
+
+TASK 28 INTERACTION:
+
+- context survey does not block guest continuation
+- no forced learner-context onboarding
+
+TASK 25/26:
+
+- Goal remains optional
+- Daily Goal remains correct
+- Today’s Workout remains server-authoritative
+- quota/entitlement unchanged
+
+SECURITY:
+
+- no open redirect
+- no arbitrary userId
+- no exposed guest identity
+- answer disclosure unchanged
+
+RESPONSIVE:
+
+- 360 PASS
+- 390 PASS
+- 430 PASS
+- 1024 PASS
+- 1440 PASS
+
+TECHNICAL:
+
+- PostgreSQL integration PASS
+- Playwright PASS
+- full suite PASS
+- build PASS
+- production deploy healthy
+- production data untouched during QA
+
+==================================================
+62. FINAL REPORT
+==================================================
+
+Return exactly:
+
+# Task 29 Result
+
+COMPLETE
+PARTIALLY COMPLETE
+BLOCKED
+
+# Previous Guest Flow
+
+Describe actual previous flow:
+
+Guest result:
+Signup:
+Migration:
+Post-auth destination:
+Primary friction:
+
+# Final Guest → Account Flow
+
+Guest result:
+Primary CTA:
+New signup:
+Existing sign-in:
+Migration:
+Post-auth destination:
+Next action:
+
+# Guest Identity
+
+Mechanism:
+Lifetime:
+Fingerprinting:
+Client-exposed identifier:
+Cross-device tracking:
+
+# Migration Semantics
+
+Source records:
+Destination ownership:
+Transaction:
+Idempotency:
+Retry behavior:
+Already-migrated behavior:
+Cross-account claim:
+
+# Result Continuity
+
+Result preserved:
+Authenticated result route:
+Correct/incorrect counts:
+Explanation access:
+Ownership:
+
+# Recommendation Continuity
+
+Source:
+Server revalidation:
+Insufficient-data behavior:
+Quota:
+Entitlement:
+
+# Task 28 Interaction
+
+Migrated guest learning makes context prompt eligible:
+YES / NO / DEPENDS
+
+Context prompt blocks continuation:
+YES / NO
+
+Final behavior:
+
+# Goal / Daily Goal Interaction
+
+Goal required:
+Migrated activity counts toward Daily Goal:
+Quota double-counting:
+Learning-day semantics:
+
+Explain actual final behavior.
+
+# Auth Security
+
+Open redirect:
+Arbitrary userId:
+Arbitrary guest claim:
+OAuth state/PKCE:
+Email/password verification:
+Cross-user result access:
+
+PASS / FAIL
+
+# PostgreSQL 17 Integration
+
+Version:
+New-account migration:
+Existing-account migration:
+Retry:
+Already migrated:
+Expired guest:
+Quota behavior:
+Ownership:
+
+PASS / FAIL
+
+# Browser QA
+
+360:
+390:
+430:
+1024:
+1440:
+
+Guest result:
+Signup context:
+Existing sign-in:
+Post-auth continuation:
+Context prompt interaction:
+
+PASS / FAIL / NOT RUN
+
+# Product Analytics
+
+Events added:
+Migration required:
+Funnel observable from domain data:
+
+# Performance
+
+Migration query strategy:
+N+1:
+Indexes:
+Schema migration:
+
+# Production Deployment
+
+HEAD:
+origin/main:
+Production revision:
+Revision match:
+Migrate:
+App:
+Health:
+
+# Production Read-Only Smoke
+
+/try:
+Signup:
+Sign-in:
+Dashboard protection:
+Guest schema/query compatibility:
+Production QA writes:
+
+# Production Aggregate Observation
+
+Guest submitted sessions:
+Migrated guest sessions:
+Other safe funnel aggregate:
+
+or:
+
+NOT AVAILABLE
+
+No identities.
+
+# Schema / Infrastructure
+
+New migration:
+New env vars:
+New Docker services:
+New public ports:
+External SaaS:
+Manual backfill:
+
+Expected:
+
+NONE
+NONE
+NONE
+NONE
+NONE
+NONE
+
+# Files Changed
+
+List exact files and purpose.
+
+# Quality Gates
+
+Lint:
+Typecheck:
+Targeted tests:
+Security tests:
+PostgreSQL integration:
+Playwright:
+Full suite:
+Build:
+git diff --check:
+
+# VPS Cleanup
+
+Temporary containers:
+Temporary networks:
+Temporary volumes:
+Production resources affected:
+
+# Auto-Deploy Assessment
+
+End with exactly one:
+
+PRODUCTION-SAFE
+
+or
+
+PRODUCTION-RISK — INVESTIGATE BEFORE NEXT CHANGE
+
+# Next Task
+
+If COMPLETE and PRODUCTION-SAFE:
+
+READY FOR TASK 30 — ROAD TO TARGET + PERSONALIZED WEEKLY STUDY PLAN V1
+
+Otherwise:
+
+NOT READY FOR TASK 30
+```
+
+Sau Task 29, roadmap chuyển sang phần rất quan trọng từ audit mới: **Task 30 sẽ không chỉ thêm một “weekly plan card”**. Nó sẽ nối Goal Profile + learning history + weakness + study capacity + Daily Goal thành **Road to Target**, với **Free nhận Today/This Week preview còn Premium nhận full weekly planning + deeper targeting**. Đây sẽ là phần làm Premium bắt đầu mang ý nghĩa “coach” thay vì chỉ “unlimited”.
+

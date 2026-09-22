@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { PaymentWebhookError, processWebhook } from "@/lib/payments/service";
+import { readBoundedJson, RequestBodyError } from "@/lib/http/bounded-json";
 
 export async function POST(request: Request) {
-  let body: unknown; try { body = await request.json(); } catch { return NextResponse.json({ error: "invalid_request" }, { status: 400 }); }
+  let body: unknown;
+  try { body = await readBoundedJson(request, 64 * 1024); }
+  catch (error) { return NextResponse.json({ error: "invalid_request" }, { status: error instanceof RequestBodyError && error.code === "BODY_TOO_LARGE" ? 413 : 400 }); }
   try { await processWebhook(body); return NextResponse.json({ success: true }); }
   catch (error) {
     const verificationFailed=error instanceof PaymentWebhookError&&error.code==="VERIFICATION_FAILED";

@@ -12,6 +12,8 @@
 /coverage/
 /.content-generated/
 /.npm-cache/
+/.tmp/
+/.tmp-auth-qa/
 /supabase/.temp/
 
 # Local environment files and secrets

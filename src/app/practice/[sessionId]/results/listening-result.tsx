@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { UnifiedRecommendationCard } from "@/components/diagnosis/recommendation-card";
 import { ListeningAudioPlayer } from "@/components/listening/listening-audio-player";
+import { TranscriptReview } from "@/components/listening/transcript-review";
 import type { WorkoutRecommendation } from "@/lib/diagnosis/types";
 import type { InterfaceLanguage } from "@/lib/i18n/config";
 import { formatMessage, getTranslations } from "@/lib/i18n/get-translations";
@@ -33,7 +34,7 @@ export function ListeningResult({ result, locale, recommendation, reviewOutcome,
         {image ? <img alt={image.alt} className="mt-4 max-h-96 w-full rounded-xl object-contain" src={image.url}/> : null}
         {audio ? <div className="mt-4"><ListeningAudioPlayer assetId={audio.id} initialUrl={audio.url} labels={t.listening.audio} questionId={question.id} sessionId={result.id}/></div> : null}
         <dl className="mt-5 grid gap-3 sm:grid-cols-2"><div className="rounded-xl bg-slate-50 p-4"><dt className="text-sm text-slate-600">{t.results.yourAnswer}</dt><dd className="font-bold">{selected ? `${selected.key}. ${selected.text}` : t.results.unanswered}</dd></div><div className="rounded-xl bg-emerald-50 p-4"><dt className="text-sm text-emerald-700">{t.results.correctAnswer}</dt><dd className="font-bold">{correct ? `${correct.key}. ${correct.text}` : t.common.unavailable}</dd></div></dl>
-        <section className="mt-5 border-t pt-5"><h2 className="font-black">{t.listening.transcript}</h2><p className="mt-2 whitespace-pre-line leading-7" lang="en">{question.transcript}</p></section>
+        {question.transcript && correct ? <TranscriptReview correctAnswer={correct.text} labels={{ show: t.listening.checkTranscript, keywords: t.listening.answerKeywords, noExactMatch: t.listening.noExactKeywordMatch }} transcript={question.transcript} /> : null}
         <section className="mt-5"><h2 className="font-black">{t.results.explanation}</h2><p className="mt-2 leading-7">{question.explanationVi ?? question.explanationEn}</p></section>
       </article>;
     })}</div>

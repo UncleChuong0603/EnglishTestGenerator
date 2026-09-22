@@ -4,9 +4,9 @@ import { db } from "@/db";
 import { authRateLimits } from "@/db/schema";
 import { hashToken } from "./crypto";
 
-export type RateLimitAction = "signup" | "login" | "forgot_password" | "reset_password" | "resend_verification" | "google_oauth" | "guest_practice" | "product_analytics" | "support_feedback";
+export type RateLimitAction = "signup" | "login" | "forgot_password" | "reset_password" | "verify_email" | "activate_account" | "resend_verification" | "google_oauth" | "guest_practice" | "product_analytics" | "support_feedback";
 const limits: Record<RateLimitAction, { attempts: number; windowMs: number }> = {
-  signup: { attempts: 5, windowMs: 3_600_000 }, login: { attempts: 10, windowMs: 900_000 }, forgot_password: { attempts: 5, windowMs: 3_600_000 }, reset_password: { attempts: 8, windowMs: 3_600_000 }, resend_verification: { attempts: 5, windowMs: 3_600_000 }, google_oauth: { attempts: 20, windowMs: 900_000 }, guest_practice: { attempts: 20, windowMs: 900_000 }, product_analytics: { attempts: 60, windowMs: 900_000 }, support_feedback: { attempts: 5, windowMs: 3_600_000 },
+  signup: { attempts: 5, windowMs: 3_600_000 }, login: { attempts: 10, windowMs: 900_000 }, forgot_password: { attempts: 5, windowMs: 3_600_000 }, reset_password: { attempts: 8, windowMs: 3_600_000 }, verify_email: { attempts: 12, windowMs: 900_000 }, activate_account: { attempts: 6, windowMs: 3_600_000 }, resend_verification: { attempts: 5, windowMs: 3_600_000 }, google_oauth: { attempts: 20, windowMs: 900_000 }, guest_practice: { attempts: 20, windowMs: 900_000 }, product_analytics: { attempts: 60, windowMs: 900_000 }, support_feedback: { attempts: 5, windowMs: 3_600_000 },
 };
 
 export async function enforceRateLimit(action: RateLimitAction, identifier: string) {
