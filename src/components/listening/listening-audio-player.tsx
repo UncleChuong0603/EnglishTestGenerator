@@ -1,9 +1,10 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { refreshListeningMedia } from "@/app/practice/actions";
 
 export function ListeningAudioPlayer({ sessionId, questionId, groupId, assetId, initialUrl, labels }: { sessionId: string; questionId: string; groupId?: string; assetId: string; initialUrl: string; labels: { play: string; pause: string; replay: string; loading: string; unavailable: string; retry: string } }) {
   const ref = useRef<HTMLAudioElement>(null); const [url, setUrl] = useState(initialUrl); const [state, setState] = useState<"idle" | "loading" | "playing" | "paused" | "ended" | "error">("idle");
+  useEffect(() => { const audio = ref.current; return () => { audio?.pause(); }; }, []);
   async function toggle() { const audio = ref.current; if (!audio) return; if (state === "playing") { audio.pause(); return; } setState("loading"); try { await audio.play(); } catch { setState("error"); } }
   async function retry() { setState("loading"); const result = await refreshListeningMedia(sessionId, questionId, assetId, groupId); if (!result.ok) { setState("error"); return; } setUrl(result.url); setState("idle"); }
   const text = state === "playing" ? labels.pause : state === "ended" ? labels.replay : labels.play;
