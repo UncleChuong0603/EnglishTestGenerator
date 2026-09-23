@@ -3,6 +3,45 @@ import { sql } from "drizzle-orm";
 import { db } from "@/db";
 import type { AnalyticsPeriod, ProductAnalyticsSnapshot } from "./calculate";
 
+export type ChallengeFunnelCounts = { viewed: number; started: number; completed: number; signup: number; firstWorkout: number };
+export async function getChallengeFunnel(period: AnalyticsPeriod): Promise<ChallengeFunnelCounts> {
+  const days = daysFor(period);
+  const result = await db.execute(sql`
+    with views as (
+      select case when user_id is not null then 'u:' || user_id::text else 'g:' || guest_reference end actor,
+             min(occurred_at) viewed_at
+      from product_events
+      where event_name = 'challenge_viewed' and occurred_at >= now() - (${days} * interval '1 day')
+        and (user_id is not null or guest_reference is not null)
+      group by 1
+    ), starts as (
+      select distinct v.actor, e.session_id, e.occurred_at
+      from views v join product_events e on e.event_name = 'challenge_started'
+        and (case when e.user_id is not null then 'u:' || e.user_id::text else 'g:' || e.guest_reference end) = v.actor
+        and e.occurred_at >= v.viewed_at and e.session_id is not null
+    ), completions as (
+      select distinct s.actor, s.session_id, e.occurred_at
+      from starts s join product_events e on e.event_name = 'challenge_completed'
+        and e.session_id = s.session_id and e.occurred_at >= s.occurred_at
+    ), signups as (
+      select distinct c.actor, e.user_id, e.occurred_at
+      from completions c join product_events e on e.event_name = 'signup_after_challenge'
+        and e.session_id = c.session_id and e.user_id is not null and e.occurred_at >= c.occurred_at
+    ), workouts as (
+      select distinct s.actor
+      from signups s join product_events e on e.event_name = 'first_authenticated_workout_after_challenge'
+        and e.user_id = s.user_id and e.occurred_at >= s.occurred_at
+    )
+    select (select count(*)::int from views) viewed,
+           (select count(distinct actor)::int from starts) started,
+           (select count(distinct actor)::int from completions) completed,
+           (select count(distinct actor)::int from signups) signup,
+           (select count(*)::int from workouts) "firstWorkout"
+  `);
+  const row = result.rows[0];
+  return { viewed: Number(row.viewed), started: Number(row.started), completed: Number(row.completed), signup: Number(row.signup), firstWorkout: Number(row.firstWorkout) };
+}
+
 const daysFor = (period: AnalyticsPeriod) => period === "today" ? 1 : period === "30d" ? 30 : 7;
 
 export async function getProductAnalytics(period: AnalyticsPeriod) {

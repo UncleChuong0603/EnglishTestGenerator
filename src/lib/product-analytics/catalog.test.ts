@@ -4,6 +4,8 @@ import { browserEventSchema, safePropertiesSchema } from "./catalog";
 describe("product analytics schemas", () => {
   it("accepts only allowlisted browser events and no actor identity", () => {
     expect(browserEventSchema.safeParse({ eventName: "landing_viewed", route: "/", deduplicationKey: "landing:123456" }).success).toBe(true);
+    expect(browserEventSchema.safeParse({ eventName: "challenge_viewed", route: "/challenge/part-5", deduplicationKey: "challenge:123456" }).success).toBe(true);
+    expect(browserEventSchema.safeParse({ eventName: "challenge_completed", route: "/challenge/part-5", deduplicationKey: "challenge:123456" }).success).toBe(false);
     expect(browserEventSchema.safeParse({ eventName: "premium_activated", route: "/", deduplicationKey: "payment:123456" }).success).toBe(false);
     expect(browserEventSchema.safeParse({ eventName: "landing_viewed", route: "/", deduplicationKey: "landing:123456", userId: "spoof" }).success).toBe(false);
   });

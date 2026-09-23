@@ -10,6 +10,7 @@ import { decideGoogleAccount } from "@/lib/auth/policy";
 import { createSession, getCurrentUser } from "@/lib/auth/session";
 import { getServerEnv } from "@/lib/env";
 import { migrateGuestAttempts } from "@/lib/guest/migration";
+import { recordChallengeSignup } from "@/lib/challenge/acquisition";
 
 export async function GET(request: NextRequest) {
   const env = getServerEnv();
@@ -33,6 +34,7 @@ export async function GET(request: NextRequest) {
     const payload = (await client.verifyIdToken({ idToken: tokens.id_token, audience: env.GOOGLE_CLIENT_ID })).getPayload();
     if (!payload?.sub || !payload.email || payload.email_verified !== true) throw new Error("Google email is not verified");
     const googleEmail = payload.email; const normalized = normalizeEmail(googleEmail); const current = await getCurrentUser();
+    let createdNewUser = false;
     const userId = await db.transaction(async (tx) => {
       const [identity] = await tx.select().from(authIdentities).where(and(eq(authIdentities.provider, "google"), eq(authIdentities.providerAccountId, payload.sub))).limit(1);
       const [emailOwner] = identity ? [] : await tx.select({ id: users.id }).from(users).where(eq(users.emailNormalized, normalized)).limit(1);
@@ -47,6 +49,7 @@ export async function GET(request: NextRequest) {
       if (decision === "require_explicit_link") throw new Error("EXPLICIT_LINK_REQUIRED");
       if (decision === "reject_link_context") throw new Error("LINK_AUTH_REQUIRED");
       const [created] = await tx.insert(users).values({ email: googleEmail, emailNormalized: normalized, emailVerifiedAt: new Date(), status: "active" }).returning({ id: users.id });
+      createdNewUser = true;
       await tx.insert(profiles).values({ id: created.id, avatarUrl: typeof payload.picture === "string" && payload.picture.startsWith("https://") ? payload.picture : null });
       await tx.insert(authIdentities).values({ userId: created.id, provider: "google", providerAccountId: payload.sub, providerEmail: googleEmail });
       await tx.insert(securityEvents).values({ userId: created.id, eventType: "account_created", metadata: { method: "google" } }); return created.id;
@@ -58,6 +61,7 @@ export async function GET(request: NextRequest) {
       await tx.insert(securityEvents).values({ userId, eventType: "login_success", metadata: { method: "google" } });
     });
     await createSession(userId);
+    if (createdNewUser) try { await recordChallengeSignup(userId); } catch (error) { console.error("[challenge:analytics] Google signup", error); }
     try { await migrateGuestAttempts(userId); } catch (migrationError) {
       console.error("[guest:migration] deferred after Google sign-in", { name: migrationError instanceof Error ? migrationError.name : "Unknown" });
     }

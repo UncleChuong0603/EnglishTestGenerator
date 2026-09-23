@@ -3,6 +3,11 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { hashToken, PASSWORD_MIN_LENGTH } from "@/lib/auth/crypto";
+import { normalizeEmail } from "@/lib/auth/crypto";
+import { eq } from "drizzle-orm";
+import { db } from "@/db";
+import { users } from "@/db/schema";
+import { recordChallengeSignup } from "@/lib/challenge/acquisition";
 import { enforceRateLimit } from "@/lib/auth/rate-limit";
 import { authenticatePassword, changePassword, consumeActivationToken, registerPasswordUser, requestPasswordReset, resendVerification, resetPassword, verifyEmailToken } from "@/lib/auth/service";
 import { createSession, getCurrentSession, requireUser, revokeAllUserSessions, revokeCurrentSession } from "@/lib/auth/session";
@@ -22,7 +27,7 @@ function logAuthFailure(action: string, error: unknown) {
 export async function signUpAction(_state: AuthActionState, formData: FormData): Promise<AuthActionState> {
   const parsed = z.object({ email: emailSchema, password: passwordSchema, confirmPassword: z.string() }).safeParse(Object.fromEntries(formData));
   if (!parsed.success || parsed.data.password !== parsed.data.confirmPassword) return { ok: false, error: "Thông tin đăng ký không hợp lệ hoặc mật khẩu xác nhận không khớp." };
-  try { await enforceRateLimit("signup", await clientKey(parsed.data.email)); const outcome = await registerPasswordUser(parsed.data.email, parsed.data.password); const continuation = safeGuestContinuation(formData.get("next")?.toString()); if (continuation) (await cookies()).set(GUEST_AUTH_RETURN_COOKIE, continuation, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 7 * 86_400 }); const actor=await resolveProductActor().catch(()=>({})); if(outcome==="created") await recordProductEvent({eventName:"signup_completed",...actor,deduplicationKey:`signup:${hashToken(parsed.data.email.toLowerCase())}`}); console.info("[auth:signup] completed", { outcome }); return { ok: true, message: "Nếu địa chỉ này có thể đăng ký, hướng dẫn xác minh đã được gửi." }; }
+  try { await enforceRateLimit("signup", await clientKey(parsed.data.email)); const outcome = await registerPasswordUser(parsed.data.email, parsed.data.password); const continuation = safeGuestContinuation(formData.get("next")?.toString()); if (continuation) (await cookies()).set(GUEST_AUTH_RETURN_COOKIE, continuation, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 7 * 86_400 }); const actor=await resolveProductActor().catch(()=>({})); if(outcome==="created") { await recordProductEvent({eventName:"signup_completed",...actor,deduplicationKey:`signup:${hashToken(parsed.data.email.toLowerCase())}`}); try { const [created] = await db.select({ id: users.id }).from(users).where(eq(users.emailNormalized, normalizeEmail(parsed.data.email))).limit(1); if (created) await recordChallengeSignup(created.id); } catch (error) { console.error("[challenge:analytics] signup", error); } } console.info("[auth:signup] completed", { outcome }); return { ok: true, message: "Nếu địa chỉ này có thể đăng ký, hướng dẫn xác minh đã được gửi." }; }
   catch (error) { if (!(error instanceof Error && error.message === "RATE_LIMITED")) logAuthFailure("signup", error); return { ok: false, error: error instanceof Error && error.message === "RATE_LIMITED" ? "Bạn thao tác quá nhanh. Vui lòng thử lại sau." : "Không thể tạo tài khoản lúc này." }; }
 }
 
