@@ -186,4 +186,4 @@ export function publicPlanNotes(locale: "vi" | "en") {
       };
 }
 
-export const PUBLIC_ACTIVATION_HREF = "/try";
+export const PUBLIC_ACTIVATION_HREF = "/challenge/part-5";

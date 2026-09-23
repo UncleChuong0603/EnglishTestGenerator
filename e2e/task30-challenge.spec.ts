@@ -47,6 +47,7 @@ test("guest challenge has a real result, explanations and safe ownership at ever
   await expect(page.getByRole("heading", { name: /1\/10/ })).toBeVisible();
   await expect(page.getByText(/Độ chính xác: 10%|Accuracy: 10%/)).toBeVisible();
   await expect(page.getByRole("heading", { name: /Xem lại 9 câu sai|Review 9 missed questions/ })).toBeVisible();
+  await expect(page.getByText(/Gợi ý chung: Reading · Part 5 · 10 câu|General suggestion: Reading · Part 5 · 10 questions/)).toBeVisible();
   await expect(page.getByText("Ngôi thứ ba số ít dùng -s.").first()).toBeVisible();
   await expect(page.getByRole("link", { name: /Tiếp tục luyện miễn phí|Continue practicing free/ })).toHaveAttribute("href", /\/sign-up\?from=guest-result&next=/);
   for (const width of [360, 390, 430, 1024, 1440]) {

@@ -11,7 +11,7 @@ export function PublicHeader({ locale, signedIn = false }: { locale: InterfaceLa
   const t = getMarketingTranslations(locale);
   const accountHref = signedIn ? "/dashboard" : "/sign-in";
   const primaryHref = signedIn ? "/dashboard" : PUBLIC_ACTIVATION_HREF;
-  const primaryLabel = signedIn ? t.nav.continue : locale === "vi" ? "Đánh giá miễn phí" : "Free diagnostic";
+  const primaryLabel = signedIn ? t.nav.continue : locale === "vi" ? "Thử thách Part 5" : "Part 5 challenge";
   return <header className="public-header border-b border-[#dce3d9] bg-[#f7f6f1]">
     <div className="mx-auto flex min-h-[76px] max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
       <Link className="shrink-0 text-lg font-black tracking-tight text-[#183e2b]" href="/" aria-label="TOEIC GYM home">TOEIC<span className="font-semibold"> GYM</span><span className="ml-2 inline-block h-2 w-2 rounded-full bg-[#ba7655]" aria-hidden="true" /></Link>

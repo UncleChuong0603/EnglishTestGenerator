@@ -13,8 +13,8 @@ import {
 } from "./public-product";
 
 describe("public activation configuration", () => {
-  it("routes the public primary action to guest practice", () => {
-    expect(PUBLIC_ACTIVATION_HREF).toBe("/try");
+  it("routes the public primary action to the Part 5 challenge", () => {
+    expect(PUBLIC_ACTIVATION_HREF).toBe("/challenge/part-5");
   });
 
   it("publishes every metered entitlement from the canonical catalog", () => {
