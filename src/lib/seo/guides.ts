@@ -29,14 +29,16 @@ export const guides = {
     eyebrow: "TOEIC Reading · Part 5",
     title: "TOEIC Part 5: cách làm câu hoàn thành câu",
     intro: "Part 5 kiểm tra khả năng chọn từ hoặc cấu trúc phù hợp trong một câu ngắn. Cách làm hiệu quả là xác định chỗ trống cần loại từ nào, rồi mới xét nghĩa và ngữ pháp của cả câu.",
+    topCta: { href: "/challenge/part-5", label: "Làm thử 10 câu Part 5" },
     sections: [
+      { title: "Part 5 gồm những dạng câu nào?", paragraphs: ["Trong ngân hàng câu hỏi hiện tại, Part 5 có hai nhóm chính: ngữ pháp và từ vựng. Ngữ pháp gồm Word Form (từ loại), thì động từ, hòa hợp chủ ngữ – động từ, bị động, giới từ, liên từ và các cấu trúc câu khác. Từ vựng gồm từ theo ngữ cảnh, từ vựng thương mại và các cụm từ thường đi cùng nhau. Mỗi câu chỉ có một chỗ trống và bốn lựa chọn."] },
       { title: "Đọc vị trí chỗ trống trước khi nhìn bốn đáp án", paragraphs: ["Nhìn từ đứng trước và sau chỗ trống. Sau mạo từ thường cần danh từ hoặc cụm danh từ; trước danh từ có thể cần tính từ; sau động từ thường cần trạng từ nếu vị trí đó bổ nghĩa cho hành động. Đây là gợi ý ban đầu, không phải quy tắc áp dụng cho mọi câu."], points: ["Nếu bốn lựa chọn có cùng gốc từ, ưu tiên kiểm tra loại từ.", "Nếu bốn lựa chọn là các dạng động từ, kiểm tra chủ ngữ, thời gian và thể bị động.", "Nếu bốn lựa chọn khác nghĩa, đọc cả câu và chọn theo ngữ cảnh."] },
       { title: "Ba nhóm lỗi thường gặp", paragraphs: ["Lỗi thứ nhất là chọn từ có nghĩa quen thuộc nhưng sai loại từ. Lỗi thứ hai là nhìn một dấu hiệu thời gian rồi bỏ qua chủ ngữ hoặc mệnh đề. Lỗi thứ ba là dịch từng từ, khiến bạn bỏ lỡ cụm cố định như be responsible for hoặc in accordance with." , "Khi sửa bài, hãy viết một lý do ngắn cho đáp án đúng và một lý do loại đáp án bạn đã chọn. Thao tác này giúp bạn nhận ra liệu mình thiếu kiến thức hay chỉ đọc quá vội."] },
       { title: "Luyện Part 5 theo vòng nhỏ", paragraphs: ["Bắt đầu với một chủ đề như Word Form, thì và thời, hoặc giới từ. Làm một nhóm câu, xem giải thích và thử lại sau một đến ba ngày. Khi độ chính xác ổn định, trộn nhiều chủ đề để kiểm tra xem bạn còn nhận ra dấu hiệu trong câu mới hay không."] },
     ],
     example: { title: "Ví dụ: nhận diện loại từ", question: "The manager gave a _____ explanation of the revised schedule.", options: ["A. clearly", "B. clarity", "C. clear", "D. clarify"], answer: "Đáp án C. clear. Chỗ trống đứng trước danh từ explanation nên cần tính từ. Clearly là trạng từ, clarity là danh từ, clarify là động từ." },
-    links: [{ href: "/toeic/part-5/word-form", label: "Bài tập Word Form", description: "Học quy tắc và làm thử câu có giải thích." }, { href: "/toeic/part-6", label: "TOEIC Part 6", description: "Áp dụng ngữ pháp vào ngữ cảnh đoạn văn." }, { href: "/blog/ngu-phap-toeic-part-5-can-hoc", label: "7 chủ điểm ngữ pháp", description: "Chọn chủ điểm cần học trước." }],
-    cta: { href: "/try#quick-practice", label: "Thử bài Reading", description: "Làm một bài Reading ngắn, xem kết quả và xác định loại lỗi cần luyện tiếp." },
+    links: [{ href: "/toeic/part-5/word-form", label: "Luyện 5 câu Word Form", description: "Chọn loại từ và xem giải thích sau khi nộp." }, { href: "/blog/ngu-phap-toeic-part-5-can-hoc", label: "7 chủ điểm ngữ pháp", description: "Đọc thêm cách chọn chủ điểm cần học." }],
+    cta: { href: "/challenge/part-5", label: "Bắt đầu Part 5 Challenge", description: "Làm 10 câu Part 5 miễn phí, không cần tài khoản. Xem độ chính xác và lời giải sau khi nộp." },
   },
   part6: {
     eyebrow: "TOEIC Reading · Part 6",

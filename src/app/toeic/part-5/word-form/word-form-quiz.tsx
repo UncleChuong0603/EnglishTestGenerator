@@ -1,36 +1,53 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import Link from "next/link";
+import type { WordFormQuestion } from "@/lib/seo/word-form";
+import { gradeWordFormQuiz, type WordFormResult } from "./actions";
 
-const questions = [
-  { sentence: "The system updates customer records _____ after payment.", choices: ["A. immediate", "B. immediately", "C. immediacy", "D. mediate"], correct: 1, explanation: "Immediately là trạng từ bổ nghĩa cho động từ updates. Immediate là tính từ, immediacy là danh từ." },
-  { sentence: "Our team appreciates your _____ response to the request.", choices: ["A. prompt", "B. promptly", "C. promptness", "D. prompting"], correct: 0, explanation: "Prompt là tính từ đứng trước danh từ response. Promptly là trạng từ; promptness là danh từ." },
-  { sentence: "The report provides a detailed _____ of customer feedback.", choices: ["A. analyze", "B. analytical", "C. analysis", "D. analytically"], correct: 2, explanation: "Sau a detailed cần danh từ làm trung tâm cụm danh từ: analysis. Detailed bổ nghĩa cho danh từ này." },
-  { sentence: "Staff members are asked to _____ all travel expenses by Friday.", choices: ["A. submitted", "B. submission", "C. submissive", "D. submit"], correct: 3, explanation: "Sau to trong cấu trúc are asked to cần động từ nguyên mẫu submit." },
-  { sentence: "The instructions were written _____ so that all participants could follow them.", choices: ["A. clear", "B. clarity", "C. clearly", "D. clarify"], correct: 2, explanation: "Clearly là trạng từ bổ nghĩa cho động từ were written. Clear là tính từ." },
-] as const;
+export function WordFormQuiz({ questions }: { questions: WordFormQuestion[] }) {
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [results, setResults] = useState<WordFormResult | null>(null);
+  const [error, setError] = useState("");
+  const [pending, startTransition] = useTransition();
 
-export function WordFormQuiz() {
-  const [answers, setAnswers] = useState<Record<number, number>>({});
-  const [checked, setChecked] = useState(false);
-  const [showIncomplete, setShowIncomplete] = useState(false);
-  const score = questions.filter((question, index) => answers[index] === question.correct).length;
-  const remaining = questions.length - Object.keys(answers).length;
+  if (questions.length < 5) return <section className="rounded-2xl border border-teal-200 bg-white p-6 sm:p-8" id="quiz"><h2 className="text-2xl font-black">Luyện Word Form</h2><p className="mt-3 text-slate-700">Bộ câu hỏi đang được cập nhật. Bạn có thể luyện Part 5 Challenge ngay.</p><Link className="mt-5 inline-flex min-h-12 items-center rounded-lg bg-teal-800 px-5 font-bold text-white" href="/challenge/part-5">Làm Part 5 Challenge</Link></section>;
 
-  return <section className="rounded-2xl border border-teal-200 bg-white p-6 sm:p-8" aria-labelledby="quiz-heading">
+  const score = results?.filter((result) => answers[result.id] === result.correctOptionId).length ?? 0;
+  function submit() {
+    if (questions.some((question) => !answers[question.id])) {
+      setError("Hãy chọn đáp án cho đủ 5 câu trước khi kiểm tra.");
+      return;
+    }
+    setError("");
+    startTransition(async () => {
+      try {
+        const graded = await gradeWordFormQuiz(questions.map((question) => question.id), questions.map((question) => answers[question.id]));
+        setResults(graded);
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "Chưa thể chấm bài. Vui lòng thử lại.");
+      }
+    });
+  }
+
+  return <section className="rounded-2xl border border-teal-200 bg-white p-5 sm:p-8" id="quiz" aria-labelledby="quiz-heading">
     <h2 className="text-2xl font-black" id="quiz-heading">Làm thử 5 câu Word Form</h2>
-    <p className="mt-2 leading-7 text-slate-600">Chọn một đáp án cho mỗi câu. Bạn có thể kiểm tra ngay và đọc giải thích cho từng câu.</p>
-    <div className="mt-7 space-y-8">{questions.map((question, index) => <fieldset className="border-t border-slate-200 pt-6" key={question.sentence}>
-      <legend className="text-lg font-bold leading-8">{index + 1}. {question.sentence}</legend>
-      <div className="mt-3 grid gap-2 sm:grid-cols-2">{question.choices.map((choice, choiceIndex) => <label className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 ${answers[index] === choiceIndex ? "border-teal-700 bg-teal-50" : "border-slate-200"}`} key={choice}>
-        <input checked={answers[index] === choiceIndex} name={`word-form-${index}`} onChange={() => { setAnswers({ ...answers, [index]: choiceIndex }); setChecked(false); setShowIncomplete(false); }} type="radio" value={choiceIndex} />{choice}
-      </label>)}</div>
-      {checked && <p className={`mt-3 rounded-lg p-4 leading-7 ${answers[index] === question.correct ? "bg-teal-50 text-teal-900" : "bg-amber-50 text-amber-950"}`}>
-        <strong>{answers[index] === question.correct ? "Đúng." : `Đáp án: ${question.choices[question.correct]}.`}</strong> {question.explanation}
-      </p>}
-    </fieldset>)}</div>
-    <button className="mt-8 min-h-12 rounded-lg bg-teal-800 px-6 font-bold text-white" onClick={() => { if (remaining > 0) { setChecked(false); setShowIncomplete(true); return; } setShowIncomplete(false); setChecked(true); }} type="button">Kiểm tra đáp án</button>
-    {showIncomplete && <p aria-live="polite" className="mt-4 text-sm font-semibold text-amber-800">Bạn còn {remaining} câu chưa chọn đáp án. Hãy trả lời đủ 5 câu trước khi kiểm tra.</p>}
-    {checked && <p aria-live="polite" className="mt-4 text-lg font-bold">Bạn đúng {score}/{questions.length} câu. Xem giải thích bên dưới từng câu để biết vì sao.</p>}
+    <p className="mt-2 leading-7 text-slate-600">Chọn một đáp án cho mỗi câu. Đáp án và giải thích xuất hiện sau khi bạn nộp.</p>
+    <div className="mt-7 space-y-8">{questions.map((question, index) => {
+      const result = results?.find((item) => item.id === question.id);
+      const correct = question.options.find((option) => option.id === result?.correctOptionId);
+      return <fieldset className="min-w-0 border-t border-slate-200 pt-6" key={question.id}>
+        <legend className="text-lg font-bold leading-8">{index + 1}. {question.text}</legend>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">{question.options.map((option) => <label className={`flex min-w-0 cursor-pointer items-center gap-3 rounded-lg border p-3 ${answers[question.id] === option.id ? "border-teal-700 bg-teal-50" : "border-slate-200"}`} key={option.id}>
+          <input checked={answers[question.id] === option.id} disabled={pending} name={`word-form-${question.id}`} onChange={() => { setAnswers({ ...answers, [question.id]: option.id }); setResults(null); setError(""); }} type="radio" value={option.id} /><span className="min-w-0 break-words">{option.key}. {option.text}</span>
+        </label>)}</div>
+        {result && <p className={`mt-3 rounded-lg p-4 leading-7 ${answers[question.id] === result.correctOptionId ? "bg-teal-50 text-teal-900" : "bg-amber-50 text-amber-950"}`}>
+          <strong>{answers[question.id] === result.correctOptionId ? "Đúng." : `Đáp án đúng: ${correct?.key}. ${correct?.text}.`}</strong> {result.explanation}
+        </p>}
+      </fieldset>;
+    })}</div>
+    <button className="mt-8 min-h-12 w-full rounded-lg bg-teal-800 px-6 font-bold text-white disabled:opacity-60 sm:w-auto" disabled={pending} onClick={submit} type="button">{pending ? "Đang chấm…" : "Kiểm tra đáp án"}</button>
+    {error && <p aria-live="polite" className="mt-4 text-sm font-semibold text-amber-800">{error}</p>}
+    {results && <p aria-live="polite" className="mt-4 text-lg font-bold">Bạn đúng {score}/5 câu. Xem giải thích ngay dưới từng câu.</p>}
   </section>;
 }

@@ -7,6 +7,7 @@ export type Guide = {
   eyebrow: string;
   title: string;
   intro: string;
+  topCta?: { href: string; label: string };
   sections: { title: string; paragraphs: string[]; points?: string[] }[];
   example?: { title: string; question: string; options: string[]; answer: string };
   links: { href: string; label: string; description: string }[];
@@ -23,6 +24,7 @@ export async function GuidePage({ guide }: { guide: Guide }) {
         <p className="text-sm font-bold uppercase tracking-[.16em] text-teal-800">{guide.eyebrow}</p>
         <h1 className="mt-4 max-w-4xl text-4xl font-black leading-tight sm:text-6xl">{guide.title}</h1>
         <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-700">{guide.intro}</p>
+        {guide.topCta && <Link className="mt-7 inline-flex min-h-12 items-center rounded-lg bg-teal-800 px-6 font-bold text-white" href={guide.topCta.href}>{guide.topCta.label} <span className="ml-3" aria-hidden="true">→</span></Link>}
       </header>
       <div className="grid gap-12 pt-10 lg:grid-cols-[minmax(0,1fr)_17rem]">
         <div className="space-y-10">
