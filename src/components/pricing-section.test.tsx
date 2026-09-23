@@ -11,8 +11,10 @@ describe("PricingSection", () => {
     expect(html).toContain("Custom practice: 3 sessions/day");
     expect(html).toContain("Baseline + reassessment every 30 days");
     expect(html).toContain("share the new-mock allowance");
-    expect(html).toContain("sm:hidden");
-    expect(html).toContain("sm:block");
+    expect(html).toContain("Premium upgrades");
+    expect(html).toContain("Included in both plans");
+    expect(html).toContain("lg:hidden");
+    expect(html).toContain("lg:block");
     expect(html).not.toContain("overflow-x-auto");
     expect(html).toContain('href="/try"');
     expect(html).toContain("Take free diagnostic");
@@ -30,5 +32,14 @@ describe("PricingSection", () => {
     expect(html).toContain("Gói hiện tại");
     expect(html).toContain('href="/dashboard"');
     expect(html).toContain("Tiếp tục học");
+  });
+
+  it("keeps the pricing page introduction concise", () => {
+    const html = renderToStaticMarkup(
+      <PricingSection locale="en" showIntro={false} />,
+    );
+
+    expect(html).toContain("Choose your plan");
+    expect(html).not.toContain("Start free. Upgrade when you need more practice.");
   });
 });

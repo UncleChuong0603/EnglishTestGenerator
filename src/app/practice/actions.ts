@@ -24,6 +24,7 @@ import { awardCompletedLearning } from "@/lib/gamification/award";
 import { getLearnerGoal } from "@/lib/goals/service";
 import { getUsageStatus } from "@/lib/entitlements/service";
 import { getDailyWorkload, getGroupSafeWorkoutSize } from "@/lib/workout/policy";
+import { recordChallengeCompletion, recordFirstWorkoutAfterChallenge } from "@/lib/challenge/acquisition";
 
 function parseConfig(formData: FormData): PracticeConfig | null { const config = { mode: String(formData.get("mode") ?? "") as ReadingPracticeMode, targetQuestionCount: Number(formData.get("questionCount")), source: formData.get("source") === "recommended" ? "recommended" : "custom", skill: String(formData.get("skill") ?? "").trim() || undefined, subSkill: String(formData.get("subSkill") ?? "").trim() || undefined } as PracticeConfig; return validatePracticeConfig(config) ? config : null; }
 export async function loadAdvancedTargetingAccess() { const user = await getCurrentUser(); if (!user) return { enabled: false, unresolvedMistakes: 0 }; const [capabilities, counts] = await Promise.all([getEffectiveCapabilities(user.id), getMistakeCounts(user.id)]); return { enabled: capabilities.canUseAdvancedTargeting, unresolvedMistakes: counts.unresolved }; }
@@ -64,7 +65,12 @@ export async function submitReadingPractice(sessionId: string, answers: Submitte
     const [solutions, options] = await Promise.all([tx.select().from(questionSolutions).where(inArray(questionSolutions.questionId, ids)), tx.select().from(questionOptions).where(inArray(questionOptions.questionId, ids))]); const solutionMap = new Map(solutions.map((s) => [s.questionId, s.correctOptionId])); const input = new Map(answers.map((a) => [String(a.questionId), a])); let correct = 0;
     const rows = assigned.map((a) => { const answer = input.get(a.questionId); if (answer?.responseType && answer.responseType !== "MULTIPLE_CHOICE") throw new Error("BAD_RESPONSE_TYPE"); const selected = answer?.selectedOptionId ? String(answer.selectedOptionId) : null; if (selected && !options.some((o) => o.id === selected && o.questionId === a.questionId)) throw new Error("BAD_OPTION"); const correctOptionId = solutionMap.get(a.questionId); if (!correctOptionId) throw new Error("MISSING_SOLUTION"); const evaluation = evaluateMultipleChoice({ type: "MULTIPLE_CHOICE", selectedOptionId: selected }, correctOptionId); if (evaluation.isCorrect) correct++; return { sessionId, userId: owner.userId, questionId: a.questionId, responseType: "MULTIPLE_CHOICE", selectedOptionId: selected, isCorrect: evaluation.isCorrect, responseTimeMs: Number.isInteger(answer?.responseTimeMs) ? Math.min(Math.max(answer!.responseTimeMs!, 0), 86_400_000) : null, answeredAt: selected ? new Date() : null }; });
     await tx.insert(attemptAnswers).values(rows); await reconcileMasteryAnswers(tx, owner.userId, session.source, rows); await tx.update(practiceSessions).set({ status: "submitted", submittedAt: new Date(), scoreCorrect: correct, scoreTotal: session.questionCount }).where(and(eq(practiceSessions.id, sessionId), eq(practiceSessions.status, "in_progress"))); await awardCompletedLearning(tx,{userId:owner.userId,sourceType:"PRACTICE_SESSION",sourceId:sessionId,questionIds:rows.map(r=>r.questionId),completion:session.source==="recommended"?"WORKOUT":session.source==="mastery_review"?"MASTERY":undefined});
-  }); revalidatePath("/progress"); revalidatePath("/dashboard"); revalidatePath("/mistakes"); revalidatePath(`/practice/${sessionId}/results`); return { ok: true, sessionId }; } catch (error) { console.error("Could not submit Reading practice", error); return { ok: false, error: "submit_failed" }; }
+  });
+    try {
+      await recordChallengeCompletion(owner.userId ? { userId: owner.userId } : { guestReference: owner.guestOwnerHash! }, sessionId);
+      if (owner.userId) await recordFirstWorkoutAfterChallenge(owner.userId, sessionId);
+    } catch (error) { console.error("[challenge:analytics] reading completion", error); }
+    revalidatePath("/progress"); revalidatePath("/dashboard"); revalidatePath("/mistakes"); revalidatePath(`/practice/${sessionId}/results`); return { ok: true, sessionId }; } catch (error) { console.error("Could not submit Reading practice", error); return { ok: false, error: "submit_failed" }; }
 }
 export async function startPart5Practice(formData: FormData) { formData.set("mode", "part_5"); formData.set("source", "custom"); return startReadingPractice(formData); }
 export const submitPart5Practice = submitReadingPractice;
@@ -123,7 +129,7 @@ export async function submitListeningGroup(sessionId: string, groupId: string, a
       const persisted = existing.length ? existing : rows; if (!canUnlockListeningGroupReview(expectedIds, persisted.map((answer) => answer.questionId))) throw new Error("INCOMPLETE_GROUP"); const transcript = transcriptRows[0]?.content; if (!transcript) throw new Error("MISSING_TRANSCRIPT");
       return { ok: true as const, complete, review: { groupId, transcript, questions: expectedIds.map((questionId) => { const solution = solutions.find((s) => s.questionId === questionId)!; const answer = persisted.find((a) => a.questionId === questionId)!; return { questionId, selectedOptionId: answer.selectedOptionId!, correctOptionId: solution.correctOptionId, isCorrect: answer.isCorrect, explanationEn: solution.explanationEn, explanationVi: solution.explanationVi }; }) } };
     });
-    if (result.complete) { revalidatePath("/progress"); revalidatePath("/dashboard"); revalidatePath("/mistakes"); revalidatePath(`/practice/${sessionId}/results`); }
+    if (result.complete) { try { if (owner.userId) await recordFirstWorkoutAfterChallenge(owner.userId, sessionId); } catch (error) { console.error("[challenge:analytics] listening completion", error); } revalidatePath("/progress"); revalidatePath("/dashboard"); revalidatePath("/mistakes"); revalidatePath(`/practice/${sessionId}/results`); }
     return result;
   } catch (error) { console.error("Could not submit Listening group", error); return { ok: false, error: "submit_failed" }; }
 }

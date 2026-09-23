@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { guestContinuationPath, safeGuestContinuation, safeInternalReturnTo } from "./redirect";
+import { guestContinuationPath, safeAuthContinuation, safeGuestContinuation, safeInternalReturnTo } from "./redirect";
 
 describe("authentication return destinations", () => {
   it("keeps internal paths and their query string", () => {
@@ -33,5 +33,11 @@ describe("authentication return destinations", () => {
     expect(safeGuestContinuation("/continue-learning?result=not-a-uuid")).toBeNull();
     expect(safeGuestContinuation("/dashboard?result=" + id)).toBeNull();
     expect(safeGuestContinuation("//evil.example/continue-learning?result=" + id)).toBeNull();
+  });
+  it("preserves a selected paid plan through authentication without accepting another destination", () => {
+    expect(safeAuthContinuation("/billing/confirm?product=PREMIUM_30_DAYS")).toBe("/billing/confirm?product=PREMIUM_30_DAYS");
+    expect(safeAuthContinuation("/billing/confirm?product=INVALID")).toBeNull();
+    expect(safeAuthContinuation("//evil.example/billing/confirm?product=PREMIUM_30_DAYS")).toBeNull();
+    expect(safeAuthContinuation("/billing/confirm?product=PREMIUM_30_DAYS&other=1")).toBeNull();
   });
 });

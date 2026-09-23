@@ -10,6 +10,7 @@ import { getGuestOwnerHash } from "@/lib/guest/identity";
 import { getPreferences } from "@/lib/i18n/get-translations";
 import { taxonomyLabel } from "@/lib/i18n/labels";
 import { getPracticeResult } from "@/lib/practice/queries";
+import { ShareResult } from "./share-result";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -37,6 +38,7 @@ export default async function Part5ChallengeResultPage({ params }: PageProps<"/c
         <p className="mt-2 text-xl font-bold text-teal-300">{vi ? "Độ chính xác" : "Accuracy"}: {insight.accuracy}%</p>
         <p className="mt-5 max-w-2xl text-sm leading-6 text-slate-300">{vi ? "Đây là kết quả của 10 câu bạn vừa làm. Cần thêm bài làm để nhận xét chắc chắn về từng kỹ năng; đây không phải điểm TOEIC dự đoán." : "This is your result across these 10 questions. More answers are needed to assess each skill reliably; this is not a predicted TOEIC score."}</p>
       </section>
+      <ShareResult score={insight.correct} locale={locale} />
       <section className="mt-6 rounded-3xl border border-teal-200 bg-teal-50 p-6 sm:p-8">
         <h2 className="text-2xl font-black">{vi ? "Bài luyện nên làm tiếp" : "Your next workout"}</h2>
         {!user ? <p className="mt-3 font-bold text-teal-900">{vi ? "Gợi ý chung: Reading · Part 5 · 10 câu" : "General suggestion: Reading · Part 5 · 10 questions"}</p> : null}

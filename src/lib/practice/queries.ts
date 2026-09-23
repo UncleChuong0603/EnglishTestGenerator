@@ -6,6 +6,7 @@ import { createMediaStorage } from "@/lib/media/storage";
 import type { PracticeGroup, PracticeQuestion, PracticeResult, PracticeSession } from "./types";
 import { toLearnerPracticeQuestion } from "./learner-dto";
 import { challengePhase } from "@/lib/challenges/policy";
+import { validReadingAssignment } from "./reading-assignment";
 
 export type PracticeOwner = { userId: string; guestOwnerHash?: never } | { userId?: never; guestOwnerHash: string };
 function ownerCondition(owner: PracticeOwner) { return "userId" in owner ? eq(practiceSessions.userId, owner.userId!) : and(eq(practiceSessions.guestOwnerHash, owner.guestOwnerHash), gt(practiceSessions.expiresAt, new Date())); }
@@ -42,7 +43,7 @@ export async function getSafeSessionContent(sessionId: string, listening = false
     return { questions: safeQuestions, groups, transcripts };
   }
   const questionMap = new Map(questionRows.map((q) => [q.id, q]));
-  const safeQuestions: PracticeQuestion[] = assigned.map((assignment) => { const q = questionMap.get(assignment.questionId); if (!q || ![5, 6, 7].includes(q.toeicPart) || q.passageSetId !== assignment.passageSetId) throw new Error("INVALID_PRACTICE_QUESTION"); return toLearnerPracticeQuestion({ ...q, displayOrder: assignment.displayOrder, options: options.filter((o) => o.questionId === q.id) }); });
+  const safeQuestions: PracticeQuestion[] = assigned.map((assignment) => { const q = questionMap.get(assignment.questionId); if (!q || !validReadingAssignment(q.toeicPart, q.passageSetId, assignment.passageSetId)) throw new Error("INVALID_PRACTICE_QUESTION"); return toLearnerPracticeQuestion({ ...q, passageSetId: assignment.passageSetId, displayOrder: assignment.displayOrder, options: options.filter((o) => o.questionId === q.id) }); });
   const setMap = new Map(sets.map((set) => [set.id, set])); const groups: PracticeGroup[] = [];
   for (const question of safeQuestions) {
     if (!question.passageSetId) { groups.push({ id: question.id, part: question.part, setType: "standalone", title: null, passages: [], questions: [question] }); continue; }

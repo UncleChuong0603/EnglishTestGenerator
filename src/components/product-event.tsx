@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 
-const routes = { "/": "landing_viewed", "/try": "try_viewed", "/pricing": "pricing_viewed", "/sign-up": "signup_started" } as const;
+const routes = { "/": "landing_viewed", "/try": "try_viewed", "/pricing": "pricing_viewed", "/sign-up": "signup_started", "/challenge/part-5": "challenge_viewed" } as const;
 export function ProductEvent() {
   const pathname = usePathname();
   const route = pathname as keyof typeof routes;

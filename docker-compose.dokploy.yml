@@ -196,10 +196,20 @@ services:
       traefik.http.routers.toeicgym-websecure.rule: "Host(`toeicgym.net`)"
       traefik.http.routers.toeicgym-websecure.entrypoints: "websecure"
       traefik.http.routers.toeicgym-websecure.service: "toeicgym-app"
-      traefik.http.routers.toeicgym-websecure.middlewares: "toeicgym-security,toeicgym-rate,toeicgym-inflight,toeicgym-body"
+      traefik.http.routers.toeicgym-websecure.middlewares: "toeicgym-security,toeicgym-rate,toeicgym-inflight"
       traefik.http.routers.toeicgym-websecure.priority: "100"
       traefik.http.routers.toeicgym-websecure.tls: "true"
       traefik.http.routers.toeicgym-websecure.tls.certresolver: "letsencrypt"
+
+      # Only the blog cover upload needs Traefik's request-body limit. Applying
+      # buffering to OAuth redirects makes Traefik return 500 for empty 307s.
+      traefik.http.routers.toeicgym-cover-upload.rule: "Host(`toeicgym.net`) && Path(`/api/admin/posts/cover`) && Method(`POST`)"
+      traefik.http.routers.toeicgym-cover-upload.entrypoints: "websecure"
+      traefik.http.routers.toeicgym-cover-upload.service: "toeicgym-app"
+      traefik.http.routers.toeicgym-cover-upload.middlewares: "toeicgym-security,toeicgym-rate,toeicgym-inflight,toeicgym-body"
+      traefik.http.routers.toeicgym-cover-upload.priority: "150"
+      traefik.http.routers.toeicgym-cover-upload.tls: "true"
+      traefik.http.routers.toeicgym-cover-upload.tls.certresolver: "letsencrypt"
 
       traefik.http.middlewares.toeicgym-www-canonical.redirectregex.regex: "^https?://www\\.toeicgym\\.net/(.*)"
       traefik.http.middlewares.toeicgym-www-canonical.redirectregex.replacement: "https://toeicgym.net/$${1}"

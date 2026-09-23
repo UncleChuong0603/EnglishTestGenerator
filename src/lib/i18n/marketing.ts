@@ -229,7 +229,7 @@ type MarketingTranslations = Widen<typeof en>;
 const vi: MarketingTranslations = {
   nav: {
     features: "Tính năng",
-    how: "Cách hoạt động",
+    how: "Giới thiệu",
     pricing: "Bảng giá",
     faq: "Câu hỏi",
     signIn: "Đăng nhập",

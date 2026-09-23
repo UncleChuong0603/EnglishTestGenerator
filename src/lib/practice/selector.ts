@@ -18,11 +18,12 @@ const keepOrder = () => 0.999;
 
 // A random UUID cursor gives every part of a growing bank a chance to be used
 // while fetching only a bounded window through the published-part index.
-async function samplePublishedQuestions(part: number, limit: number, skill?: string, subSkill?: string) {
+async function samplePublishedQuestions(part: number, limit: number, skill?: string, subSkill?: string, curatedOnly = false) {
   const pivot = randomUUID();
   const conditions = [eq(questions.toeicPart, part), eq(questions.status, "published")];
   if (skill) conditions.push(eq(questions.skill, skill));
   if (subSkill) conditions.push(eq(questions.subSkill, subSkill));
+  if (curatedOnly) conditions.push(sql`coalesce(${questions.metadata}->>'external_id', '') not like '%BANK%'`);
   const after = await db.select().from(questions).where(and(...conditions, gte(questions.id, pivot))).orderBy(asc(questions.id)).limit(limit);
   if (after.length === limit) return after;
   const before = await db.select().from(questions).where(and(...conditions, lt(questions.id, pivot))).orderBy(asc(questions.id)).limit(limit - after.length);
@@ -55,8 +56,8 @@ export function preferTaxonomyDiversity<T extends { id: string; skill: string; s
   return selected;
 }
 
-export async function selectListeningPractice(part: 1 | 2 | 3 | 4, target = 10, focus?: ListeningTarget) {
-  const sampled = await samplePublishedQuestions(part, 200);
+export async function selectListeningPractice(part: 1 | 2 | 3 | 4, target = 10, focus?: ListeningTarget, curatedOnly = false) {
+  const sampled = await samplePublishedQuestions(part, 200, undefined, undefined, curatedOnly);
   const setIds = [...new Set(sampled.flatMap((q) => q.passageSetId ?? []))];
   if (!setIds.length) throw new Error(`NOT_ENOUGH_LISTENING_PART_${part}`);
   // Include the whole group when the bounded sample ends inside a conversation.
@@ -83,7 +84,7 @@ export async function selectListeningPractice(part: 1 | 2 | 3 | 4, target = 10, 
   }
   const eligibleSets = sets.filter((set) => {
     const children = candidates.filter((q) => q.passageSetId === set.id).sort((a, b) => a.questionOrder - b.questionOrder);
-    return validateListeningGroupEligibility({ skillArea: "LISTENING", part, setType: set.setType, status: set.status, transcript: transcripts.find((t) => t.questionGroupId === set.id)?.content ?? null, media: attachments.filter((a) => a.groupId === set.id) as Parameters<typeof validateListeningGroupEligibility>[0]["media"], questions: children.map((q) => { const solution = solutions.find((s) => s.questionId === q.id); return { order: q.questionOrder, responseType: q.responseType, options: options.filter((o) => o.questionId === q.id), correctOptionId: solution?.correctOptionId ?? null, explanationEn: solution?.explanationEn ?? null, explanationVi: solution?.explanationVi ?? null }; }) }).eligible;
+    return validateListeningGroupEligibility({ skillArea: "LISTENING", part, setType: set.setType, status: set.status, transcript: transcripts.find((t) => t.questionGroupId === set.id)?.content ?? null, media: attachments.filter((a) => a.groupId === set.id) as Parameters<typeof validateListeningGroupEligibility>[0]["media"], questions: children.map((q) => { const solution = solutions.find((s) => s.questionId === q.id); return { order: q.questionOrder, text: q.questionText, responseType: q.responseType, options: options.filter((o) => o.questionId === q.id), correctOptionId: solution?.correctOptionId ?? null, explanationEn: solution?.explanationEn ?? null, explanationVi: solution?.explanationVi ?? null }; }) }).eligible;
   });
   if (eligibleSets.length < target) throw new Error(`NOT_ENOUGH_LISTENING_PART_${part}`);
   const rankedSets = focus ? rankSelectionUnits(eligibleSets.map((set) => ({ ...set, part, questionIds: candidates.filter((q) => q.passageSetId === set.id).map((q) => q.id) })), history, (set) => {
@@ -206,7 +207,7 @@ export async function createGuestReadingPracticeSession(guestOwnerHash: string, 
 }
 
 export async function createGuestListeningPracticeSession(guestOwnerHash: string) {
-  const part = 3 as const; const selected = await selectListeningPractice(part, 3);
+  const part = 3 as const; const selected = await selectListeningPractice(part, 3, undefined, true);
   return db.transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${guestOwnerHash}:guest-practice`}, 0))`);
     await tx.update(practiceSessions).set({ status: "abandoned" }).where(and(eq(practiceSessions.guestOwnerHash, guestOwnerHash), eq(practiceSessions.status, "in_progress"), ne(practiceSessions.source, "diagnostic")));

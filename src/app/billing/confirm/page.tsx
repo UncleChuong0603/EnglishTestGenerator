@@ -1,13 +1,18 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createCheckoutAction } from "../actions";
-import { requireUser } from "@/lib/auth/session";
+import { getCurrentUser } from "@/lib/auth/session";
+import { safeAuthContinuation } from "@/lib/auth/redirect";
 import { getPreferences } from "@/lib/i18n/get-translations";
 import { getRenewalQuote } from "@/lib/payments/service";
 
 export default async function RenewalConfirmationPage({ searchParams }: { searchParams: Promise<{ product?: string }> }) {
-  const user = await requireUser();
-  const [prefs, params] = await Promise.all([getPreferences(user.id), searchParams]);
+  const params = await searchParams;
+  const continuation = safeAuthContinuation(`/billing/confirm?product=${encodeURIComponent(params.product ?? "")}`);
+  if (!continuation) notFound();
+  const user = await getCurrentUser();
+  if (!user) redirect(`/sign-in?next=${encodeURIComponent(continuation)}`);
+  const prefs = await getPreferences(user.id);
   let quote; try { quote = await getRenewalQuote(user.id, params.product ?? ""); } catch { notFound(); }
   const vi = prefs.interfaceLanguage === "vi";
   const formatDate = (date: Date) => date.toLocaleDateString(vi ? "vi-VN" : "en-US", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Ho_Chi_Minh" });

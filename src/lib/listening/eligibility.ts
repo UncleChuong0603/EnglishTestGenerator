@@ -13,8 +13,10 @@ export type ListeningGroupEligibilityInput = {
   skillArea: string; part: number; setType: string; status: string;
   transcript: string | null;
   media: ListeningEligibilityInput["media"];
-  questions: ReadonlyArray<Pick<ListeningEligibilityInput, "responseType" | "options" | "correctOptionId" | "explanationEn" | "explanationVi"> & { order: number }>;
+  questions: ReadonlyArray<Pick<ListeningEligibilityInput, "responseType" | "correctOptionId" | "explanationEn" | "explanationVi"> & { order: number; text?: string; options: ReadonlyArray<{ id: string; optionText?: string }> }>;
 };
+
+const hasUnresolvedTemplate = (value: string | null | undefined) => /\$\{[^}]+\}/.test(value ?? "");
 
 /** Part 3/4 are validated as one indivisible content unit. */
 export function validateListeningGroupEligibility(input: ListeningGroupEligibilityInput): ListeningEligibility {
@@ -24,6 +26,7 @@ export function validateListeningGroupEligibility(input: ListeningGroupEligibili
   const orders = input.questions.map((q) => q.order).sort((a, b) => a - b);
   if (orders.some((order, index) => order !== index + 1)) return { eligible: false, reason: "INVALID_QUESTION_ORDER" };
   if (!input.transcript?.trim()) return { eligible: false, reason: "MISSING_TRANSCRIPT" };
+  if (hasUnresolvedTemplate(input.transcript) || input.questions.some(question => hasUnresolvedTemplate(question.text) || hasUnresolvedTemplate(question.explanationEn) || hasUnresolvedTemplate(question.explanationVi) || question.options.some(option => hasUnresolvedTemplate(option.optionText)))) return { eligible: false, reason: "UNRESOLVED_TEMPLATE" };
   if (input.media.some((asset) => asset.accessScope !== "CONTENT")) return { eligible: false, reason: "INVALID_MEDIA_SCOPE" };
   if (input.media.some((asset) => asset.status !== "READY")) return { eligible: false, reason: "INVALID_MEDIA_STATUS" };
   const audio = input.media.filter((asset) => asset.role === "AUDIO" && asset.kind === "AUDIO");

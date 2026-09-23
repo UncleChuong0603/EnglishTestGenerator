@@ -77,7 +77,7 @@ function conversationScenario(n) {
     },
     {
       lines: [`MAN: ${a}, attendance for workshop ${n} on ${day} has increased to ${40 + n} people.`, `WOMAN: Then the ${place} is too small. I'll reserve the ${other} instead.`, `MAN: Great. I'll tell ${b} to order more refreshments.`],
-      qs: [["What are the speakers discussing?", `Arrangements for workshop ${n}`, [`Restaurant reservation ${n}`, `Customer complaint ${n}`, `Employee schedule ${n}`], "purpose", "purpose"], ["Why will the woman change the room?", `More people will attend workshop ${n}`, [`Equipment ${n} is broken`, `${b} requested office ${n}`, `Workshop ${n} changed dates`], "detail", "explicit_information"], ["What will the man ask ${b} to do?", `Order refreshments for workshop ${n}`, [`Reserve the ${place} for group ${n}`, `Prepare the ${object} for group ${n}`, `Contact attendee group ${n}`], "next_action", "next_action"]],
+      qs: [["What are the speakers discussing?", `Arrangements for workshop ${n}`, [`Restaurant reservation ${n}`, `Customer complaint ${n}`, `Employee schedule ${n}`], "purpose", "purpose"], ["Why will the woman change the room?", `More people will attend workshop ${n}`, [`Equipment ${n} is broken`, `${b} requested office ${n}`, `Workshop ${n} changed dates`], "detail", "explicit_information"], [`What will the man ask ${b} to do?`, `Order refreshments for workshop ${n}`, [`Reserve the ${place} for group ${n}`, `Prepare the ${object} for group ${n}`, `Contact attendee group ${n}`], "next_action", "next_action"]],
     },
     {
       lines: [`WOMAN: I checked report ${n}, and two figures on the final page are incorrect.`, `MAN: I'll ask ${a} in ${department} to revise them before ${time}.`, `WOMAN: Please do. ${b} needs the corrected version for a meeting on ${day}.`],
@@ -85,7 +85,7 @@ function conversationScenario(n) {
     },
     {
       lines: [`MAN: Customer ${n}, arriving at ${time}, asked to see a sample of the ${object}.`, `WOMAN: The sample is in the ${place}, but ${a} has the key.`, `MAN: I'll message ${a}. Could you prepare the ${other} for the visit?`],
-      qs: [["What did the customer request?", `A sample of the ${object}`, [`Directions for visit ${n}`, `Schedule copy ${n}`, `Tour reservation ${n}`], "detail", "explicit_information"], ["Why will the man contact ${a}?", `${a} has key ${n}`, [`${a} knows customer ${n}`, `${a} wrote document ${n}`, `${a} reserved room ${n}`], "detail", "explicit_information"], ["What does the man ask the woman to do?", `Prepare the ${other}`, [`Meet customer ${n} at ${time}`, `Find sample ${n}`, `Call manager ${n}`], "next_action", "next_action"]],
+      qs: [["What did the customer request?", `A sample of the ${object}`, [`Directions for visit ${n}`, `Schedule copy ${n}`, `Tour reservation ${n}`], "detail", "explicit_information"], [`Why will the man contact ${a}?`, `${a} has key ${n}`, [`${a} knows customer ${n}`, `${a} wrote document ${n}`, `${a} reserved room ${n}`], "detail", "explicit_information"], ["What does the man ask the woman to do?", `Prepare the ${other}`, [`Meet customer ${n} at ${time}`, `Find sample ${n}`, `Call manager ${n}`], "next_action", "next_action"]],
     },
   ][n % 6];
 }

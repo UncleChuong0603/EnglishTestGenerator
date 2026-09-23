@@ -33,3 +33,17 @@ export function safeGuestContinuation(value: string | null | undefined) {
       : null;
   } catch { return null; }
 }
+
+/** Only carry known purchase and guest-result destinations through account creation. */
+export function safeAuthContinuation(value: string | null | undefined) {
+  const guest = safeGuestContinuation(value);
+  if (guest) return guest;
+  const path = safeInternalReturnTo(value, "");
+  if (!path) return null;
+  try {
+    const url = new URL(path, "https://toeicgym.internal");
+    const product = url.searchParams.get("product");
+    if (url.pathname !== "/billing/confirm" || url.searchParams.size !== 1 || !product || !/^PREMIUM_(30|90|365)_DAYS$/.test(product)) return null;
+    return `/billing/confirm?product=${product}`;
+  } catch { return null; }
+}

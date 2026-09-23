@@ -7,12 +7,13 @@ export const PRODUCT_EVENT_NAMES = [
   "practice_started", "practice_completed", "workout_started", "workout_completed", "mistake_review_started", "mistake_review_completed",
   "smart_review_started", "smart_review_completed", "diagnostic_reassessment_started", "diagnostic_reassessment_completed",
   "mock_started", "mock_completed", "pricing_viewed", "checkout_started", "checkout_created", "premium_activated", "premium_renewed",
+  "challenge_viewed", "challenge_started", "challenge_completed", "signup_after_challenge", "first_authenticated_workout_after_challenge",
 ] as const;
 
 export type ProductEventName = (typeof PRODUCT_EVENT_NAMES)[number];
 export const browserEventSchema = z.object({
-  eventName: z.enum(["landing_viewed", "try_viewed", "pricing_viewed", "signup_started"]),
-  route: z.enum(["/", "/try", "/pricing", "/sign-up"]),
+  eventName: z.enum(["landing_viewed", "try_viewed", "pricing_viewed", "signup_started", "challenge_viewed"]),
+  route: z.enum(["/", "/try", "/pricing", "/sign-up", "/challenge/part-5"]),
   deduplicationKey: z.string().min(8).max(160).regex(/^[a-zA-Z0-9:_-]+$/),
 }).strict();
 

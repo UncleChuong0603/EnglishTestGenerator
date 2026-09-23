@@ -27,19 +27,23 @@ export default async function PricingPage() {
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
       <PublicHeader locale={locale} signedIn={Boolean(user)} />
-      <header className="mx-auto max-w-5xl px-5 pt-10 sm:px-6 sm:pt-14">
+      <header className="mx-auto max-w-7xl px-5 pt-10 sm:px-6 sm:pt-14">
         <p className="text-sm font-black uppercase tracking-[.16em] text-teal-700">
           {locale === "vi" ? "Gói TOEICGym" : "TOEICGym plans"}
         </p>
-        <h1 className="mt-3 max-w-3xl text-3xl font-black tracking-tight sm:text-5xl">
-          {locale === "vi"
-            ? "Chọn mức hỗ trợ phù hợp với cách bạn đang học"
-            : "Choose the support that fits how you learn"}
+        <h1 className="mt-3 max-w-4xl text-3xl font-black tracking-tight sm:text-5xl">
+          {account?.isPremium
+            ? locale === "vi"
+              ? "Bạn đang dùng Premium. Gia hạn khi cần."
+              : "You're on Premium. Extend when you need more time."
+            : locale === "vi"
+              ? "Bắt đầu miễn phí. Nâng cấp khi cần luyện nhiều hơn."
+              : "Start free. Upgrade when you need more practice."}
         </h1>
         <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
           {locale === "vi"
-            ? "Free giữ trọn trải nghiệm học cốt lõi. Premium mở thêm hạn mức và chiều sâu khi dữ liệu của bạn đã đủ hữu ích."
-            : "Free keeps the complete core learning experience. Premium adds capacity and depth when your data can support it."}
+            ? "Cả hai gói đều có Listening và Reading. Premium mở rộng hạn mức luyện tập, ôn lỗi sai và phân tích tiến độ."
+            : "Both plans include Listening and Reading. Premium expands practice, mistake review and progress analysis."}
         </p>
       </header>
       {account?.isPremium ? (
@@ -88,6 +92,7 @@ export default async function PricingPage() {
       ) : null}
       <PricingSection
         locale={locale}
+        showIntro={false}
         currentPlan={
           account?.isPremium ? "PREMIUM" : account ? "FREE" : undefined
         }

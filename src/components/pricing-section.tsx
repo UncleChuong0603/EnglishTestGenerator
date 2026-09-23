@@ -17,6 +17,7 @@ type Product = {
 type Props = {
   locale: InterfaceLanguage;
   compact?: boolean;
+  showIntro?: boolean;
   startHref?: string;
   products?: Product[];
   currentPlan?: "FREE" | "PREMIUM";
@@ -75,6 +76,7 @@ const featureNames: Record<
 export function PricingSection({
   locale,
   compact = false,
+  showIntro = true,
   startHref = "/try",
   products = [],
   currentPlan,
@@ -93,33 +95,41 @@ export function PricingSection({
 
   return (
     <section
-      className="pricing-section mx-auto max-w-7xl px-5 py-16 sm:px-6 sm:py-20"
+      className={`pricing-section mx-auto max-w-7xl px-5 sm:px-6 ${showIntro ? "py-16 sm:py-20" : "pb-16 pt-8 sm:pb-20 sm:pt-10"}`}
       id="pricing"
     >
-      <p className="section-kicker">
-        {vi ? "Gói học minh bạch" : "Clear learning plans"}
-      </p>
-      <h2 className="mt-3 max-w-3xl text-3xl font-black sm:text-4xl">
-        {currentPlan === "PREMIUM"
-          ? vi
-            ? "Bạn đang dùng Premium. Mua thêm thời hạn khi cần."
-            : "You have Premium. Add more time when you need it."
-          : vi
-            ? "Bắt đầu miễn phí. Nâng cấp khi bạn cần luyện nhiều hơn."
-            : "Start free. Upgrade when you need more practice."}
-      </h2>
-      <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
-        {vi
-          ? "Free phù hợp để tạo thói quen hằng ngày. Premium tăng hạn mức và mở các công cụ ôn tập, phân tích sâu hơn."
-          : "Free supports a daily habit. Premium raises limits and unlocks deeper review and analysis tools."}
-      </p>
-      <p className="mt-2 text-sm font-semibold text-slate-700">
+      {showIntro ? (
+        <>
+          <p className="section-kicker">
+            {vi ? "Gói học minh bạch" : "Clear learning plans"}
+          </p>
+          <h2 className="mt-3 max-w-3xl text-3xl font-black sm:text-4xl">
+            {currentPlan === "PREMIUM"
+              ? vi
+                ? "Bạn đang dùng Premium. Mua thêm thời hạn khi cần."
+                : "You have Premium. Add more time when you need it."
+              : vi
+                ? "Bắt đầu miễn phí. Nâng cấp khi bạn cần luyện nhiều hơn."
+                : "Start free. Upgrade when you need more practice."}
+          </h2>
+          <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
+            {vi
+              ? "Free phù hợp để tạo thói quen hằng ngày. Premium tăng hạn mức và mở các công cụ ôn tập, phân tích sâu hơn."
+              : "Free supports a daily habit. Premium raises limits and unlocks deeper review and analysis tools."}
+          </p>
+        </>
+      ) : (
+        <h2 className="text-2xl font-black sm:text-3xl">
+          {vi ? "Chọn gói học" : "Choose your plan"}
+        </h2>
+      )}
+      <p className="mt-3 text-sm font-semibold text-slate-700">
         {vi
           ? "Thanh toán một lần · Không tự động gia hạn"
           : "One-time payment · No automatic renewal"}
       </p>
 
-      <div className="mt-10 grid gap-5 lg:grid-cols-2">
+      <div className="mt-7 grid items-start gap-5 lg:grid-cols-2">
         <Plan
           title="Free"
           badge={
@@ -268,59 +278,109 @@ function Plan({
 function Comparison({ locale }: { locale: InterfaceLanguage }) {
   const vi = locale === "vi";
   const features = publicPlanFeatures(locale);
+  const upgrades = features.filter((feature) => feature.free !== feature.premium);
+  const shared = features.filter((feature) => feature.free === feature.premium);
   const notes = publicPlanNotes(locale);
 
   return (
-    <section className="mt-12" aria-labelledby="plan-comparison-title">
-      <h3 className="text-2xl font-black" id="plan-comparison-title">
-        {vi ? "So sánh đầy đủ" : "Full plan comparison"}
+    <section className="mt-14" aria-labelledby="plan-comparison-title">
+      <h3 className="text-2xl font-black sm:text-3xl" id="plan-comparison-title">
+        {vi ? "Premium thêm gì so với Free?" : "What does Premium add?"}
       </h3>
+      <p className="mt-2 max-w-2xl leading-7 text-slate-600">
+        {vi
+          ? "So sánh từng quyền lợi để chọn gói phù hợp. Các tính năng có ở cả hai gói được liệt kê riêng bên dưới."
+          : "Compare each benefit to find the right plan. Features included in both plans appear separately below."}
+      </p>
 
-      <div className="mt-5 grid gap-3 sm:hidden">
-        {features.map((feature) => (
+      <div className="mt-6 grid gap-3 lg:hidden">
+        {upgrades.map((feature) => (
           <article
-            className="rounded-2xl border border-slate-200 bg-white p-4"
+            className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
             key={feature.key}
           >
             <h4 className="font-black">{featureNames[feature.key][locale]}</h4>
-            <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
-              <div className="rounded-xl bg-slate-50 p-3">
-                <dt className="font-bold text-slate-500">Free</dt>
-                <dd className="mt-1 leading-6 text-slate-800">
-                  {feature.free}
-                </dd>
+            <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+              <div className="rounded-xl bg-slate-50 px-4 py-3">
+                <dt className="text-xs font-bold uppercase tracking-wide text-slate-500">Free</dt>
+                <dd className="mt-1 leading-6 text-slate-700">{feature.free}</dd>
               </div>
-              <div className="rounded-xl bg-teal-50 p-3">
-                <dt className="font-bold text-teal-800">Premium</dt>
-                <dd className="mt-1 leading-6 text-slate-800">
+              <div className="rounded-xl border border-teal-200 bg-teal-50 px-4 py-3">
+                <dt className="text-xs font-black uppercase tracking-wide text-teal-800">
+                  Premium <span aria-hidden="true">✦</span>
+                </dt>
+                <dd className="mt-1 font-bold leading-6 text-teal-950">
                   {feature.premium}
                 </dd>
               </div>
             </dl>
           </article>
         ))}
+        <h4 className="mt-5 text-lg font-black">
+          {vi ? "Có trong cả hai gói" : "Included in both plans"}
+        </h4>
+        {shared.map((feature) => (
+          <article
+            className="flex flex-wrap items-start justify-between gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3"
+            key={feature.key}
+          >
+            <h5 className="font-semibold">{featureNames[feature.key][locale]}</h5>
+            <p className="text-sm text-slate-600">{feature.free}</p>
+          </article>
+        ))}
       </div>
 
-      <div className="mt-5 hidden overflow-hidden rounded-2xl border border-slate-200 bg-white sm:block">
-        <table className="w-full text-left">
+      <div className="mt-6 hidden overflow-hidden rounded-2xl border border-slate-200 bg-white lg:block">
+        <table className="w-full table-fixed text-left">
           <caption className="sr-only">
             {vi ? "So sánh gói" : "Plan comparison"}
           </caption>
+          <colgroup>
+            <col className="w-[28%]" />
+            <col className="w-[32%]" />
+            <col className="w-[40%]" />
+          </colgroup>
           <thead>
-            <tr className="border-b bg-slate-50">
-              <th className="p-4">{vi ? "Tính năng" : "Feature"}</th>
-              <th className="p-4">Free</th>
-              <th className="p-4">Premium</th>
+            <tr className="bg-slate-100 text-slate-900">
+              <th className="px-5 py-4" scope="col">{vi ? "Tính năng" : "Feature"}</th>
+              <th className="px-5 py-4" scope="col">Free</th>
+              <th className="bg-teal-800 px-5 py-4 text-white" scope="col">
+                Premium <span className="ml-2 text-sm font-medium text-teal-100">{vi ? "Nhiều hơn" : "More included"}</span>
+              </th>
             </tr>
           </thead>
           <tbody>
-            {features.map((feature) => (
-              <tr className="border-b last:border-0" key={feature.key}>
-                <th className="p-4 font-semibold">
+            <tr className="bg-slate-50">
+              <th className="px-5 py-3 text-sm font-black uppercase tracking-wide text-teal-800" colSpan={3} scope="rowgroup">
+                {vi ? "Quyền lợi được nâng cấp" : "Premium upgrades"}
+              </th>
+            </tr>
+            {upgrades.map((feature) => (
+              <tr className="border-t border-slate-200" key={feature.key}>
+                <th className="px-5 py-4 font-semibold leading-6" scope="row">
                   {featureNames[feature.key][locale]}
                 </th>
-                <td className="p-4 align-top">{feature.free}</td>
-                <td className="p-4 align-top">{feature.premium}</td>
+                <td className="px-5 py-4 align-top leading-6 text-slate-600">{feature.free}</td>
+                <td className="border-l border-teal-100 bg-teal-50 px-5 py-4 align-top font-bold leading-6 text-teal-950">
+                  <span aria-hidden="true" className="mr-2 text-teal-700">✦</span>
+                  {feature.premium}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+          <tbody>
+            <tr className="border-t border-slate-200 bg-slate-50">
+              <th className="px-5 py-3 text-sm font-black uppercase tracking-wide text-slate-600" colSpan={3} scope="rowgroup">
+                {vi ? "Có trong cả hai gói" : "Included in both plans"}
+              </th>
+            </tr>
+            {shared.map((feature) => (
+              <tr className="border-t border-slate-200 last:border-0" key={feature.key}>
+                <th className="px-5 py-4 font-semibold leading-6" scope="row">
+                  {featureNames[feature.key][locale]}
+                </th>
+                <td className="px-5 py-4 align-top leading-6 text-slate-600">{feature.free}</td>
+                <td className="px-5 py-4 align-top leading-6 text-slate-600">{feature.premium}</td>
               </tr>
             ))}
           </tbody>

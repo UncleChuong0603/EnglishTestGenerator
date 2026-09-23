@@ -1,10 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { analyticsRecommendations, funnelRows, periodDays, productAnalyticsCsv, type ProductAnalyticsSnapshot } from "./calculate";
+import { analyticsRecommendations, challengeFunnelRows, funnelRows, periodDays, productAnalyticsCsv, type ProductAnalyticsSnapshot } from "./calculate";
 const snapshot = (overrides: Partial<ProductAnalyticsSnapshot> = {}): ProductAnalyticsSnapshot => ({ events: {}, sessions: 0, questions: 0, active: 0, signups: 0, activated: 0, dau: 0, wau: 0, checkoutCreated: 0, premiumActivated: 0, activePremiumUsers: 0, retention: {}, ...overrides });
 describe("analytics calculations", () => {
   it("calculates funnel conversion and drop-off", () => expect(funnelRows({ landing_viewed: 100, try_viewed: 50, diagnostic_started: 40, diagnostic_completed: 20, signup_completed: 10 }, 5)[1]).toEqual({ count: 50, conversion: 50, dropoff: 50 }));
   it("uses safe period values", () => { expect(periodDays("30d")).toBe("30d"); expect(periodDays("arbitrary")).toBe("7d"); });
+  it("shows challenge counts and withholds small-denominator percentages", () => {
+    expect(challengeFunnelRows({ viewed: 25, started: 5, completed: 2, signup: 1, firstWorkout: 0 })).toEqual([
+      { count: 25, conversion: null, denominator: null },
+      { count: 5, conversion: 20, denominator: 25 },
+      { count: 2, conversion: null, denominator: 5 },
+      { count: 1, conversion: null, denominator: 2 },
+      { count: 0, conversion: null, denominator: 1 },
+    ]);
+  });
   it("prioritizes large, sufficiently sampled funnel leaks", () => {
     const items = analyticsRecommendations(snapshot({ events: { landing_viewed: 200, try_viewed: 40, diagnostic_started: 30, diagnostic_completed: 25, signup_completed: 20 }, activated: 18 }));
     expect(items[0]).toMatchObject({ key: "landing_to_try", priority: "high", confidence: "high", value: 80, sample: 200 });

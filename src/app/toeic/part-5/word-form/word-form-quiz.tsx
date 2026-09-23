@@ -13,7 +13,9 @@ const questions = [
 export function WordFormQuiz() {
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [checked, setChecked] = useState(false);
+  const [showIncomplete, setShowIncomplete] = useState(false);
   const score = questions.filter((question, index) => answers[index] === question.correct).length;
+  const remaining = questions.length - Object.keys(answers).length;
 
   return <section className="rounded-2xl border border-teal-200 bg-white p-6 sm:p-8" aria-labelledby="quiz-heading">
     <h2 className="text-2xl font-black" id="quiz-heading">Làm thử 5 câu Word Form</h2>
@@ -21,13 +23,14 @@ export function WordFormQuiz() {
     <div className="mt-7 space-y-8">{questions.map((question, index) => <fieldset className="border-t border-slate-200 pt-6" key={question.sentence}>
       <legend className="text-lg font-bold leading-8">{index + 1}. {question.sentence}</legend>
       <div className="mt-3 grid gap-2 sm:grid-cols-2">{question.choices.map((choice, choiceIndex) => <label className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 ${answers[index] === choiceIndex ? "border-teal-700 bg-teal-50" : "border-slate-200"}`} key={choice}>
-        <input checked={answers[index] === choiceIndex} name={`word-form-${index}`} onChange={() => { setAnswers({ ...answers, [index]: choiceIndex }); setChecked(false); }} type="radio" value={choiceIndex} />{choice}
+        <input checked={answers[index] === choiceIndex} name={`word-form-${index}`} onChange={() => { setAnswers({ ...answers, [index]: choiceIndex }); setChecked(false); setShowIncomplete(false); }} type="radio" value={choiceIndex} />{choice}
       </label>)}</div>
       {checked && <p className={`mt-3 rounded-lg p-4 leading-7 ${answers[index] === question.correct ? "bg-teal-50 text-teal-900" : "bg-amber-50 text-amber-950"}`}>
         <strong>{answers[index] === question.correct ? "Đúng." : `Đáp án: ${question.choices[question.correct]}.`}</strong> {question.explanation}
       </p>}
     </fieldset>)}</div>
-    <button className="mt-8 min-h-12 rounded-lg bg-teal-800 px-6 font-bold text-white" onClick={() => setChecked(true)} type="button">Kiểm tra đáp án</button>
-    {checked && <p aria-live="polite" className="mt-4 text-lg font-bold">Bạn đúng {score}/{questions.length} câu. {Object.keys(answers).length < questions.length ? "Hãy chọn đủ đáp án rồi kiểm tra lại nếu muốn." : "Xem giải thích bên dưới từng câu để biết vì sao."}</p>}
+    <button className="mt-8 min-h-12 rounded-lg bg-teal-800 px-6 font-bold text-white" onClick={() => { if (remaining > 0) { setChecked(false); setShowIncomplete(true); return; } setShowIncomplete(false); setChecked(true); }} type="button">Kiểm tra đáp án</button>
+    {showIncomplete && <p aria-live="polite" className="mt-4 text-sm font-semibold text-amber-800">Bạn còn {remaining} câu chưa chọn đáp án. Hãy trả lời đủ 5 câu trước khi kiểm tra.</p>}
+    {checked && <p aria-live="polite" className="mt-4 text-lg font-bold">Bạn đúng {score}/{questions.length} câu. Xem giải thích bên dưới từng câu để biết vì sao.</p>}
   </section>;
 }
