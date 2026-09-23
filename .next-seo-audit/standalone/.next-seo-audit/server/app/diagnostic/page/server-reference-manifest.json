@@ -1,0 +1,49 @@
+{
+  "node": {
+    "40511040dfe83339012bc733f4f1c1e51418bf3961": {
+      "workers": {
+        "app/diagnostic/page": {
+          "moduleId": 70246,
+          "async": true,
+          "codeHash": null
+        }
+      },
+      "exportedName": "setInterfaceLanguage",
+      "filename": "src/app/settings/actions.ts"
+    },
+    "00af04bb131735dd0d585c2b4330b8ef42f1d45bc3": {
+      "workers": {
+        "app/diagnostic/page": {
+          "moduleId": 70246,
+          "async": true,
+          "codeHash": null
+        }
+      },
+      "exportedName": "resumeDiagnostic",
+      "filename": "src/app/diagnostic/actions.ts"
+    },
+    "00b48e4ea734595553a98e4228a39cd434bb9770ea": {
+      "workers": {
+        "app/diagnostic/page": {
+          "moduleId": 70246,
+          "async": true,
+          "codeHash": null
+        }
+      },
+      "exportedName": "startDiagnostic",
+      "filename": "src/app/diagnostic/actions.ts"
+    },
+    "7052ecca4309c986445fd042749e058cd40c20b14d": {
+      "workers": {
+        "app/diagnostic/page": {
+          "moduleId": 70246,
+          "async": true,
+          "codeHash": null
+        }
+      },
+      "exportedName": "submitDiagnosticPart",
+      "filename": "src/app/diagnostic/actions.ts"
+    }
+  },
+  "edge": {}
+}

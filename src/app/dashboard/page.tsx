@@ -148,7 +148,7 @@ export default async function DashboardPage() {
     : null;
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-6 pb-24 text-slate-900 sm:px-6 sm:py-8 lg:pb-8">
+    <main className="learner-page min-h-screen px-4 py-6 pb-24 text-slate-900 sm:px-6 sm:py-8 lg:pb-8">
       <div className="mx-auto max-w-6xl">
         <LearnerNav locale={locale} />
         {account.lifecycle === "ACTIVE_EXPIRING_SOON" ||
@@ -189,7 +189,7 @@ export default async function DashboardPage() {
             </Link>
           </aside>
         ) : null}
-        <header className="mt-8">
+        <header className="learner-welcome mt-8">
           <p className="text-sm font-bold uppercase tracking-wider text-teal-700">
             {translations.dashboard.welcome}
           </p>
@@ -208,7 +208,7 @@ export default async function DashboardPage() {
         <div className="mt-7">
           <span className="sr-only" id="today-workout">{locale === "vi" ? "Bài tập hôm nay" : "Today's workout"}</span>
           {lifecycle === "NEW" && dashboardResult ? (
-            <section className="rounded-3xl bg-slate-900 p-6 text-white sm:p-8">
+            <section className="workout-card rounded-3xl bg-slate-900 p-6 text-white sm:p-8">
               <p className="text-sm font-black uppercase tracking-wider text-teal-300">
                 {locale === "vi"
                   ? "Xây dựng hồ sơ TOEIC"
@@ -246,7 +246,7 @@ export default async function DashboardPage() {
               </Link>
             </section>
           ) : lifecycle === "RESUMABLE" && dashboardResult?.resumablePractice ? (
-            <section className="rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-teal-950 p-6 text-white shadow-xl sm:p-8" aria-labelledby="today-heading">
+            <section className="workout-card rounded-3xl bg-slate-900 p-6 text-white sm:p-8" aria-labelledby="today-heading">
               <p className="text-xs font-black uppercase tracking-[.18em] text-teal-300">{locale === "vi" ? "Bài hôm nay" : "Today's Workout"}</p>
               <h2 className="mt-2 text-2xl font-black sm:text-3xl" id="today-heading">{locale === "vi" ? "Tiếp tục bài đang làm" : "Continue your session"}</h2>
               <p className="mt-3 text-slate-300">{dashboardResult.resumablePractice.questionCount} {locale === "vi" ? "câu" : "questions"}{dashboardResult.resumablePractice.part ? ` · Part ${dashboardResult.resumablePractice.part}` : ""}</p>
@@ -254,14 +254,14 @@ export default async function DashboardPage() {
               <Link className="mt-5 inline-flex min-h-12 items-center rounded-xl bg-teal-300 px-5 font-black text-slate-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-200" href={`/practice/${dashboardResult.resumablePractice.id}`}>{locale === "vi" ? "Tiếp tục bài" : "Continue session"}</Link>
             </section>
           ) : lifecycle === "DAILY_GOAL_COMPLETE" ? (
-            <section className="rounded-3xl bg-gradient-to-br from-emerald-950 via-teal-900 to-slate-950 p-6 text-white shadow-xl sm:p-8" aria-labelledby="today-heading">
+            <section className="workout-card rounded-3xl bg-slate-900 p-6 text-white sm:p-8" aria-labelledby="today-heading">
               <p className="text-xs font-black uppercase tracking-[.18em] text-emerald-300">{locale === "vi" ? "Bài hôm nay" : "Today's Workout"}</p>
               <h2 className="mt-2 text-2xl font-black sm:text-3xl" id="today-heading">{locale === "vi" ? "✓ Mục tiêu hôm nay đã hoàn thành" : "✓ Today's goal is complete"}</h2>
               <p className="mt-3 max-w-2xl text-slate-200">{locale === "vi" ? `Bạn đã hoàn thành ${dailyGoal.completedQuestions} câu học có ý nghĩa hôm nay. Có thể ôn câu sai hoặc luyện thêm nếu quyền hiện tại cho phép.` : `You completed ${dailyGoal.completedQuestions} meaningful learning questions today. Review mistakes or keep practicing if your current access allows it.`}</p>
               <div className="mt-5 flex flex-wrap gap-3"><Link className="inline-flex min-h-12 items-center rounded-xl bg-emerald-300 px-5 font-black text-slate-950" href={dashboardResult?.mistakes.unresolvedCount ? "/mistakes" : "/practice"}>{dashboardResult?.mistakes.unresolvedCount ? (locale === "vi" ? "Ôn câu sai" : "Review mistakes") : (locale === "vi" ? "Luyện thêm" : "Keep practicing")}</Link><Link className="inline-flex min-h-12 items-center px-3 font-bold text-emerald-200" href="/progress">{locale === "vi" ? "Xem tiến độ" : "View progress"}</Link></div>
             </section>
           ) : recommendation ? (
-            <section className="rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-teal-950 p-6 text-white shadow-xl sm:p-8" aria-labelledby="today-heading">
+            <section className="workout-card rounded-3xl bg-slate-900 p-6 text-white sm:p-8" aria-labelledby="today-heading">
               <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <div className="flex flex-wrap gap-2 text-xs font-black uppercase tracking-[.14em] text-teal-300">
@@ -287,7 +287,7 @@ export default async function DashboardPage() {
 
         {showContextPrompt ? <LearnerContextPrompt locale={locale} /> : null}
 
-        <section className="mt-4 rounded-2xl border border-teal-200 bg-white p-5 shadow-sm" aria-labelledby="daily-goal-heading">
+        <section className="daily-goal-card mt-4 rounded-2xl border border-teal-200 bg-white p-5" aria-labelledby="daily-goal-heading">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div><p className="text-xs font-black uppercase tracking-wider text-teal-700">{locale === "vi" ? "Nhịp học mỗi ngày" : "Daily pace"}</p><h2 className="mt-1 text-xl font-black" id="daily-goal-heading">{dailyGoal.complete ? (locale === "vi" ? "✓ Hoàn thành mục tiêu hôm nay" : "✓ Today's goal completed") : (locale === "vi" ? "Mục tiêu hôm nay" : "Today's Goal")}</h2></div>
             <p className="text-2xl font-black" aria-label={`${dailyGoal.completedQuestions} / ${dailyGoal.targetQuestions}`}>{dailyGoal.completedQuestions} / {dailyGoal.targetQuestions} <span className="text-sm font-semibold text-slate-500">{locale === "vi" ? "câu" : "questions"}</span></p>
@@ -354,131 +354,6 @@ export default async function DashboardPage() {
                     : "Reassess"}
               </Link>
             ) : null}
-          </section>
-        ) : null}
-
-        {usage.effectivePlan === "PREMIUM" ? (
-          <section
-            className="mt-8 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-5 sm:flex-row sm:items-center sm:justify-between"
-            aria-labelledby="plan-heading"
-          >
-            <div>
-              <h2 className="font-black" id="plan-heading">
-                Premium
-              </h2>
-              <p className="mt-1 text-sm text-slate-600">
-                {locale === "vi"
-                  ? "Không giới hạn luyện tập, ôn lỗi sai và mock theo quyền truy cập hiện tại."
-                  : "Unlimited practice, mistake review, and mock access under the current policy."}
-              </p>
-            </div>
-            <Link className="shrink-0 font-bold text-teal-700" href="/billing">
-              {locale === "vi" ? "Quản lý gói" : "Manage plan"}
-            </Link>
-          </section>
-        ) : (
-          <section
-            className="mt-8 rounded-2xl border border-slate-200 bg-white p-6"
-            aria-labelledby="plan-heading"
-          >
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-xs font-black uppercase tracking-wider text-teal-700">
-                  FREE
-                </p>
-                <h2 className="mt-1 text-xl font-black" id="plan-heading">
-                  {locale === "vi" ? "Mức sử dụng" : "Plan usage"}
-                </h2>
-              </div>
-              <Link className="font-bold text-teal-700" href="/pricing">
-                {locale === "vi" ? "Xem Premium" : "View Premium"}
-              </Link>
-            </div>
-            <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
-              {(
-                [
-                  [
-                    "TODAYS_WORKOUT",
-                    locale === "vi" ? "Bài hôm nay" : "Today's Workout",
-                  ],
-                  [
-                    "MANUAL_PRACTICE",
-                    locale === "vi" ? "Luyện tập" : "Practice",
-                  ],
-                  [
-                    "MASTERY_REVIEW",
-                    locale === "vi" ? "Ôn lỗi sai" : "Mastery Review",
-                  ],
-                  ["FULL_MOCK", "Full Mock"],
-                ] as const
-              ).map(([key, label]) => {
-                const item = usage.entitlements[key];
-                if (item.type === "UNLIMITED") return null;
-                const period =
-                  key === "FULL_MOCK"
-                    ? locale === "vi"
-                      ? "Đặt lại theo tháng"
-                      : "Resets monthly"
-                    : locale === "vi"
-                      ? "Đặt lại hằng ngày"
-                      : "Resets daily";
-                return (
-                  <UsageProgress
-                    key={key}
-                    label={label}
-                    used={item.used}
-                    limit={item.limit}
-                    period={period}
-                  />
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {usage.effectivePlan === "PREMIUM" ? (
-          <section className="mt-8 rounded-2xl border border-teal-200 bg-white p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
-            <div>
-              <p className="text-sm font-bold uppercase tracking-wider text-teal-700">
-                Thi thử gần nhất
-              </p>
-              {latestMock ? (
-                <>
-                  <h2 className="mt-1 text-xl font-black">
-                    {latestMock.mode === "FULL"
-                      ? "Full Mock"
-                      : `${latestMock.mode[0]}${latestMock.mode.slice(1).toLowerCase()} Mock`}{" "}
-                    · {latestMock.overall.correct}/{latestMock.overall.total}
-                  </h2>
-                  {latestMockComparison ? (
-                    <p className="mt-1 text-sm text-slate-600">
-                      {latestMockComparison.overallDelta > 0 ? "+" : ""}
-                      {latestMockComparison.overallDelta} câu đúng so với lần
-                      cùng loại trước
-                    </p>
-                  ) : (
-                    <p className="mt-1 text-sm text-slate-600">
-                      Hoàn thành thêm một bài cùng loại để bắt đầu so sánh.
-                    </p>
-                  )}
-                </>
-              ) : (
-                <>
-                  <h2 className="mt-1 text-xl font-black">
-                    Chưa có kết quả thi thử
-                  </h2>
-                  <p className="mt-1 text-sm text-slate-600">
-                    Hoàn thành một bài để bắt đầu theo dõi.
-                  </p>
-                </>
-              )}
-            </div>
-            <Link
-              className="mt-4 inline-flex font-bold text-teal-700 sm:mt-0"
-              href={latestMock ? "/full-mock/history" : "/full-mock"}
-            >
-              {latestMock ? "Xem lịch sử" : "Bắt đầu thi thử"}
-            </Link>
           </section>
         ) : null}
 
@@ -779,6 +654,131 @@ export default async function DashboardPage() {
               : translations.demoTest.start}
           </Link>
         </section>
+        {usage.effectivePlan === "PREMIUM" ? (
+          <section
+            className="mt-8 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-5 sm:flex-row sm:items-center sm:justify-between"
+            aria-labelledby="plan-heading"
+          >
+            <div>
+              <h2 className="font-black" id="plan-heading">
+                Premium
+              </h2>
+              <p className="mt-1 text-sm text-slate-600">
+                {locale === "vi"
+                  ? "Không giới hạn luyện tập, ôn lỗi sai và mock theo quyền truy cập hiện tại."
+                  : "Unlimited practice, mistake review, and mock access under the current policy."}
+              </p>
+            </div>
+            <Link className="shrink-0 font-bold text-teal-700" href="/billing">
+              {locale === "vi" ? "Quản lý gói" : "Manage plan"}
+            </Link>
+          </section>
+        ) : (
+          <section
+            className="mt-8 rounded-2xl border border-slate-200 bg-white p-6"
+            aria-labelledby="plan-heading"
+          >
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-wider text-teal-700">
+                  FREE
+                </p>
+                <h2 className="mt-1 text-xl font-black" id="plan-heading">
+                  {locale === "vi" ? "Mức sử dụng" : "Plan usage"}
+                </h2>
+              </div>
+              <Link className="font-bold text-teal-700" href="/pricing">
+                {locale === "vi" ? "Xem Premium" : "View Premium"}
+              </Link>
+            </div>
+            <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+              {(
+                [
+                  [
+                    "TODAYS_WORKOUT",
+                    locale === "vi" ? "Bài hôm nay" : "Today's Workout",
+                  ],
+                  [
+                    "MANUAL_PRACTICE",
+                    locale === "vi" ? "Luyện tập" : "Practice",
+                  ],
+                  [
+                    "MASTERY_REVIEW",
+                    locale === "vi" ? "Ôn lỗi sai" : "Mastery Review",
+                  ],
+                  ["FULL_MOCK", "Full Mock"],
+                ] as const
+              ).map(([key, label]) => {
+                const item = usage.entitlements[key];
+                if (item.type === "UNLIMITED") return null;
+                const period =
+                  key === "FULL_MOCK"
+                    ? locale === "vi"
+                      ? "Đặt lại theo tháng"
+                      : "Resets monthly"
+                    : locale === "vi"
+                      ? "Đặt lại hằng ngày"
+                      : "Resets daily";
+                return (
+                  <UsageProgress
+                    key={key}
+                    label={label}
+                    used={item.used}
+                    limit={item.limit}
+                    period={period}
+                  />
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {usage.effectivePlan === "PREMIUM" ? (
+          <section className="mt-8 rounded-2xl border border-teal-200 bg-white p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+            <div>
+              <p className="text-sm font-bold uppercase tracking-wider text-teal-700">
+                Thi thử gần nhất
+              </p>
+              {latestMock ? (
+                <>
+                  <h2 className="mt-1 text-xl font-black">
+                    {latestMock.mode === "FULL"
+                      ? "Full Mock"
+                      : `${latestMock.mode[0]}${latestMock.mode.slice(1).toLowerCase()} Mock`}{" "}
+                    · {latestMock.overall.correct}/{latestMock.overall.total}
+                  </h2>
+                  {latestMockComparison ? (
+                    <p className="mt-1 text-sm text-slate-600">
+                      {latestMockComparison.overallDelta > 0 ? "+" : ""}
+                      {latestMockComparison.overallDelta} câu đúng so với lần
+                      cùng loại trước
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-sm text-slate-600">
+                      Hoàn thành thêm một bài cùng loại để bắt đầu so sánh.
+                    </p>
+                  )}
+                </>
+              ) : (
+                <>
+                  <h2 className="mt-1 text-xl font-black">
+                    Chưa có kết quả thi thử
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-600">
+                    Hoàn thành một bài để bắt đầu theo dõi.
+                  </p>
+                </>
+              )}
+            </div>
+            <Link
+              className="mt-4 inline-flex font-bold text-teal-700 sm:mt-0"
+              href={latestMock ? "/full-mock/history" : "/full-mock"}
+            >
+              {latestMock ? "Xem lịch sử" : "Bắt đầu thi thử"}
+            </Link>
+          </section>
+        ) : null}
+
       </div>
     </main>
   );

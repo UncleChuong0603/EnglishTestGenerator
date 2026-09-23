@@ -1,0 +1,3 @@
+{
+  "/api/admin/content-import/validate/route": "app/api/admin/content-import/validate/route.js"
+}

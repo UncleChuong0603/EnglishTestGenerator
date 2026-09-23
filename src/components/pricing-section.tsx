@@ -93,10 +93,10 @@ export function PricingSection({
 
   return (
     <section
-      className="mx-auto max-w-7xl px-5 py-16 sm:px-6 sm:py-20"
+      className="pricing-section mx-auto max-w-7xl px-5 py-16 sm:px-6 sm:py-20"
       id="pricing"
     >
-      <p className="text-sm font-black uppercase tracking-[.16em] text-teal-700">
+      <p className="section-kicker">
         {vi ? "Gói học minh bạch" : "Clear learning plans"}
       </p>
       <h2 className="mt-3 max-w-3xl text-3xl font-black sm:text-4xl">
@@ -244,7 +244,7 @@ function Plan({
   action: React.ReactNode;
 }) {
   return (
-    <article className="rounded-3xl border border-slate-200 bg-white p-7 sm:p-9">
+    <article className="pricing-plan border border-slate-200 bg-white p-7 sm:p-9">
       <p className="text-sm font-black uppercase tracking-wider text-teal-700">
         {badge}
       </p>

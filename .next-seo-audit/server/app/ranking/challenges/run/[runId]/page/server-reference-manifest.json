@@ -1,0 +1,49 @@
+{
+  "node": {
+    "40511040dfe83339012bc733f4f1c1e51418bf3961": {
+      "workers": {
+        "app/ranking/challenges/run/[runId]/page": {
+          "moduleId": 1898,
+          "async": true,
+          "codeHash": null
+        }
+      },
+      "exportedName": "setInterfaceLanguage",
+      "filename": "src/app/settings/actions.ts"
+    },
+    "40b638f5056305828895fad3f3fb26b0ae6011e11b": {
+      "workers": {
+        "app/ranking/challenges/run/[runId]/page": {
+          "moduleId": 1898,
+          "async": true,
+          "codeHash": null
+        }
+      },
+      "exportedName": "startChallenge",
+      "filename": "src/app/ranking/challenges/actions.ts"
+    },
+    "6077bf73dcdf4ce46f5e2cd7cd9d38020001b0de79": {
+      "workers": {
+        "app/ranking/challenges/run/[runId]/page": {
+          "moduleId": 1898,
+          "async": true,
+          "codeHash": null
+        }
+      },
+      "exportedName": "finishChallengeSection",
+      "filename": "src/app/ranking/challenges/actions.ts"
+    },
+    "782fe1f068a353ed1f698aaa61b3e9bf86b91c97b0": {
+      "workers": {
+        "app/ranking/challenges/run/[runId]/page": {
+          "moduleId": 1898,
+          "async": true,
+          "codeHash": null
+        }
+      },
+      "exportedName": "saveChallengeAnswer",
+      "filename": "src/app/ranking/challenges/actions.ts"
+    }
+  },
+  "edge": {}
+}

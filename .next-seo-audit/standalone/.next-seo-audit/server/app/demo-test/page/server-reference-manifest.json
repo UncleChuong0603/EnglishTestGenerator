@@ -1,0 +1,60 @@
+{
+  "node": {
+    "40511040dfe83339012bc733f4f1c1e51418bf3961": {
+      "workers": {
+        "app/demo-test/page": {
+          "moduleId": 59285,
+          "async": true,
+          "codeHash": null
+        }
+      },
+      "exportedName": "setInterfaceLanguage",
+      "filename": "src/app/settings/actions.ts"
+    },
+    "009e95feb6b35b5e3620c4b489303215d97a24acda": {
+      "workers": {
+        "app/demo-test/page": {
+          "moduleId": 59285,
+          "async": true,
+          "codeHash": null
+        }
+      },
+      "exportedName": "signOut",
+      "filename": "src/app/dashboard/actions.ts"
+    },
+    "00bb326be0fd8c14866da99a39c543402090bd724d": {
+      "workers": {
+        "app/demo-test/page": {
+          "moduleId": 59285,
+          "async": true,
+          "codeHash": null
+        }
+      },
+      "exportedName": "startDemoTest",
+      "filename": "src/app/demo-test/actions.ts"
+    },
+    "606f0851cf13b6f330f187e02c28a8a19b04324f5d": {
+      "workers": {
+        "app/demo-test/page": {
+          "moduleId": 59285,
+          "async": true,
+          "codeHash": null
+        }
+      },
+      "exportedName": "submitDemoTest",
+      "filename": "src/app/demo-test/actions.ts"
+    },
+    "785c7e55207844ad00c9191a25d78e4c5e4af7589d": {
+      "workers": {
+        "app/demo-test/page": {
+          "moduleId": 59285,
+          "async": true,
+          "codeHash": null
+        }
+      },
+      "exportedName": "saveDemoAnswer",
+      "filename": "src/app/demo-test/actions.ts"
+    }
+  },
+  "edge": {}
+}

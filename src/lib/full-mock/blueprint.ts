@@ -22,16 +22,29 @@ export type MockForm = { byPart: Record<number, MockUnit[]>; questionIds: string
 export type MockMode = "LISTENING" | "READING" | "FULL";
 
 function chooseExact(units: readonly MockUnit[], groupCount: number, questionCount: number): MockUnit[] | null {
-  const search = (at: number, chosen: MockUnit[], total: number): MockUnit[] | null => {
-    if (chosen.length === groupCount) return total === questionCount ? chosen : null;
-    if (at >= units.length || total >= questionCount || chosen.length + units.length - at < groupCount) return null;
-    for (let index = at; index < units.length; index++) {
-      const found = search(index + 1, [...chosen, units[index]], total + units[index].questionIds.length);
-      if (found) return found;
+  type Path = { unit: MockUnit | null; previous: Path | null };
+  const states: Array<Array<Path | undefined>> = Array.from({ length: groupCount + 1 }, () => []);
+  states[0][0] = { unit: null, previous: null };
+  for (const unit of units) {
+    const size = unit.questionIds.length;
+    if (size < 1 || size > questionCount) continue;
+    // Walk backward so one content group can contribute only once.
+    for (let groups = groupCount - 1; groups >= 0; groups--) {
+      for (let total = questionCount - size; total >= 0; total--) {
+        const previous = states[groups][total];
+        if (previous && !states[groups + 1][total + size]) {
+          states[groups + 1][total + size] = { unit, previous };
+        }
+      }
     }
-    return null;
-  };
-  return search(0, [], 0);
+    const completed = states[groupCount][questionCount];
+    if (completed) {
+      const result: MockUnit[] = [];
+      for (let node: Path | null = completed; node?.unit; node = node.previous) result.push(node.unit);
+      return result.reverse();
+    }
+  }
+  return null;
 }
 
 export function assembleMock(units: readonly MockUnit[], mode: MockMode): MockForm | null {

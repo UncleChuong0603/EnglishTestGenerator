@@ -5,7 +5,7 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { getPreferences } from "@/lib/i18n/get-translations";
 import { submitFeedback } from "./actions";
 
-export const metadata: Metadata = { title: "Support", description: "Get help and send feedback to TOEIC GYM.", alternates: { canonical: "/support" } };
+export const metadata: Metadata = { title: "Hỗ trợ TOEIC GYM", description: "Tìm câu trả lời thường gặp và gửi yêu cầu hỗ trợ cho đội ngũ TOEIC GYM.", alternates: { canonical: "/support" } };
 
 const faq = {
   vi: [

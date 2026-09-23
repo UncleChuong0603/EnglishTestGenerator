@@ -1,0 +1,27 @@
+{
+  "node": {
+    "40511040dfe83339012bc733f4f1c1e51418bf3961": {
+      "workers": {
+        "app/admin/content/posts/new/page": {
+          "moduleId": 17748,
+          "async": true,
+          "codeHash": null
+        }
+      },
+      "exportedName": "setInterfaceLanguage",
+      "filename": "src/app/settings/actions.ts"
+    },
+    "4080c817483013249ec43d7eaada27bb0c9a7933fb": {
+      "workers": {
+        "app/admin/content/posts/new/page": {
+          "moduleId": 17748,
+          "async": true,
+          "codeHash": null
+        }
+      },
+      "exportedName": "savePostAction",
+      "filename": "src/app/admin/content/posts/actions.ts"
+    }
+  },
+  "edge": {}
+}

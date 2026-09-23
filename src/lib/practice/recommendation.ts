@@ -2,7 +2,7 @@ import "server-only";
 
 import { getLearnerAnalytics } from "@/lib/analytics/queries";
 import type { LearnerAnalytics, PerformanceMetric } from "@/lib/analytics/types";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { questions } from "@/db/schema";
 
@@ -20,12 +20,14 @@ type Candidate = {
   focusLevel: FocusLevel;
   availableQuestionCount: number;
 };
-type AvailableRow = { toeic_part: number; skill: string; sub_skill: string };
+type AvailableRow = { toeic_part: number; skill: string; sub_skill: string; count: number };
 
 async function loadAvailableRows(): Promise<AvailableRow[] | null> {
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {
-      const rows = await db.select({ toeic_part: questions.toeicPart, skill: questions.skill, sub_skill: questions.subSkill }).from(questions).where(and(inArray(questions.toeicPart, [5, 6, 7]), eq(questions.status, "published")));
+      const rows = await db.select({ toeic_part: questions.toeicPart, skill: questions.skill, sub_skill: questions.subSkill, count: sql<number>`count(*)::int` })
+        .from(questions).where(and(inArray(questions.toeicPart, [5, 6, 7]), eq(questions.status, "published")))
+        .groupBy(questions.toeicPart, questions.skill, questions.subSkill);
       return rows as AvailableRow[];
     } catch (error) {
       console.error("Recommendation query request failed", {
@@ -71,7 +73,8 @@ export async function getReadingRecommendation(
         const skill = level === "subskill" ? metric.skill : level === "skill" ? metric.name : undefined;
         const subSkill = level === "subskill" ? metric.name : undefined;
         const availableQuestionCount = available.filter((question) => question.toeic_part === part
-          && (!skill || question.skill === skill) && (!subSkill || question.sub_skill === subSkill)).length;
+          && (!skill || question.skill === skill) && (!subSkill || question.sub_skill === subSkill))
+          .reduce((total, question) => total + question.count, 0);
         return { metric, part, skill, subSkill, focusLevel: level, availableQuestionCount };
       })
       .filter((candidate) => candidate.availableQuestionCount >= MIN_RECOMMENDATION_QUESTIONS_AVAILABLE)

@@ -1,0 +1,16 @@
+{
+  "node": {
+    "40511040dfe83339012bc733f4f1c1e51418bf3961": {
+      "workers": {
+        "app/ranking/challenges/run/[runId]/result/page": {
+          "moduleId": 9019,
+          "async": true,
+          "codeHash": null
+        }
+      },
+      "exportedName": "setInterfaceLanguage",
+      "filename": "src/app/settings/actions.ts"
+    }
+  },
+  "edge": {}
+}

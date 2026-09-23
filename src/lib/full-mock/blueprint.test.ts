@@ -25,5 +25,13 @@ describe("full mock blueprint", () => {
   it("rejects duplicate questions", () => { const rows = fixtures(); rows[1].questionIds = rows[0].questionIds; expect(assembleFullMock(rows)).toBeNull(); });
   it("assembles independent canonical 100-question section mocks", () => { const units = fixtures(); const listening = assembleListeningMock(units), reading = assembleReadingMock(units); expect(listening?.questionIds).toHaveLength(100); expect(reading?.questionIds).toHaveLength(100); expect(Object.keys(listening!.byPart).map(Number)).toEqual([1,2,3,4]); expect(Object.keys(reading!.byPart).map(Number)).toEqual([5,6,7]); });
   it("keeps readiness independent and composes Full from both sections", () => { const units = fixtures(), listening = units.filter((u) => u.part <= 4), reading = units.filter((u) => u.part >= 5); expect(assembleListeningMock(listening)).not.toBeNull(); expect(assembleReadingMock(listening)).toBeNull(); expect(assembleFullMock(listening)).toBeNull(); expect(assembleListeningMock(reading)).toBeNull(); expect(assembleReadingMock(reading)).not.toBeNull(); expect(assembleFullMock(reading)).toBeNull(); });
+  it("finds a valid Part 7 mix in a large bank of same-size groups", () => {
+    const units = fixtures().filter((unit) => unit.part !== 7);
+    for (let i = 0; i < 300; i++) units.push({ id: `single-large-${i}`, part: 7, setType: "single", questionIds: [0, 1, 2].map((q) => `single-large-${i}-${q}`) });
+    units.push(...fixtures().filter((unit) => unit.part === 7));
+    const form = assembleFullMock(units);
+    expect(form?.questionIds).toHaveLength(200);
+    expect(form?.byPart[7].filter((unit) => unit.setType === "single")).toHaveLength(10);
+  });
   it("uses server timestamps for immutable section deadlines", () => { const at = new Date("2026-01-01T00:00:00Z"); expect(deadlineFrom(at, "LISTENING").toISOString()).toBe("2026-01-01T00:45:00.000Z"); expect(deadlineFrom(at, "READING").toISOString()).toBe("2026-01-01T01:15:00.000Z"); });
 });

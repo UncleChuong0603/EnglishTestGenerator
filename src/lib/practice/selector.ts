@@ -1,6 +1,6 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { and, asc, desc, eq, inArray, ne, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, lt, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { attemptAnswers, listeningTranscripts, mediaAssets, passageSets, passages, practiceSessionQuestions, practiceSessions, questionGroupMedia, questionOptions, questionSolutions, questions } from "@/db/schema";
 import { validateListeningEligibility, validateListeningGroupEligibility } from "@/lib/listening/eligibility";
@@ -15,6 +15,19 @@ import { consumeUsage } from "@/lib/entitlements/service";
 
 const EMPTY_HISTORY: ContentHistory = { seenQuestionIds: new Set(), recentQuestionIds: new Set() };
 const keepOrder = () => 0.999;
+
+// A random UUID cursor gives every part of a growing bank a chance to be used
+// while fetching only a bounded window through the published-part index.
+async function samplePublishedQuestions(part: number, limit: number, skill?: string, subSkill?: string) {
+  const pivot = randomUUID();
+  const conditions = [eq(questions.toeicPart, part), eq(questions.status, "published")];
+  if (skill) conditions.push(eq(questions.skill, skill));
+  if (subSkill) conditions.push(eq(questions.subSkill, subSkill));
+  const after = await db.select().from(questions).where(and(...conditions, gte(questions.id, pivot))).orderBy(asc(questions.id)).limit(limit);
+  if (after.length === limit) return after;
+  const before = await db.select().from(questions).where(and(...conditions, lt(questions.id, pivot))).orderBy(asc(questions.id)).limit(limit - after.length);
+  return [...after, ...before];
+}
 
 async function loadContentHistory(userId: string, candidateIds: readonly string[]): Promise<ContentHistory> {
   if (!candidateIds.length) return EMPTY_HISTORY;
@@ -43,9 +56,13 @@ export function preferTaxonomyDiversity<T extends { id: string; skill: string; s
 }
 
 export async function selectListeningPractice(part: 1 | 2 | 3 | 4, target = 10, focus?: ListeningTarget) {
-  const candidates = await db.select().from(questions).where(and(eq(questions.skillArea, "LISTENING"), eq(questions.toeicPart, part), eq(questions.status, "published"))).limit(200);
-  const setIds = [...new Set(candidates.flatMap((q) => q.passageSetId ?? []))];
+  const sampled = await samplePublishedQuestions(part, 200);
+  const setIds = [...new Set(sampled.flatMap((q) => q.passageSetId ?? []))];
   if (!setIds.length) throw new Error(`NOT_ENOUGH_LISTENING_PART_${part}`);
+  // Include the whole group when the bounded sample ends inside a conversation.
+  const candidates = part <= 2 ? sampled : await db.select().from(questions)
+    .where(and(eq(questions.toeicPart, part), eq(questions.status, "published"), inArray(questions.passageSetId, setIds)))
+    .orderBy(asc(questions.questionOrder));
   const questionIds = candidates.map((q) => q.id);
   const [sets, options, solutions, attachments, transcripts] = await Promise.all([
     db.select().from(passageSets).where(and(inArray(passageSets.id, setIds), eq(passageSets.status, "published"))),
@@ -108,8 +125,7 @@ function partForMode(mode: PracticeConfig["mode"]): ReadingPart | null { return 
 export function validatePracticeConfig(config: PracticeConfig) { const part = partForMode(config.mode); if (![10, 15, 20].includes(config.targetQuestionCount)) return false; if (!part && (config.skill || config.subSkill)) return false; if (!part) return true; if (config.skill && !(config.skill in READING_TAXONOMY[part])) return false; return !(config.subSkill && (!config.skill || !READING_TAXONOMY[part][config.skill]?.includes(config.subSkill))); }
 
 export async function loadUnits(part: ReadingPart, skill?: string, subSkill?: string): Promise<SelectionUnit[]> {
-  const conditions = [eq(questions.toeicPart, part), eq(questions.status, "published")]; if (skill) conditions.push(eq(questions.skill, skill)); if (subSkill) conditions.push(eq(questions.subSkill, subSkill));
-  const matched = await db.select().from(questions).where(and(...conditions)).limit(500); const setIds = [...new Set(matched.flatMap((q) => q.passageSetId ?? []))];
+  const matched = await samplePublishedQuestions(part, 500, skill, subSkill); const setIds = [...new Set(matched.flatMap((q) => q.passageSetId ?? []))];
   let candidates = matched;
   if (part !== 5) {
     if (!setIds.length) return []; const [sets, docs] = await Promise.all([db.select().from(passageSets).where(and(inArray(passageSets.id, setIds), eq(passageSets.status, "published"))), db.select().from(passages).where(inArray(passages.passageSetId, setIds))]);

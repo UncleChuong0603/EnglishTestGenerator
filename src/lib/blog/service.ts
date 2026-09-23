@@ -35,6 +35,25 @@ function normalized(input:PostInput):PostInput{return {...input,title:input.titl
 export async function savePost(actorId:string,input:PostInput,id?:string){const data=normalized(input);const errors=validatePost(data);if(errors.length)throw new BlogAdminError(errors[0]);if(!POST_CATEGORIES.includes(data.category))throw new BlogAdminError("CATEGORY_INVALID");const values={title:data.title,slug:data.slug,excerpt:data.excerpt,content:data.content,category:data.category,seoTitle:data.seoTitle??null,seoDescription:data.seoDescription??null,canonicalPath:data.canonicalPath??null,coverMediaId:data.coverMediaId??null,coverAlt:data.coverAlt??null,socialTitle:data.socialTitle??null,socialDescription:data.socialDescription??null,authorName:data.authorName??null,targetTopic:data.targetTopic??null,searchIntent:data.searchIntent??null,noindex:Boolean(data.noindex)};try{return await db.transaction(async tx=>{let postId=id;if(id){const current=(await tx.select().from(contentPosts).where(eq(contentPosts.id,id)).limit(1))[0];if(!current)throw new BlogAdminError("NOT_FOUND");if(current.status==="PUBLISHED"&&current.slug!==data.slug)throw new BlogAdminError("PUBLISHED_SLUG_LOCKED");await tx.update(contentPosts).set({...values,updatedBy:actorId,updatedAt:new Date()}).where(eq(contentPosts.id,id));}else{postId=(await tx.insert(contentPosts).values({...values,createdBy:actorId,updatedBy:actorId}).returning({id:contentPosts.id}))[0].id;}await replaceTags(tx,postId!,data.tags);await tx.insert(adminAuditLogs).values({actorUserId:actorId,action:id?"SEO_POST_UPDATED":"SEO_POST_CREATED",metadata:{postId,slug:data.slug}});return postId!;});}catch(e){const cause=(e as {cause?:{code?:string}}).cause;if((e as {code?:string}).code==="23505"||cause?.code==="23505")throw new BlogAdminError("SLUG_TAKEN");throw e;}}
 export async function setPostPublished(actorId:string,id:string,publish:boolean){await db.transaction(async tx=>{const post=(await tx.select().from(contentPosts).where(eq(contentPosts.id,id)).limit(1))[0];if(!post)throw new BlogAdminError("NOT_FOUND");if(publish){const errors=validatePost({title:post.title,slug:post.slug,excerpt:post.excerpt,content:post.content,category:post.category as PostCategory,seoTitle:post.seoTitle??undefined,seoDescription:post.seoDescription??undefined,canonicalPath:post.canonicalPath??undefined,coverMediaId:post.coverMediaId??undefined,tags:[]},true);if(errors.length)throw new BlogAdminError(errors[0]);}await tx.update(contentPosts).set({status:publish?"PUBLISHED":"UNPUBLISHED",publishedAt:publish?(post.publishedAt??new Date()):post.publishedAt,updatedBy:actorId,updatedAt:new Date()}).where(eq(contentPosts.id,id));await tx.insert(adminAuditLogs).values({actorUserId:actorId,action:publish?"SEO_POST_PUBLISHED":"SEO_POST_UNPUBLISHED",metadata:{postId:id,slug:post.slug}});});}
 export async function deleteDraft(actorId:string,id:string){await db.transaction(async tx=>{const deleted=await tx.delete(contentPosts).where(and(eq(contentPosts.id,id),inArray(contentPosts.status,["DRAFT","UNPUBLISHED"]))).returning({id:contentPosts.id,slug:contentPosts.slug});if(!deleted.length)throw new BlogAdminError("PUBLISHED_DELETE_FORBIDDEN");await tx.insert(adminAuditLogs).values({actorUserId:actorId,action:"SEO_POST_DELETED",metadata:{postId:id,slug:deleted[0].slug}});});}
-export async function publishedSitemapRows(){let databaseRows:{slug:string;updatedAt:Date}[]=[];try{databaseRows=await db.select({slug:contentPosts.slug,updatedAt:contentPosts.updatedAt}).from(contentPosts).where(and(eq(contentPosts.status,"PUBLISHED"),eq(contentPosts.noindex,false)));}catch{console.warn("Could not load CMS sitemap rows; using bundled editorial rows.");}const slugs=new Set(databaseRows.map(row=>row.slug));return [...databaseRows,...EDITORIAL_POSTS.filter(post=>!slugs.has(post.slug)).map(post=>({slug:post.slug,updatedAt:post.updatedAt}))];}
+export async function publishedSitemapRows() {
+  let databaseRows: { slug: string; updatedAt: Date; canonicalPath: string | null }[] = [];
+  try {
+    databaseRows = await db.select({
+      slug: contentPosts.slug,
+      updatedAt: contentPosts.updatedAt,
+      canonicalPath: contentPosts.canonicalPath,
+    }).from(contentPosts).where(and(eq(contentPosts.status, "PUBLISHED"), eq(contentPosts.noindex, false)));
+  } catch {
+    console.warn("Could not load CMS sitemap rows; using bundled editorial rows.");
+  }
+
+  const editorialSlugs = new Set(EDITORIAL_POSTS.map((post) => post.slug));
+  return [
+    ...databaseRows
+      .filter((row) => !editorialSlugs.has(row.slug) && (!row.canonicalPath || row.canonicalPath === `/blog/${row.slug}`))
+      .map(({ slug, updatedAt }) => ({ slug, updatedAt })),
+    ...EDITORIAL_POSTS.map((post) => ({ slug: post.slug, updatedAt: post.updatedAt })),
+  ];
+}
 export function readingMinutes(content:string){return Math.max(1,Math.ceil(content.trim().split(/\s+/).length/220));}
 export async function coverUrl(mediaId:string|null){if(!mediaId)return null;const asset=(await db.select({key:mediaAssets.storageKey}).from(mediaAssets).where(and(eq(mediaAssets.id,mediaId),eq(mediaAssets.kind,"IMAGE"),eq(mediaAssets.status,"READY"),eq(mediaAssets.accessScope,"CONTENT"))).limit(1))[0];return asset?createMediaStorage().createReadUrl(asset.key,3600):null;}

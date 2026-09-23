@@ -1,0 +1,3 @@
+{
+  "/blog/cover/[category]/route": "app/blog/cover/[category]/route.js"
+}

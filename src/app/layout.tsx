@@ -4,6 +4,7 @@ import { LocaleProvider } from "@/components/locale-provider";
 import { ProductEvent } from "@/components/product-event";
 import { getCookieLanguage } from "@/lib/i18n/get-translations";
 import { getTranslations } from "@/lib/i18n/runtime";
+import { getSiteUrl } from "@/lib/seo/site-url";
 import "./globals.css";
 
 const beVietnamPro = Be_Vietnam_Pro({
@@ -15,7 +16,7 @@ const beVietnamPro = Be_Vietnam_Pro({
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getTranslations(await getCookieLanguage());
-  return { metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"), title: { default: t.metadata.title, template: `%s | ${t.common.brand}` }, description: t.metadata.description, openGraph: { title: t.metadata.title, description: t.metadata.description, type: "website", siteName: t.common.brand }, alternates: { canonical: "/" } };
+  return { metadataBase: new URL(getSiteUrl()), title: { default: t.metadata.title, template: `%s | ${t.common.brand}` }, description: t.metadata.description, openGraph: { title: t.metadata.title, description: t.metadata.description, type: "website", siteName: t.common.brand } };
 }
 
 export default async function RootLayout({

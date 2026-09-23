@@ -1,0 +1,3 @@
+module.exports=[93556,a=>a.a(async(b,c)=>{try{var d=a.i(47818),e=a.i(20540),f=b([d,e]);[d,e]=f.then?(await f)():f,a.s([]),c()}catch(a){c(a)}},!1),10696,a=>a.a(async(b,c)=>{try{var d=a.i(93556),e=a.i(47818),f=a.i(20540),g=b([d,e,f]);[d,e,f]=g.then?(await g)():g,a.s(["40511040dfe83339012bc733f4f1c1e51418bf3961",()=>e.setInterfaceLanguage,"60ded7e431807877e5225811095bcd1ca016377d86",()=>f.submitReadingPractice,"70f2e717e3024584a2d8434bb54d29b3b889b06c20",()=>f.submitListeningGroup,"7829d4d337b400a6dd9d259f6339de9f92ec7a5de1",()=>f.refreshListeningMedia]),c()}catch(a){c(a)}},!1)];
+
+//# sourceMappingURL=_next-internal_server_app_practice_%5BsessionId%5D_page_actions_1b0ezfq.js.map

@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { PublicFooter } from "@/components/public-footer";
 import { PublicHeader } from "@/components/public-header";
@@ -6,20 +8,120 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { getPreferences } from "@/lib/i18n/get-translations";
 import { getPaymentCatalog } from "@/lib/payments/catalog";
 
+export const metadata: Metadata = { alternates: { canonical: "/" } };
+
 export default async function Home() {
-  const user = await getCurrentUser(); const locale = (await getPreferences(user?.id)).interfaceLanguage; const vi = locale === "vi"; const primary = user ? "/dashboard" : "/try";
+  const user = await getCurrentUser();
+  const locale = (await getPreferences(user?.id)).interfaceLanguage;
+  const vi = locale === "vi";
+  const primary = user ? "/dashboard" : "/try";
   const copy = vi ? {
-    eyebrow: "Đánh giá ngắn · không cần tài khoản", title: "Biết chính xác Part nào đang kéo kết quả TOEIC của bạn xuống.", body: "Hoàn thành một bài đánh giá ngắn. TOEICGym phân tích kết quả Listening và Reading, rồi chỉ ra nội dung nên luyện tiếp.", primary: "Làm đánh giá miễn phí", secondary: "Thử 5–10 câu ngay", trust: "Không cần tài khoản · khoảng 15–20 phút · có kết quả ngay", note: "Kết quả là độ chính xác thô, không phải điểm TOEIC chính thức hay dự đoán điểm.", preview: "Sau bài đánh giá, bạn sẽ biết…", sample: "KẾT QUẢ MINH HỌA", focus: "Cần ưu tiên", next: "Bài luyện tiếp theo", loop: "Một vòng học có mục tiêu rõ ràng", loopBody: "Mỗi kết quả biến thành một bước luyện tiếp theo — và lỗi sai trở thành nội dung cần làm chủ.", final: "Bắt đầu bằng dữ liệu của chính bạn, không phải phỏng đoán.", finalBody: "Trải nghiệm câu hỏi thật trước. Chỉ tạo tài khoản khi bạn muốn lưu kết quả và tiếp tục lộ trình cá nhân hóa.", steps: ["Luyện tập", "Phát hiện điểm yếu", "Ôn lỗi sai", "Làm chủ", "Đề xuất bài tiếp theo", "Theo dõi tiến bộ"]
+    eyebrow: "Luyện TOEIC có hướng đi",
+    title: "Biết mình đang ở đâu. Biết hôm nay nên học gì.",
+    body: "Làm một bài đánh giá ngắn để xem bạn đang vững ở đâu trong Listening và Reading. Từ kết quả đó, TOEIC GYM gợi ý một bài luyện vừa sức và giúp bạn ôn lại những câu đã sai.",
+    primary: "Bắt đầu đánh giá miễn phí", secondary: "Thử vài câu trước",
+    reassurance: "Không cần tài khoản · Khoảng 15–20 phút · Xem kết quả ngay",
+    caveat: "Kết quả là độ chính xác của bài làm, không phải điểm TOEIC chính thức hay dự đoán điểm.",
+    example: "Một kết quả dễ hiểu", exampleBody: "Bạn nhìn thấy Part nào cần thêm thời gian và có một bước luyện tiếp theo.",
+    sample: "Ví dụ minh họa, không phải kết quả của bạn", focus: "Nên tập trung",
+    next: "Bài tiếp theo", nextValue: "Part 3 · Hội thoại ngắn",
+    method: "Học theo một vòng rõ ràng",
+    methodBody: "Mỗi lần luyện đều cho bạn một lý do để bắt đầu và một việc để làm sau khi hoàn thành.",
+    steps: [
+      ["01", "Làm bài để hiểu mình", "Bắt đầu với câu hỏi Listening và Reading, rồi xem độ chính xác theo Part."],
+      ["02", "Luyện đúng phần cần thiết", "Nhận một bài luyện gợi ý với thời lượng và lý do chọn bài rõ ràng."],
+      ["03", "Quay lại câu đã sai", "Ôn lỗi sai, kiểm tra lại và theo dõi phần bạn đã nắm chắc hơn."],
+    ],
+    closing: "Bắt đầu từ bài làm của chính bạn.",
+    closingBody: "Thử miễn phí trước. Khi muốn lưu kết quả và học tiếp theo lộ trình cá nhân, bạn có thể tạo tài khoản.",
   } : {
-    eyebrow: "Short diagnostic · no account required", title: "Know exactly which TOEIC Part is holding you back.", body: "Complete a short diagnostic. TOEICGym analyzes your Listening and Reading results, then recommends what to practice next.", primary: "Take the free diagnostic", secondary: "Try 5–10 questions", trust: "No account required · about 15–20 minutes · immediate result", note: "Results show raw accuracy, not an official TOEIC score or score prediction.", preview: "After the diagnostic, you will know…", sample: "ILLUSTRATIVE RESULT", focus: "Area to focus", next: "Recommended next practice", loop: "A learning loop with a clear next step", loopBody: "Each result becomes the next focused practice, while mistakes become skills to master.", final: "Start with your own evidence, not a guess.", finalBody: "Experience real practice first. Create an account only when you want to save the result and continue with personalized practice.", steps: ["Practice", "Detect weakness", "Review mistakes", "Build mastery", "Recommend next", "Track progress"]
+    eyebrow: "TOEIC practice with direction",
+    title: "Know where you are. Know what to study today.",
+    body: "Take a short diagnostic to see how you are doing in Listening and Reading. TOEIC GYM then suggests a manageable workout and helps you revisit the questions you missed.",
+    primary: "Start a free diagnostic", secondary: "Try a few questions first",
+    reassurance: "No account needed · About 15–20 minutes · Immediate results",
+    caveat: "Results show your raw accuracy, not an official TOEIC score or score prediction.",
+    example: "A result you can use", exampleBody: "See which Part needs more time and what to practice next.",
+    sample: "Illustration only, not your result", focus: "Focus area",
+    next: "Next workout", nextValue: "Part 3 · Short conversations",
+    method: "A clear way to keep learning",
+    methodBody: "Each session gives you a reason to start and a useful next step when you finish.",
+    steps: [
+      ["01", "Practice to understand", "Answer Listening and Reading questions and see your accuracy by Part."],
+      ["02", "Work on what matters", "Get a suggested workout with a clear length and reason for the choice."],
+      ["03", "Return to mistakes", "Review missed questions and follow the skills you are starting to master."],
+    ],
+    closing: "Start with your own answers.",
+    closingBody: "Try it free. Create an account when you want to save your results and continue your learning path.",
   };
-  return <main className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-900"><PublicHeader locale={locale} signedIn={Boolean(user)} />
-    <section className="border-b border-slate-200 bg-white"><div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 sm:px-6 sm:py-20 lg:grid-cols-[1.05fr_.95fr] lg:items-center"><div><p className="text-sm font-black uppercase tracking-[.16em] text-teal-700">{copy.eyebrow}</p><h1 className="mt-4 max-w-3xl text-4xl font-black leading-[1.08] tracking-tight sm:text-6xl">{copy.title}</h1><p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">{copy.body}</p><div className="mt-7 flex flex-col gap-3 sm:flex-row"><Link className="inline-flex min-h-12 items-center justify-center rounded-xl bg-teal-700 px-6 font-black text-white hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700" href={primary}>{user ? (vi ? "Tiếp tục học" : "Continue learning") : copy.primary}</Link>{!user ? <Link className="inline-flex min-h-12 items-center justify-center rounded-xl border border-slate-300 bg-white px-6 font-bold" href="/try#quick-practice">{copy.secondary}</Link> : null}</div><p className="mt-4 text-sm font-semibold text-slate-600">{copy.trust}</p><p className="mt-1 text-xs text-slate-500">{copy.note}</p></div><ProductPreview copy={copy} /></div></section>
-    <section className="bg-slate-900 text-white" id="how-it-works"><div className="mx-auto max-w-7xl px-5 py-14 sm:px-6 sm:py-20"><p className="text-sm font-black uppercase tracking-[.16em] text-teal-300">TOEICGym</p><h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">{copy.loop}</h2><p className="mt-4 max-w-2xl text-lg leading-8 text-slate-300">{copy.loopBody}</p><ol className="mt-9 grid gap-px overflow-hidden rounded-2xl bg-slate-700 sm:grid-cols-2 lg:grid-cols-6">{copy.steps.map((step, index) => <li className="bg-slate-900 p-5" key={step}><span className="text-sm font-black text-teal-300">0{index + 1}</span><h3 className="mt-3 font-black">{step}</h3>{index === 3 ? <p className="mt-2 text-xs leading-5 text-slate-400">{vi ? "Nhiều lần ôn đúng liên tiếp" : "Consecutive successful reviews"}</p> : null}</li>)}</ol></div></section>
-    <PricingSection compact locale={locale} products={getPaymentCatalog()} startHref={primary} />
-    <section className="px-5 pb-16 sm:px-6 sm:pb-20"><div className="mx-auto max-w-5xl rounded-3xl bg-teal-700 p-8 text-center text-white sm:p-12"><h2 className="text-3xl font-black sm:text-4xl">{copy.final}</h2><p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-teal-50">{copy.finalBody}</p><Link className="mt-7 inline-flex min-h-12 items-center rounded-xl bg-white px-6 font-black text-teal-800" href={primary}>{user ? (vi ? "Tiếp tục học" : "Continue learning") : copy.primary}</Link></div></section><PublicFooter locale={locale} />
-  </main>;
+  return (
+    <main className="marketing-page min-h-screen overflow-x-hidden">
+      <PublicHeader locale={locale} signedIn={Boolean(user)} />
+      <section className="marketing-hero">
+        <div className="marketing-hero-copy">
+          <p className="section-kicker">{copy.eyebrow}</p>
+          <h1>{copy.title}</h1>
+          <p className="marketing-lead">{copy.body}</p>
+          <div className="marketing-actions">
+            <Link className="button-primary" href={primary}>{user ? (vi ? "Tiếp tục học" : "Continue learning") : copy.primary}<span aria-hidden="true">↗</span></Link>
+            {!user && <Link className="button-text" href="/try#quick-practice">{copy.secondary} <span aria-hidden="true">→</span></Link>}
+          </div>
+          <p className="marketing-reassurance">{copy.reassurance}</p>
+          <p className="marketing-caveat">{copy.caveat}</p>
+        </div>
+        <div className="marketing-hero-image">
+          <Image src="/images/study-desk.webp" alt={vi ? "Góc bàn học với vở trắng và tai nghe" : "A quiet study desk with a blank notebook and headphones"} fill priority sizes="(max-width: 900px) 100vw, 48vw" />
+          <div className="marketing-image-caption">TOEIC GYM <span aria-hidden="true">/</span> {vi ? "Từng buổi học có mục đích" : "A purpose for every session"}</div>
+        </div>
+      </section>
+      <section className="marketing-example" aria-labelledby="example-title">
+        <div className="marketing-section-intro">
+          <p className="section-kicker">{vi ? "Sau bài đánh giá" : "After the diagnostic"}</p>
+          <h2 id="example-title">{copy.example}</h2>
+          <p>{copy.exampleBody}</p>
+        </div>
+        <ProductPreview copy={copy} />
+      </section>
+      <section className="marketing-method" id="how-it-works" aria-labelledby="method-title">
+        <div className="marketing-section-intro">
+          <p className="section-kicker">{vi ? "Cách học" : "How it works"}</p>
+          <h2 id="method-title">{copy.method}</h2>
+          <p>{copy.methodBody}</p>
+        </div>
+        <ol className="method-steps">{copy.steps.map(([number, title, detail]) => <li key={number}><span className="step-number">{number}</span><h3>{title}</h3><p>{detail}</p></li>)}</ol>
+      </section>
+      <PricingSection compact locale={locale} products={getPaymentCatalog()} startHref={primary} />
+      <section className="mx-auto max-w-7xl px-5 py-16 sm:px-6" aria-labelledby="learn-toeic-title">
+        <p className="section-kicker">{vi ? "Bắt đầu từ kiến thức nền" : "Start with the fundamentals"}</p>
+        <h2 className="mt-3 text-3xl font-black text-slate-900" id="learn-toeic-title">{vi ? "Chọn một chủ đề TOEIC để học ngay" : "Choose a TOEIC topic to study"}</h2>
+        <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            { href: "/toeic", title: vi ? "Tổng quan TOEIC" : "TOEIC overview", detail: vi ? "Hiểu từng Part và chọn điểm bắt đầu." : "Understand each Part and where to start." },
+            { href: "/toeic/part-5", title: "Part 5", detail: vi ? "Hoàn thành câu: ngữ pháp và từ vựng." : "Sentence completion, grammar and vocabulary." },
+            { href: "/toeic/part-5/word-form", title: "Word Form", detail: vi ? "Làm thử 5 câu có giải thích đáp án." : "Try five questions with explanations." },
+            { href: "/toeic/part-6", title: "Part 6", detail: vi ? "Điền từ và câu theo mạch đoạn văn." : "Complete a text using its context." },
+            { href: "/toeic/part-7", title: "Part 7", detail: vi ? "Tìm bằng chứng trong bài đọc." : "Find evidence in reading passages." },
+            { href: "/luyen-thi-toeic-online", title: vi ? "Luyện TOEIC online" : "Online TOEIC practice", detail: vi ? "Lập một buổi luyện ngắn, có mục tiêu." : "Plan a focused practice session." },
+          ].map((item) => <Link className="rounded-xl border border-slate-200 bg-white p-5 text-slate-900 shadow-sm transition hover:border-teal-700" href={item.href} key={item.href}><h3 className="text-lg font-black">{item.title} <span aria-hidden="true">→</span></h3><p className="mt-2 text-sm leading-6 text-slate-600">{item.detail}</p></Link>)}
+        </div>
+      </section>
+      <section className="marketing-closing">
+        <div><p className="section-kicker">{vi ? "Sẵn sàng khi bạn sẵn sàng" : "Start when you are ready"}</p><h2>{copy.closing}</h2><p>{copy.closingBody}</p></div>
+        <Link className="button-primary" href={primary}>{user ? (vi ? "Tiếp tục học" : "Continue learning") : copy.primary}<span aria-hidden="true">↗</span></Link>
+      </section>
+      <PublicFooter locale={locale} />
+    </main>
+  );
 }
 
-function ProductPreview({ copy }: { copy: { preview: string; sample: string; focus: string; next: string } }) { return <aside className="rounded-3xl border border-slate-200 bg-slate-50 p-5 shadow-xl shadow-slate-200/60 sm:p-7" aria-label={copy.preview}><p className="text-xs font-black uppercase tracking-[.16em] text-teal-700">{copy.sample}</p><h2 className="mt-2 text-2xl font-black">{copy.preview}</h2><div className="mt-5 grid gap-3 sm:grid-cols-2"><Score label="Listening" items={[["Part 2", 78], ["Part 3", 58]]}/><Score label="Reading" items={[["Part 5", 82], ["Part 7", 61]]}/></div><div className="mt-3 grid gap-3 sm:grid-cols-2"><div className="rounded-2xl bg-amber-50 p-4"><p className="text-xs font-black uppercase text-amber-800">{copy.focus}</p><p className="mt-2 font-black">Part 3 · Part 7</p></div><div className="rounded-2xl bg-slate-900 p-4 text-white"><p className="text-xs font-black uppercase text-teal-300">{copy.next}</p><p className="mt-2 font-black">Part 3 · Conversations</p></div></div><p className="mt-3 text-xs text-slate-500">Sample data / Dữ liệu minh họa</p></aside>; }
-function Score({ label, items }: { label: string; items: (readonly [string, number])[] }) { return <section className="rounded-2xl bg-white p-4"><h3 className="font-black">{label}</h3>{items.map(([name, value]) => <div className="mt-3" key={name}><div className="flex justify-between text-sm font-bold"><span>{name}</span><span>{value}%</span></div><div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-teal-600" style={{width: `${value}%`}} /></div></div>)}</section>; }
+function ProductPreview({ copy }: { copy: { sample: string; focus: string; next: string; nextValue: string } }) {
+  return <div className="result-sheet">
+    <div className="result-sheet-header"><span>TOEIC GYM / DIAGNOSTIC</span><span>{copy.sample}</span></div>
+    <div className="result-sheet-grid"><Score label="Listening" items={[["Part 2", 78], ["Part 3", 58]]} /><Score label="Reading" items={[["Part 5", 82], ["Part 7", 61]]} /></div>
+    <div className="result-sheet-next"><div><span>{copy.focus}</span><strong>Part 3 · Part 7</strong></div><div><span>{copy.next}</span><strong>{copy.nextValue}</strong></div></div>
+  </div>;
+}
+
+function Score({ label, items }: { label: string; items: (readonly [string, number])[] }) {
+  return <div className="result-score"><h3>{label}</h3>{items.map(([name, value]) => <div className="result-score-row" key={name}><div><span>{name}</span><strong>{value}%</strong></div><div className="result-bar"><span style={{ width: `${value}%` }} /></div></div>)}</div>;
+}

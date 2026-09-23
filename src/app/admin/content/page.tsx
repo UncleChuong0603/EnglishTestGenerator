@@ -91,7 +91,7 @@ export default async function Page() {
           </details>
         </section>
 
-        <section className="mt-8 rounded-3xl border border-orange-200 bg-gradient-to-br from-orange-50 via-white to-teal-50 p-5 sm:p-6">
+        <section className="admin-content-priority mt-8 border p-5 sm:p-6">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <p className="text-xs font-black uppercase tracking-[.18em] text-orange-700">{vi ? "Kế hoạch mở rộng ngân hàng" : "Question bank growth plan"}</p>

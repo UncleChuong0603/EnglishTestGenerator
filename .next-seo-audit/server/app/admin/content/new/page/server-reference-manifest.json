@@ -1,0 +1,27 @@
+{
+  "node": {
+    "40511040dfe83339012bc733f4f1c1e51418bf3961": {
+      "workers": {
+        "app/admin/content/new/page": {
+          "moduleId": 55799,
+          "async": true,
+          "codeHash": null
+        }
+      },
+      "exportedName": "setInterfaceLanguage",
+      "filename": "src/app/settings/actions.ts"
+    },
+    "403d793c9d42c38fd8d9505da7ca885d984f17b76a": {
+      "workers": {
+        "app/admin/content/new/page": {
+          "moduleId": 55799,
+          "async": true,
+          "codeHash": null
+        }
+      },
+      "exportedName": "createDraftAction",
+      "filename": "src/app/admin/content/actions.ts"
+    }
+  },
+  "edge": {}
+}

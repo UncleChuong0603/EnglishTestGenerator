@@ -1,0 +1,3 @@
+module.exports=[36316,a=>{"use strict";var b=a.i(7997);a.s(["default",0,function(){return(0,b.jsx)("main",{className:"min-h-screen bg-slate-50 p-6","aria-busy":"true",children:(0,b.jsxs)("div",{className:"mx-auto max-w-6xl animate-pulse",children:[(0,b.jsx)("div",{className:"h-12 w-52 rounded-xl bg-slate-200"}),(0,b.jsx)("div",{className:"mt-8 h-10 w-64 rounded-xl bg-slate-200"}),(0,b.jsx)("div",{className:"mt-6 space-y-2",children:Array.from({length:6},(a,c)=>(0,b.jsx)("div",{className:"h-14 rounded-xl bg-slate-200"},c))}),(0,b.jsx)("span",{className:"sr-only",children:"Đang tải nhật ký quản trị"})]})})}])},97813,function(a){a.n(a.i(36316))}];
+
+//# sourceMappingURL=src_app_admin_audit_loading_tsx_14qu01z._.js.map

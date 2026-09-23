@@ -183,36 +183,6 @@ export default async function MistakesPage({
                   : "No eligible questions are available for a review session."}
           </p>
         ) : null}
-        {!premium &&
-        preview.visible &&
-        preview.mistakes.unresolvedCount > 0 &&
-        query.error !== "usage_limit" ? (
-          <div className="mt-6">
-            <PremiumPreviewCard
-              locale={preferences.interfaceLanguage}
-              title={
-                vi
-                  ? `${preview.mistakes.unresolvedCount} lỗi chưa làm chủ`
-                  : `${preview.mistakes.unresolvedCount} unresolved mistakes`
-              }
-              body={
-                preview.mistakes.repeatedMistakeCount > 0
-                  ? vi
-                    ? `${preview.mistakes.repeatedMistakeCount} câu đã sai nhiều lần. Premium có thể ưu tiên chúng trước.`
-                    : `${preview.mistakes.repeatedMistakeCount} questions were missed repeatedly. Premium can prioritize them first.`
-                  : vi
-                    ? "Premium Smart Review có thể sắp xếp các lỗi cần ôn trước."
-                    : "Premium Smart Review can prioritize what to review first."
-              }
-              values={
-                preview.mistakes.repeatedMistakeCount > 0
-                  ? ["smartReview", "smartPriority"]
-                  : ["smartReview"]
-              }
-              cta={vi ? "Xem Smart Review" : "See Smart Review"}
-            />
-          </div>
-        ) : null}
         {total > 0 ? (
           <section
             className="mt-7 rounded-2xl border border-slate-200 bg-white p-5"
@@ -490,6 +460,36 @@ export default async function MistakesPage({
             ))}
           </div>
         )}
+        {!premium &&
+        preview.visible &&
+        preview.mistakes.unresolvedCount > 0 &&
+        query.error !== "usage_limit" ? (
+          <div className="mt-6">
+            <PremiumPreviewCard
+              locale={preferences.interfaceLanguage}
+              title={
+                vi
+                  ? `${preview.mistakes.unresolvedCount} lỗi chưa làm chủ`
+                  : `${preview.mistakes.unresolvedCount} unresolved mistakes`
+              }
+              body={
+                preview.mistakes.repeatedMistakeCount > 0
+                  ? vi
+                    ? `${preview.mistakes.repeatedMistakeCount} câu đã sai nhiều lần. Premium có thể ưu tiên chúng trước.`
+                    : `${preview.mistakes.repeatedMistakeCount} questions were missed repeatedly. Premium can prioritize them first.`
+                  : vi
+                    ? "Premium Smart Review có thể sắp xếp các lỗi cần ôn trước."
+                    : "Premium Smart Review can prioritize what to review first."
+              }
+              values={
+                preview.mistakes.repeatedMistakeCount > 0
+                  ? ["smartReview", "smartPriority"]
+                  : ["smartReview"]
+              }
+              cta={vi ? "Xem Smart Review" : "See Smart Review"}
+            />
+          </div>
+        ) : null}
       </div>
     </main>
   );

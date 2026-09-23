@@ -1,6 +1,9 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { SignInForm } from "@/components/auth/sign-in-form";
 import { getCookieLanguage, getTranslations } from "@/lib/i18n/get-translations";
+
+export const metadata: Metadata = { title: "Đăng nhập", robots: { index: false, follow: true } };
 
 export default async function SignInPage() {
   const locale = await getCookieLanguage();

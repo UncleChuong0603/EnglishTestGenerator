@@ -1,0 +1,60 @@
+{
+  "node": {
+    "40511040dfe83339012bc733f4f1c1e51418bf3961": {
+      "workers": {
+        "app/admin/content/posts/[id]/page": {
+          "moduleId": 33691,
+          "async": true,
+          "codeHash": null
+        }
+      },
+      "exportedName": "setInterfaceLanguage",
+      "filename": "src/app/settings/actions.ts"
+    },
+    "4080c817483013249ec43d7eaada27bb0c9a7933fb": {
+      "workers": {
+        "app/admin/content/posts/[id]/page": {
+          "moduleId": 33691,
+          "async": true,
+          "codeHash": null
+        }
+      },
+      "exportedName": "savePostAction",
+      "filename": "src/app/admin/content/posts/actions.ts"
+    },
+    "406515062c49a08fce25dd159457de08c870c88d9a": {
+      "workers": {
+        "app/admin/content/posts/[id]/page": {
+          "moduleId": 33691,
+          "async": true,
+          "codeHash": null
+        }
+      },
+      "exportedName": "unpublishPostAction",
+      "filename": "src/app/admin/content/posts/actions.ts"
+    },
+    "408da218ce0a2313f9ef9cc1c813740ca8d9c8ee6b": {
+      "workers": {
+        "app/admin/content/posts/[id]/page": {
+          "moduleId": 33691,
+          "async": true,
+          "codeHash": null
+        }
+      },
+      "exportedName": "deletePostAction",
+      "filename": "src/app/admin/content/posts/actions.ts"
+    },
+    "40b726553bedbac2ba20220629328fcb34ede9864b": {
+      "workers": {
+        "app/admin/content/posts/[id]/page": {
+          "moduleId": 33691,
+          "async": true,
+          "codeHash": null
+        }
+      },
+      "exportedName": "publishPostAction",
+      "filename": "src/app/admin/content/posts/actions.ts"
+    }
+  },
+  "edge": {}
+}

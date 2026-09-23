@@ -13,8 +13,8 @@ import { PersonalizedPremiumSummary } from "@/components/premium/premium-preview
 import { PUBLIC_ACTIVATION_HREF } from "@/lib/public-product";
 
 export const metadata: Metadata = {
-  title: "Pricing",
-  description: "Compare Free and Premium TOEICGym plans.",
+  title: "Bảng giá TOEIC GYM",
+  description: "So sánh gói Free và Premium của TOEIC GYM để chọn cách luyện TOEIC phù hợp với bạn.",
   alternates: { canonical: "/pricing" },
 };
 export default async function PricingPage() {

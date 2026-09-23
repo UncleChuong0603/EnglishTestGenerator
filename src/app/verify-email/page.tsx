@@ -1,6 +1,9 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { resendVerificationAction, verifyEmailAction } from "@/app/auth/actions";
 import { AuthAlert, AuthShell, AuthSuccessState, fieldClassName, linkClassName, primaryButtonClassName } from "@/components/auth/auth-ui";
+
+export const metadata: Metadata = { title: "Xác minh email", robots: { index: false, follow: false } };
 
 export default async function VerifyEmailPage({ searchParams }: { searchParams: Promise<{ token?: string; error?: string; resent?: string }> }) {
   const params = await searchParams;

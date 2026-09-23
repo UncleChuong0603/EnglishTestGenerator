@@ -1,0 +1,60 @@
+{
+  "node": {
+    "40511040dfe83339012bc733f4f1c1e51418bf3961": {
+      "workers": {
+        "app/admin/users/[userId]/page": {
+          "moduleId": 26466,
+          "async": true,
+          "codeHash": null
+        }
+      },
+      "exportedName": "setInterfaceLanguage",
+      "filename": "src/app/settings/actions.ts"
+    },
+    "40370a958b8f6cf39084c785f939e05c92cd6652e9": {
+      "workers": {
+        "app/admin/users/[userId]/page": {
+          "moduleId": 26466,
+          "async": true,
+          "codeHash": null
+        }
+      },
+      "exportedName": "grantPremiumAction",
+      "filename": "src/app/admin/actions.ts"
+    },
+    "405549a09ce77fbecbefdd80403db9142d2dfb418c": {
+      "workers": {
+        "app/admin/users/[userId]/page": {
+          "moduleId": 26466,
+          "async": true,
+          "codeHash": null
+        }
+      },
+      "exportedName": "reactivateUserAction",
+      "filename": "src/app/admin/actions.ts"
+    },
+    "4094a32259087a55367d220fde4439bb123c10e0a5": {
+      "workers": {
+        "app/admin/users/[userId]/page": {
+          "moduleId": 26466,
+          "async": true,
+          "codeHash": null
+        }
+      },
+      "exportedName": "suspendUserAction",
+      "filename": "src/app/admin/actions.ts"
+    },
+    "40c667029bf4e917d0cf2894a2fc8d2359bb4227ea": {
+      "workers": {
+        "app/admin/users/[userId]/page": {
+          "moduleId": 26466,
+          "async": true,
+          "codeHash": null
+        }
+      },
+      "exportedName": "revokePremiumAction",
+      "filename": "src/app/admin/actions.ts"
+    }
+  },
+  "edge": {}
+}

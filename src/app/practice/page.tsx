@@ -117,7 +117,39 @@ export default async function PracticePage({ searchParams }: Props) {
             {errorMessage}
           </p>
         ) : null}
-        <section className="mt-5 rounded-3xl border border-slate-200 bg-white p-6 sm:p-9">
+        <header className="mt-8">
+          <p className="text-sm font-bold uppercase tracking-[.18em] text-teal-700">
+            {t.practiceConfig.eyebrow}
+          </p>
+          <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
+            {t.practiceConfig.title}
+          </h1>
+          <p className="mt-3 max-w-2xl leading-7 text-slate-600">
+            {t.practiceConfig.intro}
+          </p>
+        </header>
+        {recommendation ? (
+          <div className="mt-8">
+            <RecommendationCard
+              dark
+              locale={locale}
+              recommendation={recommendation}
+            />
+          </div>
+        ) : null}
+        <section
+          className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-9"
+          id="choose-focus"
+        >
+          <p className="text-sm font-bold uppercase tracking-wider text-teal-700">
+            {t.practiceConfig.choose}
+          </p>
+          <h2 className="mt-2 text-2xl font-black">
+            {t.practiceConfig.configure}
+          </h2>
+          <PracticeConfigurator locale={locale} />
+        </section>
+        <section className="practice-listening mt-8 rounded-3xl border border-slate-200 bg-white p-6 sm:p-9">
           <p className="text-sm font-bold uppercase tracking-wider text-teal-700">
             {t.listening.title}
           </p>
@@ -157,38 +189,6 @@ export default async function PracticePage({ searchParams }: Props) {
               );
             })}
           </div>
-        </section>
-        <header className="mt-8">
-          <p className="text-sm font-bold uppercase tracking-[.18em] text-teal-700">
-            {t.practiceConfig.eyebrow}
-          </p>
-          <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
-            {t.practiceConfig.title}
-          </h1>
-          <p className="mt-3 max-w-2xl leading-7 text-slate-600">
-            {t.practiceConfig.intro}
-          </p>
-        </header>
-        {recommendation ? (
-          <div className="mt-8">
-            <RecommendationCard
-              dark
-              locale={locale}
-              recommendation={recommendation}
-            />
-          </div>
-        ) : null}
-        <section
-          className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-9"
-          id="choose-focus"
-        >
-          <p className="text-sm font-bold uppercase tracking-wider text-teal-700">
-            {t.practiceConfig.choose}
-          </p>
-          <h2 className="mt-2 text-2xl font-black">
-            {t.practiceConfig.configure}
-          </h2>
-          <PracticeConfigurator locale={locale} />
         </section>
       </div>
     </main>

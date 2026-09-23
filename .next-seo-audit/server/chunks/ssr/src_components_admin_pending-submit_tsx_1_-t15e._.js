@@ -1,0 +1,3 @@
+module.exports=[32098,a=>{"use strict";var b=a.i(87924),c=a.i(35112);a.s(["PendingSubmit",0,function({children:a,pendingLabel:d="Đang xử lý…",className:e,confirmMessage:f}){let{pending:g}=(0,c.useFormStatus)();return(0,b.jsx)("button",{type:"submit",disabled:g,onClick:a=>{f&&!window.confirm(f)&&a.preventDefault()},className:`${e??""} disabled:cursor-wait disabled:opacity-50`,children:g?d:a})}])}];
+
+//# sourceMappingURL=src_components_admin_pending-submit_tsx_1_-t15e._.js.map
