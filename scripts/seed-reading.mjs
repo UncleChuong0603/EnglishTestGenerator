@@ -72,6 +72,11 @@ function buildRows() {
   return { setRows, passageRows, questionRows, optionRows, solutionRows };
 }
 
+function part5GroupId(questionId) {
+  const hex = createHash("md5").update(`legacy-part5-group:${questionId}`).digest("hex");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
 function withoutPart5(rows) {
   const questionIds = new Set(rows.questionRows.filter((row) => row.toeic_part !== 5).map((row) => row.id));
   return {
@@ -98,6 +103,32 @@ function form25Only(rows) {
   };
 }
 
+async function attachPart5Groups(client, rows) {
+  const part5 = rows.questionRows.filter((row) => row.toeic_part === 5);
+  if (!part5.length) return;
+  const existing = await client.query(
+    "select id, passage_set_id, provenance, published_at from questions where id = any($1::uuid[])",
+    [part5.map((row) => row.id)],
+  );
+  const byId = new Map(existing.rows.map((row) => [row.id, row]));
+  for (const question of part5) {
+    const current = byId.get(question.id);
+    if (current?.passage_set_id) {
+      question.passage_set_id = current.passage_set_id;
+      continue;
+    }
+    const groupId = part5GroupId(question.id);
+    question.passage_set_id = groupId;
+    rows.setRows.push({
+      id: groupId, toeic_part: 5, skill_area: "READING", set_type: "standalone",
+      title: `TOEICGym Part 5 ${question.metadata.seed_key}`,
+      metadata: { seed_key: question.metadata.seed_key, source: SOURCE, question_id: question.id },
+      status: question.status, provenance: current?.provenance ?? "SEEDED",
+      published_at: question.status === "published" ? current?.published_at ?? new Date() : null,
+    });
+  }
+}
+
 async function verifyDatabase(client, rows) {
   const counts = {
     sets: await countIds(client, "passage_sets", rows.setRows.map((r) => r.id)), passages: await countIds(client, "passages", rows.passageRows.map((r) => r.id)), questions: await countIds(client, "questions", rows.questionRows.map((r) => r.id)), options: await countIds(client, "question_options", rows.optionRows.map((r) => r.id)), solutions: await countIds(client, "question_solutions", rows.solutionRows.map((r) => r.question_id), "question_id"),
@@ -107,6 +138,23 @@ async function verifyDatabase(client, rows) {
     options: rows.optionRows.length, solutions: rows.solutionRows.length,
   };
   for (const key of Object.keys(expected)) if (counts[key] !== expected[key]) throw new Error(`Database ${key}: expected ${expected[key]}, found ${counts[key]}.`);
+
+  const part5 = rows.questionRows.filter((row) => row.toeic_part === 5);
+  if (part5.length) {
+    const grouped = await client.query(
+      `select q.id, q.passage_set_id, ps.status as group_status
+       from questions q left join passage_sets ps on ps.id = q.passage_set_id
+       where q.id = any($1::uuid[])`,
+      [part5.map((row) => row.id)],
+    );
+    const byId = new Map(grouped.rows.map((row) => [row.id, row]));
+    for (const question of part5) {
+      const actual = byId.get(question.id);
+      if (actual?.passage_set_id !== question.passage_set_id || actual.group_status !== question.status) {
+        throw new Error(`Part 5 question ${question.id} is missing its matching content group.`);
+      }
+    }
+  }
 
   console.log(`Database verification passed: ${counts.questions} questions, ${counts.options} options, ${counts.passages} passages, and ${counts.sets} passage sets.`);
 }
@@ -122,16 +170,36 @@ async function run() {
     return;
   }
   const pool = createPool(); const client = await pool.connect();
-  const existingPart5 = Number((await client.query(`select count(*)::int as count from questions where skill_area='READING' and toeic_part=5 and status='published'`)).rows[0].count);
-  if (process.argv.includes("--skip-part5") || (!process.argv.includes("--form25-only") && existingPart5 >= 300 && !process.argv.includes("--include-part5"))) {
-    rows = withoutPart5(rows);
-    console.log(`Part 5 upsert skipped because the database already has ${existingPart5} published questions.`);
+  try {
+    const existingPart5 = Number((await client.query(`select count(*)::int as count from questions where skill_area='READING' and toeic_part=5 and status='published'`)).rows[0].count);
+    if (process.argv.includes("--skip-part5") || (!process.argv.includes("--form25-only") && existingPart5 >= 300 && !process.argv.includes("--include-part5"))) {
+      rows = withoutPart5(rows);
+      console.log(`Part 5 upsert skipped because the database already has ${existingPart5} published questions.`);
+    }
+    if (process.argv.includes("--verify-only")) {
+      await attachPart5Groups(client, rows);
+      await verifyDatabase(client, rows);
+      return;
+    }
+    await client.query("begin");
+    try {
+      await attachPart5Groups(client, rows);
+      await upsertRows(client, "passage_sets", rows.setRows, "id");
+      await upsertRows(client, "passages", rows.passageRows, "id");
+      await upsertRows(client, "questions", rows.questionRows, "id");
+      await upsertRows(client, "question_options", rows.optionRows, "id");
+      await upsertRows(client, "question_solutions", rows.solutionRows, "question_id");
+      await verifyDatabase(client, rows);
+      await client.query("commit");
+      console.log("Idempotent Reading seed upsert completed.");
+    } catch (error) {
+      await client.query("rollback");
+      throw error;
+    }
+  } finally {
+    client.release();
+    await pool.end();
   }
-  if (!process.argv.includes("--verify-only")) {
-    await client.query("begin"); await upsertRows(client, "passage_sets", rows.setRows, "id"); await upsertRows(client, "passages", rows.passageRows, "id"); await upsertRows(client, "questions", rows.questionRows, "id"); await upsertRows(client, "question_options", rows.optionRows, "id"); await upsertRows(client, "question_solutions", rows.solutionRows, "question_id"); await client.query("commit");
-    console.log("Idempotent Reading seed upsert completed.");
-  }
-  await verifyDatabase(client, rows); client.release(); await pool.end();
 }
 
 run().catch((error) => { console.error(error instanceof Error ? error.message : error); process.exitCode = 1; });

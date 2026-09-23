@@ -6,7 +6,25 @@ export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = getSiteUrl();
-  const staticPages: MetadataRoute.Sitemap = ["", "/toeic", "/luyen-thi-toeic-online", "/toeic/part-5", "/toeic/part-5/word-form", "/toeic/part-6", "/toeic/part-7", "/blog", "/pricing", "/try", "/diagnostic", "/support", "/privacy", "/terms"].map((path) => ({
+  const staticPaths = [
+    "",
+    "/toeic",
+    "/luyen-thi-toeic-online",
+    "/toeic/part-5",
+    "/toeic/part-5/word-form",
+    "/toeic/part-6",
+    "/toeic/part-7",
+    "/blog",
+    "/pricing",
+    "/try",
+    "/diagnostic",
+    "/challenge",
+    "/challenge/part-5",
+    "/support",
+    "/privacy",
+    "/terms",
+  ];
+  const staticPages: MetadataRoute.Sitemap = staticPaths.map((path) => ({
     url: `${base}${path}`,
   }));
   const posts = await publishedSitemapRows();
