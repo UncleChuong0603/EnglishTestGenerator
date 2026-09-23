@@ -174,8 +174,9 @@ async function persistReadingSelection(userId: string, config: PracticeConfig, s
 export async function createPreferUnseenReadingSession(userId: string, config: PracticeConfig) {
   return persistReadingSelection(userId, config, await selectPreferUnseenReading(userId, config), "prefer_unseen");
 }
-export async function createReadingPracticeSession(userId: string, config: PracticeConfig) {
+export async function createReadingPracticeSession(userId: string, config: PracticeConfig, requireExactCount = false) {
   const selection = await selectReadingPractice(config); const part = partForMode(config.mode);
+  if (requireExactCount && selection.actualQuestionCount !== config.targetQuestionCount) throw new Error("NOT_ENOUGH_QUESTIONS");
   const sessionId = randomUUID(); const now = new Date();
   return db.transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${userId}:practice`}, 0))`);
@@ -190,13 +191,14 @@ export async function createReadingPracticeSession(userId: string, config: Pract
   });
 }
 
-export async function createGuestReadingPracticeSession(guestOwnerHash: string) {
-  const config: PracticeConfig = { mode: "mixed_reading", targetQuestionCount: 10, source: "custom" };
+export async function createGuestReadingPracticeSession(guestOwnerHash: string, mode: "mixed_reading" | "part_5" = "mixed_reading") {
+  const config: PracticeConfig = { mode, targetQuestionCount: 10, source: "custom" };
   const selection = await selectReadingPractice(config);
+  if (mode === "part_5" && selection.actualQuestionCount !== 10) throw new Error("NOT_ENOUGH_QUESTIONS");
   return db.transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${guestOwnerHash}:guest-practice`}, 0))`);
     await tx.update(practiceSessions).set({ status: "abandoned" }).where(and(eq(practiceSessions.guestOwnerHash, guestOwnerHash), eq(practiceSessions.status, "in_progress"), ne(practiceSessions.source, "diagnostic")));
-    const [session] = await tx.insert(practiceSessions).values({ guestOwnerHash, userId: null, practiceType: config.mode, part: null, questionCount: selection.actualQuestionCount, source: "guest", requestedQuestionCount: 10, expiresAt: new Date(Date.now() + GUEST_TTL_DAYS * 86_400_000) }).returning({ id: practiceSessions.id });
+    const [session] = await tx.insert(practiceSessions).values({ guestOwnerHash, userId: null, practiceType: config.mode, part: mode === "part_5" ? 5 : null, questionCount: selection.actualQuestionCount, source: "guest", requestedQuestionCount: 10, expiresAt: new Date(Date.now() + GUEST_TTL_DAYS * 86_400_000) }).returning({ id: practiceSessions.id });
     const setByQuestion = new Map(selection.units.flatMap((unit) => unit.questionIds.map((id) => [id, unit.part === 5 ? null : unit.id] as const)));
     await tx.insert(practiceSessionQuestions).values(selection.questionIds.map((questionId, index) => ({ sessionId: session.id, questionId, displayOrder: index + 1, passageSetId: setByQuestion.get(questionId) ?? null })));
     return session.id;

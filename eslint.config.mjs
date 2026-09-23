@@ -7,6 +7,8 @@ export default defineConfig([
   ...nextTs,
   globalIgnores([
     ".next/**",
+    ".next-seo-audit/**",
+    ".tmp/**",
     ".npm-cache/**",
     "node_modules/**",
     "coverage/**",

@@ -11,6 +11,7 @@
 
 # Test output
 /coverage/
+/test-results/
 /.content-generated/
 /.npm-cache/
 /.tmp/

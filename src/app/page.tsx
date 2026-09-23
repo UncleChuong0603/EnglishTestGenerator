@@ -14,13 +14,13 @@ export default async function Home() {
   const user = await getCurrentUser();
   const locale = (await getPreferences(user?.id)).interfaceLanguage;
   const vi = locale === "vi";
-  const primary = user ? "/dashboard" : "/try";
+  const primary = user ? "/dashboard" : "/challenge/part-5";
   const copy = vi ? {
     eyebrow: "Luyện TOEIC có hướng đi",
     title: "Biết mình đang ở đâu. Biết hôm nay nên học gì.",
-    body: "Làm một bài đánh giá ngắn để xem bạn đang vững ở đâu trong Listening và Reading. Từ kết quả đó, TOEIC GYM gợi ý một bài luyện vừa sức và giúp bạn ôn lại những câu đã sai.",
-    primary: "Bắt đầu đánh giá miễn phí", secondary: "Thử vài câu trước",
-    reassurance: "Không cần tài khoản · Khoảng 15–20 phút · Xem kết quả ngay",
+    body: "Bắt đầu với 10 câu Part 5, xem kết quả thật và lời giải cho câu sai. Khi lưu kết quả, TOEIC GYM gợi ý bài luyện tiếp theo từ lịch sử học của bạn.",
+    primary: "Thử thách Part 5 miễn phí", secondary: "Khám phá bài luyện khác",
+    reassurance: "10 câu Part 5 · Không cần tài khoản · Xem kết quả ngay",
     caveat: "Kết quả là độ chính xác của bài làm, không phải điểm TOEIC chính thức hay dự đoán điểm.",
     example: "Một kết quả dễ hiểu", exampleBody: "Bạn nhìn thấy Part nào cần thêm thời gian và có một bước luyện tiếp theo.",
     sample: "Ví dụ minh họa, không phải kết quả của bạn", focus: "Nên tập trung",
@@ -37,9 +37,9 @@ export default async function Home() {
   } : {
     eyebrow: "TOEIC practice with direction",
     title: "Know where you are. Know what to study today.",
-    body: "Take a short diagnostic to see how you are doing in Listening and Reading. TOEIC GYM then suggests a manageable workout and helps you revisit the questions you missed.",
-    primary: "Start a free diagnostic", secondary: "Try a few questions first",
-    reassurance: "No account needed · About 15–20 minutes · Immediate results",
+    body: "Start with 10 Part 5 questions, see your real result and review missed answers. When you save the result, TOEIC GYM suggests your next workout from your learning history.",
+    primary: "Try the free Part 5 challenge", secondary: "Explore other practice",
+    reassurance: "10 Part 5 questions · No account needed · Immediate results",
     caveat: "Results show your raw accuracy, not an official TOEIC score or score prediction.",
     example: "A result you can use", exampleBody: "See which Part needs more time and what to practice next.",
     sample: "Illustration only, not your result", focus: "Focus area",
@@ -76,7 +76,7 @@ export default async function Home() {
       </section>
       <section className="marketing-example" aria-labelledby="example-title">
         <div className="marketing-section-intro">
-          <p className="section-kicker">{vi ? "Sau bài đánh giá" : "After the diagnostic"}</p>
+          <p className="section-kicker">{vi ? "Khi tiếp tục luyện" : "As you keep practicing"}</p>
           <h2 id="example-title">{copy.example}</h2>
           <p>{copy.exampleBody}</p>
         </div>
