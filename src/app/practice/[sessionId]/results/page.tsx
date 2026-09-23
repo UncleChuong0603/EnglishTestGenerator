@@ -305,21 +305,23 @@ export default async function PracticeResultsPage({
           <h2 className="mt-2 text-2xl font-black">{t.results.review}</h2>
           <nav
             aria-label={t.results.reviewNavigation}
-            className="mt-4 flex gap-2 overflow-x-auto pb-2"
+            className="mt-4 overflow-x-auto pb-2"
           >
-            {result.questions.map((question) => (
-              <a
-                className={`inline-flex h-10 min-w-10 shrink-0 items-center justify-center rounded-lg border px-2 text-sm font-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 ${question.isCorrect ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-red-200 bg-red-50 text-red-800"}`}
-                href={`#review-question-${question.number}`}
-                key={question.id}
-              >
-                <span className="sr-only">{t.practice.question} </span>
-                {question.number}{" "}
-                <span aria-hidden="true" className="ml-1">
-                  {question.isCorrect ? "✓" : "✕"}
-                </span>
-              </a>
-            ))}
+            <div className="flex w-max min-w-full justify-center gap-2">
+              {result.questions.map((question) => (
+                <a
+                  className={`inline-flex h-10 min-w-10 shrink-0 items-center justify-center rounded-lg border px-2 text-sm font-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 ${question.isCorrect ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-red-200 bg-red-50 text-red-800"}`}
+                  href={`#review-question-${question.number}`}
+                  key={question.id}
+                >
+                  <span className="sr-only">{t.practice.question} </span>
+                  {question.number}{" "}
+                  <span aria-hidden="true" className="ml-1">
+                    {question.isCorrect ? "✓" : "✕"}
+                  </span>
+                </a>
+              ))}
+            </div>
           </nav>
         </div>
         <div className="mt-4 space-y-6 pb-12">
