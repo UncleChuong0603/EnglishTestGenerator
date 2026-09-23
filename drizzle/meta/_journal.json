@@ -246,6 +246,27 @@
       "when": 1792281600000,
       "tag": "0034_square_tinkerer",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1792368000000,
+      "tag": "0035_windy_sir_ram",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1792454400000,
+      "tag": "0036_clever_falcon",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1792540800000,
+      "tag": "0037_kind_karma",
+      "breakpoints": true
     }
   ]
 }

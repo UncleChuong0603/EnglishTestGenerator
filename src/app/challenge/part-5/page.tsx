@@ -19,7 +19,10 @@ export default async function Part5ChallengePage({ searchParams }: PageProps<"/c
   return <main className="min-h-screen bg-[#f7f6f1] text-slate-900">
     <PublicHeader locale={locale} signedIn={Boolean(user)} />
     <section className="mx-auto max-w-5xl px-5 py-10 sm:px-6 sm:py-20">
-      <Link className="text-sm font-bold text-teal-800 underline underline-offset-4" href="/challenge">← Challenge</Link>
+      <nav aria-label={vi ? "Điều hướng thử thách" : "Challenge navigation"} className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-bold text-teal-800">
+        <Link className="underline underline-offset-4" href="/">← {vi ? "Trang chủ" : "Home"}</Link>
+        <Link className="underline underline-offset-4" href="/challenge">Challenge</Link>
+      </nav>
       <p className="mt-8 text-sm font-black uppercase tracking-[.18em] text-teal-800">TOEIC GYM / PART 5 CHALLENGE</p>
       <h1 className="mt-4 max-w-3xl text-4xl font-black leading-tight sm:text-6xl">{vi ? "Bạn làm đúng bao nhiêu trong 10 câu Part 5?" : "How many of 10 Part 5 questions can you answer?"}</h1>
       <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">{vi ? "10 câu hoàn thành câu về ngữ pháp và từ vựng. Làm bài trước, xem kết quả thật và giải thích đầy đủ sau khi nộp." : "Answer 10 grammar and vocabulary questions. See your real result and full explanations after submission."}</p>

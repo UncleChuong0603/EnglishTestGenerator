@@ -1,5 +1,5 @@
 export const POST_STATUSES = ["DRAFT", "PUBLISHED", "UNPUBLISHED"] as const;
-export const POST_CATEGORIES = ["TOEIC_STRATEGY", "LISTENING", "READING", "GRAMMAR", "VOCABULARY", "STUDY_PLAN", "EXAM_TIPS"] as const;
+export const POST_CATEGORIES = ["TOEIC_STRATEGY", "LISTENING", "READING", "GRAMMAR", "VOCABULARY", "STUDY_PLAN", "EXAM_TIPS", "EXAM_REVIEW"] as const;
 export type PostStatus = (typeof POST_STATUSES)[number];
 export type PostCategory = (typeof POST_CATEGORIES)[number];
 
@@ -8,6 +8,7 @@ export const CATEGORY_LABELS: Record<PostCategory, { vi: string; en: string }> =
   READING: { vi: "Reading", en: "Reading" }, GRAMMAR: { vi: "Ngữ pháp", en: "Grammar" },
   VOCABULARY: { vi: "Từ vựng", en: "Vocabulary" }, STUDY_PLAN: { vi: "Kế hoạch học", en: "Study Plan" },
   EXAM_TIPS: { vi: "Mẹo thi", en: "Exam Tips" },
+  EXAM_REVIEW: { vi: "Sửa đề thi", en: "Test Review" },
 };
 
 export function slugify(value: string) {
@@ -20,6 +21,7 @@ export function safeHref(value: string) {
   return (href.startsWith("/") && !href.startsWith("//")) || href.startsWith("#") || /^https?:\/\//i.test(href) || /^mailto:/i.test(href) ? href : null;
 }
 export const STATUS_LABELS: Record<PostStatus,string> = { DRAFT:"Bản nháp", PUBLISHED:"Đã xuất bản", UNPUBLISHED:"Chưa xuất bản" };
+export function isEditorialVisible(cmsStatus?: PostStatus) { return cmsStatus === undefined || cmsStatus === "DRAFT"; }
 export function validCanonical(path:string) { return !path || /^\/(?!\/)[a-z0-9/_-]*$/.test(path); }
 export function validatePost(input: PostInput, publishing = false) {
   const errors: string[] = [];

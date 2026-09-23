@@ -2,7 +2,7 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { attemptAnswers, fullMockAnswers, fullMockRuns, passageSets, practiceSessionQuestions, practiceSessions, questionOptions, questionSolutions } from "@/db/schema";
+import { attemptAnswers, fullMockAnswers, fullMockFormQuestions, fullMockRuns, passageSets, practiceSessionQuestions, practiceSessions, questionOptions, questionSolutions, questions } from "@/db/schema";
 import { consumeUsage } from "@/lib/entitlements/service";
 import { awardCompletedLearning } from "@/lib/gamification/award";
 import { reconcileMasteryAnswers } from "@/lib/mastery/persistence";
@@ -37,6 +37,34 @@ async function loadEligibleUnits() {
   return { listening: [...p1, ...p2, ...p3, ...p4], reading, raw: { p1, p2, p3, p4, r5 } };
 }
 
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+async function loadPlannedFullMock(tx: Tx, formNumber: number): Promise<{ configured: boolean; form: MockForm | null }> {
+  const rows = await tx.select({
+    position: fullMockFormQuestions.position, part: fullMockFormQuestions.part, questionId: fullMockFormQuestions.questionId,
+    questionPart: questions.toeicPart, questionStatus: questions.status, setId: questions.passageSetId,
+    setType: passageSets.setType, setStatus: passageSets.status,
+  }).from(fullMockFormQuestions).innerJoin(questions, eq(questions.id, fullMockFormQuestions.questionId))
+    .leftJoin(passageSets, eq(passageSets.id, questions.passageSetId))
+    .where(eq(fullMockFormQuestions.formNumber, formNumber)).orderBy(asc(fullMockFormQuestions.position));
+  if (!rows.length) {
+    const any = await tx.select({ number: fullMockFormQuestions.formNumber }).from(fullMockFormQuestions).limit(1);
+    return { configured: any.length > 0, form: null };
+  }
+  if (rows.length !== 200 || rows.some((row, index) => row.position !== index + 1 || row.part !== row.questionPart || row.questionStatus !== "published" || (row.part !== 5 && row.setStatus !== "published"))) return { configured: true, form: null };
+  const units = new Map<string, MockUnit>();
+  for (const row of rows) {
+    const id = row.part === 5 ? row.questionId : row.setId;
+    const setType = row.part === 1 ? "photographs" : row.part === 2 ? "question_response" : row.part === 5 ? "standalone" : row.setType;
+    if (!id || !setType || row.part < 1 || row.part > 7) return { configured: true, form: null };
+    const unit = units.get(id) ?? { id, part: row.part as MockUnit["part"], setType: setType as MockUnit["setType"], questionIds: [] };
+    unit.questionIds.push(row.questionId);
+    units.set(id, unit);
+  }
+  const form = assembleFullMock([...units.values()]);
+  return { configured: true, form: form?.questionIds.length === 200 ? form : null };
+}
+
 export async function getMockHubReadiness(): Promise<MockHubReadiness> {
   const { listening, reading, raw } = await loadEligibleUnits(); const listeningForm = assembleListeningMock(listening); const readingForm = assembleReadingMock(reading); const fullForm = assembleFullMock([...listening, ...reading]);
   const p7s = reading.filter((u) => u.part === 7 && u.setType === "single"); const p7m = reading.filter((u) => u.part === 7 && u.setType !== "single");
@@ -57,13 +85,24 @@ const modeParts = (mode: MockMode) => mode === "LISTENING" ? [1,2,3,4] as const 
 export async function createMockRun(userId: string, mode: MockMode): Promise<{ ok: true; runId: string; resumed: boolean } | { ok: false; reason: "CONTENT_NOT_READY" }> {
   const active = await getActiveMock(userId, mode); if (active) return { ok: true, runId: active.id, resumed: true };
   const readiness = await getMockHubReadiness(); const selected = mode === "LISTENING" ? readiness.listening : mode === "READING" ? readiness.reading : readiness.full;
-  if (!selected.ready || !selected.form) return { ok: false, reason: "CONTENT_NOT_READY" }; const form = selected.form;
+  if (!selected.ready || !selected.form) return { ok: false, reason: "CONTENT_NOT_READY" }; const fallbackForm = selected.form;
   const now = new Date(), runId = randomUUID(), section = mode === "READING" ? "READING" : "LISTENING";
   return db.transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${userId}:mock:${mode}`}, 0))`);
     const [old] = await tx.select().from(fullMockRuns).where(and(eq(fullMockRuns.userId, userId), eq(fullMockRuns.mode, mode), inArray(fullMockRuns.status, ["LISTENING", "READING"]))).limit(1); if (old) return { ok: true as const, runId: old.id, resumed: true };
+    let form = fallbackForm;
+    let formNumber: number | null = null;
+    if (mode === "FULL") {
+      const [previous] = await tx.select({ formNumber: fullMockRuns.formNumber }).from(fullMockRuns)
+        .where(and(eq(fullMockRuns.userId, userId), eq(fullMockRuns.mode, "FULL")))
+        .orderBy(desc(fullMockRuns.createdAt)).limit(1);
+      const next = ((previous?.formNumber ?? 0) % 25) + 1;
+      const planned = await loadPlannedFullMock(tx, next);
+      if (planned.configured && !planned.form) return { ok: false as const, reason: "CONTENT_NOT_READY" as const };
+      if (planned.form) { form = planned.form; formNumber = next; }
+    }
     await consumeUsage(tx, { userId, entitlement: "FULL_MOCK", sourceType: "FULL_MOCK_RUN", sourceId: runId, now });
-    const [run] = await tx.insert(fullMockRuns).values({ id: runId, userId, mode, status: section, listeningStartedAt: section === "LISTENING" ? now : null, listeningDeadline: section === "LISTENING" ? deadlineFrom(now, "LISTENING") : null, readingStartedAt: section === "READING" ? now : null, readingDeadline: section === "READING" ? deadlineFrom(now, "READING") : null }).returning({ id: fullMockRuns.id });
+    const [run] = await tx.insert(fullMockRuns).values({ id: runId, userId, mode, formNumber, status: section, listeningStartedAt: section === "LISTENING" ? now : null, listeningDeadline: section === "LISTENING" ? deadlineFrom(now, "LISTENING") : null, readingStartedAt: section === "READING" ? now : null, readingDeadline: section === "READING" ? deadlineFrom(now, "READING") : null }).returning({ id: fullMockRuns.id });
     for (const part of modeParts(mode)) { const units = form.byPart[part], questionIds = units.flatMap((u) => u.questionIds); const [session] = await tx.insert(practiceSessions).values({ userId, skillArea: part <= 4 ? "LISTENING" : "READING", practiceType: `full_mock_part_${part}`, part, status: "in_progress", questionCount: questionIds.length, requestedQuestionCount: questionIds.length, source: "full_mock", fullMockRunId: run.id, fullMockOrder: part }).returning({ id: practiceSessions.id }); const setByQuestion = new Map(units.flatMap((u) => u.questionIds.map((id) => [id, part === 5 ? null : u.id] as const))); await tx.insert(practiceSessionQuestions).values(questionIds.map((questionId, i) => ({ sessionId: session.id, questionId, displayOrder: i + 1, passageSetId: setByQuestion.get(questionId) ?? null }))); }
     return { ok: true as const, runId: run.id, resumed: false };
   });
@@ -75,7 +114,6 @@ export async function getActiveFullMockSection(runId: string, userId: string) { 
 
 export async function saveFullMockAnswer(input: { runId: string; sessionId: string; questionId: string; optionId: string; userId: string }) { return db.transaction(async (tx) => { const [row] = await tx.select({ run: fullMockRuns, session: practiceSessions }).from(practiceSessions).innerJoin(fullMockRuns, eq(fullMockRuns.id, practiceSessions.fullMockRunId)).where(and(eq(fullMockRuns.id, input.runId), eq(fullMockRuns.userId, input.userId), eq(practiceSessions.id, input.sessionId))).for("update").limit(1); if (!row || row.run.status !== row.session.skillArea) return { ok: false as const, reason: "LOCKED" as const }; const deadline = row.run.status === "LISTENING" ? row.run.listeningDeadline : row.run.readingDeadline; if (!deadline || deadline <= new Date()) return { ok: false as const, reason: "EXPIRED" as const }; const [[assigned], [option]] = await Promise.all([tx.select().from(practiceSessionQuestions).where(and(eq(practiceSessionQuestions.sessionId, input.sessionId), eq(practiceSessionQuestions.questionId, input.questionId))).limit(1), tx.select().from(questionOptions).where(and(eq(questionOptions.id, input.optionId), eq(questionOptions.questionId, input.questionId))).limit(1)]); if (!assigned || !option) return { ok: false as const, reason: "INVALID" as const }; await tx.insert(fullMockAnswers).values({ sessionId: input.sessionId, userId: input.userId, questionId: input.questionId, selectedOptionId: input.optionId }).onConflictDoUpdate({ target: [fullMockAnswers.sessionId, fullMockAnswers.questionId], set: { selectedOptionId: input.optionId, updatedAt: new Date() } }); return { ok: true as const }; }); }
 
-type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 async function scoreSection(tx: Tx, runId: string, userId: string, area: "LISTENING" | "READING", now: Date) { const sessions = await tx.select().from(practiceSessions).where(and(eq(practiceSessions.fullMockRunId, runId), eq(practiceSessions.skillArea, area))); for (const session of sessions) { if (session.status === "submitted") continue; const assigned = await tx.select().from(practiceSessionQuestions).where(eq(practiceSessionQuestions.sessionId, session.id)); const ids = assigned.map((a) => a.questionId); const [saved, solutions] = await Promise.all([tx.select().from(fullMockAnswers).where(eq(fullMockAnswers.sessionId, session.id)), tx.select().from(questionSolutions).where(inArray(questionSolutions.questionId, ids))]); const selected = new Map(saved.map((a) => [a.questionId, a])); const correct = new Map(solutions.map((s) => [s.questionId, s.correctOptionId])); const attempts = assigned.map((a) => ({ sessionId: session.id, userId, questionId: a.questionId, selectedOptionId: selected.get(a.questionId)?.selectedOptionId ?? null, isCorrect: selected.get(a.questionId)?.selectedOptionId === correct.get(a.questionId), answeredAt: selected.get(a.questionId)?.answeredAt ?? null })); await tx.insert(attemptAnswers).values(attempts).onConflictDoNothing(); await tx.update(practiceSessions).set({ status: "submitted", submittedAt: now, scoreCorrect: attempts.filter((a) => a.isCorrect).length, scoreTotal: assigned.length, submissionReason: "mock_section_complete" }).where(eq(practiceSessions.id, session.id)); } }
 async function completeRun(tx: Tx, run: typeof fullMockRuns.$inferSelect, userId: string, now: Date) { const sessions = await tx.select({ id: practiceSessions.id }).from(practiceSessions).where(eq(practiceSessions.fullMockRunId, run.id)); const ids = sessions.map((s) => s.id); const attempts = await tx.select().from(attemptAnswers).where(and(eq(attemptAnswers.userId, userId), inArray(attemptAnswers.sessionId, ids))); if (attempts.length !== (run.mode === "FULL" ? 200 : 100)) throw new Error("MOCK_RUN_INCOMPLETE"); await reconcileMasteryAnswers(tx, userId, "full_mock", attempts); await awardCompletedLearning(tx, { userId, sourceType: "FULL_MOCK_RUN", sourceId: run.id, questionIds: attempts.map((a) => a.questionId), completion: run.mode === "FULL" ? "FULL_MOCK" : run.mode === "LISTENING" ? "LISTENING_100" : "READING_100" }); await tx.update(fullMockRuns).set({ status: "COMPLETED", completedAt: now, updatedAt: now, ...(run.mode === "LISTENING" ? { listeningCompletedAt: now } : { readingCompletedAt: now }) }).where(eq(fullMockRuns.id, run.id)); await tx.delete(fullMockAnswers).where(inArray(fullMockAnswers.sessionId, ids)); }
 export async function finalizeFullMockSection(runId: string, userId: string) { return db.transaction(async (tx) => { const [run] = await tx.select().from(fullMockRuns).where(and(eq(fullMockRuns.id, runId), eq(fullMockRuns.userId, userId))).for("update").limit(1); if (!run) return { ok: false as const }; if (run.status === "COMPLETED") return { ok: true as const, status: "COMPLETED" as const }; const now = new Date(); if (run.status === "LISTENING") { await scoreSection(tx, run.id, userId, "LISTENING", now); if (run.mode === "FULL") { await tx.update(fullMockRuns).set({ status: "READING", listeningCompletedAt: now, readingStartedAt: now, readingDeadline: deadlineFrom(now, "READING"), updatedAt: now }).where(eq(fullMockRuns.id, run.id)); return { ok: true as const, status: "READING" as const }; } await completeRun(tx, run, userId, now); return { ok: true as const, status: "COMPLETED" as const }; } if (run.status !== "READING") return { ok: false as const }; await scoreSection(tx, run.id, userId, "READING", now); await completeRun(tx, run, userId, now); return { ok: true as const, status: "COMPLETED" as const }; }); }

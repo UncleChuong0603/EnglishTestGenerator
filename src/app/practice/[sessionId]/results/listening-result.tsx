@@ -10,13 +10,17 @@ import type { PracticeResult } from "@/lib/practice/types";
 import { ReviewOutcome, type ReviewOutcomeData } from "@/components/mastery/review-outcome";
 import { PremiumPreviewCard } from "@/components/premium/premium-preview";
 import type { PremiumPreviewData } from "@/lib/premium/preview";
+import { vocabularySuggestions } from "@/lib/vocabulary/catalog";
+import { ResultVocabularySuggestions } from "@/components/vocabulary/result-suggestions";
 
-export function ListeningResult({ result, locale, recommendation, reviewOutcome, premiumPreview }: {
+export function ListeningResult({ result, locale, recommendation, reviewOutcome, premiumPreview, savedVocabularyKeys, signedIn }: {
   result: PracticeResult;
   locale: InterfaceLanguage;
   recommendation: WorkoutRecommendation | null;
   reviewOutcome?: ReviewOutcomeData | null;
   premiumPreview?: PremiumPreviewData | null;
+  savedVocabularyKeys: string[];
+  signedIn: boolean;
 }) {
   const t = getTranslations(locale);
   return <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900"><div className="mx-auto max-w-3xl">
@@ -29,13 +33,14 @@ export function ListeningResult({ result, locale, recommendation, reviewOutcome,
       const correct = question.options.find((option) => option.id === question.correctOptionId);
       const audio = question.media?.find((media) => media.kind === "AUDIO");
       const image = question.media?.find((media) => media.kind === "IMAGE");
-      return <article className={`rounded-2xl border bg-white p-5 sm:p-7 ${question.isCorrect ? "border-emerald-200" : "border-red-200"}`} key={question.id}>
+      return <article className={`scroll-mt-24 rounded-2xl border bg-white p-5 sm:p-7 ${question.isCorrect ? "border-emerald-200" : "border-red-200"}`} id={`review-question-${question.number}`} key={question.id}>
         <p className={`font-black ${question.isCorrect ? "text-emerald-700" : "text-red-700"}`}>{t.practice.question} {question.number} · {question.isCorrect ? t.results.correct : t.results.incorrect}</p>
         {image ? <img alt={image.alt} className="mt-4 max-h-96 w-full rounded-xl object-contain" src={image.url}/> : null}
         {audio ? <div className="mt-4"><ListeningAudioPlayer assetId={audio.id} initialUrl={audio.url} labels={t.listening.audio} questionId={question.id} sessionId={result.id}/></div> : null}
         <dl className="mt-5 grid gap-3 sm:grid-cols-2"><div className="rounded-xl bg-slate-50 p-4"><dt className="text-sm text-slate-600">{t.results.yourAnswer}</dt><dd className="font-bold">{selected ? `${selected.key}. ${selected.text}` : t.results.unanswered}</dd></div><div className="rounded-xl bg-emerald-50 p-4"><dt className="text-sm text-emerald-700">{t.results.correctAnswer}</dt><dd className="font-bold">{correct ? `${correct.key}. ${correct.text}` : t.common.unavailable}</dd></div></dl>
         {question.transcript && correct ? <TranscriptReview correctAnswer={correct.text} labels={{ show: t.listening.checkTranscript, keywords: t.listening.answerKeywords, noExactMatch: t.listening.noExactKeywordMatch }} transcript={question.transcript} /> : null}
         <section className="mt-5"><h2 className="font-black">{t.results.explanation}</h2><p className="mt-2 leading-7">{question.explanationVi ?? question.explanationEn}</p></section>
+        <ResultVocabularySuggestions entries={vocabularySuggestions(question.text, correct?.text ?? "", [question.transcript ?? ""])} locale={locale} questionId={question.id} savedKeys={savedVocabularyKeys} sessionId={result.id} signedIn={signedIn} />
       </article>;
     })}</div>
   </div></main>;

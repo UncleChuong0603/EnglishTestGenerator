@@ -21,8 +21,8 @@ export function PostForm({initial,images,suggestions,siteUrl}:{initial:InitialPo
   const internal=foundLinks.filter(x=>x.startsWith("/")),external=foundLinks.filter(x=>/^https?:\/\//i.test(x));
   const invalid=foundLinks.filter(x=>!x.startsWith("/")&&!x.startsWith("#")&&!/^https?:\/\//i.test(x)&&!/^mailto:/i.test(x));
   const unknown=internal.filter(x=>x.startsWith("/blog/")&&!suggestions.some(p=>x===`/blog/${p.slug}`)&&x!==`/blog/${slug}`);
-  const duplicateTitle=suggestions.some(x=>(x.seoTitle||x.title).toLocaleLowerCase()===(seoTitle||title).toLocaleLowerCase());
-  const duplicateMeta=Boolean(seoDescription&&suggestions.some(x=>x.seoDescription?.toLocaleLowerCase()===seoDescription.toLocaleLowerCase()));
+  const duplicateTitle=suggestions.some(x=>x.slug!==slug&&(x.seoTitle||x.title).toLocaleLowerCase()===(seoTitle||title).toLocaleLowerCase());
+  const duplicateMeta=Boolean(seoDescription&&suggestions.some(x=>x.slug!==slug&&x.seoDescription?.toLocaleLowerCase()===seoDescription.toLocaleLowerCase()));
   const checks=[
     {kind:"error",text:!title.trim()?"Thiếu tiêu đề bài viết":null},{kind:"error",text:!isValidSlug(slug)?"Đường dẫn chưa hợp lệ":null},
     {kind:"error",text:!content.trim()?"Thiếu nội dung để xuất bản":null},{kind:"error",text:!excerpt.trim()?"Thiếu tóm tắt để xuất bản":null},

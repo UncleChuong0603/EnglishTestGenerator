@@ -1,4 +1,7 @@
 import type { PostCategory } from "./core";
+import { TOEIC_TIP_POSTS } from "./toeic-tips";
+import { GRAMMAR_POSTS, grammarImageForSlug } from "./grammar-editorial";
+import { ETS_2025_REVIEW_POST } from "./ets-2025-review";
 
 export type EditorialPost = {
   id: string;
@@ -28,7 +31,7 @@ export type EditorialPost = {
   editorialCover: string;
 };
 
-const dates = { publishedAt: new Date("2026-09-20T02:00:00.000Z"), createdAt: new Date("2026-09-20T02:00:00.000Z"), updatedAt: new Date("2026-09-20T02:00:00.000Z") };
+const dates = { publishedAt: new Date("2026-09-20T02:00:00.000Z"), createdAt: new Date("2026-09-20T02:00:00.000Z"), updatedAt: new Date("2026-09-23T02:00:00.000Z") };
 const tag = (name: string, slug: string) => ({ name, slug });
 const cover = (category: PostCategory) => `/blog/cover/${category.toLowerCase()}`;
 
@@ -37,6 +40,8 @@ function post(input: Omit<EditorialPost, keyof typeof dates | "status" | "coverM
 }
 
 export const EDITORIAL_POSTS: EditorialPost[] = [
+  ETS_2025_REVIEW_POST,
+  ...TOEIC_TIP_POSTS,
   post({
     id: "editorial-score-roadmap", category: "TOEIC_STRATEGY", slug: "chien-luoc-tang-diem-toeic-450-den-700",
     title: "Chiến lược tăng điểm TOEIC từ 450 lên 700: học gì trước?",
@@ -74,7 +79,13 @@ Trong 2–3 tuần cuối, xen kẽ một bài thi thử với các buổi sửa
 - **Tuần 5:** Bài hỗn hợp theo nửa đề. Theo dõi sức bền và cách phân bổ thời gian.
 - **Tuần 6:** Thi thử, sửa lỗi và ôn nhẹ. Theo dõi độ ổn định qua nhiều lần làm bài.
 
-Điểm số không tăng tuyến tính từng ngày. Hãy nhìn xu hướng của 3–5 phiên gần nhất và số lỗi lặp lại. Khi lỗi cũ giảm, bạn đang tiến bộ ngay cả khi một bài cụ thể khó hơn.`
+Điểm số không tăng tuyến tính từng ngày. Hãy nhìn xu hướng của 3–5 phiên gần nhất và số lỗi lặp lại. Khi lỗi cũ giảm, bạn đang tiến bộ ngay cả khi một bài cụ thể khó hơn.
+
+## Ví dụ: chọn việc học từ sổ lỗi
+
+Giả sử một bài luyện có 12 câu sai: 6 câu Part 5 do nhầm loại từ, 4 câu Part 7 do thiếu thời gian và 2 câu nghe sai tên riêng. Buổi tiếp theo nên bắt đầu bằng 10 câu loại từ có giải thích, rồi một cụm Part 7 bấm giờ. Đừng dành cả buổi để học từ mới chỉ vì đó là việc dễ bắt đầu. Sau một tuần, so lại *số lỗi cùng loại trên cùng số câu*, không so hai đề có độ khó khác nhau.
+
+Nếu bạn chỉ có 35 phút mỗi ngày, dùng [lộ trình TOEIC 30 ngày cho người bận rộn](/blog/lo-trinh-hoc-toeic-30-ngay-cho-nguoi-ban-ron) để chia nhỏ lịch. Mốc 450 và 700 là mục tiêu tham khảo, không phải lời hứa tăng điểm trong sáu tuần.`
   }),
   post({
     id: "editorial-listening", category: "LISTENING", slug: "cach-luyen-nghe-toeic-part-3-4",
@@ -97,7 +108,7 @@ Các từ như appointment, shipment, invoice hay reservation giúp bạn dự �
 
 ### 3. Nghe ý và paraphrase
 
-Đáp án đúng hiếm khi lặp nguyên văn. “The delivery has been delayed” có thể được hỏi thành “What problem does the speaker mention?”. Hãy ghi nhớ ý nghĩa của cả cụm thay vì săn một từ trùng khớp.
+Đáp án có thể diễn đạt lại ý trong đoạn nghe. “The delivery has been delayed” có thể được hỏi thành “What problem does the speaker mention?”. Hãy kiểm tra ý nghĩa của cả cụm thay vì chỉ săn một từ trùng khớp.
 
 ### 4. Chốt đáp án và chuyển tiếp
 
@@ -116,7 +127,13 @@ Bạn không cần chép chính tả toàn bộ. Chỉ chép câu chứa lỗi p
 - 8 phút nghe lại và phân tích transcript.
 - 4 phút nhại lại 2–3 câu quan trọng.
 
-Theo dõi riêng ba loại lỗi: không nhận ra âm, không biết từ và biết từ nhưng không theo kịp ý. Mỗi loại lỗi cần một cách sửa khác nhau; đây là lý do bảng điểm tổng không đủ để định hướng buổi học tiếp theo.`
+Theo dõi riêng ba loại lỗi: không nhận ra âm, không biết từ và biết từ nhưng không theo kịp ý. Mỗi loại lỗi cần một cách sửa khác nhau; đây là lý do bảng điểm tổng không đủ để định hướng buổi học tiếp theo.
+
+## Ví dụ nhận diện paraphrase
+
+Trong câu hỏi tự luyện “What will the woman do next?”, bạn nghe “I’ll send the revised schedule this afternoon.” Đáp án đúng có thể viết “Email an updated timetable”. *Send* tương ứng với *email*, còn *revised schedule* tương ứng với *updated timetable*. Ví dụ này do TOEICGym biên soạn để minh họa kỹ thuật, không phải câu hỏi ETS.
+
+Sau khi chọn đáp án, gạch dưới cụm trong transcript tạo ra suy luận. Nếu không tìm được bằng chứng, đánh dấu là câu đoán đúng và ôn lại. Với câu suy luận, bằng chứng có thể nằm ở cả ngữ cảnh thay vì một cụm từ duy nhất. Nếu hay mất nhịp trước khi vào đoạn hội thoại, luyện [Part 2 hỏi đáp ngắn](/blog/meo-lam-toeic-part-2-hoi-dap); nếu Reading chậm, xem [khung luyện 75 phút](/blog/quan-ly-thoi-gian-toeic-reading-75-phut).`
   }),
   post({
     id: "editorial-reading", category: "READING", slug: "quan-ly-thoi-gian-toeic-reading-75-phut",
@@ -125,14 +142,14 @@ Theo dõi riêng ba loại lỗi: không nhận ra âm, không biết từ và b
     seoTitle: "Cách chia thời gian TOEIC Reading 75 phút", seoDescription: "Cách quản lý 75 phút TOEIC Reading cho Part 5, 6, 7, kèm mốc kiểm tra và chiến thuật tránh bỏ trắng Part 7.", canonicalPath: "/blog/quan-ly-thoi-gian-toeic-reading-75-phut", coverAlt: "Đồng hồ 75 phút và ba phần của bài TOEIC Reading", socialTitle: "Chia 75 phút Reading để không bỏ Part 7", socialDescription: "Khung thời gian và mốc kiểm soát dễ nhớ cho ngày thi.", authorName: "TOEICGym Editorial", targetTopic: "chia thời gian TOEIC Reading 75 phút", searchIntent: "informational", tags: [tag("TOEIC Reading", "toeic-reading"), tag("Part 7", "part-7")],
     content: `## Mục tiêu không phải làm Part 5 thật nhanh bằng mọi giá
 
-Reading có 100 câu trong 75 phút. Nhiều người dành quá lâu cho các câu ngữ pháp khó rồi phải đoán hàng loạt ở Part 7. Một khung tham khảo cân bằng là: Part 5 trong 10–12 phút, Part 6 trong 8–10 phút và dành ít nhất 53–55 phút cho Part 7.
+Reading có 100 câu trong 75 phút. Nhiều người dành quá lâu cho các câu ngữ pháp khó rồi phải đoán hàng loạt ở Part 7. Một khung để thử là: Part 5 trong 12 phút, Part 6 trong 10 phút, Part 7 trong 50 phút và 3 phút cuối để rà đáp án. Nếu bạn tô đáp án ngay sau mỗi câu, có thể chuyển bớt thời gian kiểm tra cho Part 7.
 
 ## Mốc kiểm soát dễ nhớ
 
 - Còn 63 phút: chuyển sang Part 6.
 - Còn 53 phút: bắt đầu Part 7.
 - Còn 25 phút: nên bước vào nhóm nhiều đoạn văn.
-- Còn 5 phút: hoàn tất mọi ô đáp án, quay lại câu đã đánh dấu.
+- Còn 3 phút: hoàn tất mọi ô đáp án, quay lại câu đã đánh dấu.
 
 Khung này cần được điều chỉnh theo năng lực. Nếu bạn mạnh Part 5, có thể tiết kiệm vài phút; nếu thường sai vì đọc vội, đừng ép xuống một mốc không thực tế.
 
@@ -152,7 +169,15 @@ Các câu suy luận nên làm sau câu chi tiết. Khi đã hiểu nhân vật,
 
 Mỗi tuần, làm ít nhất hai phiên có bấm giờ nhưng không nhất thiết làm đủ 100 câu. Một phiên có thể là 30 câu Part 5 trong 12 phút; phiên khác là một cụm Part 7 trong 20 phút. Sau khi chấm, ghi lại số câu đúng và số câu phải đoán vì hết giờ.
 
-Bạn chỉ nên rút thời gian khi độ chính xác không giảm mạnh. Quản lý thời gian tốt là hoàn thành nhiều câu **có chất lượng**, không phải lướt qua toàn bộ đề.`
+Bạn chỉ nên rút thời gian khi độ chính xác không giảm mạnh. Quản lý thời gian tốt là hoàn thành nhiều câu **có chất lượng**, không phải lướt qua toàn bộ đề.
+
+## Minh họa một cách chia 75 phút
+
+![Sơ đồ gợi ý phân bổ 75 phút Reading: Part 5 12 phút, Part 6 10 phút, Part 7 50 phút và 3 phút kiểm tra](/blog/reading-75-minute-plan.svg)
+
+*Đây là khung luyện tập để thử và điều chỉnh, không phải thời gian cố định do ETS quy định.* [ETS xác nhận Reading có 100 câu trong 75 phút](https://www.in.ets.org/toeic/test-takers/about/listening-reading.html); thí sinh tự phân bổ thời gian trong phần này.
+
+Ví dụ khi còn 50 phút mà vẫn ở Part 5, hãy chốt các câu chưa chắc bằng phương án tốt nhất và chuyển sang phần còn lại theo thứ tự bạn đã tập. Trong buổi sửa bài, ghi rõ câu nào sai vì kiến thức và câu nào sai vì vội. Nếu câu đúng giảm mạnh khi bấm giờ, tăng thời gian cho Part đó ở lượt luyện kế tiếp thay vì ép tốc độ. Xem [quy trình giải Part 5](/blog/meo-lam-toeic-part-5-trong-thoi-gian-gioi-han), [cách đọc Part 6](/blog/meo-lam-toeic-part-6-dien-doan-van) và [cách truy bằng chứng Part 7](/blog/meo-lam-toeic-part-7-doc-hieu-nhieu-van-ban) để thử từng chặng của khung giờ.`
   }),
   post({
     id: "editorial-grammar", category: "GRAMMAR", slug: "ngu-phap-toeic-part-5-can-hoc",
@@ -187,9 +212,25 @@ Giới từ trong TOEIC xuất hiện nhiều trong cụm cố định công s�
 
 Chú ý danh từ đếm được, không đếm được và cấu trúc so sánh. Fewer đi với danh từ đếm được số nhiều; less đi với danh từ không đếm được. Các cấu trúc the more…, the more… hoặc one of the most… cũng xuất hiện thường xuyên.
 
+## Đọc sâu từng chủ điểm
+
+- [Loại từ: tìm đáp án bằng vị trí trong câu](/blog/loai-tu-trong-toeic-part-5)
+- [Thì và dạng động từ: đọc mốc thời gian](/blog/thi-va-dang-dong-tu-toeic)
+- [Hòa hợp chủ ngữ – động từ: tìm chủ ngữ chính](/blog/hoa-hop-chu-ngu-dong-tu-toeic)
+- [Mệnh đề quan hệ: who, which, whose, where](/blog/menh-de-quan-he-toeic)
+- [Liên từ: because, although, however](/blog/lien-tu-va-tu-noi-toeic)
+- [Giới từ trong email công việc](/blog/gioi-tu-toeic-trong-cong-viec)
+- [So sánh và lượng từ: fewer hay less](/blog/so-sanh-va-luong-tu-toeic)
+
 ## Cách ôn 15 phút mỗi ngày
 
-Chọn một chủ điểm, làm 8–10 câu và ghi lại mẫu khiến bạn chọn sai. Cuối tuần, trộn các chủ điểm để kiểm tra khả năng nhận diện. Nếu chỉ luyện từng nhóm riêng, bạn có thể làm đúng vì đã biết trước dạng bài chứ chưa thật sự nhận ra tín hiệu trong đề.`
+Chọn một chủ điểm, làm 8–10 câu và ghi lại mẫu khiến bạn chọn sai. Cuối tuần, trộn các chủ điểm để kiểm tra khả năng nhận diện. Nếu chỉ luyện từng nhóm riêng, bạn có thể làm đúng vì đã biết trước dạng bài chứ chưa thật sự nhận ra tín hiệu trong đề.
+
+## Thử một câu loại từ
+
+“The manager gave a ___ explanation of the new policy.” Chọn **clear**, không chọn *clearly*: chỗ trống đứng trước danh từ *explanation*, nên cần tính từ bổ nghĩa cho danh từ. Sau khi làm, viết lại tín hiệu “a + tính từ + danh từ” vào sổ lỗi. Đây là câu minh họa do TOEICGym biên soạn, không phải đề ETS.
+
+Nếu bạn hay chọn theo nghĩa tiếng Việt trước khi nhìn cấu trúc, thử [bài Word Form ngắn](/toeic/part-5/word-form) rồi giải thích vì sao ba đáp án còn lại sai. Sau đó áp dụng [quy trình tìm tín hiệu quanh chỗ trống](/blog/meo-lam-toeic-part-5-trong-thoi-gian-gioi-han). Nếu làm đúng nhưng quá chậm, kết hợp [khung thời gian Reading](/blog/quan-ly-thoi-gian-toeic-reading-75-phut) để kiểm tra tốc độ thực tế.`
   }),
   post({
     id: "editorial-vocabulary", category: "VOCABULARY", slug: "tu-vung-toeic-theo-chu-de-cong-so",
@@ -228,7 +269,13 @@ Mặt trước ghi một câu có chỗ trống: “The supplier will ___ the or
 
 ## Biến từ mới thành điểm số
 
-Sau khi học 10–15 cụm, làm một bài ngắn đúng chủ đề. Đánh dấu cụm đã gặp và cách đề biến đổi chúng. Chu trình học – gặp trong câu hỏi – sửa lỗi giúp từ vựng gắn với tín hiệu bài thi và được nhớ lâu hơn.`
+Sau khi học 10–15 cụm, làm một bài ngắn đúng chủ đề. Đánh dấu cụm đã gặp và cách đề biến đổi chúng. Chu trình học – gặp trong câu hỏi – sửa lỗi giúp từ vựng gắn với tín hiệu bài thi và được nhớ lâu hơn.
+
+## Thử học một cụm thay vì một từ
+
+Với *postpone a meeting*, ghi thêm câu “The team postponed the meeting until Friday.” Khi đọc email thông báo, bạn có thể gặp *the meeting has been rescheduled for Friday* — cùng ý đổi lịch nhưng cách diễn đạt khác. Hãy ghi cả hai cụm vào một thẻ, đọc lại sau vài ngày và tự viết một câu mới. Đây là ví dụ tự biên soạn để luyện cách diễn đạt lại.
+
+Trong tuần, kiểm tra từ đã học qua một đoạn email ngắn. Nếu chỉ nhận ra từ trên thẻ mà không hiểu nó trong câu, thêm câu chứa ngữ cảnh thay vì tăng số lượng thẻ. Xem [cách tìm bằng chứng trong Part 7](/blog/meo-lam-toeic-part-7-doc-hieu-nhieu-van-ban) để dùng vốn từ trong bài đọc thực tế.`
   }),
   post({
     id: "editorial-study-plan", category: "STUDY_PLAN", slug: "lo-trinh-hoc-toeic-30-ngay-cho-nguoi-ban-ron",
@@ -262,7 +309,13 @@ Làm một bài dài vào đầu tuần, sau đó dùng 2–3 ngày sửa lỗi.
 - 10 phút đọc giải thích và ghi lý do sai.
 - 5 phút ôn từ vựng vừa gặp.
 
-Nếu bỏ lỡ một ngày, không cần học gấp đôi vào hôm sau. Tiếp tục lịch và dời bài thi thử nếu cần. Tính liên tục quan trọng hơn một buổi học quá sức khiến bạn bỏ cuộc trong nhiều ngày.`
+Nếu bỏ lỡ một ngày, không cần học gấp đôi vào hôm sau. Tiếp tục lịch và dời bài thi thử nếu cần. Tính liên tục quan trọng hơn một buổi học quá sức khiến bạn bỏ cuộc trong nhiều ngày.
+
+## Mẫu theo dõi sau mỗi buổi
+
+Ghi bốn cột: ngày, Part đã làm, số đúng trên tổng số câu, và lỗi lặp lại. Ví dụ: “Thứ ba | Part 3 | 7/9 | nghe nhầm giờ giao hàng”. Buổi kế tiếp nghe lại đúng đoạn có thời gian, rồi làm một nhóm mới. Cuối tuần, nếu cùng lỗi còn xuất hiện, giữ mục tiêu đó thêm một tuần. Nếu lỗi đã giảm, chuyển sang nhóm lỗi lớn tiếp theo.
+
+Ngày bận nhất, chỉ cần 10 phút xem lại ba câu sai cũ. Với mục tiêu tăng điểm dài hơn, đọc [lộ trình từ 450 lên 700](/blog/chien-luoc-tang-diem-toeic-450-den-700) để chọn Part ưu tiên; lịch 30 ngày này là khung tổ chức việc học, không đảm bảo một mức điểm cụ thể.`
   }),
   post({
     id: "editorial-exam", category: "EXAM_TIPS", slug: "kinh-nghiem-thi-toeic-ngay-thi",
@@ -293,8 +346,20 @@ Khi mất tập trung, dừng vài giây, thở chậm và quay lại từ câu 
 
 ## Năm phút cuối
 
-Đảm bảo mọi câu đều có đáp án nếu bài thi không trừ điểm câu sai. Kiểm tra các câu đã đánh dấu và vị trí tô, không thay đổi hàng loạt chỉ vì lo lắng. Sau khi nộp bài, ghi lại trải nghiệm khi còn nhớ để kế hoạch sau này thực tế hơn.`
+Đảm bảo mọi câu đều có đáp án theo hướng dẫn của buổi thi. Kiểm tra các câu đã đánh dấu và vị trí tô, không thay đổi hàng loạt chỉ vì lo lắng. Sau khi nộp bài, ghi lại trải nghiệm khi còn nhớ để kế hoạch sau này thực tế hơn.
+
+## Checklist ngắn có thể lưu lại
+
+- **Trước khi đi:** xác nhận địa điểm, giờ có mặt và giấy tờ theo email từ đơn vị tổ chức.
+- **Trước khi vào phòng:** để thiết bị, đồng hồ và đồ cá nhân đúng nơi được yêu cầu.
+- **Khi làm Reading:** nhìn mốc thời gian đã luyện; nếu kẹt một câu, đánh dấu rồi chuyển tiếp.
+- **Trước khi nộp:** kiểm tra đáp án còn trống và việc tô đúng dòng nếu thi trên giấy.
+
+[ETS mô tả bài Listening & Reading gồm 45 phút nghe và 75 phút đọc](https://www.ets.org/toeic/about/listening-reading.html). Quy định giấy tờ, vật dụng và thời gian có mặt phụ thuộc địa điểm thi; hãy dùng thông báo đăng ký của bạn làm nguồn quyết định. Nếu phần Reading thường không kịp, thử [khung chia 75 phút](/blog/quan-ly-thoi-gian-toeic-reading-75-phut) trước ngày thi.`
   }),
+  ...GRAMMAR_POSTS,
 ];
+
+export { grammarImageForSlug };
 
 export function getEditorialPost(slug: string) { return EDITORIAL_POSTS.find(item => item.slug === slug) ?? null; }

@@ -57,16 +57,32 @@ const scenes = [
   ["A woman is checking the time on a wall clock.", "businesswoman looking up to check a large wall clock in an office"],
 ];
 
-const distractors = [
-  "Some equipment is being stored outdoors.",
-  "The room has been left completely empty.",
-  "A customer is making a payment at a counter.",
+// Each generated photograph gets three distinct spoken alternatives. Keep this
+// deterministic: the transcript, answer key, and recorded audio must agree.
+const distractorPeople = [
+  ["A pilot", "at an airport"], ["A nurse", "at a clinic"],
+  ["A farmer", "on a farm"], ["A musician", "in a rehearsal room"],
+  ["A lifeguard", "at a swimming pool"], ["A scientist", "in a laboratory"],
+  ["A sailor", "at a harbor"], ["A firefighter", "at a fire station"],
+  ["A librarian", "in a library"], ["A florist", "at a flower shop"],
+  ["A tour guide", "at a museum"], ["A baker", "in a bakery"],
+  ["A veterinarian", "at an animal clinic"], ["A photographer", "in a studio"],
+  ["A carpenter", "in a workshop"], ["A chef", "in a kitchen"],
+  ["A swimming instructor", "at a sports center"], ["A painter", "in an art studio"],
 ];
+const distractorActions = [
+  "is speaking with a colleague", "is carrying a folder", "is checking a schedule",
+  "is making a phone call", "is writing on a clipboard", "is opening a cabinet",
+  "is reading a notice", "is sorting some paperwork", "is walking through a doorway",
+];
+const distractorPool = Array.from({ length: scenes.length * 3 }, (_, index) =>
+  `${distractorPeople[index % distractorPeople.length][0]} ${distractorActions[Math.floor(index / distractorPeople.length)]} ${distractorPeople[index % distractorPeople.length][1]}.`
+);
 
 export const part1Expansion = scenes.map(([correct, imagePrompt], index) => {
   const number = index + 7;
   const answer = index % 4;
-  const choices = [...distractors];
+  const choices = distractorPool.slice(index * 3, index * 3 + 3);
   choices.splice(answer, 0, correct);
   const id = `L-P1-BANK-${String(number).padStart(3, "0")}`;
   return {

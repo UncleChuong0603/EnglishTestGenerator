@@ -17,7 +17,7 @@ npm run validate:reading
 npm run validate:mock-readiness
 ```
 
-Use `npm run content:listening:regenerate-media` after changing a transcript so existing generated audio is replaced.
+Use `npm run content:listening:regenerate-media` after changing a transcript so existing generated audio is replaced. After changing Part 1 or Part 2 spoken options, run `npm run content:listening:generate-media -- --parts=1,2 --audio-only`; the option fingerprint regenerates only audio whose spoken choices changed. Publish only after the regenerated audio and matching choices have been reviewed.
 
 Generated binaries and the Markdown review report are placed in `.content-generated/`, which is ignored by Git. The generated Part 1 scene is an original repository-generated PNG. Audio generation defaults to the Node-native `node-edge-tts` package and writes MP3 files without Python or an API key. Set `CONTENT_TTS_PROVIDER=openai` to opt into the existing OpenAI provider; in that mode `OPENAI_API_KEY` is required and `CONTENT_TTS_MODEL` defaults to `gpt-4o-mini-tts`. No credential is committed or logged.
 

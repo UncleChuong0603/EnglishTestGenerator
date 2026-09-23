@@ -24,6 +24,9 @@ import { ReviewOutcome } from "@/components/mastery/review-outcome";
 import { PremiumPreviewCard } from "@/components/premium/premium-preview";
 import { getPremiumPreview } from "@/lib/premium/preview";
 import { guestContinuationPath } from "@/lib/auth/redirect";
+import { vocabularySuggestions } from "@/lib/vocabulary/catalog";
+import { getVocabularyCards } from "@/lib/vocabulary/service";
+import { ResultVocabularySuggestions } from "@/components/vocabulary/result-suggestions";
 
 export default async function PracticeResultsPage({
   params,
@@ -43,7 +46,7 @@ export default async function PracticeResultsPage({
   ]);
   if (!result) notFound();
   if (result === "in_progress") redirect(`/practice/${sessionId}`);
-  const [recommendation, reviewOutcome, preview] = await Promise.all([
+  const [recommendation, reviewOutcome, preview, savedVocabulary] = await Promise.all([
     user
       ? loadRecommendedWorkout(user.id).catch((error) => {
           console.error("Could not load post-practice recommendation", error);
@@ -54,8 +57,10 @@ export default async function PracticeResultsPage({
       ? getMasteryReviewSummary(result.id, user.id)
       : null,
     user ? getPremiumPreview() : null,
+    user ? getVocabularyCards(user.id) : [],
   ]);
   const locale = preferences.interfaceLanguage;
+  const savedKeys = savedVocabulary.map((card) => card.entryKey);
   if (result.skillArea === "LISTENING")
     return (
       <>
@@ -65,6 +70,8 @@ export default async function PracticeResultsPage({
           recommendation={recommendation}
           result={result}
           reviewOutcome={reviewOutcome}
+          savedVocabularyKeys={savedKeys}
+          signedIn={Boolean(user)}
         />
         {!user ? (
           <aside className="fixed bottom-4 left-1/2 z-20 w-[min(92vw,42rem)] -translate-x-1/2 rounded-2xl bg-teal-700 p-4 text-center text-white shadow-2xl">
@@ -351,14 +358,15 @@ export default async function PracticeResultsPage({
                 </details>
               ) : null}
               <div className="space-y-3">
-                {group.questions.map((question) => (
-                  <AnswerReviewCard
+                {group.questions.map((question) => {
+                  const correct = question.options.find((option) => option.id === question.correctOptionId)?.text ?? "";
+                  const vocabulary = vocabularySuggestions(question.text, correct, group.passages.map((passage) => passage.content));
+                  return <div key={question.id}><AnswerReviewCard
                     explanationLanguage={preferences.explanationLanguage}
-                    key={question.id}
                     locale={locale}
                     question={question}
-                  />
-                ))}
+                  /><ResultVocabularySuggestions entries={vocabulary} locale={locale} questionId={question.id} savedKeys={savedKeys} sessionId={result.id} signedIn={Boolean(user)} /></div>;
+                })}
               </div>
             </section>
           ))}

@@ -36,7 +36,7 @@ const p6Scenarios = [
   ["Trellis Product Webinar", "product webinar", "September 30", "the Trellis webinar platform", "retail partners", "a live demonstration of ordering tools"],
 ];
 
-function p6Set(data, index) {
+export function p6Set(data, index) {
   const [title, event, date, place, audience, feature] = data;
   const content = `To: ${audience}\nSubject: ${title}\n\nWe are pleased to (1) _____ that the ${event} will begin on ${date} at ${place}. The schedule has been (2) _____ to give participants time to explore ${feature}. (3) _____, anyone requiring accessibility support should contact the events team by Friday. (4) _____ A confirmation message with final instructions will be sent two days before the event.`;
   const rows = [
@@ -100,7 +100,7 @@ const multipleServices = [
   ["Equipment Rental", "$240", "delivery and setup", "a product demonstration"],
 ];
 
-function doubleSet(index) {
+export function doubleSet(index) {
   const org = organizations[index % organizations.length];
   const [service, price, inclusion, event] = multipleServices[index % multipleServices.length];
   const title = `${org} ${service} ${index + 1}`;

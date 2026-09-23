@@ -6,6 +6,7 @@ const palettes: Record<PostCategory, [string, string, string]> = {
   READING: ["#451a03", "#c2410c", "#fed7aa"], GRAMMAR: ["#3b0764", "#7e22ce", "#e9d5ff"],
   VOCABULARY: ["#052e16", "#15803d", "#bbf7d0"], STUDY_PLAN: ["#422006", "#ca8a04", "#fef08a"],
   EXAM_TIPS: ["#450a0a", "#be123c", "#fecdd3"],
+  EXAM_REVIEW: ["#172554", "#4f46e5", "#c7d2fe"],
 };
 
 export async function GET(_: Request, { params }: { params: Promise<{ category: string }> }) {

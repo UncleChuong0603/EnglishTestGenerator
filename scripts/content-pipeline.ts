@@ -13,10 +13,15 @@ import { planListeningAudio, synthesizeListeningAudio } from "../src/lib/content
 const generatedDir = resolve(".content-generated");
 const isDryRun = process.argv.includes("--dry-run");
 const includeBaseline = process.argv.includes("--include-baseline");
+const form25Only = process.argv.includes("--form25-only");
 const forceGeneration = process.argv.includes("--force");
 const selectedId = process.argv.find(arg => arg.startsWith("--id="))?.slice(5);
 const selectedParts = process.argv.find(arg => arg.startsWith("--parts="))?.slice(8).split(",").map(Number);
 const audioOnly = process.argv.includes("--audio-only");
+const isForm25Item = (item: { externalId: string; part: number }) =>
+  item.externalId.startsWith("L-P1-FORM25-") ||
+  (item.part >= 2 && /^L-P[234]-BANK-/.test(item.externalId) &&
+    Number(item.externalId.match(/(\d+)$/)?.[1] ?? 0) >= ({ 2: 251, 3: 131, 4: 101 } as Record<number, number>)[item.part]);
 if (selectedParts && (selectedParts.length === 0 || selectedParts.some(part => ![1, 2, 3, 4].includes(part)))) throw new Error("INVALID_LISTENING_PARTS");
 const command = process.argv.find(arg => ["validate", "generate-media", "publish", "report"].includes(arg)) ?? "validate";
 const audioTimingVersion = 2;
@@ -32,11 +37,25 @@ const crc = (b: Buffer) => { let c=0xffffffff; for(const x of b)c=crcTable[(c^x)
 const chunk = (name: string, data: Buffer) => { const n=Buffer.from(name); const out=Buffer.alloc(data.length+12); out.writeUInt32BE(data.length); n.copy(out,4); data.copy(out,8); out.writeUInt32BE(crc(Buffer.concat([n,data])),8+data.length); return out; };
 function courierPng() { const w=960,h=540, raw=Buffer.alloc((w*4+1)*h); for(let y=0;y<h;y++){const row=y*(w*4+1); for(let x=0;x<w;x++){const i=row+1+x*4; const counter=y>330; raw[i]=counter?126:232;raw[i+1]=counter?91:238;raw[i+2]=counter?62:242;raw[i+3]=255;} } const rect=(x0:number,y0:number,x1:number,y1:number,r:number,g:number,b:number)=>{for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){const i=y*(w*4+1)+1+x*4;raw[i]=r;raw[i+1]=g;raw[i+2]=b;}}; rect(610,265,790,370,190,132,55);rect(250,170,330,330,38,93,130);rect(220,120,350,190,62,125,168);rect(405,240,600,335,219,174,92); const ih=Buffer.alloc(13);ih.writeUInt32BE(w,0);ih.writeUInt32BE(h,4);ih[8]=8;ih[9]=6; return Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]),chunk("IHDR",ih),chunk("IDAT",deflateSync(raw)),chunk("IEND",Buffer.alloc(0))]); }
 async function validate() { const ids=new Set<string>(),distractorSets=new Map<string,string>();const mojibake=/(?:Ã.|Â.|Ä.|Æ.|â€|ï¿½)/;for(const item of productionListening){if(ids.has(item.externalId))throw new Error(`DUPLICATE_CONTENT_ID:${item.externalId}`);ids.add(item.externalId);if(!item.transcript?.trim())throw new Error(`MISSING_TRANSCRIPT:${item.externalId}`);for(const question of item.questions??[item.question]){const text=[item.transcript,question.text,question.explanationEn,question.explanationVi,...question.options.map((option:{text:string})=>option.text)];if(text.some(value=>mojibake.test(value)))throw new Error(`MOJIBAKE_DETECTED:${item.externalId}`);if(item.part>=3){const distractors=question.options.filter((option:{key:string})=>option.key!==question.correctKey).map((option:{text:string})=>option.text.trim().toLowerCase()).sort().join("|");const previous=distractorSets.get(distractors);if(previous)throw new Error(`REUSED_DISTRACTOR_SET:${previous}:${item.externalId}:Q${question.order}`);distractorSets.set(distractors,`${item.externalId}:Q${question.order}`);}}}console.log(`Manifest valid: ${productionListening.length} groups, ${productionListening.reduce((n,i)=>n+(i.questions?.length??1),0)} questions.`); }
+function validateChoiceUniqueness() {
+  const seen = new Map<string, string>();
+  for (const item of productionListening) {
+    for (const question of item.questions ?? [item.question]) {
+      for (const option of question.options) {
+        const normalized = option.text.trim().replace(/\s+/g, " ").toLowerCase();
+        const previous = seen.get(normalized);
+        if (previous) throw new Error(`REUSED_LISTENING_CHOICE:${previous}:${item.externalId}:Q${question.order}`);
+        seen.set(normalized, `${item.externalId}:Q${question.order}`);
+      }
+    }
+  }
+}
+
 async function generate() {
   await mkdir(generatedDir, { recursive: true });
   let generated = 0, skipped = 0;
   const allItems = includeBaseline ? productionListening : listeningManifest;
-  const items = allItems.filter(item => (!selectedId || item.externalId === selectedId) && (!selectedParts || selectedParts.includes(item.part)));
+  const items = allItems.filter(item => (!selectedId || item.externalId === selectedId) && (!selectedParts || selectedParts.includes(item.part)) && (!form25Only || isForm25Item(item)));
   if (selectedId && !items.length) throw new Error(`LISTENING_AUDIO_ID_NOT_FOUND:${selectedId}`);
   for (const item of items) for (const spec of (audioOnly ? [] : item.media.filter(m => m.role === "IMAGE"))) {
     const image = resolve(generatedDir, `${item.externalId}.png`);
@@ -47,14 +66,14 @@ async function generate() {
   }
   const providerName = (process.env.CONTENT_TTS_PROVIDER || "edge").toLowerCase() as ContentTtsProviderName;
   const provider = createContentTtsProvider({ provider: providerName, openAiApiKey: process.env.OPENAI_API_KEY, openAiModel: process.env.CONTENT_TTS_MODEL });
-  for (const item of items) {
+  const generateAudio = async (item: (typeof items)[number]) => {
     const path = resolve(generatedDir, `${item.externalId}.mp3`);
     const metadataPath = `${path}.json`;
     const voice = selectContentVoice(providerName, item.externalId);
     const segments = planListeningAudio(item);
     const fingerprint = audioFingerprint(item, voice, providerName);
     const current = existsSync(metadataPath) ? JSON.parse(await readFile(metadataPath, "utf8")) as { fingerprint?: string } : null;
-    if (existsSync(path) && !forceGeneration && (item.part > 2 || current?.fingerprint === fingerprint)) { skipped++; continue; }
+    if (existsSync(path) && !forceGeneration && (item.part > 2 || current?.fingerprint === fingerprint)) { skipped++; return; }
     let body: Uint8Array | undefined;
     for (let attempt = 1; attempt <= 3; attempt++) {
       try { body = await synthesizeListeningAudio(provider, { voice, locale: "en-US", outputFormat: "mp3" }, segments); break; }
@@ -69,14 +88,19 @@ async function generate() {
     await writeFile(metadataPath, JSON.stringify({ fingerprint, audioTimingVersion }) + "\n");
     generated++;
     console.log(`Generated audio ${item.externalId} (${generated}/${items.length})`);
-  }
+  };
+  const workers = Math.min(12, Math.max(1, Number(process.env.CONTENT_GENERATION_CONCURRENCY ?? 4)));
+  let next = 0;
+  await Promise.all(Array.from({ length: Math.min(workers, items.length) }, async () => {
+    while (next < items.length) await generateAudio(items[next++]);
+  }));
   console.log(`TTS provider: ${providerName}`);
   console.log(`Generated: ${generated}`);
   console.log(`Skipped: ${skipped}`);
   console.log("Failed: 0");
 }
 async function publish() {
-  await validate(); const additions=includeBaseline?productionListening:listeningManifest;
+  await validate(); const additions=(includeBaseline?productionListening:listeningManifest).filter(item => !form25Only || isForm25Item(item));
   for(const item of additions){item.type??=item.part===1?"photograph":"question_response";item.difficulty??="medium";for(const [index,question] of (item.questions??[item.question]).entries())question.order??=index+1;}
   if(isDryRun){console.log(`DRY RUN: would publish ${additions.length} groups and ${additions.reduce((n,i)=>n+(i.questions?.length??1),0)} questions; would upload ${additions.reduce((n,i)=>n+i.media.length,0)} media assets.`);return;}
   const providerName = (process.env.CONTENT_TTS_PROVIDER || "edge").toLowerCase() as ContentTtsProviderName;
@@ -97,6 +121,7 @@ async function publish() {
 async function report(){await validate();await mkdir(generatedDir,{recursive:true});const rows=productionListening.map(i=>`| ${i.externalId} | ${i.part} | ${i.questions?.length??1} | ${existsSync(resolve(generatedDir,`${i.externalId}.mp3`))?"GENERATED":"PENDING"} |`);await writeFile(resolve(generatedDir,"review-report.md"),`# Listening content review\n\n| Content ID | Part | Questions | Audio |\n|---|---:|---:|---|\n${rows.join("\n")}\n`);console.log("Wrote .content-generated/review-report.md");}
 async function main() {
   const handler = { validate, "generate-media": generate, publish, report }[command] as () => Promise<void>;
+  validateChoiceUniqueness();
   await handler();
 }
 

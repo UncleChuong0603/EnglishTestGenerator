@@ -1,7 +1,7 @@
 const KEYS = ["A", "B", "C", "D"];
 const companies = ["Alder", "Benton", "Creston", "Dover", "Elmwood", "Fairview", "Granite", "Harbor", "Ivory", "Juniper"];
 
-const patterns = [
+export const patterns = [
   { skill: "grammar", subSkill: "verb_tense", sentence: (c) => `${c} Logistics _____ the revised delivery schedule yesterday.`, correct: "announced", wrong: ["announces", "will announce", "announcing"], en: "The finished time marker 'yesterday' requires the simple past 'announced'.", vi: "Mốc thời gian đã kết thúc 'yesterday' yêu cầu thì quá khứ đơn 'announced'." },
   { skill: "grammar", subSkill: "subject_verb_agreement", sentence: (c) => `Each of the ${c} conference rooms _____ a digital display.`, correct: "has", wrong: ["have", "having", "are having"], en: "The grammatical subject is the singular pronoun 'Each', so the verb must be 'has'.", vi: "Chủ ngữ ngữ pháp là đại từ số ít 'Each', nên động từ phải là 'has'." },
   { skill: "grammar", subSkill: "passive_voice", sentence: (c) => `All ${c} expense claims must _____ by a supervisor.`, correct: "be approved", wrong: ["approve", "be approving", "approved them"], en: "Claims receive the action; after 'must', the passive form is 'be approved'.", vi: "Các yêu cầu thanh toán nhận hành động; sau 'must', dạng bị động đúng là 'be approved'." },

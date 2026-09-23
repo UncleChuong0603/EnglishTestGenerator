@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
+  <title id="title">Gợi ý chia 75 phút TOEIC Reading</title>
+  <desc id="desc">Part 5: 12 phút; Part 6: 10 phút; Part 7: 50 phút; kiểm tra đáp án: 3 phút. Điều chỉnh theo kết quả luyện tập.</desc>
+  <rect width="1200" height="520" rx="32" fill="#f1f5f9"/>
+  <text x="64" y="85" fill="#0f172a" font-family="Arial, sans-serif" font-size="42" font-weight="700">75 phút Reading: một khung để thử</text>
+  <text x="64" y="127" fill="#475569" font-family="Arial, sans-serif" font-size="24">Đo độ chính xác sau mỗi lần luyện rồi điều chỉnh thời gian từng Part</text>
+  <rect x="64" y="186" width="160" height="118" rx="18" fill="#0f766e"/>
+  <rect x="232" y="186" width="132" height="118" rx="18" fill="#0284c7"/>
+  <rect x="372" y="186" width="672" height="118" rx="18" fill="#4338ca"/>
+  <rect x="1052" y="186" width="84" height="118" rx="18" fill="#c2410c"/>
+  <g fill="#fff" font-family="Arial, sans-serif" text-anchor="middle">
+    <text x="144" y="236" font-size="25" font-weight="700">Part 5</text><text x="144" y="277" font-size="32" font-weight="700">12′</text>
+    <text x="298" y="236" font-size="25" font-weight="700">Part 6</text><text x="298" y="277" font-size="32" font-weight="700">10′</text>
+    <text x="708" y="236" font-size="27" font-weight="700">Part 7</text><text x="708" y="277" font-size="36" font-weight="700">50′</text>
+    <text x="1094" y="235" font-size="19" font-weight="700">Soát</text><text x="1094" y="275" font-size="28" font-weight="700">3′</text>
+  </g>
+  <path d="M64 338h1072" stroke="#cbd5e1" stroke-width="3"/>
+  <g fill="#334155" font-family="Arial, sans-serif" font-size="22" font-weight="700">
+    <text x="64" y="386">0′</text><text x="210" y="386">12′</text><text x="351" y="386">22′</text><text x="1022" y="386">72′</text><text x="1090" y="386">75′</text>
+  </g>
+  <text x="64" y="457" fill="#475569" font-family="Arial, sans-serif" font-size="22">TOEICGym • Gợi ý luyện tập, không phải quy định phân bổ thời gian của ETS</text>
+</svg>

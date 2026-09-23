@@ -28,8 +28,8 @@ function Menu({ children, summary, active = false, className = "" }: { children:
 
 export function ActiveLearnerLinks({ items, secondary, label, locale, account, settingsLabel, signOutLabel }: Props) {
   const path = usePathname();
-  const mobileItems = [items[0], items[1], items[2], items[4]];
-  const mobileMoreItems = [items[3], ...secondary];
+  const mobileItems = [items[0], items[1], items[2], items[5]];
+  const mobileMoreItems = [items[3], items[4], ...secondary];
   const moreActive = secondary.some(item => matches(path, item.href));
   const mobileMoreActive = mobileMoreItems.some(item => matches(path, item.href)) || matches(path, "/settings") || matches(path, "/billing");
   const moreLabel = locale === "vi" ? "Thêm" : "More";

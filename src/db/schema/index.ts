@@ -113,7 +113,7 @@ export const adminAuditLogs = pgTable("admin_audit_logs", {
   index("admin_audit_logs_actor_idx").on(table.actorUserId),
   index("admin_audit_logs_target_idx").on(table.targetUserId),
   index("admin_audit_logs_action_idx").on(table.action),
-  check("admin_audit_logs_action_check", sql`${table.action} in ('ADMIN_ROLE_GRANTED','ADMIN_ROLE_REVOKED','USER_SUSPENDED','USER_REACTIVATED','PREMIUM_GRANTED','PREMIUM_REVOKED','CONTENT_DRAFT_CREATED','CONTENT_DRAFT_UPDATED','CONTENT_CLONED','CONTENT_PUBLISHED','CONTENT_ARCHIVED','CONTENT_DRAFT_DISCARDED','CONTENT_UNARCHIVED','CONTENT_DUPLICATE_DELETED','MEDIA_UPLOADED','CHALLENGE_DRAFT_CREATED','CHALLENGE_FORM_GENERATED','CHALLENGE_PUBLISHED','CHALLENGE_CANCELLED','SEO_POST_CREATED','SEO_POST_UPDATED','SEO_POST_PUBLISHED','SEO_POST_UNPUBLISHED','SEO_POST_DELETED','IMPORT_VALIDATED','IMPORT_COMMITTED','IMPORT_FAILED','QUESTION_BANK_BLUEPRINT_UPDATED','CONTENT_QUALITY_SETTINGS_UPDATED','SUPPORT_SETTINGS_UPDATED')`),
+  check("admin_audit_logs_action_check", sql`${table.action} in ('ADMIN_ROLE_GRANTED','ADMIN_ROLE_REVOKED','USER_SUSPENDED','USER_REACTIVATED','PREMIUM_GRANTED','PREMIUM_REVOKED','CONTENT_DRAFT_CREATED','CONTENT_DRAFT_UPDATED','CONTENT_CLONED','CONTENT_PUBLISHED','CONTENT_ARCHIVED','CONTENT_DRAFT_DISCARDED','CONTENT_UNARCHIVED','CONTENT_DUPLICATE_DELETED','MEDIA_UPLOADED','CHALLENGE_DRAFT_CREATED','CHALLENGE_FORM_GENERATED','CHALLENGE_PUBLISHED','CHALLENGE_CANCELLED','SEO_POST_CREATED','SEO_POST_UPDATED','SEO_POST_PUBLISHED','SEO_POST_UNPUBLISHED','SEO_POST_DELETED','IMPORT_VALIDATED','IMPORT_COMMITTED','IMPORT_FAILED','QUESTION_BANK_BLUEPRINT_UPDATED','CONTENT_QUALITY_SETTINGS_UPDATED','SUPPORT_SETTINGS_UPDATED','LISTENING_LESSON_CREATED','LISTENING_LESSON_UPDATED','LISTENING_LESSON_PUBLISHED','LISTENING_LESSON_ARCHIVED')`),
 ]);
 
 export const questionBankSettings = pgTable("question_bank_settings", {
@@ -527,6 +527,7 @@ export const diagnosticRuns = pgTable("diagnostic_runs", {
 export const fullMockRuns = pgTable("full_mock_runs", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  formNumber: smallint("form_number"),
   mode: text("mode").notNull().default("FULL"),
   status: text("status").notNull().default("LISTENING"),
   listeningStartedAt: timestamp("listening_started_at", { withTimezone: true, mode: "date" }),
@@ -543,6 +544,20 @@ export const fullMockRuns = pgTable("full_mock_runs", {
   check("full_mock_runs_mode_check", sql`${table.mode} in ('LISTENING','READING','FULL')`),
   check("full_mock_runs_mode_sections_check", sql`(${table.mode}='LISTENING' and ${table.listeningStartedAt} is not null and ${table.listeningDeadline} is not null and ${table.readingStartedAt} is null and ${table.readingDeadline} is null) or (${table.mode}='READING' and ${table.listeningStartedAt} is null and ${table.listeningDeadline} is null and ${table.readingStartedAt} is not null and ${table.readingDeadline} is not null) or (${table.mode}='FULL' and ${table.listeningStartedAt} is not null and ${table.listeningDeadline} is not null)`),
   check("full_mock_runs_status_check", sql`${table.status} in ('LISTENING','READING','COMPLETED','EXPIRED')`),
+  check("full_mock_runs_form_number_check", sql`${table.formNumber} is null or (${table.mode}='FULL' and ${table.formNumber} between 1 and 25)`),
+]);
+
+export const fullMockFormQuestions = pgTable("full_mock_form_questions", {
+  formNumber: smallint("form_number").notNull(),
+  position: smallint("position").notNull(),
+  part: smallint("part").notNull(),
+  questionId: uuid("question_id").notNull().references(() => questions.id, { onDelete: "restrict" }),
+}, (table) => [
+  primaryKey({ columns: [table.formNumber, table.position] }),
+  unique("full_mock_form_questions_question_unique").on(table.questionId),
+  check("full_mock_form_questions_number_check", sql`${table.formNumber} between 1 and 25`),
+  check("full_mock_form_questions_position_check", sql`${table.position} between 1 and 200`),
+  check("full_mock_form_questions_part_check", sql`${table.part} between 1 and 7`),
 ]);
 
 export const practiceSessions = pgTable("practice_sessions", {
@@ -567,6 +582,28 @@ export const practiceSessionQuestions = pgTable("practice_session_questions", {
 export const attemptAnswers = pgTable("attempt_answers", {
   id: uuid("id").primaryKey().defaultRandom(), sessionId: uuid("session_id").notNull().references(() => practiceSessions.id, { onDelete: "cascade" }), userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }), questionId: uuid("question_id").notNull().references(() => questions.id, { onDelete: "restrict" }), responseType: text("response_type").notNull().default("MULTIPLE_CHOICE"), selectedOptionId: uuid("selected_option_id").references(() => questionOptions.id, { onDelete: "restrict" }), isCorrect: boolean("is_correct").notNull(), responseTimeMs: integer("response_time_ms"), answeredAt: timestamp("answered_at", { withTimezone: true, mode: "date" }), createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
 }, (table) => [unique("attempt_answers_session_question_unique").on(table.sessionId, table.questionId), index("attempt_answers_user_session_idx").on(table.userId, table.sessionId), index("attempt_answers_user_question_session_idx").on(table.userId, table.questionId, table.sessionId), check("attempt_answers_response_type_check", sql`${table.responseType} = 'MULTIPLE_CHOICE'`)]);
+
+export const userVocabulary = pgTable("user_vocabulary", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  entryKey: text("entry_key").notNull(),
+  sourceQuestionId: uuid("source_question_id").references(() => questions.id, { onDelete: "set null" }),
+  sourceSessionId: uuid("source_session_id").references(() => practiceSessions.id, { onDelete: "set null" }),
+  sourceQuestionNumber: smallint("source_question_number"),
+  contextSentence: text("context_sentence").notNull(),
+  toeicPart: smallint("toeic_part").notNull(),
+  dueAt: timestamp("due_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+  intervalDays: integer("interval_days").notNull().default(0),
+  correctStreak: integer("correct_streak").notNull().default(0),
+  reviewCount: integer("review_count").notNull().default(0),
+  lastReviewedAt: timestamp("last_reviewed_at", { withTimezone: true, mode: "date" }),
+  ...timestamps,
+}, (table) => [
+  uniqueIndex("user_vocabulary_user_entry_uidx").on(table.userId, table.entryKey),
+  index("user_vocabulary_due_idx").on(table.userId, table.dueAt),
+  check("user_vocabulary_part_check", sql`${table.toeicPart} between 1 and 7`),
+  check("user_vocabulary_review_check", sql`${table.intervalDays} >= 0 and ${table.correctStreak} >= 0 and ${table.reviewCount} >= 0`),
+]);
 
 export const questionMastery = pgTable("question_mastery", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -601,3 +638,29 @@ export const fullMockAnswers = pgTable("full_mock_answers", {
   answeredAt: timestamp("answered_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
 }, (table) => [primaryKey({ columns: [table.sessionId, table.questionId] }), index("full_mock_answers_user_session_idx").on(table.userId, table.sessionId)]);
+
+// Study lessons are deliberately independent of questions, passage sets and scoring.
+export const listeningLessons = pgTable("listening_lessons", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  title: text("title").notNull(),
+  description: text("description").notNull().default(""),
+  toeicPart: smallint("toeic_part").notNull(),
+  transcript: text("transcript").notNull(),
+  transcriptFingerprint: text("transcript_fingerprint").notNull(),
+  audioStorageKey: text("audio_storage_key").notNull(),
+  audioChecksum: text("audio_checksum").notNull(),
+  audioDurationMs: integer("audio_duration_ms"),
+  imageStorageKey: text("image_storage_key"),
+  imageChecksum: text("image_checksum"),
+  imageAlt: text("image_alt"),
+  status: text("status").notNull().default("DRAFT"),
+  publishedAt: timestamp("published_at", { withTimezone: true, mode: "date" }),
+  ...timestamps,
+}, (table) => [
+  index("listening_lessons_status_part_idx").on(table.status, table.toeicPart, table.publishedAt),
+  uniqueIndex("listening_lessons_transcript_fingerprint_uidx").on(table.transcriptFingerprint),
+  uniqueIndex("listening_lessons_audio_checksum_uidx").on(table.audioChecksum),
+  check("listening_lessons_part_check", sql`${table.toeicPart} between 1 and 4`),
+  check("listening_lessons_status_check", sql`${table.status} in ('DRAFT','PUBLISHED','ARCHIVED')`),
+  check("listening_lessons_image_check", sql`(${table.imageStorageKey} is null) = (${table.imageChecksum} is null)`),
+]);

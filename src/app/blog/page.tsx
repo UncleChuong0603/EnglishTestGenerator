@@ -5,13 +5,14 @@ import { PublicFooter } from "@/components/public-footer";
 import { ArticleCard } from "@/components/blog/article-card";
 import { getCurrentUser } from "@/lib/auth/session";
 import { listPublishedPosts, coverUrl } from "@/lib/blog/service";
+import { grammarImageForSlug } from "@/lib/blog/editorial";
 import { CATEGORY_LABELS, POST_CATEGORIES, type PostCategory } from "@/lib/blog/core";
 import { getPreferences } from "@/lib/i18n/get-translations";
 
 export const metadata: Metadata = { title: "Kiến thức TOEIC: lộ trình, chiến thuật và luyện thi", description: "Hướng dẫn TOEIC thực tế về Listening, Reading, ngữ pháp, từ vựng, lộ trình học và kinh nghiệm ngày thi.", alternates: { canonical: "/blog" }, openGraph: { title: "Kiến thức TOEIC | TOEICGym", description: "Học TOEIC có định hướng: hiểu điểm yếu, chọn đúng nội dung và áp dụng ngay vào bài luyện.", type: "website", images: ["/blog/cover/toeic_strategy"] } };
 
 const categoryNotes: Record<PostCategory, { vi: string; en: string }> = {
-  TOEIC_STRATEGY: { vi: "Tăng điểm có chiến lược", en: "Score-growth strategy" }, LISTENING: { vi: "Nghe ý, bắt paraphrase", en: "Listen for meaning" }, READING: { vi: "Đọc nhanh, giữ độ chính xác", en: "Read faster accurately" }, GRAMMAR: { vi: "Ngữ pháp tạo điểm", en: "High-value grammar" }, VOCABULARY: { vi: "Từ vựng theo ngữ cảnh", en: "Vocabulary in context" }, STUDY_PLAN: { vi: "Lịch học duy trì được", en: "Sustainable study plans" }, EXAM_TIPS: { vi: "Sẵn sàng cho ngày thi", en: "Test-day readiness" },
+  TOEIC_STRATEGY: { vi: "Tăng điểm có chiến lược", en: "Score-growth strategy" }, LISTENING: { vi: "Nghe ý, bắt paraphrase", en: "Listen for meaning" }, READING: { vi: "Đọc nhanh, giữ độ chính xác", en: "Read faster accurately" }, GRAMMAR: { vi: "Ngữ pháp tạo điểm", en: "High-value grammar" }, VOCABULARY: { vi: "Từ vựng theo ngữ cảnh", en: "Vocabulary in context" }, STUDY_PLAN: { vi: "Lịch học duy trì được", en: "Sustainable study plans" }, EXAM_TIPS: { vi: "Sẵn sàng cho ngày thi", en: "Test-day readiness" }, EXAM_REVIEW: { vi: "Phân tích đáp án và lỗi sai", en: "Review answers and mistakes" },
 };
 
 type Search = { category?: string; q?: string };
@@ -22,7 +23,7 @@ export default async function BlogPage({ searchParams }: { searchParams: Promise
   const activeCategory = POST_CATEGORIES.includes(category as PostCategory) ? category as PostCategory : null;
   const query = q?.trim().toLocaleLowerCase(locale === "vi" ? "vi" : "en") ?? "";
   const filtered = posts.filter(post => (!activeCategory || post.category === activeCategory) && (!query || `${post.title} ${post.excerpt} ${post.content}`.toLocaleLowerCase(locale === "vi" ? "vi" : "en").includes(query)));
-  const cards = await Promise.all(filtered.map(async post => ({ post, image: await coverUrl(post.coverMediaId) || `/blog/cover/${post.category.toLowerCase()}` })));
+  const cards = await Promise.all(filtered.map(async post => ({ post, image: await coverUrl(post.coverMediaId) || grammarImageForSlug(post.slug) || ("editorialCover" in post && typeof post.editorialCover === "string" ? post.editorialCover : null) || `/blog/cover/${post.category.toLowerCase()}` })));
   const featured = cards[0], remaining = cards.slice(1);
   return <main className="min-h-screen bg-[#f4f1e8] text-slate-950">
     <PublicHeader locale={locale} signedIn={Boolean(user)} />

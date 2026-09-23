@@ -2,29 +2,49 @@ import "server-only";
 import { and, desc, eq, inArray, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { adminAuditLogs, contentPosts, contentPostTags, contentTags, mediaAssets } from "@/db/schema";
-import { POST_CATEGORIES, slugify, validatePost, type PostCategory, type PostInput } from "./core";
+import { isEditorialVisible, POST_CATEGORIES, slugify, validatePost, type PostCategory, type PostInput, type PostStatus } from "./core";
 import { createMediaStorage } from "@/lib/media/storage";
 import { EDITORIAL_POSTS, getEditorialPost } from "./editorial";
 
 export class BlogAdminError extends Error { constructor(public code: string) { super(code); } }
-export async function listAdminPosts() { return db.select().from(contentPosts).orderBy(desc(contentPosts.updatedAt)); }
+export async function listAdminPosts() {
+  const rows = await db.select().from(contentPosts).orderBy(desc(contentPosts.updatedAt));
+  return [
+    ...rows.map(row => ({ ...row, source: "cms" as const })),
+    ...EDITORIAL_POSTS.map(row => ({ ...row, source: "editorial" as const })),
+  ];
+}
 export async function listAdminPostTags(){return db.select({postId:contentPostTags.postId,name:contentTags.name}).from(contentPostTags).innerJoin(contentTags,eq(contentPostTags.tagId,contentTags.id));}
 export async function listPublishedPosts(limit = 50) {
   let databasePosts: typeof contentPosts.$inferSelect[] = [];
   try {
-    databasePosts = await db.select().from(contentPosts).where(eq(contentPosts.status, "PUBLISHED")).orderBy(desc(contentPosts.publishedAt)).limit(limit);
+    databasePosts = await db.select().from(contentPosts).orderBy(desc(contentPosts.publishedAt));
   } catch {
     console.warn("Could not load CMS posts; serving the bundled editorial library.");
   }
-  const databaseSlugs = new Set(databasePosts.map(post => post.slug));
-  return [...databasePosts, ...EDITORIAL_POSTS.filter(post => !databaseSlugs.has(post.slug))]
+  const statuses = new Map(databasePosts.map(post => [post.slug, post.status as PostStatus]));
+  const published = databasePosts.filter(post => post.status === "PUBLISHED");
+  return [...published, ...EDITORIAL_POSTS.filter(post => isEditorialVisible(statuses.get(post.slug)))]
     .sort((a, b) => (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0)).slice(0, limit);
 }
 export async function getPostById(id: string) { const post=(await db.select().from(contentPosts).where(eq(contentPosts.id,id)).limit(1))[0]; return post ? { ...post, tags: await tagsFor(post.id) } : null; }
-export async function getPublishedPost(slug: string) { const editorial=getEditorialPost(slug);if(editorial)return editorial;try{const post=(await db.select().from(contentPosts).where(and(eq(contentPosts.slug,slug),eq(contentPosts.status,"PUBLISHED"))).limit(1))[0];return post?{...post,tags:await tagsFor(post.id)}:null;}catch{console.warn("Could not load the requested CMS post.");return null;} }
+export async function getPublishedPost(slug: string) {
+  try {
+    const post = (await db.select().from(contentPosts).where(eq(contentPosts.slug, slug)).limit(1))[0];
+    if (post?.status === "PUBLISHED") return { ...post, tags: await tagsFor(post.id) };
+    return isEditorialVisible(post?.status as PostStatus | undefined) ? getEditorialPost(slug) : null;
+  } catch {
+    console.warn("Could not load the requested CMS post; serving bundled editorial content when available.");
+    return getEditorialPost(slug);
+  }
+}
 async function tagsFor(postId:string){return db.select({name:contentTags.name,slug:contentTags.slug}).from(contentPostTags).innerJoin(contentTags,eq(contentPostTags.tagId,contentTags.id)).where(eq(contentPostTags.postId,postId));}
 export async function listReadyCoverImages(){return db.select({id:mediaAssets.id,storageKey:mediaAssets.storageKey,imageWidth:mediaAssets.imageWidth,imageHeight:mediaAssets.imageHeight}).from(mediaAssets).where(and(eq(mediaAssets.kind,"IMAGE"),eq(mediaAssets.status,"READY"),eq(mediaAssets.accessScope,"CONTENT"))).orderBy(desc(mediaAssets.createdAt)).limit(100);}
-export async function listPostSuggestions(id?:string){return db.select({id:contentPosts.id,title:contentPosts.title,slug:contentPosts.slug,category:contentPosts.category,seoTitle:contentPosts.seoTitle,seoDescription:contentPosts.seoDescription}).from(contentPosts).where(id?and(eq(contentPosts.status,"PUBLISHED"),ne(contentPosts.id,id)):eq(contentPosts.status,"PUBLISHED")).orderBy(desc(contentPosts.publishedAt)).limit(100);}
+export async function listPostSuggestions(id?:string){
+  const rows = await db.select({id:contentPosts.id,title:contentPosts.title,slug:contentPosts.slug,category:contentPosts.category,seoTitle:contentPosts.seoTitle,seoDescription:contentPosts.seoDescription}).from(contentPosts).where(id?and(eq(contentPosts.status,"PUBLISHED"),ne(contentPosts.id,id)):eq(contentPosts.status,"PUBLISHED")).orderBy(desc(contentPosts.publishedAt)).limit(100);
+  const slugs = new Set(rows.map(row => row.slug));
+  return [...rows, ...EDITORIAL_POSTS.filter(post => !slugs.has(post.slug)).map(({id,title,slug,category,seoTitle,seoDescription})=>({id,title,slug,category,seoTitle,seoDescription}))];
+}
 
 async function replaceTags(tx: Parameters<Parameters<typeof db.transaction>[0]>[0], postId:string, names:string[]){
   await tx.delete(contentPostTags).where(eq(contentPostTags.postId,postId));
@@ -36,23 +56,25 @@ export async function savePost(actorId:string,input:PostInput,id?:string){const 
 export async function setPostPublished(actorId:string,id:string,publish:boolean){await db.transaction(async tx=>{const post=(await tx.select().from(contentPosts).where(eq(contentPosts.id,id)).limit(1))[0];if(!post)throw new BlogAdminError("NOT_FOUND");if(publish){const errors=validatePost({title:post.title,slug:post.slug,excerpt:post.excerpt,content:post.content,category:post.category as PostCategory,seoTitle:post.seoTitle??undefined,seoDescription:post.seoDescription??undefined,canonicalPath:post.canonicalPath??undefined,coverMediaId:post.coverMediaId??undefined,tags:[]},true);if(errors.length)throw new BlogAdminError(errors[0]);}await tx.update(contentPosts).set({status:publish?"PUBLISHED":"UNPUBLISHED",publishedAt:publish?(post.publishedAt??new Date()):post.publishedAt,updatedBy:actorId,updatedAt:new Date()}).where(eq(contentPosts.id,id));await tx.insert(adminAuditLogs).values({actorUserId:actorId,action:publish?"SEO_POST_PUBLISHED":"SEO_POST_UNPUBLISHED",metadata:{postId:id,slug:post.slug}});});}
 export async function deleteDraft(actorId:string,id:string){await db.transaction(async tx=>{const deleted=await tx.delete(contentPosts).where(and(eq(contentPosts.id,id),inArray(contentPosts.status,["DRAFT","UNPUBLISHED"]))).returning({id:contentPosts.id,slug:contentPosts.slug});if(!deleted.length)throw new BlogAdminError("PUBLISHED_DELETE_FORBIDDEN");await tx.insert(adminAuditLogs).values({actorUserId:actorId,action:"SEO_POST_DELETED",metadata:{postId:id,slug:deleted[0].slug}});});}
 export async function publishedSitemapRows() {
-  let databaseRows: { slug: string; updatedAt: Date; canonicalPath: string | null }[] = [];
+  let databaseRows: { slug: string; status: string; noindex: boolean; updatedAt: Date; canonicalPath: string | null }[] = [];
   try {
     databaseRows = await db.select({
       slug: contentPosts.slug,
+      status: contentPosts.status,
+      noindex: contentPosts.noindex,
       updatedAt: contentPosts.updatedAt,
       canonicalPath: contentPosts.canonicalPath,
-    }).from(contentPosts).where(and(eq(contentPosts.status, "PUBLISHED"), eq(contentPosts.noindex, false)));
+    }).from(contentPosts);
   } catch {
     console.warn("Could not load CMS sitemap rows; using bundled editorial rows.");
   }
 
-  const editorialSlugs = new Set(EDITORIAL_POSTS.map((post) => post.slug));
+  const statuses = new Map(databaseRows.map(row => [row.slug, row.status as PostStatus]));
   return [
     ...databaseRows
-      .filter((row) => !editorialSlugs.has(row.slug) && (!row.canonicalPath || row.canonicalPath === `/blog/${row.slug}`))
+      .filter((row) => row.status === "PUBLISHED" && !row.noindex && (!row.canonicalPath || row.canonicalPath === `/blog/${row.slug}`))
       .map(({ slug, updatedAt }) => ({ slug, updatedAt })),
-    ...EDITORIAL_POSTS.map((post) => ({ slug: post.slug, updatedAt: post.updatedAt })),
+    ...EDITORIAL_POSTS.filter(post => isEditorialVisible(statuses.get(post.slug))).map((post) => ({ slug: post.slug, updatedAt: post.updatedAt })),
   ];
 }
 export function readingMinutes(content:string){return Math.max(1,Math.ceil(content.trim().split(/\s+/).length/220));}

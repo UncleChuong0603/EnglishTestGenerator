@@ -15,8 +15,8 @@ const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
       allowedOrigins: ["toeicgym.net", "www.toeicgym.net"],
-      // Admin audio uploads are validated separately and can be up to 15 MiB.
-      bodySizeLimit: "16mb",
+      // A listening lesson can include a 15 MiB MP3 and a 5 MiB image.
+      bodySizeLimit: "22mb",
     },
   },
   async headers() {

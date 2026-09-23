@@ -2,6 +2,7 @@ import { productionListening as listeningFixtures } from "./content-manifest.mjs
 
 const ids = new Set();
 const distractorSets = new Map();
+const optionTexts = new Map();
 const mojibake = /(?:Ã.|Â.|Ä.|Æ.|â€|ï¿½)/;
 const taxonomy = {
   1: { photographs: ["visual_detail"] },
@@ -20,6 +21,12 @@ for (const item of listeningFixtures) {
   for (const question of questions) {
     const expected = item.part === 2 ? 3 : 4;
     if (question.options.length !== expected || new Set(question.options.map((option) => option.text.trim().toLowerCase())).size !== expected || question.options.filter((option) => option.key === question.correctKey).length !== 1) throw new Error(`Invalid options: ${item.externalId}`);
+    for (const option of question.options) {
+      const normalized = option.text.trim().replace(/\s+/g, " ").toLowerCase();
+      const previous = optionTexts.get(normalized);
+      if (previous) throw new Error(`Reused Listening choice: ${previous} and ${item.externalId}/Q${question.order}`);
+      optionTexts.set(normalized, `${item.externalId}/Q${question.order}`);
+    }
     if (!question.explanationEn?.trim() || !question.explanationVi?.trim()) throw new Error(`Missing explanation: ${item.externalId}`);
     if ([item.transcript, question.text, question.explanationEn, question.explanationVi, ...question.options.map((option) => option.text)].some((text) => mojibake.test(text))) throw new Error(`Mojibake detected: ${item.externalId}`);
     if (!taxonomy[item.part]?.[question.skill]?.includes(question.subSkill)) throw new Error(`Unknown taxonomy: ${item.externalId}/${question.skill}/${question.subSkill}`);
