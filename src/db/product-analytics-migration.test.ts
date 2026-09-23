@@ -23,6 +23,10 @@ describe("product analytics migration", () => {
     await expect(database.exec("insert into product_events(event_name,deduplication_key) values ('landing_viewed','same-key')")).rejects.toThrow();
   });
   it("adds challenge events without removing older events", async () => {
+    const journal = JSON.parse(readFileSync("drizzle/meta/_journal.json", "utf8")) as { entries: Array<{ tag: string; when: number }> };
+    const previous = journal.entries.find(entry => entry.tag === "0033_question_bank_scale");
+    const current = journal.entries.find(entry => entry.tag === "0034_square_tinkerer");
+    expect(current?.when).toBeGreaterThan(previous!.when);
     const migration = readFileSync("drizzle/0034_square_tinkerer.sql", "utf8");
     for (const statement of migration.split("--> statement-breakpoint").map(value => value.trim()).filter(Boolean)) await database.exec(statement);
     await database.exec("insert into product_events(event_name,deduplication_key) values ('challenge_viewed','challenge-view-1')");
