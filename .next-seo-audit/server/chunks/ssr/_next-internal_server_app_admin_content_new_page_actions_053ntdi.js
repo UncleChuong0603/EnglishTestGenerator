@@ -1,3 +1,0 @@
-module.exports=[54699,a=>a.a(async(b,c)=>{try{var d=a.i(47818),e=a.i(89132),f=b([d,e]);[d,e]=f.then?(await f)():f,a.s([]),c()}catch(a){c(a)}},!1),55799,a=>a.a(async(b,c)=>{try{var d=a.i(54699),e=a.i(47818),f=a.i(89132),g=b([d,e,f]);[d,e,f]=g.then?(await g)():g,a.s(["403d793c9d42c38fd8d9505da7ca885d984f17b76a",()=>f.createDraftAction,"40511040dfe83339012bc733f4f1c1e51418bf3961",()=>e.setInterfaceLanguage]),c()}catch(a){c(a)}},!1)];
-
-//# sourceMappingURL=_next-internal_server_app_admin_content_new_page_actions_053ntdi.js.map

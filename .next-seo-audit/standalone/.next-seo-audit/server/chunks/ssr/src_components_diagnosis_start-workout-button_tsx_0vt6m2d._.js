@@ -1,3 +1,0 @@
-module.exports=[61545,a=>{"use strict";var b=a.i(87924),c=a.i(35112);a.s(["StartWorkoutButton",0,function({idle:a,pending:d}){let e=(0,c.useFormStatus)();return(0,b.jsx)("button",{"aria-disabled":e.pending,className:"min-h-12 rounded-xl bg-teal-700 px-6 py-3 font-bold text-white shadow-sm transition hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 disabled:cursor-wait disabled:opacity-70",disabled:e.pending,type:"submit",children:e.pending?d:a})}])}];
-
-//# sourceMappingURL=src_components_diagnosis_start-workout-button_tsx_0vt6m2d._.js.map

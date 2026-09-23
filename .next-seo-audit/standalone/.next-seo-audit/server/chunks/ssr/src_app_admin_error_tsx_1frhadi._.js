@@ -1,3 +1,0 @@
-module.exports=[74167,a=>{"use strict";var b=a.i(87924);a.s(["default",0,function({reset:a}){return(0,b.jsx)("main",{className:"grid min-h-screen place-items-center bg-slate-50 p-6 text-center",children:(0,b.jsxs)("div",{role:"alert",children:[(0,b.jsx)("h1",{className:"text-2xl font-black",children:"Không thể tải dữ liệu quản trị"}),(0,b.jsx)("p",{className:"mt-2 text-slate-600",children:"Vui lòng thử lại."}),(0,b.jsx)("button",{className:"mt-5 rounded-xl bg-slate-900 px-5 py-3 font-bold text-white focus-visible:outline-2 focus-visible:outline-offset-2",onClick:a,children:"Thử lại"})]})})}])}];
-
-//# sourceMappingURL=src_app_admin_error_tsx_1frhadi._.js.map

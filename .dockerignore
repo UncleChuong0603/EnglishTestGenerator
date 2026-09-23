@@ -1,6 +1,8 @@
 .git
 .github
 .next
+.next-seo-audit
+.tmp
 node_modules
 .env*
 artifacts

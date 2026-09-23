@@ -1,3 +1,0 @@
-module.exports=[56517,a=>a.a(async(b,c)=>{try{var d=a.i(47818),e=b([d]);[d]=e.then?(await e)():e,a.s([]),c()}catch(a){c(a)}},!1),72801,a=>a.a(async(b,c)=>{try{var d=a.i(56517),e=a.i(47818),f=b([d,e]);[d,e]=f.then?(await f)():f,a.s(["40511040dfe83339012bc733f4f1c1e51418bf3961",()=>e.setInterfaceLanguage]),c()}catch(a){c(a)}},!1)];
-
-//# sourceMappingURL=_next-internal_server_app_admin_access-denied_page_actions_0uh6w8r.js.map
