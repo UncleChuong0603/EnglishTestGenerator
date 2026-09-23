@@ -11,7 +11,7 @@ export async function migrateGuestAttempts(userId: string) {
   if (!guestOwnerHash) return 0;
   const migrated = await db.transaction(async (tx) => {
     const rows = await tx.select({ id: practiceSessions.id, source: practiceSessions.source }).from(practiceSessions).where(and(eq(practiceSessions.guestOwnerHash, guestOwnerHash), isNull(practiceSessions.userId), eq(practiceSessions.status, "submitted"), gt(practiceSessions.expiresAt, new Date()))).for("update");
-    const runs = await tx.select({ id: diagnosticRuns.id }).from(diagnosticRuns).where(and(eq(diagnosticRuns.guestOwnerHash, guestOwnerHash), isNull(diagnosticRuns.userId), gt(diagnosticRuns.expiresAt, new Date()))).for("update");
+    const runs = await tx.select({ id: diagnosticRuns.id }).from(diagnosticRuns).where(and(eq(diagnosticRuns.guestOwnerHash, guestOwnerHash), isNull(diagnosticRuns.userId), eq(diagnosticRuns.status, "COMPLETED"), gt(diagnosticRuns.expiresAt, new Date()))).for("update");
     if (!rows.length && !runs.length) return 0;
     for (const row of rows) {
       await tx.update(practiceSessions).set({ userId, guestOwnerHash: null, expiresAt: null }).where(and(eq(practiceSessions.id, row.id), eq(practiceSessions.guestOwnerHash, guestOwnerHash), isNull(practiceSessions.userId)));
@@ -20,7 +20,7 @@ export async function migrateGuestAttempts(userId: string) {
     }
     for (const run of runs) {
       await tx.update(diagnosticRuns).set({ userId, guestOwnerHash: null }).where(and(eq(diagnosticRuns.id, run.id), eq(diagnosticRuns.guestOwnerHash, guestOwnerHash), isNull(diagnosticRuns.userId)));
-      const children = await tx.select({ id: practiceSessions.id, source: practiceSessions.source }).from(practiceSessions).where(and(eq(practiceSessions.diagnosticRunId, run.id), eq(practiceSessions.guestOwnerHash, guestOwnerHash)));
+      const children = await tx.select({ id: practiceSessions.id, source: practiceSessions.source }).from(practiceSessions).where(and(eq(practiceSessions.diagnosticRunId, run.id), eq(practiceSessions.guestOwnerHash, guestOwnerHash), isNull(practiceSessions.userId), eq(practiceSessions.status, "submitted")));
       for (const child of children) {
         await tx.update(practiceSessions).set({ userId, guestOwnerHash: null }).where(eq(practiceSessions.id, child.id));
         await tx.update(attemptAnswers).set({ userId }).where(and(eq(attemptAnswers.sessionId, child.id), isNull(attemptAnswers.userId)));

@@ -19,11 +19,11 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { UnifiedRecommendationCard } from "@/components/diagnosis/recommendation-card";
 import { loadRecommendedWorkout } from "@/lib/diagnosis/service";
 import { getGuestOwnerHash } from "@/lib/guest/identity";
-import { migrateGuestAttempts } from "@/lib/guest/migration";
 import { getMasteryReviewSummary } from "@/lib/mastery/queries";
 import { ReviewOutcome } from "@/components/mastery/review-outcome";
 import { PremiumPreviewCard } from "@/components/premium/premium-preview";
 import { getPremiumPreview } from "@/lib/premium/preview";
+import { guestContinuationPath } from "@/lib/auth/redirect";
 
 export default async function PracticeResultsPage({
   params,
@@ -34,7 +34,6 @@ export default async function PracticeResultsPage({
     getGuestOwnerHash(),
   ]);
   if (!user && !guestOwnerHash) redirect("/try");
-  if (user && guestOwnerHash) await migrateGuestAttempts(user.id);
   const [result, preferences] = await Promise.all([
     getPracticeResult(
       sessionId,
@@ -77,7 +76,7 @@ export default async function PracticeResultsPage({
             <div className="mt-3 flex flex-col justify-center gap-3 sm:flex-row">
               <Link
                 className="rounded-lg bg-white px-4 py-2 font-bold text-teal-800"
-                href="/sign-up?from=guest-result&next=/dashboard"
+                href={`/sign-up?from=guest-result&next=${encodeURIComponent(guestContinuationPath(sessionId))}`}
               >
                 {locale === "vi"
                   ? "Lưu & tiếp tục miễn phí"
@@ -85,7 +84,7 @@ export default async function PracticeResultsPage({
               </Link>
               <Link
                 className="rounded-lg border border-white px-4 py-2 font-bold"
-                href="/sign-in?next=/dashboard"
+                href={`/sign-in?next=${encodeURIComponent(guestContinuationPath(sessionId))}`}
               >
                 {locale === "vi" ? "Đăng nhập" : "Sign in"}
               </Link>
@@ -223,7 +222,7 @@ export default async function PracticeResultsPage({
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
               <Link
                 className="rounded-xl bg-teal-700 px-5 py-3 text-center font-bold text-white"
-                href="/sign-up?from=guest-result&next=/dashboard"
+                href={`/sign-up?from=guest-result&next=${encodeURIComponent(guestContinuationPath(sessionId))}`}
               >
                 {locale === "vi"
                   ? "Lưu kết quả & tiếp tục miễn phí"
@@ -231,7 +230,7 @@ export default async function PracticeResultsPage({
               </Link>
               <Link
                 className="rounded-xl border border-teal-700 px-5 py-3 text-center font-bold text-teal-800"
-                href="/sign-in?next=/dashboard"
+                href={`/sign-in?next=${encodeURIComponent(guestContinuationPath(sessionId))}`}
               >
                 {locale === "vi"
                   ? "Tôi đã có tài khoản"

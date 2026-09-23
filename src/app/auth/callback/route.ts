@@ -57,7 +57,11 @@ export async function GET(request: NextRequest) {
       await tx.update(users).set({ lastLoginAt: new Date(), updatedAt: new Date() }).where(eq(users.id, userId));
       await tx.insert(securityEvents).values({ userId, eventType: "login_success", metadata: { method: "google" } });
     });
-    await createSession(userId); await migrateGuestAttempts(userId); return NextResponse.redirect(new URL(oauthState.returnTo, appUrl));
+    await createSession(userId);
+    try { await migrateGuestAttempts(userId); } catch (migrationError) {
+      console.error("[guest:migration] deferred after Google sign-in", { name: migrationError instanceof Error ? migrationError.name : "Unknown" });
+    }
+    return NextResponse.redirect(new URL(oauthState.returnTo, appUrl));
   } catch (error) {
     const collision = error instanceof Error && error.message === "EXPLICIT_LINK_REQUIRED";
     if (!collision) console.error("[auth:google_callback]", error);

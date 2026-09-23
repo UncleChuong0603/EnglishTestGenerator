@@ -7,6 +7,7 @@ import { hashToken } from "@/lib/auth/crypto";
 import { enforceRateLimit } from "@/lib/auth/rate-limit";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getServerEnv } from "@/lib/env";
+import { safeInternalReturnTo } from "@/lib/auth/redirect";
 
 export async function GET(request: NextRequest) {
   const env = getServerEnv();
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
   }
   const linkUser = request.nextUrl.searchParams.get("mode") === "link" ? await getCurrentUser() : null;
   const returnParam = request.nextUrl.searchParams.get("next");
-  const returnTo = returnParam?.startsWith("/") && !returnParam.startsWith("//") ? returnParam : "/dashboard";
+  const returnTo = safeInternalReturnTo(returnParam);
   const state = randomBytes(32).toString("base64url"); const codeVerifier = randomBytes(64).toString("base64url");
   const codeChallenge = createHash("sha256").update(codeVerifier).digest("base64url");
   try {
