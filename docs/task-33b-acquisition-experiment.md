@@ -21,6 +21,65 @@ Do not conclude anything about a conversion step unless its previous step has **
 
 Review cadence: check availability and counts daily for the first three days after each channel launch; review conversion weekly once the relevant cohort has matured. At each review, record the exact time, view cohort dates, six counts where measurable, denominator and maturity for each rate, channel posting log, and the next decision. Wait for at least seven complete product days after a first workout before judging the final step.
 
+### Read-only check for the sixth step
+
+Run this in production `psql` with read-only access. Change only the view-cohort interval to match the Admin Analytics period. It follows the same view → session → signup → first-workout chain as `getChallengeFunnel`; it reports a separate mature denominator for the final step. The first workout's product date is day one, and the next six product dates complete the observation window.
+
+```sql
+BEGIN READ ONLY;
+WITH views AS (
+  SELECT CASE WHEN user_id IS NOT NULL THEN 'u:' || user_id::text ELSE 'g:' || guest_reference END actor,
+         min(occurred_at) viewed_at
+  FROM product_events
+  WHERE event_name = 'challenge_viewed'
+    AND occurred_at >= now() - interval '30 days'
+    AND (user_id IS NOT NULL OR guest_reference IS NOT NULL)
+  GROUP BY 1
+), starts AS (
+  SELECT DISTINCT v.actor, e.session_id, e.occurred_at
+  FROM views v JOIN product_events e ON e.event_name = 'challenge_started'
+    AND (CASE WHEN e.user_id IS NOT NULL THEN 'u:' || e.user_id::text ELSE 'g:' || e.guest_reference END) = v.actor
+    AND e.occurred_at >= v.viewed_at AND e.session_id IS NOT NULL
+), completions AS (
+  SELECT DISTINCT s.actor, s.session_id, e.occurred_at
+  FROM starts s JOIN product_events e ON e.event_name = 'challenge_completed'
+    AND e.session_id = s.session_id AND e.occurred_at >= s.occurred_at
+), signups AS (
+  SELECT DISTINCT c.actor, e.user_id, e.occurred_at
+  FROM completions c JOIN product_events e ON e.event_name = 'signup_after_challenge'
+    AND e.session_id = c.session_id AND e.user_id IS NOT NULL AND e.occurred_at >= c.occurred_at
+), first_workouts AS (
+  SELECT DISTINCT ON (s.actor) s.actor, s.user_id, e.occurred_at workout_at
+  FROM signups s JOIN product_events e ON e.event_name = 'first_authenticated_workout_after_challenge'
+    AND e.user_id = s.user_id AND e.occurred_at >= s.occurred_at
+  ORDER BY s.actor, e.occurred_at
+), mature AS (
+  SELECT actor, user_id, (workout_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date first_day
+  FROM first_workouts
+  WHERE (workout_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date + 7
+        <= (now() AT TIME ZONE 'Asia/Ho_Chi_Minh')::date
+), learning_days AS (
+  SELECT m.actor, count(DISTINCT (ps.submitted_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date) learning_days
+  FROM mature m JOIN practice_sessions ps ON ps.user_id = m.user_id
+    AND (ps.submitted_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date >= m.first_day
+    AND (ps.submitted_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::date < m.first_day + 7
+  WHERE ps.status = 'submitted' AND ps.submitted_at IS NOT NULL
+    AND ps.source NOT IN ('diagnostic', 'full_mock', 'ranked_challenge')
+    AND ps.practice_type <> 'demo_test'
+    AND EXISTS (
+      SELECT 1 FROM attempt_answers aa
+      WHERE aa.session_id = ps.id AND aa.user_id = ps.user_id AND aa.answered_at IS NOT NULL
+    )
+  GROUP BY m.actor
+)
+SELECT count(*)::int AS mature_first_workout_actors,
+       count(*) FILTER (WHERE coalesce(l.learning_days, 0) >= 2)::int AS two_plus_learning_day_actors
+FROM mature m LEFT JOIN learning_days l ON l.actor = m.actor;
+ROLLBACK;
+```
+
+The final conversion rate is `two_plus_learning_day_actors / mature_first_workout_actors`, only when that denominator is at least 20. It must not be divided by the Admin panel's unmatured `First workout` count.
+
 ## Known attribution limitation
 
 If one guest completes several Part 5 Challenges before signup, `recordChallengeSignup` links the signup to that guest's **earliest** completion. A later completed session may have prompted signup, so session-level attribution can be wrong. Keep this behavior for the experiment; document affected interpretation and revisit only if observed data justify a change. Guest identity is browser-bound, with no cross-device join.
