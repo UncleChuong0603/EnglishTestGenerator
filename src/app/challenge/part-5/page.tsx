@@ -30,6 +30,10 @@ export default async function Part5ChallengePage({ searchParams }: PageProps<"/c
       {query.error ? <p className="mt-6 max-w-xl rounded-xl border border-red-200 bg-red-50 p-4 text-red-800" role="alert">{query.error === "limit" ? (vi ? "Bạn đã dùng hết lượt tạo bài hôm nay. Hãy quay lại khi lượt được đặt lại." : "You have used today's session allowance. Please return after it resets.") : (vi ? "Chưa thể tạo thử thách đủ 10 câu. Vui lòng thử lại sau." : "Could not prepare a full 10-question challenge. Please try again later.")}</p> : null}
       <form action={startPart5Challenge} className="mt-9"><button className="inline-flex min-h-14 w-full items-center justify-center rounded-xl bg-teal-700 px-8 text-lg font-black text-white shadow-lg shadow-teal-900/10 sm:w-auto" type="submit">{vi ? "Bắt đầu ngay" : "Start now"} <span aria-hidden="true" className="ml-3">→</span></button></form>
       <p className="mt-4 text-sm text-slate-500">{vi ? "Kết quả là độ chính xác của 10 câu, không phải điểm TOEIC dự đoán." : "Your result is accuracy across 10 questions, not a predicted TOEIC score."}</p>
+      <nav aria-label={vi ? "Tìm hiểu Part 5" : "Explore Part 5"} className="mt-10 flex flex-wrap gap-x-6 gap-y-3 text-sm font-bold text-teal-800">
+        <Link className="underline underline-offset-4" href="/toeic/part-5">{vi ? "Cách làm TOEIC Part 5" : "TOEIC Part 5 guide"}</Link>
+        <Link className="underline underline-offset-4" href="/toeic/part-5/word-form">{vi ? "Luyện Word Form" : "Practice Word Form"}</Link>
+      </nav>
     </section>
     <PublicFooter locale={locale} />
   </main>;
