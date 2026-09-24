@@ -1,16 +1,16 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { PublicFooter } from "@/components/public-footer";
 import { PublicHeader } from "@/components/public-header";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getPreferences } from "@/lib/i18n/get-translations";
+import { publicPageMetadata } from "@/lib/seo/public-metadata";
 import { startPart5Challenge } from "../actions";
 
-export const metadata: Metadata = {
-  title: "Thử thách TOEIC Part 5: 10 câu miễn phí | TOEIC GYM",
+export const metadata = publicPageMetadata({
+  title: "Thử thách TOEIC Part 5: 10 câu miễn phí",
   description: "Làm 10 câu TOEIC Part 5 miễn phí, không cần đăng nhập. Xem độ chính xác, nhóm kỹ năng và giải thích sau khi nộp bài.",
-  alternates: { canonical: "/challenge/part-5" },
-};
+  canonical: "/challenge/part-5",
+});
 
 export default async function Part5ChallengePage({ searchParams }: PageProps<"/challenge/part-5">) {
   const [user, query] = await Promise.all([getCurrentUser(), searchParams]);

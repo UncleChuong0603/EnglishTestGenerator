@@ -1,6 +1,6 @@
 # SEO post JSON import
 
-Trang `/admin/content/posts/new` nhận JSON phiên bản 1 để điền một bản nháp. Import không tự lưu và không tự xuất bản.
+Trang `/admin/posts/new` nhận JSON phiên bản 1 để điền một bản nháp. Import không tự lưu và không tự xuất bản.
 
 Tải schema mẫu trực tiếp bằng nút **Tải JSON mẫu** trong editor. Các giá trị `category` hợp lệ là:
 

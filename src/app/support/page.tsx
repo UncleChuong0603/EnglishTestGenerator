@@ -1,11 +1,11 @@
-import type { Metadata } from "next";
 import { PublicFooter } from "@/components/public-footer";
 import { PublicHeader } from "@/components/public-header";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getPreferences } from "@/lib/i18n/get-translations";
+import { publicPageMetadata } from "@/lib/seo/public-metadata";
 import { submitFeedback } from "./actions";
 
-export const metadata: Metadata = { title: "Hỗ trợ TOEIC GYM", description: "Tìm câu trả lời thường gặp và gửi yêu cầu hỗ trợ cho đội ngũ TOEIC GYM.", alternates: { canonical: "/support" } };
+export const metadata = publicPageMetadata({ title: "Hỗ trợ", description: "Tìm câu trả lời thường gặp và gửi yêu cầu hỗ trợ cho đội ngũ TOEIC GYM.", canonical: "/support" });
 
 const faq = {
   vi: [

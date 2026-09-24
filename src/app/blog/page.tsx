@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { PublicHeader } from "@/components/public-header";
 import { PublicFooter } from "@/components/public-footer";
@@ -8,8 +7,9 @@ import { listPublishedPosts, coverUrl } from "@/lib/blog/service";
 import { grammarImageForSlug } from "@/lib/blog/editorial";
 import { CATEGORY_LABELS, POST_CATEGORIES, type PostCategory } from "@/lib/blog/core";
 import { getPreferences } from "@/lib/i18n/get-translations";
+import { publicPageMetadata } from "@/lib/seo/public-metadata";
 
-export const metadata: Metadata = { title: "Kiến thức TOEIC: lộ trình, chiến thuật và luyện thi", description: "Hướng dẫn TOEIC thực tế về Listening, Reading, ngữ pháp, từ vựng, lộ trình học và kinh nghiệm ngày thi.", alternates: { canonical: "/blog" }, openGraph: { title: "Kiến thức TOEIC | TOEICGym", description: "Học TOEIC có định hướng: hiểu điểm yếu, chọn đúng nội dung và áp dụng ngay vào bài luyện.", type: "website", images: ["/blog/cover/toeic_strategy"] } };
+export const metadata = publicPageMetadata({ title: "Kiến thức TOEIC: lộ trình, chiến thuật và luyện thi", description: "Hướng dẫn TOEIC thực tế về Listening, Reading, ngữ pháp, từ vựng, lộ trình học và kinh nghiệm ngày thi.", canonical: "/blog", socialTitle: "Kiến thức TOEIC | TOEIC GYM", socialDescription: "Học TOEIC có định hướng: hiểu điểm yếu, chọn đúng nội dung và áp dụng ngay vào bài luyện.", image: "/blog/cover/toeic_strategy" });
 
 const categoryNotes: Record<PostCategory, { vi: string; en: string }> = {
   TOEIC_STRATEGY: { vi: "Tăng điểm có chiến lược", en: "Score-growth strategy" }, LISTENING: { vi: "Nghe ý, bắt paraphrase", en: "Listen for meaning" }, READING: { vi: "Đọc nhanh, giữ độ chính xác", en: "Read faster accurately" }, GRAMMAR: { vi: "Ngữ pháp tạo điểm", en: "High-value grammar" }, VOCABULARY: { vi: "Từ vựng theo ngữ cảnh", en: "Vocabulary in context" }, STUDY_PLAN: { vi: "Lịch học duy trì được", en: "Sustainable study plans" }, EXAM_TIPS: { vi: "Sẵn sàng cho ngày thi", en: "Test-day readiness" }, EXAM_REVIEW: { vi: "Phân tích đáp án và lỗi sai", en: "Review answers and mistakes" },

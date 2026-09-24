@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { PricingSection } from "@/components/pricing-section";
 import { PublicFooter } from "@/components/public-footer";
@@ -11,12 +10,13 @@ import { getPremiumAccount, premiumCopy } from "@/lib/premium/presentation";
 import { getPremiumPreview } from "@/lib/premium/preview";
 import { PersonalizedPremiumSummary } from "@/components/premium/premium-preview";
 import { PUBLIC_ACTIVATION_HREF } from "@/lib/public-product";
+import { publicPageMetadata } from "@/lib/seo/public-metadata";
 
-export const metadata: Metadata = {
-  title: "Bảng giá TOEIC GYM",
+export const metadata = publicPageMetadata({
+  title: "Bảng giá",
   description: "So sánh gói Free và Premium của TOEIC GYM để chọn cách luyện TOEIC phù hợp với bạn.",
-  alternates: { canonical: "/pricing" },
-};
+  canonical: "/pricing",
+});
 export default async function PricingPage() {
   const user = await getCurrentUser();
   const preferences = await getPreferences(user?.id);

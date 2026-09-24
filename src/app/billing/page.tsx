@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { LearnerNav } from "@/components/learner-nav";
 import { requireUser } from "@/lib/auth/session";
@@ -7,6 +8,8 @@ import { listUserOrders } from "@/lib/payments/service";
 import { getPremiumAccount } from "@/lib/premium/presentation";
 import { getPremiumValueRecap } from "@/lib/premium/value-recap";
 import { PremiumValueRecapView } from "@/components/premium/premium-value-recap";
+
+export const metadata: Metadata = { title: "Thanh toán và gói", robots: { index: false, follow: false } };
 
 const money = (value: number) => `${new Intl.NumberFormat("vi-VN").format(value)} ₫`;
 const productName = (key: string, vi: boolean) => {

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { RecommendationCard } from "@/components/analytics/recommendation-card";
@@ -13,6 +14,8 @@ import {
   PremiumPreviewCard,
   PremiumRenewalCard,
 } from "@/components/premium/premium-preview";
+
+export const metadata: Metadata = { title: "Luyện tập", robots: { index: false, follow: false } };
 import { getPremiumPreview } from "@/lib/premium/preview";
 
 type Props = { searchParams: Promise<{ error?: string }> };

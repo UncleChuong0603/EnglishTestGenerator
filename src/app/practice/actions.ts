@@ -108,6 +108,26 @@ export async function startRecommendedPractice() {
   } catch (error) { if (typeof error === "object" && error && "digest" in error) throw error; if (error instanceof UsageLimitError) redirect(`/practice?error=usage_limit&resetAt=${encodeURIComponent(error.status.resetAt)}`); console.error("Could not start recommended practice", error); redirect("/practice?error=start_failed"); }
 }
 
+/** Premium weekly focus is recalculated at click time; the browser supplies no focus or question IDs. */
+export async function startWeeklyFocusedReading() {
+  const user = await getCurrentUser(); if (!user) redirect("/sign-in");
+  const capabilities = await getEffectiveCapabilities(user.id);
+  if (!capabilities.canUseAdvancedTargeting) redirect("/practice?error=premium_required");
+  try {
+    const [recommendation, goal, usage] = await Promise.all([loadRecommendedWorkout(user.id), getLearnerGoal(user.id), getUsageStatus(user.id)]);
+    const part = recommendation.part;
+    if (recommendation.reasonCode !== "SUPPORTED_WEAKNESS" || recommendation.skillArea !== "READING" || part === null || part < 5) redirect("/practice?error=not_enough_history");
+    const workload = getDailyWorkload({ goal, plan: usage.effectivePlan, workoutUsage: usage.entitlements.TODAYS_WORKOUT });
+    const size = getGroupSafeWorkoutSize(part, workload.targetQuestions);
+    redirect(`/practice/${await createRecommendedReadingPracticeSession(user.id, { part: part as 5 | 6 | 7, skill: recommendation.primarySkill ?? undefined, subSkill: recommendation.primarySubskill ?? undefined, questionCount: size.questionCount }, "target_weakness")}`);
+  } catch (error) {
+    if (typeof error === "object" && error && "digest" in error) throw error;
+    if (error instanceof UsageLimitError) redirect(`/practice?error=usage_limit&resetAt=${encodeURIComponent(error.status.resetAt)}`);
+    console.error("Could not start weekly focused practice", error);
+    redirect("/practice?error=start_failed");
+  }
+}
+
 export type ListeningGroupReview = { groupId: string; transcript: string; questions: Array<{ questionId: string; selectedOptionId: string; correctOptionId: string; isCorrect: boolean; explanationEn: string | null; explanationVi: string | null }> };
 export async function submitListeningGroup(sessionId: string, groupId: string, answers: SubmittedAnswer[]): Promise<{ ok: true; review: ListeningGroupReview; complete: boolean } | { ok: false; error: "session_expired" | "submit_failed" }> {
   const owner = await currentOwner(); if (!owner.userId && !owner.guestOwnerHash) return { ok: false, error: "session_expired" };

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { and, eq, gt, isNull } from "drizzle-orm";
 import { db } from "@/db";
@@ -11,6 +12,8 @@ import { getDashboardData } from "@/lib/dashboard/service";
 import { getUsageStatus } from "@/lib/entitlements/service";
 import { StartWorkoutButton } from "@/components/diagnosis/start-workout-button";
 import { retryGuestMigration } from "./actions";
+
+export const metadata: Metadata = { title: "Tiếp tục học", robots: { index: false, follow: false } };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

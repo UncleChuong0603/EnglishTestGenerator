@@ -1,15 +1,15 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { PublicFooter } from "@/components/public-footer";
 import { PublicHeader } from "@/components/public-header";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getPreferences } from "@/lib/i18n/get-translations";
+import { publicPageMetadata } from "@/lib/seo/public-metadata";
 
-export const metadata: Metadata = {
-  title: "TOEIC Challenge miễn phí | TOEIC GYM",
+export const metadata = publicPageMetadata({
+  title: "TOEIC Challenge miễn phí",
   description: "Thử thách TOEIC Part 5 gồm 10 câu miễn phí. Làm ngay không cần tài khoản và xem đáp án cùng giải thích sau khi nộp.",
-  alternates: { canonical: "/challenge" },
-};
+  canonical: "/challenge",
+});
 
 export default async function ChallengePage() {
   const user = await getCurrentUser();

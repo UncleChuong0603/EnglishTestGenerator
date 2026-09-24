@@ -4,14 +4,14 @@ async function signIn(page: import("@playwright/test").Page) { await page.goto("
 test.describe.serial("Task 18 CMS publishing workflow", () => {
   test("Admin draft to public publish and unpublish", async ({ page }) => {
     test.setTimeout(120_000);
-    await signIn(page); await page.goto("/admin/content/posts/new");
+    await signIn(page); await page.goto("/admin/posts/new");
     await expect(page.getByRole("heading", { name: /Bài viết mới/i })).toBeVisible();
     await page.locator('input[name="title"]').fill("Task 18B Playwright"); await page.locator('input[name="title"]').blur(); await expect(page.locator('input[name="slug"]')).toHaveValue(slug);
     await page.locator('textarea[name="excerpt"]').fill("Bài viết kiểm thử tích hợp SEO CMS.");
     await page.locator('textarea[name="content"]').fill("## Chiến lược Part 5\n\nNội dung **an toàn** với [luyện tập](/try).\n\n<script>alert(1)</script> [x](javascript:alert(1))");
     await page.locator('select[name="category"]').selectOption("GRAMMAR"); await page.locator('input[name="tags"]').fill("Part 5, Ngữ pháp");
     await page.locator('input[name="seoTitle"]').fill("Task 18B SEO title"); await page.locator('textarea[name="seoDescription"]').fill("Mô tả SEO dành cho kiểm thử Task 18B."); await page.locator('input[name="canonicalPath"]').fill(`/blog/${slug}`);
-    await page.getByRole("button", { name: "Lưu bài viết" }).click(); await expect(page).toHaveURL(/\/admin\/content\/posts\/[0-9a-f-]{36}\?saved=1/, { timeout: 20_000 });
+    await page.getByRole("button", { name: "Lưu bài viết" }).click(); await expect(page).toHaveURL(/\/admin\/posts\/[0-9a-f-]{36}\?saved=1/, { timeout: 20_000 });
     const editUrl=page.url(); const draftResponse=await page.goto(`/blog/${slug}`); expect(draftResponse?.status()).toBe(404); await page.goto(editUrl);
     await page.getByRole("link", { name: "Xem trước" }).click(); await expect(page.getByText(/Bản xem trước/)).toBeVisible(); await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex.*nofollow|nofollow.*noindex/); await expect(page.locator("article script")).toHaveCount(0); expect(await page.evaluate(() => (globalThis as typeof globalThis & { __task18Xss?: boolean }).__task18Xss)).toBeUndefined();
     await page.goto(editUrl); await page.getByRole("button", { name: "Xuất bản" }).click(); await expect(page).toHaveURL(/published=1/, { timeout: 20_000 });

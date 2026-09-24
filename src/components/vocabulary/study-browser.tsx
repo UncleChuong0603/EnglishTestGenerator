@@ -1,0 +1,40 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { saveStudyVocabularyAction } from "@/app/vocabulary/actions";
+import { PronunciationButton } from "./pronunciation-button";
+import type { StudyTopic } from "@/lib/vocabulary/study-list";
+
+export function StudyBrowser({ topics, savedKeys, locale }: { topics: StudyTopic[]; savedKeys: string[]; locale: "vi" | "en" }) {
+  const vi = locale === "vi";
+  const [query, setQuery] = useState("");
+  const [topicId, setTopicId] = useState("all");
+  const [onlyNew, setOnlyNew] = useState(false);
+  const [visibleLimit, setVisibleLimit] = useState(30);
+  const saved = useMemo(() => new Set(savedKeys), [savedKeys]);
+  const normalized = query.trim().toLocaleLowerCase(locale === "vi" ? "vi-VN" : "en-US");
+  const visible = topics.map((topic) => ({ ...topic, entries: topic.entries.filter((entry) =>
+    (topicId === "all" || topic.id === topicId) && (!onlyNew || !saved.has(entry.key)) &&
+    (!normalized || [entry.term, entry.meaningVi, entry.meaningEn, entry.example].some((value) => value.toLocaleLowerCase().includes(normalized)))
+  ) })).filter((topic) => topic.entries.length);
+  const count = visible.reduce((total, topic) => total + topic.entries.length, 0);
+  const displayed = visible.map((topic, index) => {
+    const preceding = visible.slice(0, index).reduce((total, previous) => total + previous.entries.length, 0);
+    return { ...topic, entries: topic.entries.slice(0, Math.max(0, visibleLimit - preceding)) };
+  }).filter((topic) => topic.entries.length);
+
+  return <section className="mt-10" id="toeic-study-list">
+    <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[.16em] text-teal-800">{vi ? "Tự học theo chủ đề" : "Study by topic"}</p><h2 className="mt-1 text-2xl font-black sm:text-3xl">{vi ? "1.000 từ vựng luyện TOEIC" : "1,000 TOEIC study terms"}</h2></div><p className="text-sm font-semibold text-slate-600">{vi ? `${saved.size}/1.000 mục đã lưu` : `${saved.size}/1,000 saved`}</p></div>
+    <p className="mt-3 max-w-3xl text-slate-600">{vi ? "Học 100 từ nền theo chủ đề và 900 từ bổ sung, ưu tiên từ xuất hiện trong kho đề luyện. Đoán nghĩa trước khi mở đáp án, rồi lưu từ cần ôn tiếp." : "Study 100 foundational terms by topic and 900 more, prioritizing terms found in our practice bank. Guess the meaning before revealing it, then save terms to review."}</p>
+    <div className="mt-5 grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:grid-cols-[1fr_auto]">
+      <label className="block"><span className="text-sm font-bold text-slate-700">{vi ? "Tìm từ hoặc nghĩa" : "Search a term or meaning"}</span><input className="mt-1 min-h-11 w-full rounded-lg border border-slate-300 px-3 outline-offset-2 focus:outline-2 focus:outline-teal-700" onChange={(event) => { setQuery(event.target.value); setVisibleLimit(30); }} placeholder={vi ? "Ví dụ: hóa đơn, invoice…" : "e.g. invoice, payment…"} type="search" value={query} /></label>
+      <label className="block"><span className="text-sm font-bold text-slate-700">{vi ? "Chủ đề hoặc nhóm" : "Topic or set"}</span><select className="mt-1 min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 outline-offset-2 focus:outline-2 focus:outline-teal-700" onChange={(event) => { setTopicId(event.target.value); setVisibleLimit(30); }} value={topicId}><option value="all">{vi ? "Tất cả chủ đề" : "All topics"}</option>{topics.map((topic) => <option key={topic.id} value={topic.id}>{vi ? topic.titleVi : topic.titleEn}</option>)}</select></label>
+      <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 sm:col-span-2"><input checked={onlyNew} className="size-4 accent-teal-800" onChange={(event) => { setOnlyNew(event.target.checked); setVisibleLimit(30); }} type="checkbox" />{vi ? "Chỉ hiện từ chưa lưu" : "Show unsaved terms only"}</label>
+    </div>
+    <p aria-live="polite" className="mt-4 text-sm font-semibold text-slate-600">{vi ? `Tìm thấy ${count} mục · đang hiện ${Math.min(count, visibleLimit)}` : `Found ${count} terms · showing ${Math.min(count, visibleLimit)}`}</p>
+    {count ? <div className="mt-4 space-y-8">{displayed.map((topic) => <div key={topic.id}><div className="mb-3 flex flex-wrap items-baseline justify-between gap-2"><h3 className="text-xl font-black">{vi ? topic.titleVi : topic.titleEn}</h3><span className="text-sm font-semibold text-slate-500">{topic.entries.length} {vi ? "mục đang hiện" : "shown"}</span></div><div className="grid gap-3 sm:grid-cols-2">{topic.entries.map((entry) => <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm" key={entry.key}><div className="flex items-start justify-between gap-2"><div><p className="text-lg font-black" lang="en">{entry.term}</p><p className="mt-1 text-xs font-bold uppercase tracking-wider text-teal-800">{entry.kind === "phrase" ? (vi ? "Cụm từ" : "Phrase") : (vi ? "Từ vựng" : "Word")}</p></div>{saved.has(entry.key) && <span className="rounded-full bg-teal-50 px-2.5 py-1 text-xs font-bold text-teal-900">{vi ? "Đã lưu" : "Saved"}</span>}</div>{entry.example && <p className="mt-3 rounded-xl bg-slate-50 p-3 text-sm leading-6 text-slate-700" lang="en">{entry.example}</p>}<details className="mt-3 group rounded-xl border border-teal-200"><summary className="cursor-pointer list-none p-3 text-sm font-bold text-teal-900 after:float-right after:content-['⌄'] group-open:after:content-['⌃']">{vi ? "Xem nghĩa & luyện nghe" : "Reveal meaning & listen"}</summary><div className="border-t border-teal-100 p-3"><p className="font-bold">{vi ? entry.meaningVi : entry.meaningEn}</p><p className="mt-1 text-sm text-slate-600">{vi ? entry.meaningEn : entry.meaningVi}</p><div className="mt-3 flex flex-wrap items-center gap-2"><PronunciationButton kind={entry.kind} locale={locale} term={entry.term} />{!saved.has(entry.key) && <form action={saveStudyVocabularyAction}><input name="entryKey" type="hidden" value={entry.key} /><button className="min-h-10 rounded-lg bg-teal-800 px-3 text-sm font-bold text-white hover:bg-teal-700" type="submit">{vi ? "Lưu để ôn" : "Save to review"}</button></form>}</div></div></details></article>)}</div></div>)}</div> : <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-6 text-slate-600">{vi ? "Không tìm thấy từ phù hợp. Thử từ khóa hoặc chủ đề khác." : "No matching terms. Try another search or topic."}</div>}
+    {count > visibleLimit && <button className="mt-5 min-h-11 rounded-lg border border-teal-800 px-5 font-bold text-teal-900 hover:bg-teal-50" onClick={() => setVisibleLimit((limit) => limit + 30)} type="button">{vi ? `Xem thêm 30 mục (${Math.min(visibleLimit, count)}/${count})` : `Show 30 more (${Math.min(visibleLimit, count)}/${count})`}</button>}
+    <p className="mt-8 text-xs leading-5 text-slate-500">{vi ? "Chủ đề dựa trên bối cảnh ETS công bố. Từ bổ sung được ưu tiên theo mức xuất hiện trong kho đề luyện TOEIC GYM, rồi bổ sung thủ công các từ công việc hữu ích. Đây không phải bảng xếp hạng tần suất chính thức của ETS." : "Topics follow ETS test contexts. Additional terms are prioritized by occurrence in the TOEIC GYM practice bank, with useful workplace words added manually. This is not an official ETS frequency ranking."} <a className="font-semibold text-teal-800 underline" href="https://www.eu.ets.org/content/dam/ets-org/eu/pdfs/toeic/toeic-listening-reading-test.pdf" rel="noopener noreferrer" target="_blank">{vi ? "Sổ tay ETS" : "ETS handbook"}</a>.</p>
+    <p className="mt-2 text-xs leading-5 text-slate-500">Dữ liệu từ điển: Từ điển Anh–Việt thichhoc.com (thichhoc-dict), giấy phép CC BY-SA 4.0. <a className="font-semibold text-teal-800 underline" href="https://github.com/thichhoc-org/thichhoc-dict" rel="noopener noreferrer" target="_blank">Nguồn gốc</a>: WordNet 3.1 (Princeton), CMUdict (CMU), Wiktionary. Đã chỉnh sửa dữ liệu. <a className="font-semibold text-teal-800 underline" href="/vocabulary-data-attribution.txt" target="_blank">{vi ? "Ghi nguồn đầy đủ" : "Full attribution"}</a>.</p>
+  </section>;
+}

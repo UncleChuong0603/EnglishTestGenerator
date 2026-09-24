@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { LearnerNav } from "@/components/learner-nav";
@@ -5,6 +6,8 @@ import { getActiveDemoTest } from "@/lib/demo-test/queries";
 import { getPreferences, getTranslations } from "@/lib/i18n/get-translations";
 import { getCurrentUser } from "@/lib/auth/session";
 import { startDemoTest } from "./actions";
+
+export const metadata: Metadata = { title: "Thi thử TOEIC Reading", robots: { index: false, follow: false } };
 
 export default async function DemoTestIntroduction({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const [params, user] = await Promise.all([searchParams, getCurrentUser()]);

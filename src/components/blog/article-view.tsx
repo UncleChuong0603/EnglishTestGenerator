@@ -11,7 +11,7 @@ type Related = { id: string; slug: string; title: string; excerpt: string; categ
 export function ArticleView({ post, locale, coverUrl, preview = false, signedIn = false, related = [] }: { post: Article; locale: "vi" | "en"; coverUrl: string | null; preview?: boolean; signedIn?: boolean; related?: Related[] }) {
   const category = CATEGORY_LABELS[post.category as PostCategory]?.[locale] ?? post.category;
   return <>
-    <article className="mx-auto max-w-3xl px-5 pb-12 pt-9 sm:px-6 sm:pb-16 sm:pt-12">
+    <article className="mx-auto max-w-3xl px-5 pb-12 pt-9 sm:px-6 sm:pb-16 sm:pt-12" lang="vi">
       {preview && <p className="mb-6 rounded-xl bg-amber-100 p-4 text-center font-black text-amber-900">Bản xem trước — không công khai, không lập chỉ mục</p>}
       <header>
         <nav aria-label={locale === "vi" ? "Đường dẫn" : "Breadcrumb"} className="text-sm"><Link className="font-semibold text-teal-800 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-teal-700" href="/blog">← {locale === "vi" ? "Kiến thức TOEIC" : "TOEIC Guides"}</Link><span className="mx-2 text-slate-400">/</span><span className="text-slate-600">{category}</span></nav>

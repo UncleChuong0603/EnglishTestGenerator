@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { userVocabulary } from "@/db/schema";
 import { getPracticeResult } from "@/lib/practice/queries";
 import { vocabularyByKey, vocabularySuggestions } from "./catalog";
+import { studyEntryByKey } from "./study-list";
 import { nextVocabularySchedule } from "./schedule";
 
 export async function saveVocabularyFromResult(userId: string, sessionId: string, questionId: string, entryKey: string) {
@@ -21,6 +22,13 @@ export async function saveVocabularyFromResult(userId: string, sessionId: string
   const position = Math.max(0, source.toLowerCase().indexOf(entry.term));
   const context = source.slice(Math.max(0, position - 100), Math.min(source.length, position + entry.term.length + 120)).slice(0, 1200);
   await db.insert(userVocabulary).values({ userId, entryKey, sourceQuestionId: questionId, sourceSessionId: sessionId, sourceQuestionNumber: question.number, contextSentence: context, toeicPart: question.part }).onConflictDoNothing({ target: [userVocabulary.userId, userVocabulary.entryKey] });
+  return true;
+}
+
+export async function saveVocabularyFromStudyList(userId: string, entryKey: string) {
+  const entry = studyEntryByKey(entryKey);
+  if (!entry) return false;
+  await db.insert(userVocabulary).values({ userId, entryKey, contextSentence: entry.example || entry.term, toeicPart: 5 }).onConflictDoNothing({ target: [userVocabulary.userId, userVocabulary.entryKey] });
   return true;
 }
 

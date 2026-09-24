@@ -10,6 +10,33 @@ const securityHeaders = [
   { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
 ];
 
+// Authentication protects the data; this header keeps application and session
+// URLs out of search results even when a redirect is streamed as a 200 page.
+const noindexPaths = [
+  "/admin/:path*",
+  "/dashboard/:path*",
+  "/practice/:path*",
+  "/progress/:path*",
+  "/settings/:path*",
+  "/demo-test/:path*",
+  "/full-mock/:path*",
+  "/billing/:path*",
+  "/vocabulary/:path*",
+  "/mistakes/:path*",
+  "/listening-lessons/:path*",
+  "/onboarding/:path*",
+  "/continue-learning/:path*",
+  "/activate-account",
+  "/verify-email",
+  "/forgot-password",
+  "/reset-password",
+  "/sign-in",
+  "/sign-up",
+  "/ranking/:path*",
+  "/challenge/part-5/:sessionId/:path*",
+  "/diagnostic/:runId/:path*",
+];
+
 const nextConfig: NextConfig = {
   output: "standalone",
   experimental: {
@@ -20,7 +47,13 @@ const nextConfig: NextConfig = {
     },
   },
   async headers() {
-    return [{ source: "/(.*)", headers: securityHeaders }];
+    return [
+      { source: "/(.*)", headers: securityHeaders },
+      ...noindexPaths.map((source) => ({ source, headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] })),
+    ];
+  },
+  async redirects() {
+    return [{ source: "/admin/content/posts/:path*", destination: "/admin/posts/:path*", permanent: true }];
   },
   // Avoid treating an unrelated lockfile higher in the user profile as the
   // application root.

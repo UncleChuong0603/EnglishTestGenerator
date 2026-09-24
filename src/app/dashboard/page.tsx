@@ -28,6 +28,8 @@ import { startRecommendedPractice } from "@/app/practice/actions";
 import { dailyGoalProgress, getDailyWorkload, getDashboardLifecycle, getGroupSafeWorkoutSize } from "@/lib/workout/policy";
 import { shouldPromptForLearnerContext } from "@/lib/learner-context/service";
 import { LearnerContextPrompt } from "@/components/learner-context-prompt";
+import { RoadToTarget } from "@/components/weekly-plan/road-to-target";
+import { getWeeklyPlan } from "@/lib/weekly-plan/service";
 
 function ProgressCard({
   area,
@@ -146,6 +148,12 @@ export default async function DashboardPage() {
   const dashboardPremiumPreview = dashboardResult
     ? progressPreviewFrom(dashboardResult.progress)
     : null;
+  const weeklyPlan = dashboardResult
+    ? await getWeeklyPlan(user.id, goal, usage, dashboardResult).catch((error) => {
+        console.error("Could not load weekly plan", error);
+        return null;
+      })
+    : null;
 
   return (
     <main className="learner-page min-h-screen px-4 py-6 pb-24 text-slate-900 sm:px-6 sm:py-8 lg:pb-8">
@@ -205,6 +213,7 @@ export default async function DashboardPage() {
             </p>
           ) : null}
         </header>
+        <RoadToTarget section="context" goal={goal} weekly={weeklyPlan} locale={locale} premium={usage.effectivePlan === "PREMIUM"} />
         <div className="mt-7">
           <span className="sr-only" id="today-workout">{locale === "vi" ? "Bài tập hôm nay" : "Today's workout"}</span>
           {lifecycle === "NEW" && dashboardResult ? (
@@ -285,8 +294,6 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        {showContextPrompt ? <LearnerContextPrompt locale={locale} /> : null}
-
         <section className="daily-goal-card mt-4 rounded-2xl border border-teal-200 bg-white p-5" aria-labelledby="daily-goal-heading">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div><p className="text-xs font-black uppercase tracking-wider text-teal-700">{locale === "vi" ? "Nhịp học mỗi ngày" : "Daily pace"}</p><h2 className="mt-1 text-xl font-black" id="daily-goal-heading">{dailyGoal.complete ? (locale === "vi" ? "✓ Hoàn thành mục tiêu hôm nay" : "✓ Today's goal completed") : (locale === "vi" ? "Mục tiêu hôm nay" : "Today's Goal")}</h2></div>
@@ -296,6 +303,10 @@ export default async function DashboardPage() {
           <div className="mt-3 flex flex-col gap-2 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between"><p>{dailyGoal.complete ? (locale === "vi" ? "Bạn vẫn có thể tiếp tục học nếu gói hiện tại cho phép." : "You can keep learning when your current plan allows it.") : (locale === "vi" ? `Còn ${dailyGoal.remainingQuestions} câu để hoàn thành mục tiêu hôm nay.` : `${dailyGoal.remainingQuestions} questions remaining today.`)}</p><Link className="font-bold text-teal-800" href="/settings?section=goal">{goal ? (locale === "vi" ? "Chỉnh sửa mục tiêu" : "Edit goal") : (locale === "vi" ? "Thiết lập mục tiêu" : "Set your goal")}</Link></div>
           {goal ? <p className="mt-3 text-xs text-slate-500">{goal.examDate ? `${locale === "vi" ? "Ngày thi" : "Test date"}: ${formatExamDate(goal.examDate, locale)} · ` : ""}{goal.studyDaysPerWeek ? `${goal.studyDaysPerWeek} ${locale === "vi" ? "ngày/tuần" : "days/week"} · ` : ""}{workload.studyMinutes} {locale === "vi" ? "phút/ngày" : "min/day"}</p> : null}
         </section>
+
+        <RoadToTarget section="plan" goal={goal} weekly={weeklyPlan} locale={locale} premium={usage.effectivePlan === "PREMIUM"} previewEligible={Boolean(goal?.targetScore && goal?.dailyStudyMinutes && goal?.studyDaysPerWeek && dashboardResult?.recommendation?.reasonCode === "SUPPORTED_WEAKNESS")} />
+
+        {showContextPrompt ? <LearnerContextPrompt locale={locale} /> : null}
 
         {usage.effectivePlan === "PREMIUM" &&
         diagnosticState.status !== "NEEDS_BASELINE" ? (

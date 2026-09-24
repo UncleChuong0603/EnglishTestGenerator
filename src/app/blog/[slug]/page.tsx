@@ -17,7 +17,25 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const canonical = post.canonicalPath || `/blog/${post.slug}`;
   const title = post.seoTitle || post.title;
   const description = post.seoDescription || post.excerpt;
-  return { title, description, robots:post.noindex?{index:false,follow:true}:undefined, alternates:{canonical}, openGraph: { title:post.socialTitle||title, description:post.socialDescription||description, type: "article", publishedTime: post.publishedAt?.toISOString(), modifiedTime: post.updatedAt.toISOString(), url: canonical, images: image ? [image] : [] } };
+  const titleIncludesBrand = /[|–—-]\s*TOEIC\s*GYM\s*$/i.test(title);
+  const socialTitle = post.socialTitle || `${title}${titleIncludesBrand ? "" : " | TOEIC GYM"}`;
+  const socialDescription = post.socialDescription || description;
+  return {
+    title: titleIncludesBrand ? { absolute: title } : title,
+    description,
+    robots: post.noindex ? { index: false, follow: true } : undefined,
+    alternates:{canonical},
+    openGraph: {
+      title: socialTitle,
+      description: socialDescription,
+      type: "article",
+      publishedTime: post.publishedAt?.toISOString(),
+      modifiedTime: post.updatedAt.toISOString(),
+      url: canonical,
+      images: image ? [image] : [],
+    },
+    twitter: { card: "summary_large_image", title: socialTitle, description: socialDescription, images: image ? [image] : [] },
+  };
 }
 
 export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {

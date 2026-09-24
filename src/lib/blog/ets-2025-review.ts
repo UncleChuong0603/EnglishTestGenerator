@@ -10,7 +10,7 @@ export const ETS_2025_REVIEW_POST: EditorialPost = {
   excerpt: "Giải thích 12 câu Reading trong đề mẫu ETS công khai năm 2025: đáp án, dấu hiệu ngữ pháp, từ vựng công sở và cách tránh bẫy suy luận.",
   category: "EXAM_REVIEW",
   status: "PUBLISHED",
-  seoTitle: "Sửa đề mẫu ETS TOEIC 2025 Reading Part 5, 6, 7 | TOEICGym",
+  seoTitle: "Sửa đề mẫu ETS TOEIC 2025 Reading Part 5, 6, 7",
   seoDescription: "Sửa 12 câu Reading trong đề mẫu TOEIC ETS 2025: giải thích Part 5, Part 6, Part 7, ngữ pháp, từ vựng và ví dụ tự luyện dễ hiểu.",
   canonicalPath: `/blog/${slug}`,
   coverMediaId: null,

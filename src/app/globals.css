@@ -288,7 +288,7 @@ main:has(.admin-navigation) :is(section, article).shadow-xl { box-shadow: none; 
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: .5rem 1.25rem;
+  gap: .5rem 2rem;
   border-bottom: 1px solid var(--line);
 }
 .admin-navigation-brand { display: flex; align-items: center; gap: .55rem; white-space: nowrap; }
@@ -381,7 +381,7 @@ main:has(.admin-navigation) :is(section, article).shadow-xl { box-shadow: none; 
 .admin-audit li + li { border-top: 1px solid var(--line); }
 .admin-audit small { color: var(--muted); font-size: .75rem; font-weight: 400; }
 @media (max-width: 900px) {
-  .admin-navigation-top { grid-template-columns: minmax(0, 1fr) auto; }
+  .admin-navigation-top { grid-template-columns: minmax(0, 1fr) auto; column-gap: 1.25rem; }
   .admin-navigation-sections { grid-column: 1 / -1; grid-row: 2; }
   .admin-navigation-actions { justify-self: end; }
 }

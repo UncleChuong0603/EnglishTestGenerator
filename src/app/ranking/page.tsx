@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { LearnerNav } from "@/components/competitive-learner-nav";
 import { getCurrentUser } from "@/lib/auth/session";
@@ -7,6 +8,8 @@ import { GAMIFICATION_CATALOG } from "@/lib/gamification/catalog";
 import { getChallengeHistory, listDiscoverableChallenges } from "@/lib/challenges/queries";
 import { challengePhase } from "@/lib/challenges/policy";
 import { getFullMockReadiness } from "@/lib/full-mock/service";
+
+export const metadata: Metadata = { title: "Bảng xếp hạng", robots: { index: false, follow: false } };
 
 type Row = Awaited<ReturnType<typeof getWeeklyLeaderboard>>["top"][number];
 

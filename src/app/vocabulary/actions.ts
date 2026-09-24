@@ -3,10 +3,19 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth/session";
-import { reviewVocabulary, saveVocabularyFromResult } from "@/lib/vocabulary/service";
+import { reviewVocabulary, saveVocabularyFromResult, saveVocabularyFromStudyList } from "@/lib/vocabulary/service";
 
 const saveSchema = z.object({ sessionId: z.uuid(), questionId: z.uuid(), entryKey: z.string().min(1).max(80) });
 const reviewSchema = z.object({ cardId: z.uuid(), remembered: z.enum(["yes", "no"]) });
+const studySchema = z.object({ entryKey: z.string().min(1).max(80) });
+
+export async function saveStudyVocabularyAction(formData: FormData) {
+  const user = await requireUser();
+  const parsed = studySchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return;
+  await saveVocabularyFromStudyList(user.id, parsed.data.entryKey);
+  revalidatePath("/vocabulary");
+}
 
 export async function saveVocabularyAction(formData: FormData) {
   const user = await requireUser();

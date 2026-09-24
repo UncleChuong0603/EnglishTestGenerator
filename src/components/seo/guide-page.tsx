@@ -18,7 +18,7 @@ export async function GuidePage({ guide }: { guide: Guide }) {
   const user = await getCurrentUser();
   return <main className="min-h-screen bg-[#f7f6f1] text-slate-900">
     <PublicHeader locale="vi" signedIn={Boolean(user)} />
-    <article className="mx-auto max-w-5xl px-5 pb-16 pt-10 sm:px-8 sm:pt-16">
+    <article className="mx-auto max-w-5xl px-5 pb-16 pt-10 sm:px-8 sm:pt-16" lang="vi">
       <nav aria-label="Breadcrumb" className="text-sm text-slate-600"><Link className="underline" href="/">Trang chủ</Link> <span aria-hidden="true">/</span> <Link className="underline" href="/toeic">TOEIC</Link></nav>
       <header className="mt-8 border-b border-slate-300 pb-10">
         <p className="text-sm font-bold uppercase tracking-[.16em] text-teal-800">{guide.eyebrow}</p>

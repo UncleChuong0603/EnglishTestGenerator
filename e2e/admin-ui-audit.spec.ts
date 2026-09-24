@@ -45,8 +45,8 @@ test("capture current admin routes", async ({ browser }) => {
       ["/admin/content/new", "content", "Tạo nhóm Draft", "create form"],
       ["/admin/content/import", "content", "Nhập câu hỏi", "disabled upload action"],
       ["/admin/content/media", "media", "Media và tải lên", "empty"],
-      ["/admin/content/posts", "posts", "Danh sách bài viết", "populated"],
-      ["/admin/content/posts/new", "posts", "Tạo bài viết", "create form"],
+      ["/admin/posts", "posts", "Danh sách bài viết", "populated"],
+      ["/admin/posts/new", "posts", "Tạo bài viết", "create form"],
       ["/admin/challenges", "challenges", "Danh sách thử thách", challenges.length ? "populated" : "empty"],
       ["/admin/challenges/new", "challenges", "Tạo thử thách", "create form"],
       ["/admin/payments", "payments", "Lịch sử thanh toán", "empty"],
@@ -62,8 +62,8 @@ test("capture current admin routes", async ({ browser }) => {
       }
     }
     if (posts[0]) {
-      specs.push([`/admin/content/posts/${posts[0].id}`, "posts", "Sửa bài viết", posts[0].status]);
-      specs.push([`/admin/content/posts/${posts[0].id}/preview`, "posts", "Xem trước bài viết", posts[0].status]);
+      specs.push([`/admin/posts/${posts[0].id}`, "posts", "Sửa bài viết", posts[0].status]);
+      specs.push([`/admin/posts/${posts[0].id}/preview`, "posts", "Xem trước bài viết", posts[0].status]);
     }
     if (challenges[0]) specs.push([`/admin/challenges/${challenges[0].id}`, "challenges", "Chi tiết thử thách", "current data"]);
 

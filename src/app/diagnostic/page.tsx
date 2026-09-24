@@ -1,16 +1,16 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getDiagnosticEligibility, hasResumableDiagnostic } from "@/lib/diagnostic/service";
 import { getGuestOwnerHash } from "@/lib/guest/identity";
 import { getCookieLanguage } from "@/lib/i18n/get-translations";
+import { publicPageMetadata } from "@/lib/seo/public-metadata";
 import { startDiagnostic } from "./actions";
 
-export const metadata: Metadata = {
+export const metadata = publicPageMetadata({
   title: "Đánh giá TOEIC miễn phí",
   description: "Làm bài đánh giá TOEIC Listening và Reading để thấy phần cần cải thiện và nhận gợi ý luyện tập tiếp theo.",
-  alternates: { canonical: "/diagnostic" },
-};
+  canonical: "/diagnostic",
+});
 
 const copy = {
   vi: {

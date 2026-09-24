@@ -10,18 +10,20 @@ The CMS remains fully self-hosted in TOEICGym PostgreSQL, adds no paid CMS depen
 
 ## Routes
 
-- Admin list: `/admin/content/posts`
-- New article: `/admin/content/posts/new`
-- Edit: `/admin/content/posts/[id]`
-- Admin-only, `noindex` preview: `/admin/content/posts/[id]/preview`
+- Admin list: `/admin/posts`
+- New article: `/admin/posts/new`
+- Edit: `/admin/posts/[id]`
+- Admin-only, `noindex` preview: `/admin/posts/[id]/preview`
 - Public hub: `/blog`
 - Published article: `/blog/[slug]`
+
+Older `/admin/content/posts` links redirect to the matching `/admin/posts` page.
 
 All Admin routes reuse Task 14 database-backed `ADMIN` authorization. Draft and unpublished records are never returned by the public slug query.
 
 ## Editorial workflow
 
-1. Open Admin → Bài viết → Bài viết mới.
+1. Open Admin → Vận hành → Bài viết → Bài viết mới.
 2. Write the title, excerpt and Markdown body; choose category and tags.
 3. Review the generated slug and optionally select a ready Content image from the existing media library.
 4. Save the draft and use **Xem trước**. Preview requires Admin authorization and is `noindex`.

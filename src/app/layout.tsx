@@ -16,7 +16,19 @@ const beVietnamPro = Be_Vietnam_Pro({
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getTranslations(await getCookieLanguage());
-  return { metadataBase: new URL(getSiteUrl()), title: { default: t.metadata.title, template: `%s | ${t.common.brand}` }, description: t.metadata.description, openGraph: { title: t.metadata.title, description: t.metadata.description, type: "website", siteName: t.common.brand } };
+  return {
+    metadataBase: new URL(getSiteUrl()),
+    title: { default: t.metadata.title, template: `%s | ${t.common.brand}` },
+    description: t.metadata.description,
+    openGraph: {
+      title: t.metadata.title,
+      description: t.metadata.description,
+      type: "website",
+      siteName: t.common.brand,
+      images: [{ url: "/brand/toeic-gym-social.png", width: 1200, height: 630, alt: "TOEIC GYM: luyện tập, theo dõi tiến bộ và tập trung vào điểm yếu" }],
+    },
+    twitter: { card: "summary_large_image", images: ["/brand/toeic-gym-social.png"] },
+  };
 }
 
 export default async function RootLayout({

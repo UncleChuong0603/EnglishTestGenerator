@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import type { InterfaceLanguage } from "@/lib/i18n/config";
 import { getMarketingTranslations } from "@/lib/i18n/marketing";
@@ -14,7 +15,7 @@ export function PublicHeader({ locale, signedIn = false }: { locale: InterfaceLa
   const primaryLabel = signedIn ? t.nav.continue : locale === "vi" ? "Thử thách Part 5" : "Part 5 challenge";
   return <header className="public-header border-b border-[#dce3d9] bg-[#f7f6f1]">
     <div className="mx-auto flex min-h-[76px] max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
-      <Link className="shrink-0 text-lg font-black tracking-tight text-[#183e2b]" href="/" aria-label="TOEIC GYM home">TOEIC<span className="font-semibold"> GYM</span><span className="ml-2 inline-block h-2 w-2 rounded-full bg-[#ba7655]" aria-hidden="true" /></Link>
+      <Link className="inline-flex shrink-0 items-center gap-2 text-lg font-black tracking-tight text-[#183e2b]" href="/" aria-label="TOEIC GYM home"><Image src="/brand/toeic-gym-mark.png" alt="" width={36} height={36} /><span>TOEIC<span className="font-semibold"> GYM</span></span></Link>
       <nav className="hidden items-center gap-1 lg:flex" aria-label="Public navigation">
         <Link className={navLink} href="/#how-it-works">{t.nav.how}</Link>
         <Link className={navLink} href="/toeic">{locale === "vi" ? "Học TOEIC" : "TOEIC guide"}</Link>
