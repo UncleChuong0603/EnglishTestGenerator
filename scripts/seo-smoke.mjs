@@ -46,6 +46,7 @@ try {
   const urls = [...sitemap.body.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => decodeXml(match[1]));
   if (urls.length === 0) failures.push("sitemap.xml: no URLs found");
   if (new Set(urls).size !== urls.length) failures.push("sitemap.xml: duplicate URLs found");
+  if (!urls.includes(`${origin}/`)) failures.push("sitemap.xml: canonical homepage URL with trailing slash is missing");
 
   // Keep the audit light enough to run against production after a deployment.
   for (let offset = 0; offset < urls.length; offset += 4) {
@@ -99,6 +100,19 @@ try {
       if (!/noindex/i.test(page.headers.get("x-robots-tag") ?? "")) failures.push(`${path}: missing X-Robots-Tag noindex`);
     } catch (error) {
       failures.push(`${path}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  if (origin === "https://toeicgym.net") {
+    for (const source of ["http://toeicgym.net/", "http://www.toeicgym.net/", "https://www.toeicgym.net/"]) {
+      try {
+        const { response } = await request(source, { redirect: "manual" });
+        if (response.status !== 301 || response.headers.get("location") !== `${origin}/`) {
+          failures.push(`${source}: expected one permanent redirect to ${origin}/`);
+        }
+      } catch (error) {
+        failures.push(`${source}: ${error instanceof Error ? error.message : String(error)}`);
+      }
     }
   }
 
