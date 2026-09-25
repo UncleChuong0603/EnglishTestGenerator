@@ -36,3 +36,12 @@ The public TOEIC guides and article bodies remain Vietnamese. An English interfa
 - A live crawl on 2026-09-25 found that all 36 sitemap URLs returned HTTP 200 and each had at least one internal link from another sitemap page. This does not establish their indexing status.
 
 Next, open the sitemap's **See page indexing** report (or filter **Page indexing** by this sitemap) and record **Indexed**, **Not indexed**, and the reasons for each group. Inspect one representative URL from each non-indexed reason, starting with a guide page and an article. Recheck after Google has had time to crawl; do not resubmit the successful sitemap solely because URL Inspection says “No referring sitemaps detected.”
+
+## Page indexing follow-up (2026-09-26)
+
+- The owner provided the **Indexed pages → Examples** list: `/blog` (last crawl 2026-09-20), `/` (2026-09-19), and `/pricing`, `/sign-in`, `/terms`, `/privacy` (2026-09-15). The screenshot shows six examples, not the report's summary counts or a sitemap filter. Do not infer that exactly six of the 36 sitemap URLs are indexed from this list alone.
+- `/sign-in` is absent from the sitemap. Live production returns `X-Robots-Tag: noindex, nofollow` and an HTML `noindex` directive; `robots.txt` allows crawling so Google can see the directive. Its last crawl in the screenshot predates the 2026-09-25 sitemap read, and the indexed status can lag until a recrawl. The page does not need a `robots.txt` disallow, which would prevent Google from reading `noindex`.
+- The three redirect examples are unchanged: two `www` homepage variants and `/practice`. They are not evidence of a sitemap processing error.
+- The live `npm run seo:smoke` check on 2026-09-26 passed all 36 sitemap URLs and 7 application routes.
+
+Next evidence to collect: the Page indexing summary cards (**Indexed** and **Not indexed**) with the view filtered to `https://toeicgym.net/sitemap.xml`, plus the **Not indexed → Why pages aren't indexed** reasons. Use URL Inspection for `/toeic` and one recent `/blog/[slug]` article to distinguish “discovered,” “crawled,” and “indexed.” Inspect `/sign-in` separately after Google recrawls it; if its live test sees `noindex`, allow the report to update.
