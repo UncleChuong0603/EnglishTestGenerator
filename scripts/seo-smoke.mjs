@@ -1,7 +1,7 @@
 // Read-only release check for the public sitemap and representative app routes.
 // Usage: node scripts/seo-smoke.mjs [https://toeicgym.net]
 const origin = new URL(process.argv[2] ?? "https://toeicgym.net").origin;
-const privatePaths = ["/demo-test", "/practice", "/continue-learning", "/billing", "/admin"];
+const privatePaths = ["/demo-test", "/practice", "/continue-learning", "/billing", "/admin", "/api/health", "/auth/callback"];
 const failures = [];
 const warnings = [];
 
@@ -13,10 +13,11 @@ function tagValue(head, pattern) {
   return decodeXml(head.match(pattern)?.[1] ?? "");
 }
 
-async function request(path) {
+async function request(path, options = {}) {
   const response = await fetch(new URL(path, origin), {
     headers: { "user-agent": "Googlebot" },
     signal: AbortSignal.timeout(20000),
+    ...options,
   });
   return { response, body: await response.text() };
 }
@@ -74,7 +75,7 @@ try {
 
   for (const path of privatePaths) {
     try {
-      const { response: page } = await request(path);
+      const { response: page } = await request(path, { redirect: "manual" });
       if (!/noindex/i.test(page.headers.get("x-robots-tag") ?? "")) failures.push(`${path}: missing X-Robots-Tag noindex`);
     } catch (error) {
       failures.push(`${path}: ${error instanceof Error ? error.message : String(error)}`);
