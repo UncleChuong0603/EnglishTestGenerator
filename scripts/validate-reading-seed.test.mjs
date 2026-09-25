@@ -6,8 +6,8 @@ describe("TOEIC Reading development seed", () => {
   it("passes structural, taxonomy, distribution, and duplicate validation", () => {
     const { errors, report } = validateReadingSeed();
     expect(errors).toEqual([]);
-    expect(report.part).toEqual({ 5: 300, 6: 160, 7: 540 });
-    expect(report.passageSets).toEqual({ part6: 40, single: 100, double: 40, triple: 10 });
+    expect(report.part).toEqual({ 5: 750, 6: 400, 7: 1350 });
+    expect(report.passageSets).toEqual({ part6: 100, single: 250, double: 115, triple: 10 });
   });
 
   it("detects duplicate question and passage text", () => {

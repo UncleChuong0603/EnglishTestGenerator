@@ -10,6 +10,7 @@ export default defineConfig([
     ".next-seo-audit/**",
     ".tmp/**",
     ".npm-cache/**",
+    ".debug-*.cjs",
     "node_modules/**",
     "coverage/**",
   ]),

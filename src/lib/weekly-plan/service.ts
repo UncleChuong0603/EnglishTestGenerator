@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { attemptAnswers, fullMockRuns, practiceSessions } from "@/db/schema";
 import type { DashboardData } from "@/lib/dashboard/service";
 import type { UsageStatus } from "@/lib/entitlements/service";
+import { getPlanCapabilities } from "@/lib/entitlements/catalog";
 import type { GoalProfile } from "@/lib/goals/domain";
 import { getMockHubReadiness } from "@/lib/full-mock/service";
 import { selectListeningPractice, loadUnits } from "@/lib/practice/selector";
@@ -48,7 +49,7 @@ export async function getWeeklyPlan(userId: string, goal: GoalProfile | null, us
       weekStart: sql<string>`to_char(date_trunc('week', timezone('Asia/Ho_Chi_Minh', ${practiceSessions.submittedAt})), 'YYYY-MM-DD')`,
       completedSessions: sql<number>`count(*)::int`,
     }).from(practiceSessions)
-      .where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "submitted"), gte(practiceSessions.submittedAt, new Date(week.start.getTime() - 90 * 86_400_000)), lt(practiceSessions.submittedAt, week.start), notInArray(practiceSessions.source, ["diagnostic", "full_mock", "ranked_challenge"]), sql`${practiceSessions.practiceType} <> 'demo_test'`))
+      .where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "submitted"), gte(practiceSessions.submittedAt, new Date(week.start.getTime() - getPlanCapabilities(usage.effectivePlan).historyWindowDays * 86_400_000)), lt(practiceSessions.submittedAt, week.start), notInArray(practiceSessions.source, ["diagnostic", "full_mock", "ranked_challenge"]), sql`${practiceSessions.practiceType} <> 'demo_test'`))
       .groupBy(sql`date_trunc('week', timezone('Asia/Ho_Chi_Minh', ${practiceSessions.submittedAt}))`)
       .orderBy(sql`date_trunc('week', timezone('Asia/Ho_Chi_Minh', ${practiceSessions.submittedAt})) desc`)
       .limit(4) : Promise.resolve([]),
