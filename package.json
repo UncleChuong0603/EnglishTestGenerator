@@ -59,6 +59,7 @@
     "media:finalize-local": "node --env-file-if-exists=.env.local scripts/finalize-local-media.mjs",
     "validate:mock-readiness": "node --env-file=.env.local scripts/validate-mock-readiness.mjs",
     "validate:25-full-mocks": "node scripts/plan-full-mock-forms.mjs",
+    "audit:question-bank-pools": "node --env-file-if-exists=.env.local scripts/audit-question-bank-pools.mjs",
     "seed:25-full-mocks": "node --env-file=.env.local scripts/seed-full-mock-forms.mjs",
     "seed:reading": "node --env-file=.env.local scripts/seed-reading.mjs",
     "verify:reading": "node --env-file=.env.local scripts/seed-reading.mjs --verify-only",

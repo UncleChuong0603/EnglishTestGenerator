@@ -409,16 +409,18 @@ export const listeningTranscripts = pgTable("listening_transcripts", {
 export const questions = pgTable("questions", {
   id: uuid("id").primaryKey().defaultRandom(), toeicPart: smallint("toeic_part").notNull(), skillArea: text("skill_area").notNull().default("READING"), questionType: text("question_type").notNull(), responseType: text("response_type").notNull().default("MULTIPLE_CHOICE"), skill: text("skill").notNull(), subSkill: text("sub_skill").notNull(),
   difficulty: text("difficulty").notNull(), questionText: text("question_text").notNull(), passageId: uuid("passage_id").references(() => passages.id, { onDelete: "restrict" }), audioUrl: text("audio_url"), imageUrl: text("image_url"),
-  metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}), status: text("status").notNull().default("draft"), provenance: text("provenance").notNull().default("SEEDED"), revisionOfId: uuid("revision_of_id"), publishedAt: timestamp("published_at", { withTimezone: true, mode: "date" }), archivedAt: timestamp("archived_at", { withTimezone: true, mode: "date" }), passageSetId: uuid("passage_set_id").references(() => passageSets.id, { onDelete: "restrict" }), questionOrder: smallint("question_order").notNull().default(1), ...timestamps,
+  metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}), status: text("status").notNull().default("draft"), bankPool: text("bank_pool").notNull().default("PRACTICE"), provenance: text("provenance").notNull().default("SEEDED"), revisionOfId: uuid("revision_of_id"), publishedAt: timestamp("published_at", { withTimezone: true, mode: "date" }), archivedAt: timestamp("archived_at", { withTimezone: true, mode: "date" }), passageSetId: uuid("passage_set_id").references(() => passageSets.id, { onDelete: "restrict" }), questionOrder: smallint("question_order").notNull().default(1), ...timestamps,
 }, (table) => [
   index("questions_published_taxonomy_idx").on(table.skillArea, table.toeicPart, table.skill, table.subSkill, table.difficulty),
   index("questions_published_part_id_idx").on(table.toeicPart, table.id).where(sql`${table.status} = 'published'`),
+  index("questions_published_pool_part_id_idx").on(table.bankPool, table.toeicPart, table.id).where(sql`${table.status} = 'published'`),
   index("questions_question_text_trgm_idx").using("gin", table.questionText.op("gin_trgm_ops")),
   index("questions_admin_list_idx").on(table.status, table.skillArea, table.toeicPart, table.updatedAt),
   unique("questions_set_order_unique").on(table.passageSetId, table.questionOrder),
   check("questions_skill_part_check", sql`(${table.skillArea} = 'LISTENING' and ${table.toeicPart} between 1 and 4) or (${table.skillArea} = 'READING' and ${table.toeicPart} between 5 and 7)`),
   check("questions_response_type_check", sql`${table.responseType} in ('MULTIPLE_CHOICE','TEXT','AUDIO')`),
   check("questions_lifecycle_check", sql`${table.status} in ('draft','published','archived')`),
+  check("questions_bank_pool_check", sql`${table.bankPool} in ('MOCK','PRACTICE')`),
   check("questions_provenance_check", sql`${table.provenance} in ('SEEDED','ADMIN')`),
 ]);
 
