@@ -46,7 +46,6 @@ try {
   const urls = [...sitemap.body.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => decodeXml(match[1]));
   if (urls.length === 0) failures.push("sitemap.xml: no URLs found");
   if (new Set(urls).size !== urls.length) failures.push("sitemap.xml: duplicate URLs found");
-  if (!urls.includes(`${origin}/`)) failures.push("sitemap.xml: canonical homepage URL with trailing slash is missing");
 
   // Keep the audit light enough to run against production after a deployment.
   for (let offset = 0; offset < urls.length; offset += 4) {

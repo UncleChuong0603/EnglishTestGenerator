@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = getSiteUrl();
   const staticPaths = [
-    "/",
+    "",
     "/toeic",
     "/luyen-thi-toeic-online",
     "/toeic/part-5",

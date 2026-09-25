@@ -10,7 +10,7 @@ import { getPublishedQuestionBankStats } from "@/lib/questions/stats";
 import { getSiteUrl } from "@/lib/seo/site-url";
 import { serializeStructuredData } from "@/lib/seo/structured-data";
 
-export const metadata: Metadata = { alternates: { canonical: `${getSiteUrl()}/` } };
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 export const dynamic = "force-dynamic";
 
 const parts = [
@@ -129,7 +129,7 @@ export default async function Home() {
   const copy = content[vi ? "vi" : "en"];
   const primary = user ? "/dashboard" : "/challenge/part-5";
   const siteUrl = getSiteUrl();
-  const websiteStructuredData = { "@context": "https://schema.org", "@type": "WebSite", name: "TOEIC GYM", alternateName: "TOEICGym", url: `${siteUrl}/` };
+  const websiteStructuredData = { "@context": "https://schema.org", "@type": "WebSite", name: "TOEIC GYM", alternateName: "TOEICGym", url: siteUrl };
 
   return (
     <main className="marketing-page min-h-screen overflow-x-hidden">
