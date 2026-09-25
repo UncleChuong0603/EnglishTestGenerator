@@ -98,8 +98,8 @@ export async function publishContent(actorUserId: string, id: string, expectedUp
 
 async function allPublishedUnits(tx: Tx, excluding?: string) {
   const [rows, standalone] = await Promise.all([
-    tx.select({ id: passageSets.id, part: passageSets.toeicPart, setType: passageSets.setType, qid: questions.id }).from(passageSets).innerJoin(questions, and(eq(questions.passageSetId, passageSets.id), eq(questions.status, "published"))).where(and(eq(passageSets.status, "published"), excluding ? sql`${passageSets.id} <> ${excluding}` : undefined)),
-    tx.select({ id: questions.id }).from(questions).where(and(eq(questions.toeicPart, 5), eq(questions.status, "published"), sql`${questions.passageSetId} is null`)),
+    tx.select({ id: passageSets.id, part: passageSets.toeicPart, setType: passageSets.setType, qid: questions.id }).from(passageSets).innerJoin(questions, and(eq(questions.passageSetId, passageSets.id), eq(questions.status, "published"), eq(questions.bankPool, "MOCK"))).where(and(eq(passageSets.status, "published"), excluding ? sql`${passageSets.id} <> ${excluding}` : undefined)),
+    tx.select({ id: questions.id }).from(questions).where(and(eq(questions.toeicPart, 5), eq(questions.status, "published"), eq(questions.bankPool, "MOCK"), sql`${questions.passageSetId} is null`)),
   ]);
   const map = new Map<string, MockUnit>();
   for (const row of rows) {
@@ -153,7 +153,7 @@ export async function getContentOverview() {
       id: passageSets.id, part: passageSets.toeicPart, setType: passageSets.setType,
       questionCount: count(questions.id),
     }).from(passageSets)
-      .innerJoin(questions, and(eq(questions.passageSetId, passageSets.id), eq(questions.status, "published")))
+      .innerJoin(questions, and(eq(questions.passageSetId, passageSets.id), eq(questions.status, "published"), eq(questions.bankPool, "MOCK")))
       .where(eq(passageSets.status, "published"))
       .groupBy(passageSets.id, passageSets.toeicPart, passageSets.setType),
   ]);

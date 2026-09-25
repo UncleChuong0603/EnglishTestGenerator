@@ -15,12 +15,19 @@ import { consumeUsage } from "@/lib/entitlements/service";
 
 const EMPTY_HISTORY: ContentHistory = { seenQuestionIds: new Set(), recentQuestionIds: new Set() };
 const keepOrder = () => 0.999;
+export type QuestionBankPool = "MOCK" | "PRACTICE";
+
+function selectedPool(requestedPool: QuestionBankPool): QuestionBankPool | null {
+  return requestedPool === "MOCK" || process.env.PRACTICE_POOL_ISOLATED === "true" ? requestedPool : null;
+}
 
 // A random UUID cursor gives every part of a growing bank a chance to be used
 // while fetching only a bounded window through the published-part index.
-async function samplePublishedQuestions(part: number, limit: number, skill?: string, subSkill?: string, curatedOnly = false) {
+async function samplePublishedQuestions(part: number, limit: number, skill?: string, subSkill?: string, curatedOnly = false, requestedPool: QuestionBankPool = "PRACTICE") {
   const pivot = randomUUID();
   const conditions = [eq(questions.toeicPart, part), eq(questions.status, "published")];
+  const pool = selectedPool(requestedPool);
+  if (pool) conditions.push(eq(questions.bankPool, pool));
   if (skill) conditions.push(eq(questions.skill, skill));
   if (subSkill) conditions.push(eq(questions.subSkill, subSkill));
   if (curatedOnly) conditions.push(sql`coalesce(${questions.metadata}->>'external_id', '') not like '%BANK%'`);
@@ -56,13 +63,13 @@ export function preferTaxonomyDiversity<T extends { id: string; skill: string; s
   return selected;
 }
 
-export async function selectListeningPractice(part: 1 | 2 | 3 | 4, target = 10, focus?: ListeningTarget, curatedOnly = false) {
-  const sampled = await samplePublishedQuestions(part, 200, undefined, undefined, curatedOnly);
+export async function selectListeningPractice(part: 1 | 2 | 3 | 4, target = 10, focus?: ListeningTarget, curatedOnly = false, pool: QuestionBankPool = "PRACTICE") {
+  const sampled = await samplePublishedQuestions(part, 200, undefined, undefined, curatedOnly, pool);
   const setIds = [...new Set(sampled.flatMap((q) => q.passageSetId ?? []))];
   if (!setIds.length) throw new Error(`NOT_ENOUGH_LISTENING_PART_${part}`);
   // Include the whole group when the bounded sample ends inside a conversation.
   const candidates = part <= 2 ? sampled : await db.select().from(questions)
-    .where(and(eq(questions.toeicPart, part), eq(questions.status, "published"), inArray(questions.passageSetId, setIds)))
+    .where(and(eq(questions.toeicPart, part), eq(questions.status, "published"), selectedPool(pool) ? eq(questions.bankPool, pool) : undefined, inArray(questions.passageSetId, setIds)))
     .orderBy(asc(questions.questionOrder));
   const questionIds = candidates.map((q) => q.id);
   const [sets, options, solutions, attachments, transcripts] = await Promise.all([
@@ -125,13 +132,13 @@ export async function createRecommendedListeningPracticeSession(userId: string, 
 function partForMode(mode: PracticeConfig["mode"]): ReadingPart | null { return mode === "part_5" ? 5 : mode === "part_6" ? 6 : mode === "part_7" ? 7 : null; }
 export function validatePracticeConfig(config: PracticeConfig) { const part = partForMode(config.mode); if (![10, 15, 20].includes(config.targetQuestionCount)) return false; if (!part && (config.skill || config.subSkill)) return false; if (!part) return true; if (config.skill && !(config.skill in READING_TAXONOMY[part])) return false; return !(config.subSkill && (!config.skill || !READING_TAXONOMY[part][config.skill]?.includes(config.subSkill))); }
 
-export async function loadUnits(part: ReadingPart, skill?: string, subSkill?: string): Promise<SelectionUnit[]> {
-  const matched = await samplePublishedQuestions(part, 500, skill, subSkill); const setIds = [...new Set(matched.flatMap((q) => q.passageSetId ?? []))];
+export async function loadUnits(part: ReadingPart, skill?: string, subSkill?: string, pool: QuestionBankPool = "PRACTICE"): Promise<SelectionUnit[]> {
+  const matched = await samplePublishedQuestions(part, 500, skill, subSkill, false, pool); const setIds = [...new Set(matched.flatMap((q) => q.passageSetId ?? []))];
   let candidates = matched;
   if (part !== 5) {
     if (!setIds.length) return []; const [sets, docs] = await Promise.all([db.select().from(passageSets).where(and(inArray(passageSets.id, setIds), eq(passageSets.status, "published"))), db.select().from(passages).where(inArray(passages.passageSetId, setIds))]);
     const expected: Record<string, number> = { part6: 1, single: 1, double: 2, triple: 3 }; const valid = sets.filter((s) => { const rows = docs.filter((d) => d.passageSetId === s.id); return rows.length === expected[s.setType] && rows.every((d) => d.status === "published"); }).map((s) => s.id);
-    if (!valid.length) return []; candidates = await db.select().from(questions).where(and(eq(questions.toeicPart, part), eq(questions.status, "published"), inArray(questions.passageSetId, valid))).orderBy(asc(questions.questionOrder));
+    if (!valid.length) return []; candidates = await db.select().from(questions).where(and(eq(questions.toeicPart, part), eq(questions.status, "published"), selectedPool(pool) ? eq(questions.bankPool, pool) : undefined, inArray(questions.passageSetId, valid))).orderBy(asc(questions.questionOrder));
   }
   const ids = candidates.map((q) => q.id); if (!ids.length) return [];
   const [opts, solutions] = await Promise.all([db.select({ questionId: questionOptions.questionId }).from(questionOptions).where(inArray(questionOptions.questionId, ids)), db.select({ questionId: questionSolutions.questionId }).from(questionSolutions).where(inArray(questionSolutions.questionId, ids))]);
