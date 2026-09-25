@@ -1,0 +1,22 @@
+{
+  "attention-1": {
+    "transcriptSha256": "11e1d0e4f06d5772338c1319a21c830207cc57c66c5e27b430c476882294d6b8",
+    "durationSeconds": 58.54,
+    "byteSize": 702765
+  },
+  "attention-3": {
+    "transcriptSha256": "6b254ef3ffcc8b237f2152dbaec2573f4169b89967abe9bf6782d9a9a8bd5acb",
+    "durationSeconds": 178.51,
+    "byteSize": 2142477
+  },
+  "attention-5": {
+    "transcriptSha256": "591bf45b92435f7ff72aca9c8980ef698ea3395e57f8fb43145c658a47b82d6e",
+    "durationSeconds": 298.51,
+    "byteSize": 3582477
+  },
+  "attention-10": {
+    "transcriptSha256": "ec8a68ad9571f0aa408616ad2d6f3fac0ea00a0ec8e9641c8d1400dbbfebbbd2",
+    "durationSeconds": 598.51,
+    "byteSize": 7182477
+  }
+}

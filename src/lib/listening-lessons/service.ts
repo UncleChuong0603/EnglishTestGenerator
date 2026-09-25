@@ -49,6 +49,10 @@ export async function saveListeningLesson(actorId: string, input: LessonInput, i
   if (!input.audio && !current) throw new ListeningLessonError("AUDIO_REQUIRED");
   const uploaded: string[] = [];
   try {
+    if (input.audio) {
+      const duration = (await validateMediaUpload({ kind: "AUDIO", accessScope: "CONTENT", mimeType: input.audio.mimeType, body: input.audio.body })).audioDurationMs;
+      if (!duration || duration > 600_000) throw new ListeningLessonError("AUDIO_DURATION_INVALID");
+    }
     const audio = input.audio ? await uploadLessonMedia("AUDIO", input.audio) : null;
     if (audio) uploaded.push(audio.key);
     const image = input.image ? await uploadLessonMedia("IMAGE", input.image) : null;

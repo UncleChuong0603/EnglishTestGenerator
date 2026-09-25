@@ -156,7 +156,7 @@ export default async function PracticePage({ searchParams }: Props) {
           <p className="text-sm font-bold uppercase tracking-wider text-teal-700">
             {t.listening.title}
           </p>
-          <Link className="mt-3 inline-flex min-h-11 items-center font-bold text-teal-700 underline" href="/listening-lessons">{locale === "vi" ? "Thư viện luyện nghe với transcript và hình ảnh" : "Study listening with transcripts and images"}</Link>
+          <Link className="mt-3 inline-flex min-h-11 items-center font-bold text-teal-700 underline" href="/listening-lessons">{locale === "vi" ? "Luyện nghe audio và shadowing trong Ôn tập" : "Audio shadowing in Review"}</Link>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             {([1, 2, 3, 4] as const).map((part) => {
               const metric = progress.parts.find((item) => item.part === part);
