@@ -30,6 +30,8 @@ import { shouldPromptForLearnerContext } from "@/lib/learner-context/service";
 import { LearnerContextPrompt } from "@/components/learner-context-prompt";
 import { RoadToTarget } from "@/components/weekly-plan/road-to-target";
 import { getWeeklyPlan } from "@/lib/weekly-plan/service";
+import { getWeeklyReview } from "@/lib/weekly-review/service";
+import { WeeklyReviewCard } from "@/components/weekly-plan/weekly-review";
 
 function ProgressCard({
   area,
@@ -148,8 +150,14 @@ export default async function DashboardPage() {
   const dashboardPremiumPreview = dashboardResult
     ? progressPreviewFrom(dashboardResult.progress)
     : null;
+  const weeklyReview = dashboardResult
+    ? await getWeeklyReview(user.id, new Date(), dashboardResult.mistakes).catch((error) => {
+        console.error("Could not load weekly review", error);
+        return null;
+      })
+    : null;
   const weeklyPlan = dashboardResult
-    ? await getWeeklyPlan(user.id, goal, usage, dashboardResult).catch((error) => {
+    ? await getWeeklyPlan(user.id, goal, usage, dashboardResult, weeklyReview).catch((error) => {
         console.error("Could not load weekly plan", error);
         return null;
       })
@@ -305,6 +313,7 @@ export default async function DashboardPage() {
         </section>
 
         <RoadToTarget section="plan" goal={goal} weekly={weeklyPlan} locale={locale} premium={usage.effectivePlan === "PREMIUM"} previewEligible={Boolean(goal?.targetScore && goal?.dailyStudyMinutes && goal?.studyDaysPerWeek && dashboardResult?.recommendation?.reasonCode === "SUPPORTED_WEAKNESS")} />
+        <WeeklyReviewCard review={weeklyReview} weekly={weeklyPlan} locale={locale} premium={usage.effectivePlan === "PREMIUM"} />
 
         {showContextPrompt ? <LearnerContextPrompt locale={locale} /> : null}
 

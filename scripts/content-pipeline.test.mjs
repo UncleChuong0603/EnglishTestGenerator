@@ -2,7 +2,19 @@ import { describe, expect, it } from "vitest";
 import { productionListening } from "./content-manifest.mjs";
 import { readingPassageSets } from "./reading-seed-data.mjs";
 
-const choose = (sets, groups, questions, at = 0) => groups === 0 ? questions === 0 : questions > 0 && sets.length - at >= groups && sets.slice(at).some((set, offset) => choose(sets, groups - 1, questions - set.questions.length, at + offset + 1));
+const choose = (sets, groups, questions) => {
+  const cache = new Map();
+  const visit = (at, remainingGroups, remainingQuestions) => {
+    if (remainingGroups === 0) return remainingQuestions === 0;
+    if (remainingQuestions <= 0 || sets.length - at < remainingGroups) return false;
+    const key = `${at}:${remainingGroups}:${remainingQuestions}`;
+    if (cache.has(key)) return cache.get(key);
+    const found = sets.slice(at).some((set, offset) => visit(at + offset + 1, remainingGroups - 1, remainingQuestions - set.questions.length));
+    cache.set(key, found);
+    return found;
+  };
+  return visit(0, groups, questions);
+};
 
 describe("Task 12 production manifests", () => {
   it("has stable unique Listening keys and exact Full Mock coverage", () => {

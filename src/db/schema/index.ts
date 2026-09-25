@@ -272,6 +272,16 @@ export const learnerGoals = pgTable("learner_goals", {
   check("learner_goals_study_days_check", sql`${table.studyDaysPerWeek} is null or ${table.studyDaysPerWeek} in (3, 5, 7)`),
 ]);
 
+/** The first plan shown in a product week; refreshed only after a material goal or plan change. */
+export const weeklyPlanSnapshots = pgTable("weekly_plan_snapshots", {
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  weekStart: date("week_start", { mode: "string" }).notNull(),
+  signature: text("signature").notNull(),
+  items: jsonb("items").$type<Array<{ slot: number; activity: string; minutes: number; reason: string }>>().notNull(),
+  adjustmentReasons: jsonb("adjustment_reasons").$type<string[]>().notNull().default([]),
+  ...timestamps,
+}, (table) => [primaryKey({ columns: [table.userId, table.weekStart] })]);
+
 export const learnerContexts = pgTable("learner_contexts", {
   userId: uuid("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
   studyPurpose: text("study_purpose"),
