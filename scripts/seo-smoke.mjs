@@ -2,6 +2,7 @@
 // Usage: node scripts/seo-smoke.mjs [https://toeicgym.net]
 const origin = new URL(process.argv[2] ?? "https://toeicgym.net").origin;
 const privatePaths = ["/demo-test", "/practice", "/continue-learning", "/billing", "/admin", "/api/health", "/auth/callback"];
+const breadcrumbPaths = new Set(["/toeic", "/luyen-thi-toeic-online", "/toeic/part-5", "/toeic/part-5/word-form", "/toeic/part-6", "/toeic/part-7"]);
 const failures = [];
 const warnings = [];
 
@@ -11,6 +12,18 @@ function decodeXml(value) {
 
 function tagValue(head, pattern) {
   return decodeXml(head.match(pattern)?.[1] ?? "");
+}
+
+function structuredData(html) {
+  const scripts = [...html.matchAll(/<script\b(?=[^>]*\btype="application\/ld\+json")[^>]*>([\s\S]*?)<\/script>/gi)];
+  return scripts.flatMap((match) => {
+    try {
+      const value = JSON.parse(match[1]);
+      return Array.isArray(value["@graph"]) ? value["@graph"] : [value];
+    } catch {
+      return [];
+    }
+  });
 }
 
 async function request(path, options = {}) {
@@ -44,6 +57,7 @@ try {
         }
         const first = await request(url);
         let page = first.response;
+        let html = first.body;
         let head = first.body.split("</head>", 1)[0];
         let title = tagValue(head, /<title>([^<]*)<\/title>/i);
         let description = tagValue(head, /<meta\s+name="description"\s+content="([^"]*)"/i);
@@ -53,6 +67,7 @@ try {
           const retryHead = retry.body.split("</head>", 1)[0];
           if (tagValue(retryHead, /<title>([^<]*)<\/title>/i) && tagValue(retryHead, /<meta\s+name="description"\s+content="([^"]*)"/i) && tagValue(retryHead, /<link\s+rel="canonical"\s+href="([^"]*)"/i)) warnings.push(`${url}: first response omitted metadata; retry succeeded`);
           page = retry.response;
+          html = retry.body;
           head = retryHead;
           title = tagValue(head, /<title>([^<]*)<\/title>/i);
           description = tagValue(head, /<meta\s+name="description"\s+content="([^"]*)"/i);
@@ -67,6 +82,11 @@ try {
         if (canonical !== url) failures.push(`${url}: canonical is ${canonical || "missing"}`);
         if (/noindex/i.test(robots) || /noindex/i.test(page.headers.get("x-robots-tag") ?? "")) failures.push(`${url}: sitemap page is noindex`);
         if ((title.match(/TOEIC\s*GYM/gi) ?? []).length > 1) failures.push(`${url}: repeated brand in title`);
+        const pathname = new URL(url).pathname;
+        const schemas = structuredData(html);
+        if (pathname === "/" && !schemas.some((schema) => schema["@type"] === "WebSite" && schema.name === "TOEIC GYM" && schema.url === canonical)) failures.push(`${url}: missing WebSite site-name data`);
+        if (breadcrumbPaths.has(pathname) && !schemas.some((schema) => schema["@type"] === "BreadcrumbList" && schema.itemListElement?.at(-1)?.item === url)) failures.push(`${url}: missing matching BreadcrumbList data`);
+        if (pathname.startsWith("/blog/") && !schemas.some((schema) => schema["@type"] === "BlogPosting" && schema.url === url)) failures.push(`${url}: missing matching BlogPosting data`);
       } catch (error) {
         failures.push(`${url}: ${error instanceof Error ? error.message : String(error)}`);
       }

@@ -28,6 +28,7 @@ export function publicPageMetadata({
       description: shareDescription,
       type: "website",
       siteName: "TOEIC GYM",
+      locale: "vi_VN",
       url: canonical,
       images: [image],
     },

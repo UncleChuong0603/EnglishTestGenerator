@@ -29,6 +29,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       title: socialTitle,
       description: socialDescription,
       type: "article",
+      locale: "vi_VN",
       publishedTime: post.publishedAt?.toISOString(),
       modifiedTime: post.updatedAt.toISOString(),
       url: canonical,

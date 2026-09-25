@@ -3,4 +3,4 @@ import { guides } from "@/lib/seo/guides";
 import { publicPageMetadata } from "@/lib/seo/public-metadata";
 
 export const metadata = publicPageMetadata({ title: "TOEIC Part 5: cách làm và bài tập ví dụ", description: guides.part5.intro, canonical: "/toeic/part-5" });
-export default function Page() { return <GuidePage guide={guides.part5} />; }
+export default function Page() { return <GuidePage breadcrumbs={[{ name: "Trang chủ", path: "/" }, { name: "TOEIC", path: "/toeic" }, { name: "Part 5", path: "/toeic/part-5" }]} guide={guides.part5} />; }

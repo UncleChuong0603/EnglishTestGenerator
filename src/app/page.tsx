@@ -7,6 +7,8 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { getPreferences } from "@/lib/i18n/get-translations";
 import { getPaymentCatalog } from "@/lib/payments/catalog";
 import { getPublishedQuestionBankStats } from "@/lib/questions/stats";
+import { getSiteUrl } from "@/lib/seo/site-url";
+import { serializeStructuredData } from "@/lib/seo/structured-data";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 export const dynamic = "force-dynamic";
@@ -126,9 +128,12 @@ export default async function Home() {
   const vi = locale === "vi";
   const copy = content[vi ? "vi" : "en"];
   const primary = user ? "/dashboard" : "/challenge/part-5";
+  const siteUrl = getSiteUrl();
+  const websiteStructuredData = { "@context": "https://schema.org", "@type": "WebSite", name: "TOEIC GYM", alternateName: "TOEICGym", url: siteUrl };
 
   return (
     <main className="marketing-page min-h-screen overflow-x-hidden">
+      <script dangerouslySetInnerHTML={{ __html: serializeStructuredData(websiteStructuredData) }} type="application/ld+json" />
       <PublicHeader locale={locale} signedIn={Boolean(user)} />
       <section className="marketing-hero" aria-labelledby="home-title">
         <div className="marketing-hero-copy">
