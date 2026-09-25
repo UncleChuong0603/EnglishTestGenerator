@@ -118,6 +118,7 @@ services:
     build:
       context: .
       target: migrator
+      network: host
     restart: "no"
     environment: *app-environment
     depends_on:
@@ -131,6 +132,7 @@ services:
     build:
       context: .
       target: runner
+      network: host
       secrets:
         - next_server_actions_encryption_key
     restart: unless-stopped
