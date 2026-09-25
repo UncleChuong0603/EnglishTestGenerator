@@ -139,7 +139,7 @@ Bài báo cho biết ông bắt đầu kinh doanh cách đây 40 năm, ngay sau 
 3. **3 phút:** Tự viết một câu mới dùng cấu trúc vừa học. Ví dụ với câu 102, tạo câu có *since + mệnh đề*.
 4. **2 phút:** Chọn một câu Part 7 và chỉ ra đúng dòng chứng minh; ghi riêng chỗ bạn đã nhầm giữa kế hoạch và sự kiện.
 
-Nếu sai nhiều câu Part 5, xem thêm [cách học loại từ trong TOEIC](/blog/loai-tu-trong-toeic-part-5). Nếu Part 7 thường thiếu giờ, đọc [khung chia 75 phút TOEIC Reading](/blog/quan-ly-thoi-gian-toeic-reading-75-phut). Sau đó làm một nhóm câu mới ở [phần luyện tập](/practice) và kiểm tra xem **loại lỗi cũ** có lặp lại không.
+Nếu sai nhiều câu Part 5, xem thêm [cách học loại từ trong TOEIC](/blog/loai-tu-trong-toeic-part-5). Nếu Part 7 thường thiếu giờ, đọc [khung chia 75 phút TOEIC Reading](/blog/quan-ly-thoi-gian-toeic-reading-75-phut). Sau đó làm 10 câu mới ở [thử thách Part 5 miễn phí](/challenge/part-5) và kiểm tra xem **loại lỗi cũ** có lặp lại không.
 
 **Nguồn:** [ETS — TOEIC Listening & Reading Sample Test (PDF, © 2025)](${source}), trang Reading và bảng đáp án cuối tài liệu. Bài giải thích và ví dụ bổ sung do TOEICGym biên soạn; TOEICGym không liên kết với ETS.`,
 };
