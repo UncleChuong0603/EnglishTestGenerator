@@ -11,13 +11,15 @@ export default async function ListeningTalkPage({ params }: { params: Promise<{ 
   if (!user) redirect("/sign-in?next=/listening-lessons");
   const { slug } = await params;
   const talk = getListeningTalk(slug);
+  const retiredTalks: Record<string, string> = { "attention-1": "grandmothers-soup", "attention-3": "repairing-old-things", "attention-5": "night-without-power" };
+  if (!talk && retiredTalks[slug]) redirect(`/listening-lessons/talk/${retiredTalks[slug]}`);
   if (!talk) notFound();
   const prefs = await getPreferences(user.id);
   const vi = prefs.interfaceLanguage === "vi";
   return <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900"><div className="mx-auto max-w-6xl pb-20">
     <LearnerNav locale={prefs.interfaceLanguage} />
     <Link className="mt-8 inline-block text-sm font-bold text-teal-700" href="/listening-lessons">← {vi ? "Luyện nghe audio" : "Audio shadowing"}</Link>
-    <p className="mt-6 text-sm font-black uppercase tracking-wider text-teal-700">{talk.minutes} {vi ? "phút · Bài chia sẻ" : "minutes · Personal talk"}</p>
+    <p className="mt-6 text-sm font-black uppercase tracking-wider text-teal-700">{talk.minutes} {vi ? "phút" : "minutes"} · {vi ? talk.topicVi : talk.topicEn}</p>
     <h1 className="mt-2 text-3xl font-black">{vi ? talk.titleVi : talk.titleEn}</h1>
     <p className="mt-3 max-w-3xl text-slate-600">{vi ? talk.descriptionVi : talk.descriptionEn}</p>
     <LessonWorkspace audioUrl={talk.audioUrl} imageAlt={null} imageUrl={null} locale={prefs.interfaceLanguage} transcript={talk.transcript} />

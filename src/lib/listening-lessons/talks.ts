@@ -1,6 +1,10 @@
+import { additionalTalks } from "./additional-talks";
+
 export type ListeningTalk = {
   slug: string;
   minutes: 1 | 3 | 5 | 10;
+  topicVi: string;
+  topicEn: string;
   titleVi: string;
   titleEn: string;
   descriptionVi: string;
@@ -9,8 +13,7 @@ export type ListeningTalk = {
   audioUrl: string;
 };
 
-// Original first-person talks. Each version has a complete opening and ending.
-// Paragraphs are synthesized in this exact order by scripts/generate-listening-talks.mts.
+// Original first-person talks. Paragraphs are synthesized in this exact order.
 const opening = `Last spring, I started taking a short walk before work. I told myself it was for exercise, but honestly, I mostly wanted ten minutes away from my phone. The first few mornings felt strangely empty. I kept reaching for my pocket whenever I had to wait at a crossing. Then I began noticing things that had been there all along: the smell of bread from a small bakery, a dog that always stopped at the same tree, and the way the street became quiet just before the shops opened. Nothing dramatic happened. That was the surprise. I was paying attention to an ordinary place, and the ordinary place had more to offer than I expected.`;
 
 const sections = [
@@ -31,23 +34,20 @@ const sections = [
 
 const ending = `So tomorrow morning, I will probably take that walk again. I may notice something beautiful, or I may just notice that I am tired. Either way, I will have given myself a few minutes to listen, to look around, and to remember that small moments can change the way a whole day feels.`;
 
-const versions = [
-  { minutes: 1, count: 0, slug: "attention-1" },
-  { minutes: 3, count: 3, slug: "attention-3" },
-  { minutes: 5, count: 6, slug: "attention-5" },
-  { minutes: 10, count: 13, slug: "attention-10" },
-] as const;
-
-export const listeningTalks: readonly ListeningTalk[] = versions.map(({ minutes, count, slug }) => ({
-  slug,
-  minutes,
-  titleVi: "Một cuộc đi bộ và cách tôi học lắng nghe",
-  titleEn: "A Walk That Taught Me to Listen",
-  descriptionVi: "Một bài chia sẻ về sự chú ý, những cuộc gặp ngắn và vẻ đẹp của ngày thường.",
-  descriptionEn: "A personal talk about attention, small encounters, and ordinary days.",
-  transcript: [opening, ...sections.slice(0, count), ending].join("\n\n"),
-  audioUrl: `/listening-talks/${slug}.mp3`,
-}));
+export const listeningTalks: readonly ListeningTalk[] = [
+  ...additionalTalks.map(talk => ({ ...talk, audioUrl: `/listening-talks/${talk.slug}.mp3` })),
+  {
+    slug: "attention-10",
+    minutes: 10,
+    topicVi: "Đời sống", topicEn: "Everyday life",
+    titleVi: "Một cuộc đi bộ và cách tôi học lắng nghe",
+    titleEn: "A Walk That Taught Me to Listen",
+    descriptionVi: "Một bài chia sẻ về sự chú ý, những cuộc gặp ngắn và vẻ đẹp của ngày thường.",
+    descriptionEn: "A personal talk about attention, small encounters, and ordinary days.",
+    transcript: [opening, ...sections, ending].join("\n\n"),
+    audioUrl: "/listening-talks/attention-10.mp3",
+  },
+];
 
 export function getListeningTalk(slug: string) {
   return listeningTalks.find(talk => talk.slug === slug);

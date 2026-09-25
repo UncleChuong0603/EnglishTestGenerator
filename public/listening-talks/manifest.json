@@ -1,18 +1,48 @@
 {
-  "attention-1": {
-    "transcriptSha256": "11e1d0e4f06d5772338c1319a21c830207cc57c66c5e27b430c476882294d6b8",
-    "durationSeconds": 58.54,
-    "byteSize": 702765
+  "first-day-at-work": {
+    "transcriptSha256": "538621e84daf4a98ddf7fe3b812e7e50c6355126772aa3eb90073001ec6b92d6",
+    "durationSeconds": 51.48,
+    "byteSize": 618093
   },
-  "attention-3": {
-    "transcriptSha256": "6b254ef3ffcc8b237f2152dbaec2573f4169b89967abe9bf6782d9a9a8bd5acb",
-    "durationSeconds": 178.51,
-    "byteSize": 2142477
+  "community-choir": {
+    "transcriptSha256": "d2d180574c1686ae66f3917ce09206b303df64de04abaeed18d0b02c1a508abe",
+    "durationSeconds": 155.14,
+    "byteSize": 1861965
   },
-  "attention-5": {
-    "transcriptSha256": "591bf45b92435f7ff72aca9c8980ef698ea3395e57f8fb43145c658a47b82d6e",
-    "durationSeconds": 298.51,
-    "byteSize": 3582477
+  "first-telescope-night": {
+    "transcriptSha256": "eb12f2feebb6238f87d2364ceef37f52dc8220f0b6a7c18fe88124cdf7986077",
+    "durationSeconds": 247.42,
+    "byteSize": 2969325
+  },
+  "grandmothers-soup": {
+    "transcriptSha256": "892caab159d77324ba241ded17c0dd75724aad9e2d59835d6aab0c1445cc695c",
+    "durationSeconds": 51.79,
+    "byteSize": 621837
+  },
+  "missed-train": {
+    "transcriptSha256": "7268a7a38e7ddf83e1b6588f1587a9940e1df7ceaa6ea2361b1c4fb46eb6406b",
+    "durationSeconds": 46.75,
+    "byteSize": 561357
+  },
+  "repairing-old-things": {
+    "transcriptSha256": "30c1fbb942d8bfc1ea98c03db951526b9be153288d8ab96821e5370d7f4c7b12",
+    "durationSeconds": 177.62,
+    "byteSize": 2131821
+  },
+  "balcony-garden": {
+    "transcriptSha256": "6d98c5758b16783247e1a095bcc18276e3cdeb3f086caaef8bb74f1db14bd2c2",
+    "durationSeconds": 162.05,
+    "byteSize": 1944909
+  },
+  "night-without-power": {
+    "transcriptSha256": "65d109abc0c5169d024c2075be5139f3349fb6f2ab71d1ef424faeacfa1d7ece",
+    "durationSeconds": 285.74,
+    "byteSize": 3429261
+  },
+  "teaching-dad-video-calls": {
+    "transcriptSha256": "b54997392abf9727bc2725dcf288b0b7ac6cd7279a51172d9db70fe3ba5a730e",
+    "durationSeconds": 272.5,
+    "byteSize": 3270285
   },
   "attention-10": {
     "transcriptSha256": "ec8a68ad9571f0aa408616ad2d6f3fac0ea00a0ec8e9641c8d1400dbbfebbbd2",

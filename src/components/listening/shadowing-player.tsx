@@ -20,20 +20,24 @@ function clock(seconds: number) {
 export function ShadowingPlayer({ clips, locale }: { clips: readonly ShadowingClip[]; locale: InterfaceLanguage }) {
   const vi = locale === "vi";
   const audioRef = useRef<HTMLAudioElement>(null);
-  const [minutes, setMinutes] = useState<ShadowingClip["minutes"]>(clips[0]?.minutes ?? 1);
+  const [selectedId, setSelectedId] = useState(clips[0]?.id ?? "");
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [speed, setSpeed] = useState(1);
   const [showTranscript, setShowTranscript] = useState(true);
   const [error, setError] = useState(false);
-  const clip = clips.find(item => item.minutes === minutes);
+  const clip = clips.find(item => item.id === selectedId) ?? clips[0];
   if (!clip) return null;
+  const minutes = clip.minutes;
+  const durations = [...new Set(clips.map(item => item.minutes))];
+  const choices = clips.filter(item => item.minutes === minutes);
 
-  function selectClip(value: ShadowingClip["minutes"]) {
+  function selectClip(id: string) {
     audioRef.current?.pause();
-    setMinutes(value);
+    if (id === selectedId && audioRef.current) audioRef.current.currentTime = 0;
+    setSelectedId(id);
     setTime(0);
-    setDuration(0);
+    setDuration(id === selectedId ? audioRef.current?.duration ?? 0 : 0);
     setError(false);
   }
 
@@ -42,9 +46,10 @@ export function ShadowingPlayer({ clips, locale }: { clips: readonly ShadowingCl
       <p className="text-sm font-bold uppercase tracking-wider text-teal-700">{vi ? "Một bài nói liền mạch" : "One continuous talk"}</p>
       <h2 className="mt-2 text-2xl font-black">{vi ? "Chọn thời lượng audio" : "Choose the audio length"}</h2>
       <div aria-label={vi ? "Thời lượng audio" : "Audio duration"} className="mt-4 flex flex-wrap gap-2" role="group">
-        {clips.map(item => <button aria-pressed={minutes === item.minutes} className={`min-h-11 rounded-full px-5 font-bold ${minutes === item.minutes ? "bg-teal-800 text-white" : "border border-teal-700 bg-white text-teal-800"}`} key={item.id} onClick={() => selectClip(item.minutes)} type="button">{item.minutes} {vi ? "phút" : item.minutes === 1 ? "minute" : "minutes"}</button>)}
+        {durations.map(value => <button aria-pressed={minutes === value} className={`min-h-11 rounded-full px-5 font-bold ${minutes === value ? "bg-teal-800 text-white" : "border border-teal-700 bg-white text-teal-800"}`} key={value} onClick={() => selectClip(clips.find(item => item.minutes === value)!.id)} type="button">{value} {vi ? "phút" : value === 1 ? "minute" : "minutes"}</button>)}
       </div>
-      <p className="mt-3 text-sm text-slate-600">{vi ? "Mỗi lựa chọn là một bài chia sẻ hoàn chỉnh, không ghép câu hỏi hoặc các đoạn luyện thi. Transcript bên cạnh theo dõi câu đang nghe và hiển thị câu tiếp theo." : "Each choice is a complete personal talk. Follow the current sentence in the transcript and preview what comes next."}</p>
+      <p className="mt-3 text-sm text-slate-600">{vi ? "Mỗi audio là một bài chia sẻ riêng về một chủ đề khác nhau. Chọn thời lượng rồi chọn chủ đề bạn muốn nghe." : "Each audio is a complete talk on a different topic. Choose a length, then pick a topic."}</p>
+      <div className="mt-5"><p className="text-sm font-bold text-slate-700">{vi ? "Chọn chủ đề" : "Choose a topic"}</p><div aria-label={vi ? "Chủ đề audio" : "Audio topics"} className="mt-2 flex flex-wrap gap-2" role="group">{choices.map(item => <button aria-pressed={clip.id === item.id} className={`min-h-11 rounded-xl px-4 text-left text-sm font-semibold ${clip.id === item.id ? "border border-teal-700 bg-teal-50 text-teal-900" : "border border-slate-300 bg-white text-slate-700 hover:border-teal-500"}`} key={item.id} onClick={() => selectClip(item.id)} type="button">{item.title}</button>)}</div></div>
       <div className="mt-7 rounded-2xl bg-slate-50 p-5">
         <p className="text-sm font-semibold text-slate-500">{vi ? "Bài đang nghe" : "Current talk"}</p>
         <h3 className="mt-1 text-lg font-black">{clip.title}</h3>

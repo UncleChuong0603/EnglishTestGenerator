@@ -17,8 +17,19 @@ const paragraphFiles = new Map<string, string>();
 const manifest: Record<string, { transcriptSha256: string; durationSeconds: number; byteSize: number }> = {};
 
 await mkdir(outputDirectory, { recursive: true });
+const previousManifest = JSON.parse(await readFile(join(outputDirectory, "manifest.json"), "utf8").catch(() => "{}")) as typeof manifest;
 try {
   for (const talk of listeningTalks) {
+    const sourceHash = createHash("sha256").update(talk.transcript).digest("hex");
+    const output = join(outputDirectory, `${talk.slug}.mp3`);
+    if (!process.argv.includes("--force") && previousManifest[talk.slug]?.transcriptSha256 === sourceHash) {
+      const existing = await readFile(output).catch(() => null);
+      if (existing?.byteLength === previousManifest[talk.slug].byteSize) {
+        manifest[talk.slug] = previousManifest[talk.slug];
+        process.stdout.write(`${talk.slug}: current (${manifest[talk.slug].durationSeconds}s)\n`);
+        continue;
+      }
+    }
     const paths: string[] = [];
     for (const paragraph of getTalkParagraphs(talk)) {
       const hash = createHash("sha256").update(paragraph).digest("hex");
@@ -44,7 +55,6 @@ try {
       return Number(match[1]) * 3600 + Number(match[2]) * 60 + Number(match[3]);
     }
     const rawDuration = await duration(rawOutput);
-    const output = join(outputDirectory, `${talk.slug}.mp3`);
     const maxDuration = talk.minutes * 60 - 0.5;
     if (rawDuration > maxDuration) {
       const tempo = rawDuration / (maxDuration - 1);
@@ -56,7 +66,7 @@ try {
     if (durationSeconds > talk.minutes * 60) throw new Error(`AUDIO_TOO_LONG:${talk.slug}:${durationSeconds}`);
     const bytes = await readFile(output);
     manifest[talk.slug] = {
-      transcriptSha256: createHash("sha256").update(talk.transcript).digest("hex"),
+      transcriptSha256: sourceHash,
       durationSeconds,
       byteSize: bytes.byteLength,
     };
