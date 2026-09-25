@@ -17,3 +17,11 @@
 5. Review the Page indexing report over the following weeks. Sitemap submission and indexing requests do not guarantee indexing.
 
 The Domain property and Search Console actions require access to the domain DNS and the site's Google account; they cannot be completed from this repository alone.
+
+## SEO release check (2026-09-25)
+
+Run `npm run seo:smoke` after every deploy. It checks the live robots file, every URL in the sitemap, and representative application routes. Public sitemap URLs must return 200 with a unique title, description, social image, self canonical, and no `noindex`. Application routes must return `X-Robots-Tag: noindex`.
+
+The 2026-09-25 live run passed for 36 sitemap URLs and 5 application routes. A `google-site-verification` TXT record is published for `toeicgym.net`; this confirms the DNS record exists, not that the current Google account has Search Console access or that the sitemap was submitted. The next measurement is Search Console's Page indexing and Performance reports, including Google-selected canonical, impressions, clicks, and queries for the public URLs.
+
+The public TOEIC guides and article bodies remain Vietnamese. An English interface cookie can make the root `<html lang>` English, while those articles are marked `lang="vi"`. If English organic traffic becomes a goal, create fully translated pages on dedicated English URLs and link the language versions with `hreflang`; do not advertise the current Vietnamese pages as English alternatives.

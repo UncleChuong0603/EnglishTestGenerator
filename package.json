@@ -11,6 +11,7 @@
     "start": "node .next/standalone/server.js",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "seo:smoke": "node scripts/seo-smoke.mjs",
     "test": "vitest run",
     "test:integration:ranked-challenges:migrate": "node scripts/task16c-migrate.mjs",
     "test:integration:ranked-challenges:reset": "node scripts/task16c-reset.mjs",

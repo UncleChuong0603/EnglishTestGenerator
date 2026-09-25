@@ -13,6 +13,8 @@ const securityHeaders = [
 // Authentication protects the data; this header keeps application and session
 // URLs out of search results even when a redirect is streamed as a 200 page.
 const noindexPaths = [
+  "/api/:path*",
+  "/auth/:path*",
   "/admin/:path*",
   "/dashboard/:path*",
   "/practice/:path*",
