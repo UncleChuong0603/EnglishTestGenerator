@@ -2,9 +2,12 @@ import { createHash } from "node:crypto";
 import { countIds, createPool, upsertRows } from "./lib/seed-pg.mjs";
 
 import { part5Questions, readingPassageSets } from "./reading-seed-data.mjs";
+import { practiceReading } from "./practice-reading-data.mjs";
 import { formatReadingDistribution, validateReadingSeed } from "./validate-reading-seed.mjs";
 
-const SOURCE = "task_5_reading_development_seed";
+const practiceBank = process.argv.includes("--practice-bank");
+const SOURCE = practiceBank ? "toeicgym_practice_bank_10k" : "task_5_reading_development_seed";
+const selectedReading = practiceBank ? practiceReading : { part5: part5Questions, sets: readingPassageSets };
 
 function stableUuid(value) {
   const hex = createHash("sha256").update(value).digest("hex").slice(0, 32).split("");
@@ -40,9 +43,9 @@ function buildRows() {
     });
   };
 
-  for (const q of part5Questions) appendQuestion(q, 5, stableUuid(`part5-question:${q.key}`));
+  for (const q of selectedReading.part5) appendQuestion(q, 5, stableUuid(`part5-question:${q.key}`));
 
-  for (const set of readingPassageSets) {
+  for (const set of selectedReading.sets) {
     const setId = stableUuid(`reading-set:${set.key}`);
     setRows.push({
       id: setId, toeic_part: set.toeicPart, set_type: set.setType, title: set.title,
@@ -160,7 +163,7 @@ async function verifyDatabase(client, rows) {
 }
 
 async function run() {
-  const validation = validateReadingSeed();
+  const validation = validateReadingSeed(selectedReading);
   if (validation.errors.length) throw new Error(validation.errors.join("\n"));
   console.log(`Local validation passed.\n\n${formatReadingDistribution(validation.report)}\n`);
   let rows = buildRows();
@@ -172,7 +175,7 @@ async function run() {
   const pool = createPool(); const client = await pool.connect();
   try {
     const existingPart5 = Number((await client.query(`select count(*)::int as count from questions where skill_area='READING' and toeic_part=5 and status='published'`)).rows[0].count);
-    if (process.argv.includes("--skip-part5") || (!process.argv.includes("--form25-only") && existingPart5 >= 300 && !process.argv.includes("--include-part5"))) {
+    if (!practiceBank && (process.argv.includes("--skip-part5") || (!process.argv.includes("--form25-only") && existingPart5 >= 300 && !process.argv.includes("--include-part5")))) {
       rows = withoutPart5(rows);
       console.log(`Part 5 upsert skipped because the database already has ${existingPart5} published questions.`);
     }

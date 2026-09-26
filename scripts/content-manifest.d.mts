@@ -25,3 +25,4 @@ export type ListeningContentItem = ListeningContentBase & (
 );
 export const productionListening: ListeningContentItem[];
 export const listeningManifest: ListeningContentItem[];
+export const practiceListening: ListeningContentItem[];
