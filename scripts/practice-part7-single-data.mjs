@@ -78,8 +78,15 @@ export function practiceSingleSet(index) {
     }),
   ];
   const { title, documentType, content, qa } = [...scenarios, ...extraSingleScenarios(company, date).map(value => () => value)][scene]();
+  // Mix two-, three-, and four-question passages so a challenge can assemble
+  // the TOEIC blueprint of 29 questions across ten single passages.
+  const selectedQa = scene === 0 ? qa.slice(0, 2) : scene === 1 ? [...qa,
+    ["How often does the regular shuttle run?", "Every thirty minutes",
+      ["Every fifteen minutes", "Once every hour", "Only once each morning"],
+      "detail", "explicit_information", "The email states that the shuttle runs every thirty minutes."],
+  ] : qa;
   return { key: `p7-single-practice-${String(index + 1).padStart(3, "0")}`, toeicPart: 7, setType: "single", title, status: "published",
     passages: [{ key: "doc1", position: 1, documentType, title, content }],
-    questions: qa.map(([text, correct, wrong, skill, subSkill, evidence], rowIndex) => question(index, rowIndex + 1, text, correct, wrong, skill, subSkill, evidence)),
+    questions: selectedQa.map(([text, correct, wrong, skill, subSkill, evidence], rowIndex) => question(index, rowIndex + 1, text, correct, wrong, skill, subSkill, evidence)),
   };
 }
