@@ -274,6 +274,20 @@
       "when": 1792540801000,
       "tag": "0038_foamy_sebastian_shaw",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1792627200000,
+      "tag": "0039_fair_pete_wisdom",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1792627201000,
+      "tag": "0040_curious_morbius",
+      "breakpoints": true
     }
   ]
 }

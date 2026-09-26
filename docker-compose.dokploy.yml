@@ -249,6 +249,23 @@ services:
     security_opt: [no-new-privileges:true]
     logging: *default-logging
 
+  lifecycle-scheduler:
+    image: node:22-alpine
+    restart: unless-stopped
+    init: true
+    environment:
+      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET is required}
+      LIFECYCLE_JOB_URL: http://app:3000/api/internal/lifecycle-email
+    command: ["node", "/app/lifecycle-scheduler.mjs"]
+    volumes:
+      - ./scripts/lifecycle-scheduler.mjs:/app/lifecycle-scheduler.mjs:ro
+    depends_on:
+      app:
+        condition: service_healthy
+    networks: [database]
+    security_opt: [no-new-privileges:true]
+    logging: *default-logging
+
   media-server:
     image: nginx:1.29-alpine
     restart: unless-stopped

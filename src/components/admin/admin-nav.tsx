@@ -16,7 +16,7 @@ export function AdminNav({ locale }: { locale: InterfaceLanguage }) {
     { name: vi ? "Tổng quan" : "Overview", href: "/admin", links: [["/admin", vi ? "Bảng điều hành" : "Dashboard"], ["/admin/analytics", vi ? "Phân tích" : "Analytics"]] },
     { name: vi ? "Học liệu" : "Content", href: "/admin/content", links: [["/admin/content", vi ? "Ngân hàng câu hỏi" : "Question bank"], ["/admin/listening-lessons", vi ? "Luyện nghe" : "Listening lessons"], ["/admin/content/similarity", vi ? "Trùng lặp" : "Similarity"], ["/admin/content/media", "Media"]] },
     { name: vi ? "Người học" : "Learners", href: "/admin/users", links: [["/admin/users", vi ? "Người dùng" : "Users"], ["/admin/support", vi ? "Phản hồi" : "Feedback"]] },
-    { name: vi ? "Vận hành" : "Operations", href: "/admin/challenges", links: [["/admin/posts", vi ? "Bài viết" : "Posts"], ["/admin/challenges", vi ? "Sự kiện" : "Events"], ["/admin/payments", vi ? "Thanh toán" : "Payments"], ["/admin/audit", vi ? "Nhật ký" : "Audit log"], ["/admin/settings", vi ? "Cài đặt" : "Settings"]] },
+    { name: vi ? "Vận hành" : "Operations", href: "/admin/challenges", links: [["/admin/posts", vi ? "Bài viết" : "Posts"], ["/admin/challenges", vi ? "Sự kiện" : "Events"], ["/admin/payments", vi ? "Thanh toán" : "Payments"], ["/admin/email", vi ? "Email học tập" : "Learning email"], ["/admin/audit", vi ? "Nhật ký" : "Audit log"], ["/admin/settings", vi ? "Cài đặt" : "Settings"]] },
   ];
   const matchingLinks = groups.flatMap(group => group.links).filter(([href]) => pathname === href || (href !== "/admin" && pathname.startsWith(`${href}/`)));
   const activeHref = matchingLinks.sort((a, b) => b[0].length - a[0].length)[0]?.[0];

@@ -21,6 +21,13 @@ export async function setInterfaceLanguage(formData: FormData) {
   const user = await getCurrentUser(); if (user) await db.update(profiles).set({ interfaceLanguage: language, updatedAt: new Date() }).where(eq(profiles.id, user.id)); revalidatePath("/", "layout");
 }
 export async function saveRankingVisibility(formData: FormData) { const visibility=String(formData.get("visibility")??""); if(!["PUBLIC","ANONYMOUS","HIDDEN"].includes(visibility)) return; const user=await getCurrentUser();if(!user)return;await db.update(profiles).set({rankingVisibility:visibility,updatedAt:new Date()}).where(eq(profiles.id,user.id));revalidatePath("/settings");revalidatePath("/ranking"); }
+export async function saveLearningEmailPreference(formData: FormData) {
+  const value = formData.get("learningEmailEnabled");
+  if (value !== "true" && value !== "false") return;
+  const user = await getCurrentUser(); if (!user) return;
+  await db.update(profiles).set({ learningEmailEnabled: value === "true", updatedAt: new Date() }).where(eq(profiles.id, user.id));
+  revalidatePath("/settings");
+}
 export async function saveDisplayName(formData: FormData) {
   const name = formData.get("displayName");
   if (typeof name !== "string" || name.trim().length < 2 || name.trim().length > 80) return;

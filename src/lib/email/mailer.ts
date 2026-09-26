@@ -3,6 +3,23 @@ import nodemailer from "nodemailer";
 import { getServerEnv } from "@/lib/env";
 
 type AuthEmail = { to: string; subject: string; text: string };
+export class EmailDeliveryError extends Error {
+  constructor(message: string, readonly retrySafe: boolean) { super(message); }
+}
+export async function sendEngagementEmail(message: AuthEmail) {
+  if (process.env.NODE_ENV === "test") return;
+  const env = getServerEnv();
+  if (!env.SMTP_HOST) throw new EmailDeliveryError("SMTP_HOST is not configured", true);
+  const transport = nodemailer.createTransport({ host: env.SMTP_HOST, port: env.SMTP_PORT, secure: env.SMTP_SECURE === "true", auth: env.SMTP_USER ? { user: env.SMTP_USER, pass: env.SMTP_PASSWORD } : undefined });
+  let result;
+  try { result = await transport.sendMail({ from: env.SMTP_FROM, ...message }); }
+  catch (error) {
+    const command = error && typeof error === "object" && "command" in error ? String(error.command) : "";
+    if (/^(RCPT TO|MAIL FROM|AUTH|CONN)$/i.test(command)) throw new EmailDeliveryError("SMTP failed before message data", true);
+    throw error;
+  }
+  if (!Array.isArray(result.accepted) || result.accepted.length === 0) throw new EmailDeliveryError("SMTP accepted no recipients", true);
+}
 export async function sendAuthEmail(message: AuthEmail) {
   if (process.env.NODE_ENV === "test") return;
   const env = getServerEnv();

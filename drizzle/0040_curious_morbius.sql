@@ -1,0 +1,2 @@
+ALTER TABLE "lifecycle_emails" ADD COLUMN "unsubscribe_token_hash" text;--> statement-breakpoint
+ALTER TABLE "lifecycle_emails" ADD CONSTRAINT "lifecycle_emails_unsubscribe_token_hash_unique" UNIQUE("unsubscribe_token_hash");

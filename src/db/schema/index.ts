@@ -137,6 +137,7 @@ export const profiles = pgTable("profiles", {
   interfaceLanguage: text("interface_language").notNull().default("vi"),
   explanationLanguage: text("explanation_language").notNull().default("both"),
   rankingVisibility: text("ranking_visibility").notNull().default("ANONYMOUS"),
+  learningEmailEnabled: boolean("learning_email_enabled").notNull().default(false),
   publicProfileId: uuid("public_profile_id").notNull().defaultRandom(),
   ...timestamps,
 }, (table) => [
@@ -208,6 +209,25 @@ export const oauthStates = pgTable("oauth_states", {
   expiresAt: timestamp("expires_at", { withTimezone: true, mode: "date" }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
 });
+
+export const lifecycleEmails = pgTable("lifecycle_emails", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  type: text("type").notNull(),
+  windowKey: text("window_key").notNull(),
+  status: text("status").notNull(),
+  reason: text("reason"),
+  unsubscribeTokenHash: text("unsubscribe_token_hash").unique(),
+  claimedAt: timestamp("claimed_at", { withTimezone: true, mode: "date" }),
+  sentAt: timestamp("sent_at", { withTimezone: true, mode: "date" }),
+  returnedAt: timestamp("returned_at", { withTimezone: true, mode: "date" }),
+  attempts: integer("attempts").notNull().default(0),
+  ...timestamps,
+}, (table) => [
+  unique("lifecycle_emails_window_unique").on(table.userId, table.type, table.windowKey),
+  index("lifecycle_emails_user_sent_idx").on(table.userId, table.sentAt),
+  check("lifecycle_emails_status_check", sql`${table.status} in ('claimed','sent','failed','suppressed')`),
+]);
 
 function bearerTokenTable(name: "email_verification_tokens" | "password_reset_tokens" | "account_activation_tokens") {
   return pgTable(name, {
