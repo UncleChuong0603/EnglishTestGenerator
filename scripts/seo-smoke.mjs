@@ -86,7 +86,9 @@ try {
         const schemas = structuredData(html);
         if (pathname === "/" && !schemas.some((schema) => schema["@type"] === "WebSite" && schema.name === "TOEIC GYM" && schema.url === canonical)) failures.push(`${url}: missing WebSite site-name data`);
         if (breadcrumbPaths.has(pathname) && !schemas.some((schema) => schema["@type"] === "BreadcrumbList" && schema.itemListElement?.at(-1)?.item === url)) failures.push(`${url}: missing matching BreadcrumbList data`);
-        if (pathname.startsWith("/blog/") && !schemas.some((schema) => schema["@type"] === "BlogPosting" && schema.url === url)) failures.push(`${url}: missing matching BlogPosting data`);
+        if (pathname === "/blog/ngu-phap") {
+          if (!schemas.some((schema) => schema["@type"] === "CollectionPage" && schema.url === url && schema.mainEntity?.["@type"] === "ItemList")) failures.push(`${url}: missing grammar CollectionPage and ItemList data`);
+        } else if (pathname.startsWith("/blog/") && !schemas.some((schema) => schema["@type"] === "BlogPosting" && schema.url === url)) failures.push(`${url}: missing matching BlogPosting data`);
       } catch (error) {
         failures.push(`${url}: ${error instanceof Error ? error.message : String(error)}`);
       }

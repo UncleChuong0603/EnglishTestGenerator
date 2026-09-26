@@ -17,6 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/toeic/part-6",
     "/toeic/part-7",
     "/blog",
+    "/blog/ngu-phap",
     "/pricing",
     "/try",
     "/diagnostic",

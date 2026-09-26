@@ -25,33 +25,25 @@ const parts = [
 
 const content = {
   vi: {
-    eyebrow: "Question bank · TOEIC GYM",
-    title: "Kho câu hỏi TOEIC, biến thành bài luyện dành cho bạn.",
-    body: "Luyện Listening và Reading từ Part 1 đến Part 7. Chọn đúng dạng bài, hiểu từng lỗi sai và để kết quả của bạn dẫn lối cho buổi học tiếp theo.",
+    eyebrow: "TOEIC GYM · Luyện đúng cách, tiến bộ mỗi ngày",
+    title: "Luyện TOEIC không chỉ là làm thêm câu hỏi.",
+    body: "Bắt đầu bằng bài thử miễn phí, khám phá điểm mạnh và điểm cần cải thiện, rồi luyện nghe, đọc, ôn lỗi sai và thi thử theo nhịp của bạn.",
     primary: "Thử 10 câu miễn phí",
-    secondary: "Khám phá cách luyện",
+    secondary: "Khám phá TOEIC GYM",
     reassurance: "Không cần tài khoản · Có kết quả và lời giải ngay",
-    previewLabel: "Bên trong TOEIC GYM",
-    previewTitle: "Bắt đầu từ kho câu hỏi",
-    previewBody: "Chọn một Part hoặc để TOEIC GYM gợi ý từ kết quả của bạn.",
     publishedQuestions: "câu hỏi đã xuất bản",
-    questions: "câu",
-    previewFocus: "Chọn trọng tâm",
-    previewFocusValue: "Part · Kỹ năng · Số câu",
-    previewNext: "Sau khi làm bài",
-    previewNextValue: "Lời giải · Lỗi sai · Bài tiếp theo",
     bankKicker: "Nền tảng của mọi buổi luyện",
     bankTitle: "Từ Part 1 đến Part 7, luôn có cách bắt đầu phù hợp.",
     bankBody: "Kho câu hỏi được tổ chức theo cấu trúc TOEIC. Bạn có thể luyện một phần cụ thể, thử sức với Listening và Reading, rồi quay lại nội dung mình còn yếu.",
     featuresKicker: "Không chỉ là làm bài",
-    featuresTitle: "Một kho câu hỏi, nhiều cách học thú vị.",
-    featuresBody: "TOEIC GYM biến mỗi lần trả lời thành một cơ hội để hiểu rõ hơn và luyện tiếp có mục đích.",
+    featuresTitle: "Mỗi buổi học đều giúp bạn đi xa hơn.",
+    featuresBody: "Chọn bài vừa sức, hiểu đáp án và giữ lại kiến thức để lần luyện tiếp theo hiệu quả hơn.",
     features: [
       { title: "Tự chọn bài luyện", body: "Chọn Part 5–7, kỹ năng, nội dung trọng tâm và độ dài bài Reading theo thời gian bạn có.", tag: "Luyện theo ý bạn" },
       { title: "Hiểu vì sao mình sai", body: "Xem đáp án và lời giải bằng tiếng Việt, tiếng Anh hoặc cả hai sau khi hoàn thành bài.", tag: "Lời giải rõ ràng" },
       { title: "Được gợi ý bài tiếp theo", body: "Kết quả theo Part và lịch sử luyện tập giúp bạn biết phần nào nên dành thêm thời gian.", tag: "Luyện có hướng đi" },
-      { title: "Quay lại lỗi sai", body: "Ôn những câu chưa nắm chắc, làm lại và theo dõi phần kiến thức mình đang tiến bộ.", tag: "Ôn tập thông minh" },
-      { title: "Thử sức như khi thi", body: "Luyện bài thi thử Listening, Reading hoặc toàn bộ đề với đồng hồ và kết quả sau khi nộp.", tag: "Thi thử có giờ" },
+      { title: "Nhớ từ vựng lâu hơn", body: "Lưu từ trong câu hỏi, học theo chủ đề và ôn lại các từ đến hạn ngay trong TOEIC GYM.", tag: "Từ vựng & ôn tập" },
+      { title: "Giữ nhịp với mục tiêu tuần", body: "Đặt mục tiêu, xem tiến độ và chia hành trình luyện tập thành từng tuần dễ theo dõi.", tag: "Lộ trình của bạn" },
       { title: "Thêm động lực mỗi ngày", body: "Tham gia thử thách, xem bảng xếp hạng và theo dõi chặng đường đến mục tiêu của bạn.", tag: "Thử thách & tiến độ" },
     ],
     exampleKicker: "Kết quả dẫn đến hành động",
@@ -73,33 +65,25 @@ const content = {
     closingBody: "Thử miễn phí mà không cần tài khoản. Tạo tài khoản khi bạn muốn lưu kết quả và tiếp tục theo mục tiêu của mình.",
   },
   en: {
-    eyebrow: "Question bank · TOEIC GYM",
-    title: "A TOEIC question bank that becomes your practice plan.",
-    body: "Practice Listening and Reading across Parts 1–7. Choose the right question type, understand your mistakes, and let your results guide what you study next.",
+    eyebrow: "TOEIC GYM · Practice with purpose",
+    title: "TOEIC practice is more than answering questions.",
+    body: "Start with a free challenge, discover what needs work, then practice listening and reading, review mistakes and take timed mocks at your own pace.",
     primary: "Try 10 questions free",
-    secondary: "Explore how it works",
+    secondary: "Explore TOEIC GYM",
     reassurance: "No account needed · Instant results and explanations",
-    previewLabel: "Inside TOEIC GYM",
-    previewTitle: "Start with the question bank",
-    previewBody: "Pick a Part or follow a suggestion based on your results.",
     publishedQuestions: "published questions",
-    questions: "questions",
-    previewFocus: "Choose your focus",
-    previewFocusValue: "Part · Skill · Question count",
-    previewNext: "After you finish",
-    previewNextValue: "Explanations · Mistakes · Next practice",
     bankKicker: "The foundation of every session",
     bankTitle: "From Part 1 to Part 7, find your place to start.",
     bankBody: "Questions are organized around the TOEIC format. Focus on a Part, practice Listening and Reading, and return to the areas that need work.",
     featuresKicker: "More than answering questions",
-    featuresTitle: "One question bank. Many ways to learn.",
-    featuresBody: "TOEIC GYM turns each answer into a chance to understand more and practice with purpose.",
+    featuresTitle: "Make every session move you forward.",
+    featuresBody: "Choose a focused workout, understand your answers and keep what you learn for the next session.",
     features: [
       { title: "Build your own practice", body: "Choose Reading Parts 5–7, a skill, a focus area and a session length that fits your day.", tag: "Your choice" },
       { title: "Understand each mistake", body: "Review answers and explanations in English, Vietnamese or both after you finish.", tag: "Clear explanations" },
       { title: "Know what to do next", body: "Part-level results and your practice history show where to spend more time.", tag: "Guided practice" },
-      { title: "Return to missed questions", body: "Review what you have not mastered, try again and track what is improving.", tag: "Smart review" },
-      { title: "Practice under test conditions", body: "Try timed Listening, Reading or full mock tests and review results after submitting.", tag: "Timed mocks" },
+      { title: "Remember more vocabulary", body: "Save words from questions, study by topic and review words when they are due.", tag: "Vocabulary & review" },
+      { title: "Keep pace with a weekly goal", body: "Set a target, see your progress and follow your learning journey week by week.", tag: "Your learning path" },
       { title: "Keep your momentum", body: "Join challenges, view rankings and track your progress toward your goal.", tag: "Challenges & progress" },
     ],
     exampleKicker: "Turn results into action",
@@ -123,7 +107,10 @@ const content = {
 } as const;
 
 export default async function Home() {
-  const [user, bankStats] = await Promise.all([getCurrentUser(), getPublishedQuestionBankStats()]);
+  const [user, bankStats] = await Promise.all([
+    getCurrentUser(),
+    getPublishedQuestionBankStats().catch(() => null),
+  ]);
   const locale = (await getPreferences(user?.id)).interfaceLanguage;
   const vi = locale === "vi";
   const copy = content[vi ? "vi" : "en"];
@@ -140,28 +127,41 @@ export default async function Home() {
           <p className="section-kicker">{copy.eyebrow}</p>
           <h1 id="home-title">{copy.title}</h1>
           <p className="marketing-lead">{copy.body}</p>
-          <p className="marketing-bank-total"><strong>{bankStats.total.toLocaleString(vi ? "vi-VN" : "en-US")}</strong><span>{copy.publishedQuestions}</span></p>
+          {bankStats && bankStats.total > 0 ? <p className="marketing-bank-total"><strong>{bankStats.total.toLocaleString(vi ? "vi-VN" : "en-US")}</strong><span>{copy.publishedQuestions}</span></p> : null}
           <div className="marketing-actions">
             <Link className="button-primary" href={primary}>{user ? (vi ? "Tiếp tục học" : "Continue learning") : copy.primary}<span aria-hidden="true">↗</span></Link>
-            <Link className="button-text" href="#question-bank">{copy.secondary} <span aria-hidden="true">→</span></Link>
+            <Link className="button-text" href="#explore">{copy.secondary} <span aria-hidden="true">→</span></Link>
           </div>
           {!user && <p className="marketing-reassurance">{copy.reassurance}</p>}
         </div>
         <div className="marketing-hero-visual">
-          <div className="bank-preview">
-            <div className="bank-preview-top"><span className="bank-preview-mark">TG</span><span>TOEIC GYM / QUESTION BANK</span><span className="bank-preview-dots" aria-hidden="true">● ● ●</span></div>
-            <div className="bank-preview-body">
-              <p className="section-kicker">{copy.previewLabel}</p>
-              <h2>{copy.previewTitle}</h2>
-              <p>{copy.previewBody}</p>
-              <div className="bank-preview-parts" aria-label={vi ? "Các phần luyện tập TOEIC" : "TOEIC practice parts"}>
-                {parts.map((part) => <div className="bank-preview-part" key={part.number}><span>PART {part.number}</span><strong>{vi ? part.vi : part.en}</strong><small>{(bankStats.byPart[Number(part.number)] ?? 0).toLocaleString(vi ? "vi-VN" : "en-US")} {copy.questions}</small></div>)}
+          <div className="gym-preview">
+            <div className="gym-preview-top"><span className="bank-preview-mark">TG</span><span>TOEIC GYM / {vi ? "KHÔNG GIAN HỌC" : "YOUR LEARNING SPACE"}</span><span className="gym-preview-live">● {vi ? "SẴN SÀNG" : "READY"}</span></div>
+            <div className="gym-preview-body">
+              <p className="section-kicker">{vi ? "Mỗi ngày một bước tiến" : "A better session, every day"}</p>
+              <h2>{vi ? "Hôm nay bạn muốn luyện gì?" : "What will you practice today?"}</h2>
+              <div className="gym-preview-main">
+                <div className="gym-preview-diagnostic"><span className="gym-preview-icon" aria-hidden="true">◎</span><small>{vi ? "BẮT ĐẦU TỪ ĐÂU?" : "WHERE TO START?"}</small><strong>{vi ? "Đánh giá điểm xuất phát" : "Find your starting point"}</strong><p>{vi ? "Xem kết quả theo Part và biết nên luyện gì tiếp." : "See results by Part and discover your next step."}</p><Link href="/diagnostic">{vi ? "Khám phá bài đánh giá" : "Explore the diagnostic"} <span aria-hidden="true">↗</span></Link></div>
+                <div className="gym-preview-stack"><div><span aria-hidden="true">♫</span><strong>{vi ? "Luyện nghe" : "Listening"}</strong><small>Part 1–4</small></div><div><span aria-hidden="true">▤</span><strong>{vi ? "Luyện đọc" : "Reading"}</strong><small>Part 5–7</small></div><div><span aria-hidden="true">◷</span><strong>{vi ? "Thi thử" : "Mock tests"}</strong><small>{vi ? "Có đồng hồ" : "Timed"}</small></div></div>
               </div>
-              <div className="bank-preview-outcome"><div><span>{copy.previewFocus}</span><strong>{copy.previewFocusValue}</strong></div><div><span>{copy.previewNext}</span><strong>{copy.previewNextValue}</strong></div></div>
+              <div className="gym-preview-footer"><span aria-hidden="true">↗</span><p><strong>{vi ? "Làm bài → hiểu lỗi sai → luyện tiếp" : "Practice → understand → improve"}</strong><small>{vi ? "Một hành trình học nối liền từng buổi luyện." : "Every session points to what comes next."}</small></p></div>
             </div>
           </div>
-          <span className="marketing-visual-caption">{vi ? "Minh họa cách tổ chức bài luyện" : "Practice layout illustration"}</span>
+          <span className="marketing-visual-caption">{vi ? "Minh họa các tính năng trong TOEIC GYM" : "TOEIC GYM feature illustration"}</span>
         </div>
+      </section>
+
+      <section className="marketing-explore" id="explore" aria-labelledby="explore-title">
+        <div className="marketing-explore-heading"><div><p className="section-kicker">{vi ? "Một phòng tập, nhiều cách tiến bộ" : "Explore your gym"}</p><h2 id="explore-title">{vi ? "Chọn điều bạn cần ngay hôm nay." : "Choose what you need today."}</h2></div><p>{vi ? "Dù chỉ có vài phút hay muốn làm trọn một đề, TOEIC GYM luôn có một điểm bắt đầu phù hợp." : "Whether you have a few minutes or time for a full test, find a useful place to start."}</p></div>
+        <div className="marketing-explore-grid">
+          {[
+            { href: "/diagnostic", icon: "◎", label: vi ? "TÌM ĐIỂM XUẤT PHÁT" : "FIND YOUR STARTING POINT", title: vi ? "Đánh giá đầu vào" : "Diagnostic", body: vi ? "Một bài đánh giá Listening và Reading để thấy Part nào cần ưu tiên." : "See which Listening and Reading Parts deserve your attention.", tone: "mint" },
+            { href: "/listening-lessons", icon: "♫", label: vi ? "NGHE VÀ NÓI THEO" : "LISTEN AND SHADOW", title: vi ? "Luyện nghe có transcript" : "Listening with transcripts", body: vi ? "Nghe các câu chuyện ngắn, theo dõi từng câu và luyện nói theo." : "Follow short talks line by line and practice speaking along.", tone: "peach" },
+            { href: "/full-mock", icon: "◷", label: vi ? "THỬ SỨC CÓ ĐỒNG HỒ" : "PRACTICE UNDER TIME", title: vi ? "Thi thử TOEIC" : "TOEIC mock tests", body: vi ? "Làm bài theo thời gian, xem kết quả và quay lại phần cần cải thiện." : "Practice with a timer, review results and revisit weak areas.", tone: "lavender" },
+            { href: "/mistakes", icon: "↺", label: vi ? "HỌC TỪ MỖI LỖI SAI" : "LEARN FROM MISTAKES", title: vi ? "Ôn tập thông minh" : "Smart review", body: vi ? "Quay lại câu đã sai, làm lại và theo dõi những gì mình đã nắm chắc." : "Retry missed questions and keep track of what you have mastered.", tone: "yellow" },
+          ].map((item) => <Link className={`marketing-explore-card ${item.tone}`} href={item.href} key={item.href}><span className="marketing-explore-icon" aria-hidden="true">{item.icon}</span><span className="marketing-explore-label">{item.label}</span><h3>{item.title}</h3><p>{item.body}</p><span className="marketing-explore-arrow" aria-hidden="true">↗</span></Link>)}
+        </div>
+        <div className="marketing-explore-more"><span>{vi ? "Còn có" : "Also inside"}</span><Link href="/vocabulary">{vi ? "Từ vựng" : "Vocabulary"} ↗</Link><Link href="/progress">{vi ? "Theo dõi tiến độ" : "Track progress"} ↗</Link><Link href="/ranking">{vi ? "Thử thách & bảng xếp hạng" : "Challenges & rankings"} ↗</Link></div>
       </section>
 
       <section className="marketing-bank" id="question-bank" aria-labelledby="bank-title">
@@ -174,7 +174,7 @@ export default async function Home() {
 
       <section className="marketing-features" id="features" aria-labelledby="features-title">
         <div className="marketing-features-heading"><div><p className="section-kicker">{copy.featuresKicker}</p><h2 id="features-title">{copy.featuresTitle}</h2></div><p>{copy.featuresBody}</p></div>
-        <div className="marketing-feature-grid">{copy.features.map((feature, index) => <article className="marketing-feature" key={feature.title}><span className="marketing-feature-number">0{index + 1}</span><span className="marketing-feature-tag">{feature.tag}</span><h3>{feature.title}</h3><p>{feature.body}</p></article>)}</div>
+        <div className="marketing-feature-grid">{copy.features.map((feature, index) => <article className="marketing-feature" key={feature.title}><span className="marketing-feature-number">0{index + 1}</span><span className="marketing-feature-tag">{feature.tag}</span><h3>{feature.title}</h3><p>{feature.body}</p><Link aria-label={`${vi ? "Khám phá" : "Explore"} ${feature.title}`} className="marketing-feature-link" href={["/practice", "/try", "/progress", "/vocabulary", "/dashboard", "/ranking"][index]}>{vi ? "Khám phá" : "Explore"} <span aria-hidden="true">↗</span></Link></article>)}</div>
       </section>
 
       <section className="marketing-example" aria-labelledby="example-title">

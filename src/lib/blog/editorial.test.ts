@@ -48,7 +48,7 @@ describe("editorial TOEIC library", () => {
   });
 
   it("keeps editorial learning links and illustrations resolvable", () => {
-    const slugs = new Set(EDITORIAL_POSTS.map(post => post.slug));
+    const slugs = new Set([...EDITORIAL_POSTS.map(post => post.slug), "ngu-phap"]);
     for (const post of EDITORIAL_POSTS) {
       for (const [, slug] of post.content.matchAll(/\]\(\/blog\/([a-z0-9-]+)\)/g)) {
         expect(slugs.has(slug), `${post.slug} links to missing article ${slug}`).toBe(true);

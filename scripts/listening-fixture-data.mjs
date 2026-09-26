@@ -4,11 +4,45 @@ const choices = (correct, wrong, answer = 0) => {
   const values = [...wrong]; values.splice(answer, 0, correct);
   return values.map((text, index) => ({ key: keys[index], text }));
 };
-const q = (order, text, correct, wrong, skill, subSkill, answer = 0, difficulty = "medium") => ({
+const q = (order, text, correct, wrong, skill, subSkill, answer = 0, difficulty = "medium", explanationVi) => ({
   order, text, skill, subSkill, difficulty, options: choices(correct, wrong, answer), correctKey: keys[answer],
   explanationEn: "The recording directly states or clearly implies this answer.",
-  explanationVi: "Noi dung doan ghi am truc tiep neu hoac ngu y ro rang dap an nay.",
+  explanationVi,
 });
+
+const photographExplanationsVi = [
+  "Bức ảnh cho thấy một phụ nữ đang cắm hoa trên bàn.",
+  "Bức ảnh cho thấy các công nhân đang chất thùng lên xe tải.",
+  "Bức ảnh cho thấy một người đàn ông đang xem hàng trên kệ.",
+  "Bức ảnh cho thấy nhiều xe đạp đang đỗ cạnh tòa nhà.",
+  "Bức ảnh cho thấy đầu bếp đang rưới nước xốt lên món ăn.",
+];
+const partTwoExplanationsVi = [
+  "Người nói hỏi giờ bắt đầu hội thảo; câu đáp đúng nêu thời gian cụ thể.",
+  "Người nói hỏi ai sẽ gặp nhà cung cấp; câu đáp đúng nêu tên và bộ phận của người đó.",
+  "Người nói hỏi chỗ lấy mẫu bảo hành; câu đáp đúng chỉ ngăn kéo cất chúng.",
+  "Người nói hỏi lý do rời hội nghị sớm; câu đáp đúng nói người đó phải kịp chuyến bay.",
+  "Người nói hỏi cách nộp hóa đơn chi phí; câu đáp đúng hướng dẫn tải chúng lên cổng nhân viên.",
+  "Người nói hỏi giờ đóng cửa căng tin; câu đáp đúng nêu giờ quán vẫn mở.",
+  "Người nói nhờ đọc soát tờ giới thiệu; câu đáp đúng nhận lời xem sau bữa trưa.",
+  "Người nói đề nghị mời thêm nhóm thiết kế; câu đáp đúng tán thành đề nghị đó.",
+  "Người nói đề nghị đặt bàn; câu đáp đúng nhận lời và nêu số người.",
+  "Người nói muốn xác nhận thang máy đã sửa xong; câu đáp đúng xác nhận thang máy hoạt động trở lại.",
+];
+const conversationExplanationsVi = [
+  ["Hai người đang chuẩn bị cho bữa tối trao giải.", "Phong bì in địa chỉ văn phòng cũ nên chưa thể gửi lời mời.", "Người đàn ông sẽ liên hệ nơi in để nhận phong bì đã sửa."],
+  ["Hai người đang bàn về khảo sát khách hàng còn thiếu phản hồi.", "Người đàn ông sẽ đăng lời nhắc trên mạng xã hội vào chiều nay.", "Người tham gia hoàn thành khảo sát sẽ nhận mã giảm giá."],
+  ["Hai người đổi phòng vì màn hình của phòng ban đầu không hoạt động.", "Người phụ nữ nói thiết bị ở phòng mới đều dùng được.", "Người đàn ông sẽ báo cho ứng viên nơi gặp mới."],
+  ["Một số thùng gạch trong lô hàng đã bị hư hỏng.", "Người đàn ông khuyên chụp ảnh các thùng trước khi mở.", "Sau đó người phụ nữ sẽ điền biểu mẫu yêu cầu bồi thường trên mạng."],
+  ["Giờ bay thay đổi nên xe đưa đón đã đặt không còn phù hợp.", "Người phụ nữ nói đi taxi sẽ tốn thêm tiền.", "Người đàn ông sẽ làm thủ tục trả phòng khách sạn."],
+];
+const talkExplanationsVi = [
+  ["Thông báo cho khách mua sắm biết bãi đỗ xe sẽ đóng cửa.", "Bãi đỗ xe sẽ đóng cửa lúc tám giờ tối.", "Khách được yêu cầu dùng lối ra phía tây."],
+  ["Người gọi muốn đổi lịch giao tủ sách.", "Xe giao hàng đang được bảo dưỡng vào thứ Năm.", "Người nghe cần gọi lại trước năm giờ để xác nhận có người ở nhà."],
+  ["Lời hướng dẫn dành cho khách tham quan phòng thí nghiệm.", "Khách cần cất túi trong tủ khóa cạnh khu tiếp đón.", "Khách chỉ được chụp ảnh ở phòng trưng bày cuối cùng."],
+  ["Đoạn quảng cáo giới thiệu một trung tâm thể dục.", "Hội viên mới được tặng một buổi tập với huấn luyện viên.", "Trang mạng có lịch các lớp tập để người nghe xem."],
+  ["Bản tin nói về kế hoạch xây chợ công cộng.", "Công trình dự kiến khởi công vào tháng Ba.", "Tòa nhà hoàn thành sẽ có khu vực biểu diễn có mái che."],
+];
 
 const photographs = [
   ["A woman is arranging flowers on a table.", ["A woman is closing a suitcase.", "Some customers are entering a bank.", "Several chairs are being stacked."]],
@@ -48,8 +82,8 @@ const talks = [
 ];
 
 export const baselineListening = [
-  ...photographs.map(([correct, wrong], index) => { const id=`L-P1-PROD-${String(index+1).padStart(3,"0")}`, answer=index%4, options=choices(correct,wrong,answer); return { externalId:id,version:1,part:1,type:"photograph",status:"published",skillArea:"LISTENING",responseType:"MULTIPLE_CHOICE",difficulty:"easy",transcript:options.map(o=>`${o.key}. ${o.text}`).join("\n"),script:[{speaker:"NARRATOR",text:options.map(o=>`${o.key}. ${o.text}`).join(" ")}],media:[{role:"IMAGE",assetRef:`content/listening/source/${id}.png`,altText:correct},{role:"AUDIO",assetRef:`content/listening/audio/${id}.mp3`}],question:{...q(1,"[Spoken choices only]",correct,wrong,"photographs","visual_detail",answer,"easy"),options} }; }),
-  ...partTwo.map(([prompt,correct,wrong,intent],index)=>{const id=`L-P2-PROD-${String(index+1).padStart(3,"0")}`,answer=index%3,options=choices(correct,wrong,answer).slice(0,3);return {externalId:id,version:1,part:2,type:"question_response",status:"published",skillArea:"LISTENING",responseType:"MULTIPLE_CHOICE",difficulty:index<4?"easy":"medium",transcript:`Question: ${prompt}\n${options.map(o=>`${o.key}. ${o.text}`).join("\n")}`,script:[{speaker:index%2?"WOMAN":"MAN",text:prompt},{speaker:"NARRATOR",text:options.map(o=>`${o.key}. ${o.text}`).join(" ")}],media:[{role:"AUDIO",assetRef:`content/listening/audio/${id}.mp3`}],question:{...q(1,"[Spoken prompt and responses only]",correct,wrong,"question_response",intent,answer,index<4?"easy":"medium"),options}};}),
-  ...conversations.map(([transcript,questions],index)=>{const id=`L-P3-PROD-G${String(index+1).padStart(3,"0")}`;return {externalId:id,version:1,part:3,type:"conversation",status:"published",skillArea:"LISTENING",responseType:"MULTIPLE_CHOICE",difficulty:index<2?"easy":"medium",transcript,script:transcript.split("\n").map(line=>({speaker:line.split(":")[0],text:line.slice(line.indexOf(":")+2)})),media:[{role:"AUDIO",assetRef:`content/listening/audio/${id}.mp3`}],questions:questions.map((item,qi)=>q(qi+1,...item,(index+qi)%4))};}),
-  ...talks.map(([talkType,transcript,questions],index)=>{const id=`L-P4-PROD-G${String(index+1).padStart(3,"0")}`;return {externalId:id,version:1,part:4,type:"talk",talkType,status:"published",skillArea:"LISTENING",responseType:"MULTIPLE_CHOICE",difficulty:index<2?"easy":"medium",transcript,script:[{speaker:index%2?"WOMAN":"MAN",text:transcript}],media:[{role:"AUDIO",assetRef:`content/listening/audio/${id}.mp3`}],questions:questions.map((item,qi)=>q(qi+1,...item,(index+qi)%4))};}),
+  ...photographs.map(([correct, wrong], index) => { const id=`L-P1-PROD-${String(index+1).padStart(3,"0")}`, answer=index%4, options=choices(correct,wrong,answer); return { externalId:id,version:1,part:1,type:"photograph",status:"published",skillArea:"LISTENING",responseType:"MULTIPLE_CHOICE",difficulty:"easy",transcript:options.map(o=>`${o.key}. ${o.text}`).join("\n"),script:[{speaker:"NARRATOR",text:options.map(o=>`${o.key}. ${o.text}`).join(" ")}],media:[{role:"IMAGE",assetRef:`content/listening/source/${id}.png`,altText:correct},{role:"AUDIO",assetRef:`content/listening/audio/${id}.mp3`}],question:{...q(1,"[Spoken choices only]",correct,wrong,"photographs","visual_detail",answer,"easy",photographExplanationsVi[index]),options} }; }),
+  ...partTwo.map(([prompt,correct,wrong,intent],index)=>{const id=`L-P2-PROD-${String(index+1).padStart(3,"0")}`,answer=index%3,options=choices(correct,wrong,answer).slice(0,3);return {externalId:id,version:1,part:2,type:"question_response",status:"published",skillArea:"LISTENING",responseType:"MULTIPLE_CHOICE",difficulty:index<4?"easy":"medium",transcript:`Question: ${prompt}\n${options.map(o=>`${o.key}. ${o.text}`).join("\n")}`,script:[{speaker:index%2?"WOMAN":"MAN",text:prompt},{speaker:"NARRATOR",text:options.map(o=>`${o.key}. ${o.text}`).join(" ")}],media:[{role:"AUDIO",assetRef:`content/listening/audio/${id}.mp3`}],question:{...q(1,"[Spoken prompt and responses only]",correct,wrong,"question_response",intent,answer,index<4?"easy":"medium",partTwoExplanationsVi[index]),options}};}),
+  ...conversations.map(([transcript,questions],index)=>{const id=`L-P3-PROD-G${String(index+1).padStart(3,"0")}`;return {externalId:id,version:1,part:3,type:"conversation",status:"published",skillArea:"LISTENING",responseType:"MULTIPLE_CHOICE",difficulty:index<2?"easy":"medium",transcript,script:transcript.split("\n").map(line=>({speaker:line.split(":")[0],text:line.slice(line.indexOf(":")+2)})),media:[{role:"AUDIO",assetRef:`content/listening/audio/${id}.mp3`}],questions:questions.map((item,qi)=>q(qi+1,...item,(index+qi)%4,"medium",conversationExplanationsVi[index][qi]))};}),
+  ...talks.map(([talkType,transcript,questions],index)=>{const id=`L-P4-PROD-G${String(index+1).padStart(3,"0")}`;return {externalId:id,version:1,part:4,type:"talk",talkType,status:"published",skillArea:"LISTENING",responseType:"MULTIPLE_CHOICE",difficulty:index<2?"easy":"medium",transcript,script:[{speaker:index%2?"WOMAN":"MAN",text:transcript}],media:[{role:"AUDIO",assetRef:`content/listening/audio/${id}.mp3`}],questions:questions.map((item,qi)=>q(qi+1,...item,(index+qi)%4,"medium",talkExplanationsVi[index][qi]))};}),
 ];

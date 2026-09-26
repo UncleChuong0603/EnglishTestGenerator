@@ -9,7 +9,7 @@ const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 const times = ["8:15", "8:45", "9:20", "10:10", "10:40", "11:30", "1:15", "2:20", "3:10", "4:30"];
 const difficulty = (n) => n % 8 === 0 ? "hard" : n % 3 === 0 ? "easy" : "medium";
 
-function question(order, text, correct, wrong, skill, subSkill, seed, context) {
+function question(order, text, correct, wrong, skill, subSkill, seed, explanationVi) {
   const answer = seed % 4;
   const values = [...wrong];
   values.splice(answer, 0, correct);
@@ -17,8 +17,8 @@ function question(order, text, correct, wrong, skill, subSkill, seed, context) {
     order, text, skill, subSkill, difficulty: difficulty(seed),
     options: values.map((value, index) => ({ key: keys[index], text: value })),
     correctKey: keys[answer],
-    explanationEn: `${context} This supports the answer "${correct}."`,
-    explanationVi: `${context.replace("The recording", "Đoạn ghi âm")} Chi tiết này xác nhận đáp án "${correct}."`,
+    explanationEn: `The recording supports the answer "${correct}."`,
+    explanationVi,
   };
 }
 
@@ -74,13 +74,30 @@ function part2(n) {
   const values = [correct, ...wrong];
   const shift = n % 3;
   const answers = values.map((_, index) => values[(index + shift) % 3]);
+  const explanationVi = [
+    "Người nói hỏi khi nào công việc hoàn tất; câu đáp đúng nêu thời hạn cụ thể.",
+    "Người nói hỏi nơi cần mang tài liệu đến; câu đáp đúng chỉ nơi để tài liệu.",
+    "Người nói hỏi ai đang xem tài liệu; câu đáp đúng nêu người phụ trách.",
+    "Người nói hỏi lý do đổi lịch họp; câu đáp đúng giải thích có cuộc hẹn với khách hàng.",
+    "Người nói hỏi cách xin tài liệu; câu đáp đúng hướng dẫn gửi biểu mẫu trực tuyến.",
+    "Người nói hỏi nhận xét về tài liệu; câu đáp đúng cho biết bản sao cần sửa lần cuối.",
+    "Đây là lời nhờ mang tài liệu đến phòng; câu đáp đúng nhận lời thực hiện ngay.",
+    "Người nói đề nghị bàn công việc vào ngày khác; câu đáp đúng đồng ý vì nhóm sẽ có thêm thời gian.",
+    "Người nói đề nghị gửi tài liệu; câu đáp đúng chấp nhận và nhờ gửi thêm cho người quản lý.",
+    "Người nói muốn xác nhận vị trí tài liệu; câu đáp đúng đính chính rằng tài liệu đã được mang đi.",
+    "Người nói hỏi phòng nào đã được đặt; câu đáp đúng nêu tên phòng.",
+    "Người nói hỏi việc phê duyệt đã xong chưa; câu đáp đúng cho biết vẫn đang được xem xét.",
+    "Người nói hỏi tần suất cập nhật; câu đáp đúng nêu chu kỳ thực hiện.",
+    "Người nói xin gặp một người trước giờ hẹn; câu đáp đúng đồng ý và dặn gọi cho văn phòng trước.",
+    "Người nói hỏi bản tài liệu đang ở đâu; câu đáp đúng cho biết người trợ lý có thể đang giữ nó.",
+  ][patternIndex];
   const id = `L-P2-BANK-${pad(n)}`;
   return {
     externalId: id, version: 1, part: 2, type: "question_response", status: "published", skillArea: "LISTENING", responseType: "MULTIPLE_CHOICE", difficulty: difficulty(n),
     transcript: `Question: ${prompt}\nA. ${answers[0]}\nB. ${answers[1]}\nC. ${answers[2]}`,
     script: [{ speaker: n % 2 ? "WOMAN" : "MAN", text: prompt }, { speaker: "NARRATOR", text: `A. ${answers[0]} B. ${answers[1]} C. ${answers[2]}` }],
     media: [{ role: "AUDIO", assetRef: `content/listening/audio/${id}.mp3` }],
-    question: { order: 1, text: "[Spoken prompt and responses only]", skill: "question_response", subSkill, difficulty: difficulty(n), options: answers.map((text, index) => ({ key: keys[index], text })), correctKey: keys[answers.indexOf(correct)], explanationEn: `The response "${correct}" fits the speaker's question.`, explanationVi: `Câu đáp "${correct}" phù hợp với câu hỏi của người nói.` },
+    question: { order: 1, text: "[Spoken prompt and responses only]", skill: "question_response", subSkill, difficulty: difficulty(n), options: answers.map((text, index) => ({ key: keys[index], text })), correctKey: keys[answers.indexOf(correct)], explanationEn: `The response "${correct}" fits the speaker's question.`, explanationVi },
   };
 }
 
@@ -118,7 +135,15 @@ function conversationScenario(n) {
 
 function part3(n) {
   const scenario = conversationScenario(n), id = `L-P3-BANK-G${pad(n)}`, transcript = scenario.lines.join("\n");
-  return { externalId: id, version: 1, part: 3, type: "conversation", status: "published", skillArea: "LISTENING", responseType: "MULTIPLE_CHOICE", difficulty: difficulty(n), transcript, script: scenario.lines.map((line) => ({ speaker: line.slice(0, line.indexOf(":")), text: line.slice(line.indexOf(":") + 2) })), media: [{ role: "AUDIO", assetRef: `content/listening/audio/${id}.mp3` }], questions: scenario.qs.map((q, index) => question(index + 1, q[0], q[1], q[2], q[3], q[4], n + index, "The recording provides this information.")) };
+  const explanationsVi = [
+    ["Người phụ nữ nói máy in đã hỏng nên không thể in bản sao tại đó.", "Người đàn ông sẽ dùng máy in ở phòng khác để in tài liệu.", "Người phụ nữ dặn để một bộ tài liệu tại địa điểm đã nêu cho đồng nghiệp."],
+    ["Hàng sẽ được giao sau giờ thuyết trình nên người phụ nữ lo không kịp sử dụng.", "Người phụ nữ định gọi điện hỏi xem có thể tự đến lấy hàng không.", "Người đàn ông cho biết đơn hàng hiện đang được giữ tại địa điểm đã nêu."],
+    ["Người đàn ông đến văn phòng để tham dự buổi phỏng vấn xin việc.", "Người phụ nữ thông báo giờ bắt đầu buổi phỏng vấn.", "Người phụ nữ sẽ dẫn người đàn ông đến nơi phỏng vấn sau khi ông cất áo khoác."],
+    ["Hai người đang sắp xếp phòng và đồ ăn uống cho buổi hội thảo.", "Số người tham dự tăng nên phòng ban đầu không đủ chỗ.", "Người đàn ông sẽ nhờ đồng nghiệp đặt thêm đồ ăn uống."],
+    ["Người phụ nữ phát hiện hai số liệu ở trang cuối báo cáo bị sai.", "Người đàn ông sẽ liên hệ người phụ trách để sửa số liệu.", "Bản đã sửa cần được dùng trong cuộc họp sắp tới."],
+    ["Khách hàng muốn xem mẫu sản phẩm trước khi đến.", "Người đàn ông cần liên hệ người đang giữ chìa khóa lấy mẫu.", "Người đàn ông nhờ người phụ nữ chuẩn bị phòng đón khách."],
+  ][n % 6];
+  return { externalId: id, version: 1, part: 3, type: "conversation", status: "published", skillArea: "LISTENING", responseType: "MULTIPLE_CHOICE", difficulty: difficulty(n), transcript, script: scenario.lines.map((line) => ({ speaker: line.slice(0, line.indexOf(":")), text: line.slice(line.indexOf(":") + 2) })), media: [{ role: "AUDIO", assetRef: `content/listening/audio/${id}.mp3` }], questions: scenario.qs.map((q, index) => question(index + 1, q[0], q[1], q[2], q[3], q[4], n + index, explanationsVi[index])) };
 }
 
 function talkScenario(n) {
@@ -136,7 +161,15 @@ function talkScenario(n) {
 
 function part4(n) {
   const [talkType, transcript, qs] = talkScenario(n), id = `L-P4-BANK-G${pad(n)}`;
-  return { externalId: id, version: 1, part: 4, type: "talk", talkType, status: "published", skillArea: "LISTENING", responseType: "MULTIPLE_CHOICE", difficulty: difficulty(n), transcript, script: [{ speaker: n % 2 ? "WOMAN" : "MAN", text: transcript }], media: [{ role: "AUDIO", assetRef: `content/listening/audio/${id}.mp3` }], questions: qs.map((q, index) => question(index + 1, q[0], q[1], q[2], q[3], q[4], n + index, "The recording provides this information.")) };
+  const explanationsVi = [
+    ["Thông báo cho biết một khu vực sẽ tạm đóng cửa.", "Khu vực đóng cửa để lắp hệ thống đèn mới.", "Nhân viên được hướng dẫn đi qua khu vực khác trong thời gian sửa chữa."],
+    ["Người gọi báo đơn hàng đã sẵn sàng để nhận sớm hơn dự kiến.", "Người nghe có thể đến lấy hàng tại địa điểm được nêu trong lời nhắn.", "Nếu muốn giao hàng, người nghe cần gọi điện trước buổi trưa."],
+    ["Lời hướng dẫn nói về cách nộp một bộ hồ sơ.", "Trước khi nộp, cần kiểm tra số dự án trên từng trang.", "Người nộp hồ sơ cần giữ lại một bản sao."],
+    ["Mặt hàng được giảm giá là đồ sắp xếp bàn làm việc.", "Khách mua trước giờ quy định sẽ được giao hàng miễn phí.", "Thành viên sẽ được nhân đôi điểm thưởng."],
+    ["Lời chào hướng đến khách tham quan tòa nhà.", "Người nói nêu địa điểm kết thúc chuyến tham quan.", "Sau chuyến tham quan sẽ có đồ ăn uống phục vụ khách."],
+    ["Bài nói cập nhật kế hoạch họp đánh giá dự án.", "Người nói nêu tên người sẽ trình bày kết quả mới nhất.", "Trưởng nhóm được yêu cầu mang theo ghi chú về ngân sách."],
+  ][n % 6];
+  return { externalId: id, version: 1, part: 4, type: "talk", talkType, status: "published", skillArea: "LISTENING", responseType: "MULTIPLE_CHOICE", difficulty: difficulty(n), transcript, script: [{ speaker: n % 2 ? "WOMAN" : "MAN", text: transcript }], media: [{ role: "AUDIO", assetRef: `content/listening/audio/${id}.mp3` }], questions: qs.map((q, index) => question(index + 1, q[0], q[1], q[2], q[3], q[4], n + index, explanationsVi[index])) };
 }
 
 export const questionBankExpansion = [

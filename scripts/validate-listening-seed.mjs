@@ -28,7 +28,13 @@ for (const item of listeningFixtures) {
       optionTexts.set(normalized, `${item.externalId}/Q${question.order}`);
     }
     if (!question.explanationEn?.trim() || !question.explanationVi?.trim()) throw new Error(`Missing explanation: ${item.externalId}`);
+    if (!/[\u00c0-\u1ef9]/.test(question.explanationVi) || /["“][^"”]*\b(?:A|An|The)\s+[a-z]+\s+(?:is|are|has|have)\b/.test(question.explanationVi)) throw new Error(`Untranslated Vietnamese explanation: ${item.externalId}/Q${question.order}`);
     if ([item.transcript, question.text, question.explanationEn, question.explanationVi, ...question.options.map((option) => option.text)].some((text) => mojibake.test(text))) throw new Error(`Mojibake detected: ${item.externalId}`);
+    if (item.part === 1) {
+      const ideas = question.options.filter((option) => option.key !== question.correctKey)
+        .map((option) => option.text.toLowerCase().replace(/[^a-z\s]/g, "").trim().split(/\s+/).slice(0, 6).join(" "));
+      if (new Set(ideas).size !== ideas.length) throw new Error(`Similar Part 1 wrong answers: ${item.externalId}/Q${question.order}`);
+    }
     if (!taxonomy[item.part]?.[question.skill]?.includes(question.subSkill)) throw new Error(`Unknown taxonomy: ${item.externalId}/${question.skill}/${question.subSkill}`);
     if (item.part >= 3) {
       const distractors = question.options.filter((option) => option.key !== question.correctKey).map((option) => option.text.trim().toLowerCase()).sort().join("|");

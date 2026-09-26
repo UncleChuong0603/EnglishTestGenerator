@@ -5,10 +5,10 @@ const options = (correct, wrong, answer = 0) => {
   values.splice(answer, 0, correct);
   return values.map((text, index) => ({ key: keys[index], text }));
 };
-const q = (order, text, correct, wrong, skill, subSkill, answer = 0, difficulty = "medium") => ({
+const q = (order, text, correct, wrong, skill, subSkill, answer = 0, difficulty = "medium", explanationVi) => ({
   order, text, skill, subSkill, difficulty, options: options(correct, wrong, answer), correctKey: keys[answer],
   explanationEn: "The recording directly states or clearly implies this answer.",
-  explanationVi: "Nội dung đoạn ghi âm trực tiếp nêu hoặc ngụ ý rõ ràng đáp án này.",
+  explanationVi,
 });
 
 export const listeningManifest = [];
@@ -19,8 +19,26 @@ listeningManifest.push({
   transcript: "A. A courier is placing a parcel on a counter.\nB. A customer is opening a window.\nC. Several shelves are being painted.\nD. A clerk is sweeping the floor.",
   script: [{ speaker: "NARRATOR", text: "A. A courier is placing a parcel on a counter. B. A customer is opening a window. C. Several shelves are being painted. D. A clerk is sweeping the floor." }],
   media: [{ role: "IMAGE", assetRef: "content/listening/source/L-P1-PROD-006.png", altText: "A courier placing a parcel on a service counter" }, { role: "AUDIO", assetRef: "content/listening/audio/L-P1-PROD-006.mp3" }],
-  question: q(1, "[Spoken choices only]", "A courier is placing a parcel on a counter.", ["A customer is opening a window.", "Several shelves are being painted.", "A clerk is sweeping the floor."], "photographs", "visual_detail", 0, "easy"),
+  question: q(1, "[Spoken choices only]", "A courier is placing a parcel on a counter.", ["A customer is opening a window.", "Several shelves are being painted.", "A clerk is sweeping the floor."], "photographs", "visual_detail", 0, "easy", "Bức ảnh cho thấy người giao hàng đang đặt kiện hàng lên quầy."),
 });
+
+const partTwoExplanationsVi = [
+  "Người nói hỏi thời điểm máy in mới đến; câu đáp đúng nêu thời gian giao.",
+  "Người nói hỏi ai duyệt bản vẽ; câu đáp đúng nêu tên người duyệt.",
+  "Người nói hỏi nơi để hóa đơn; câu đáp đúng chỉ chiếc khay cần dùng.",
+  "Người nói hỏi lý do hoãn họp; câu đáp đúng giải thích chuyến bay của giám đốc bị trễ.",
+  "Người nói hỏi cách đặt xe công ty; câu đáp đúng chỉ biểu mẫu trên cổng nhân viên.",
+  "Người nói hỏi nhận xét của kỹ thuật viên; câu đáp đúng cho biết máy cần cảm biến mới.",
+  "Người nói nhờ gửi bảng giá; câu đáp đúng nhận lời gửi ngay qua thư điện tử.",
+  "Người nói đề nghị dời hội thảo; câu đáp đúng đồng ý vì sẽ có thêm thời gian.",
+  "Người nói đề nghị gọi nhà cung cấp; câu đáp đúng nhận lời và nhờ hỏi về đơn hàng.",
+  "Người nói muốn xác nhận biển chỉ dẫn đã giao; câu đáp đúng cho biết chúng vẫn đang trên đường đến.",
+  "Người nói hỏi gói ăn uống được chọn; câu đáp đúng nêu gói bữa trưa chay.",
+  "Người nói hỏi việc gửi yêu cầu đi lại; câu đáp đúng giải thích vẫn đang chờ dự toán chi phí.",
+  "Người nói hỏi tần suất kiểm tra thiết bị; câu đáp đúng nêu chu kỳ ba tháng một lần.",
+  "Người nói hỏi có thể nhận thẻ sớm không; câu đáp đúng cho biết giờ mở quầy đăng ký.",
+  "Người nói hỏi báo cáo doanh số ở đâu; câu đáp đúng cho biết một đồng nghiệp có thể vẫn đang xem báo cáo.",
+];
 
 const p2 = [
   ["When will the replacement printer arrive?", "By Thursday afternoon.", ["At the loading entrance.", "The color model."], "when"],
@@ -47,7 +65,7 @@ p2.forEach(([prompt, correct, wrong, intent], index) => {
     transcript: `Question: ${prompt}\nA. ${correct}\nB. ${wrong[0]}\nC. ${wrong[1]}`,
     script: [{ speaker: index % 2 ? "WOMAN" : "MAN", text: prompt }, { speaker: "NARRATOR", text: `A. ${correct} B. ${wrong[0]} C. ${wrong[1]}` }],
     media: [{ role: "AUDIO", assetRef: `content/listening/audio/${id}.mp3` }],
-    question: { ...q(1, "[Spoken prompt and responses only]", correct, wrong, "question_response", intent, 0, difficulty), options: options(correct, wrong, 0).slice(0, 3) },
+    question: { ...q(1, "[Spoken prompt and responses only]", correct, wrong, "question_response", intent, 0, difficulty, partTwoExplanationsVi[index]), options: options(correct, wrong, 0).slice(0, 3) },
   });
 });
 
@@ -93,13 +111,23 @@ const conversations = [
     ["What will the man order?", "More name tags", ["Another row of chairs", "A larger meeting room", "Workshop registration forms"], "next_action", "next_action"],
   ]],
 ];
+const conversationExplanationsVi = [
+  ["Buổi đánh giá sản phẩm dời giờ vì giám đốc có cuộc gọi với khách hàng.", "Người phụ nữ sẽ sửa thư mời và đặt phòng họp.", "Người phụ nữ nói sẽ đặt phòng số bốn cho buổi họp."],
+  ["Các hộp hàng mẫu đã chuẩn bị xong để gửi.", "Người giao hàng đến muộn hơn giờ hẹn.", "Người đàn ông sẽ gọi nơi điều xe để hỏi giờ đến lấy hàng."],
+  ["Máy chiếu liên tục tắt khi đang trình bày.", "Bộ phận quản lý cơ sở vật chất có máy chiếu dự phòng.", "Người đàn ông nhờ mang máy chiếu khác đến trước buổi tập huấn."],
+  ["Hai người hẹn gặp cạnh quầy thông tin ở nhà ga.", "Người phụ nữ nói tàu đến lúc chín giờ mười lăm.", "Sau khi gặp nhau, họ sẽ đi đến văn phòng chi nhánh."],
+  ["Khách muốn đổi áo vì tay áo quá ngắn.", "Chiếc áo cỡ lớn hơn đang ở trong kho.", "Người phụ nữ sẽ kiểm tra chiếc áo khác để chuẩn bị đổi hàng."],
+  ["Hai người đang sắp xếp lịch hẹn khám.", "Người đàn ông đồng ý hẹn lúc mười một giờ rưỡi ngày mai.", "Người đàn ông nhờ gửi hướng dẫn đường đến tòa nhà."],
+  ["Đèn ở hành lang phía đông chập chờn nên cần sửa.", "Người phụ nữ sẽ gửi yêu cầu sửa chữa.", "Người đàn ông sẽ nhờ nhân viên ca tối đi hành lang phía tây."],
+  ["Hai người đang chuẩn bị cho buổi hội thảo thứ Bảy.", "Người phụ nữ nói đã có sáu mươi người đăng ký.", "Người đàn ông sẽ đặt thêm thẻ tên cho người tham dự."],
+];
 conversations.forEach(([transcript, questions], index) => {
   const id = `L-P3-PROD-G${String(index + 6).padStart(3, "0")}`;
   listeningManifest.push({
     externalId: id, version: 2, part: 3, type: "conversation", status: "published", skillArea: "LISTENING", responseType: "MULTIPLE_CHOICE", difficulty: index < 3 ? "easy" : "medium",
     transcript, script: transcript.split("\n").map((line) => ({ speaker: line.split(":")[0], text: line.slice(line.indexOf(":") + 2) })),
     media: [{ role: "AUDIO", assetRef: `content/listening/audio/${id}.mp3` }],
-    questions: questions.map((question, questionIndex) => q(questionIndex + 1, ...question, (index + questionIndex) % 4)),
+    questions: questions.map((question, questionIndex) => q(questionIndex + 1, ...question, (index + questionIndex) % 4, "medium", conversationExplanationsVi[index][questionIndex])),
   });
 });
 
@@ -130,11 +158,18 @@ const talks = [
     ["What will remain closed?", "The kitchen", ["The third floor", "The cafeteria", "The main office"], "detail", "explicit_information"],
   ]],
 ];
+const talkExplanationsVi = [
+  ["Thông báo cho biết chuyến tàu sẽ đổi sân ga khởi hành.", "Tàu sẽ khởi hành từ sân ga số tám.", "Hành khách cần dùng cầu thang vì thang máy gần sân ga đang được kiểm tra."],
+  ["Người để lại lời nhắn là nhân viên phòng khám nha khoa.", "Giờ hẹn khám được lùi lại nửa tiếng.", "Nếu giờ mới bất tiện, người nghe cần gọi lại cho phòng khám."],
+  ["Lời hướng dẫn nói về cách dùng máy in nhãn.", "Trước tiên cần kiểm tra vị trí cuộn giấy.", "Nếu đèn cảnh báo nhấp nháy, người dùng cần nhờ người quản lý giúp."],
+  ["Đoạn quảng cáo giới thiệu chương trình giảm giá đèn bàn.", "Khách có thể đặt hàng qua ứng dụng trên điện thoại.", "Khách có thể đến nhận hàng tại chi nhánh được nêu trong quảng cáo."],
+  ["Bài nói cập nhật tiến độ sửa chữa văn phòng.", "Nhân viên có thể quay lại tầng ba vào sáng thứ Năm.", "Khu bếp vẫn đóng cửa cho đến khi tủ mới được chuyển đến."],
+];
 talks.forEach(([talkType, transcript, questions], index) => {
   const id = `L-P4-PROD-G${String(index + 6).padStart(3, "0")}`;
   listeningManifest.push({
     externalId: id, version: 2, part: 4, type: "talk", talkType, status: "published", skillArea: "LISTENING", responseType: "MULTIPLE_CHOICE", difficulty: index < 2 ? "easy" : "medium",
     transcript, script: [{ speaker: index % 2 ? "WOMAN" : "MAN", text: transcript }], media: [{ role: "AUDIO", assetRef: `content/listening/audio/${id}.mp3` }],
-    questions: questions.map((question, questionIndex) => q(questionIndex + 1, ...question, (index + questionIndex) % 4)),
+    questions: questions.map((question, questionIndex) => q(questionIndex + 1, ...question, (index + questionIndex) % 4, "medium", talkExplanationsVi[index][questionIndex])),
   });
 });

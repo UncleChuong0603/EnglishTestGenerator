@@ -33,7 +33,8 @@ try {
   await client.query("begin");
   await client.query("select pg_advisory_xact_lock(hashtextextended('sync-listening-option-bank',0))");
   const { rows: questions } = await client.query(`select q.id, q.toeic_part, q.passage_set_id,
-      q.metadata->>'external_id' as external_id, s.correct_option_id
+      q.metadata->>'external_id' as external_id, s.correct_option_id,
+      s.explanation_en, s.explanation_vi
       from full_mock_form_questions f join questions q on q.id=f.question_id
       join question_solutions s on s.question_id=q.id where f.part between 1 and 4`);
   const { rows: options } = await client.query(`select q.id as question_id, o.id, o.option_key, o.option_text
@@ -82,7 +83,10 @@ try {
       });
       const expectedCorrect = next.find((option) => option.key === question.correctKey)?.id;
       if (!expectedCorrect) throw new Error(`Missing correct key in ${question.externalId}`);
-      if (expectedCorrect !== actual.correct_option_id) solutions.push({ questionId: actual.id, correctId: expectedCorrect });
+      if (!question.explanationVi?.trim() || !question.explanationEn?.trim()) throw new Error(`Missing explanation: ${question.externalId}`);
+      if (expectedCorrect !== actual.correct_option_id || actual.explanation_en !== question.explanationEn || actual.explanation_vi !== question.explanationVi) {
+        solutions.push({ questionId: actual.id, correctId: expectedCorrect, explanationEn: question.explanationEn, explanationVi: question.explanationVi });
+      }
       if (next.some((option) => normalize(current.find((row) => row.id === option.id).option_text) !== normalize(option.text))) changedQuestions++;
       updates.push(...next);
     }
@@ -130,8 +134,10 @@ try {
     }
     if (transcripts.length) await client.query(`update listening_transcripts t set content=x.content
       from jsonb_to_recordset($1::jsonb) as x(id uuid,content text) where t.question_group_id=x.id`, [JSON.stringify(transcripts)]);
-    if (solutions.length) await client.query(`update question_solutions s set correct_option_id=x.correct_id
-      from jsonb_to_recordset($1::jsonb) as x(question_id uuid,correct_id uuid) where s.question_id=x.question_id`, [JSON.stringify(solutions.map((row) => ({ question_id: row.questionId, correct_id: row.correctId })))]);
+    if (solutions.length) await client.query(`update question_solutions s set correct_option_id=x.correct_id,
+      explanation_en=x.explanation_en, explanation_vi=x.explanation_vi, updated_at=now()
+      from jsonb_to_recordset($1::jsonb) as x(question_id uuid,correct_id uuid,explanation_en text,explanation_vi text)
+      where s.question_id=x.question_id`, [JSON.stringify(solutions.map((row) => ({ question_id: row.questionId, correct_id: row.correctId, explanation_en: row.explanationEn, explanation_vi: row.explanationVi })))]);
     if (assetUpdates.length) await client.query(`update media_assets a set storage_key=x.key, checksum=x.checksum,
       byte_size=x.bytes, audio_duration_ms=x.duration, updated_at=now()
       from jsonb_to_recordset($1::jsonb) as x(id uuid,key text,checksum text,bytes int,duration int) where a.id=x.id`, [JSON.stringify(assetUpdates)]);

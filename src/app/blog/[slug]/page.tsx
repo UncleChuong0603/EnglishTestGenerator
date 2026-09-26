@@ -5,6 +5,7 @@ import { PublicFooter } from "@/components/public-footer";
 import { ArticleView } from "@/components/blog/article-view";
 import { getPublishedPost, listPublishedPosts, coverUrl } from "@/lib/blog/service";
 import { grammarImageForSlug } from "@/lib/blog/editorial";
+import { relatedGrammarLessons } from "@/lib/blog/grammar-learning-path";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getPreferences } from "@/lib/i18n/get-translations";
 import { getSiteUrl } from "@/lib/seo/site-url";
@@ -44,11 +45,20 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   const post = await getPublishedPost(slug);
   if (!post) notFound();
   const user = await getCurrentUser();
-  const [prefs, storedImage, posts] = await Promise.all([getPreferences(user?.id), coverUrl(post.coverMediaId), listPublishedPosts()]);
+  const [prefs, storedImage, posts] = await Promise.all([getPreferences(user?.id), coverUrl(post.coverMediaId), listPublishedPosts(200)]);
   const image = storedImage || grammarImageForSlug(post.slug) || ("editorialCover" in post && typeof post.editorialCover === "string" ? post.editorialCover : null) || `/blog/cover/${post.category.toLowerCase()}`;
-  const related = posts.filter(item => item.slug !== post.slug && item.category === post.category).slice(0, 2);
+  const publishedBySlug = new Map(posts.map(item => [item.slug, item]));
+  const grammarRelated = post.category === "GRAMMAR" ? relatedGrammarLessons(post.slug).map(lesson => publishedBySlug.get(lesson.slug)).filter((item): item is (typeof posts)[number] => Boolean(item)) : [];
+  const related = grammarRelated.length ? grammarRelated.slice(0, 2) : posts.filter(item => item.slug !== post.slug && item.category === post.category).slice(0, 2);
   const base = getSiteUrl();
   const url = new URL(post.canonicalPath || `/blog/${post.slug}`, base).toString();
-  const jsonLd = { "@context":"https://schema.org", "@type":"BlogPosting", headline: post.title, description: post.seoDescription || post.excerpt, datePublished: post.publishedAt?.toISOString(), dateModified: post.updatedAt.toISOString(), url, image: image ? new URL(image, base).toString() : undefined, author: !post.authorName || post.authorName === "TOEICGym Editorial" ? { "@type": "Organization", name: "TOEICGym" } : { "@type": "Person", name: post.authorName }, publisher: { "@type": "Organization", name: "TOEICGym" } };
+  const jsonLd = { "@context":"https://schema.org", "@graph": [
+    { "@type":"BlogPosting", headline: post.title, description: post.seoDescription || post.excerpt, datePublished: post.publishedAt?.toISOString(), dateModified: post.updatedAt.toISOString(), url, image: image ? new URL(image, base).toString() : undefined, author: !post.authorName || post.authorName === "TOEICGym Editorial" ? { "@type": "Organization", name: "TOEICGym" } : { "@type": "Person", name: post.authorName }, publisher: { "@type": "Organization", name: "TOEICGym" } },
+    { "@type": "BreadcrumbList", itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Kiến thức TOEIC", item: new URL("/blog", base).toString() },
+      ...(post.category === "GRAMMAR" ? [{ "@type": "ListItem", position: 2, name: "Ngữ pháp tiếng Anh", item: new URL("/blog/ngu-phap", base).toString() }] : []),
+      { "@type": "ListItem", position: post.category === "GRAMMAR" ? 3 : 2, name: post.title, item: url },
+    ] },
+  ] };
   return <main className="min-h-screen bg-white text-slate-900"><PublicHeader locale={prefs.interfaceLanguage} signedIn={Boolean(user)} /><script dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} type="application/ld+json" /><ArticleView coverUrl={image} locale={prefs.interfaceLanguage} post={post} related={related} signedIn={Boolean(user)} /><PublicFooter locale={prefs.interfaceLanguage} /></main>;
 }

@@ -1,6 +1,10 @@
 import type { PostCategory } from "./core";
 import { TOEIC_TIP_POSTS } from "./toeic-tips";
 import { GRAMMAR_POSTS, grammarImageForSlug } from "./grammar-editorial";
+import { MORE_GRAMMAR_POSTS } from "./grammar-more-editorial";
+import { GRAMMAR_FOUNDATION_POSTS } from "./grammar-foundations-editorial";
+import { GRAMMAR_CLAUSE_POSTS } from "./grammar-clauses-editorial";
+import { GRAMMAR_ADVANCED_POSTS } from "./grammar-advanced-editorial";
 import { ETS_2025_REVIEW_POST } from "./ets-2025-review";
 
 export type EditorialPost = {
@@ -214,6 +218,8 @@ Chú ý danh từ đếm được, không đếm được và cấu trúc so sá
 
 ## Đọc sâu từng chủ điểm
 
+Nếu cần học từ nền tảng trước khi luyện Part 5, mở [lộ trình ngữ pháp tiếng Anh từ cơ bản đến TOEIC](/blog/ngu-phap). Phần dưới đây là bảy nhóm ưu tiên khi thời gian ôn Part 5 có hạn.
+
 - [Loại từ: tìm đáp án bằng vị trí trong câu](/blog/loai-tu-trong-toeic-part-5)
 - [Thì và dạng động từ: đọc mốc thời gian](/blog/thi-va-dang-dong-tu-toeic)
 - [Hòa hợp chủ ngữ – động từ: tìm chủ ngữ chính](/blog/hoa-hop-chu-ngu-dong-tu-toeic)
@@ -221,6 +227,8 @@ Chú ý danh từ đếm được, không đếm được và cấu trúc so sá
 - [Liên từ: because, although, however](/blog/lien-tu-va-tu-noi-toeic)
 - [Giới từ trong email công việc](/blog/gioi-tu-toeic-trong-cong-viec)
 - [So sánh và lượng từ: fewer hay less](/blog/so-sanh-va-luong-tu-toeic)
+
+Khi đã nắm bảy nhóm này, tiếp tục với [câu bị động](/blog/cau-bi-dong-toeic-part-5), [V-ing và to-infinitive](/blog/ving-va-to-infinitive-toeic), [đại từ và từ hạn định](/blog/dai-tu-va-tu-han-dinh-toeic) và [từ bổ nghĩa](/blog/tu-bo-nghia-toeic-part-5). Đây là các chủ điểm cũng có câu đã xuất bản trong ngân hàng Part 5.
 
 ## Cách ôn 15 phút mỗi ngày
 
@@ -358,6 +366,10 @@ Khi mất tập trung, dừng vài giây, thở chậm và quay lại từ câu 
 [ETS mô tả bài Listening & Reading gồm 45 phút nghe và 75 phút đọc](https://www.ets.org/toeic/about/listening-reading.html). Quy định giấy tờ, vật dụng và thời gian có mặt phụ thuộc địa điểm thi; hãy dùng thông báo đăng ký của bạn làm nguồn quyết định. Nếu phần Reading thường không kịp, thử [khung chia 75 phút](/blog/quan-ly-thoi-gian-toeic-reading-75-phut) trước ngày thi.`
   }),
   ...GRAMMAR_POSTS,
+  ...MORE_GRAMMAR_POSTS,
+  ...GRAMMAR_FOUNDATION_POSTS,
+  ...GRAMMAR_CLAUSE_POSTS,
+  ...GRAMMAR_ADVANCED_POSTS,
 ];
 
 export { grammarImageForSlug };

@@ -8,7 +8,9 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { loadRecommendedWorkout } from "@/lib/diagnosis/service";
 import { getEffectiveCapabilities } from "@/lib/entitlements/service";
 import { getPreferences, getTranslations } from "@/lib/i18n/get-translations";
+import { taxonomyLabel } from "@/lib/i18n/labels";
 import { getMistakeCounts } from "@/lib/mastery/queries";
+import { formatBreakdownMetric } from "@/lib/progress/presentation";
 import { getLearnerTrend, getToeicProgress } from "@/lib/progress/queries";
 import type { TrendPeriod } from "@/lib/progress/trends";
 import {
@@ -224,14 +226,19 @@ export default async function ProgressPage({
                       </p>
                       <h2 className="mt-1 text-xl font-black">
                         {vi
-                          ? "Phân tích skill và subskill"
+                          ? "Kết quả theo kỹ năng và chủ điểm"
                           : "Skill and subskill analysis"}
                       </h2>
                     </div>
                     <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
-                      {vi ? "Chỉ kết luận khi đủ mẫu" : "Sample-aware"}
+                      {vi ? "Tối thiểu 5 câu mỗi mục" : "At least 5 answers per area"}
                     </span>
                   </div>
+                  <p className="mt-3 text-sm text-slate-600">
+                    {vi
+                      ? "Tỷ lệ đúng của từng kỹ năng và chủ điểm sẽ hiện sau khi bạn làm ít nhất 5 câu ở mục đó."
+                      : "Accuracy for each skill and topic appears after at least 5 answers in that area."}
+                  </p>
                   <div className="mt-6 grid gap-5 lg:grid-cols-2">
                     {progress.parts
                       .filter((part) => part.attemptedCount > 0)
@@ -246,39 +253,25 @@ export default async function ProgressPage({
                           <div className="mt-4 space-y-5">
                             {part.skills.map((skill) => (
                               <div key={skill.name}>
-                                <div className="flex justify-between gap-3">
-                                  <strong>{skill.name}</strong>
+                                <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                                  <strong>{taxonomyLabel(skill.name, locale)}</strong>
                                   <span className="text-sm text-slate-600">
-                                    {skill.accuracy === null
-                                      ? t.progress.noDataYet
-                                      : `${skill.accuracy}% · ${skill.attemptedCount} ${vi ? "câu" : "questions"}`}
+                                    {formatBreakdownMetric(skill, locale)}
                                   </span>
                                 </div>
-                                {skill.attemptedCount >= 5 ? (
-                                  <ul className="mt-2 space-y-2 border-l-2 border-teal-100 pl-4">
-                                    {skill.subskills.map((subskill) => (
-                                      <li
-                                        className="flex justify-between gap-3 text-sm"
-                                        key={subskill.name}
-                                      >
-                                        <span>{subskill.name}</span>
-                                        <span className="text-slate-600">
-                                          {subskill.attemptedCount < 3
-                                            ? vi
-                                              ? `Chưa đủ mẫu · ${subskill.attemptedCount} câu`
-                                              : `Small sample · ${subskill.attemptedCount}`
-                                            : `${subskill.accuracy}% · ${subskill.attemptedCount}`}
-                                        </span>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                ) : (
-                                  <p className="mt-2 text-sm text-slate-500">
-                                    {vi
-                                      ? `Cần ít nhất 5 câu để phân tích sâu (${skill.attemptedCount}/5).`
-                                      : `At least 5 answers are needed for deeper analysis (${skill.attemptedCount}/5).`}
-                                  </p>
-                                )}
+                                <ul className="mt-2 space-y-2 border-l-2 border-teal-100 pl-4">
+                                  {skill.subskills.map((subskill) => (
+                                    <li
+                                      className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-sm"
+                                      key={subskill.name}
+                                    >
+                                      <span>{taxonomyLabel(subskill.name, locale)}</span>
+                                      <span className="text-slate-600">
+                                        {formatBreakdownMetric(subskill, locale)}
+                                      </span>
+                                    </li>
+                                  ))}
+                                </ul>
                               </div>
                             ))}
                           </div>
@@ -301,11 +294,11 @@ export default async function ProgressPage({
                           <strong>{preview.progress.answeredCount}</strong> câu
                           đã làm, TOEICGym có đủ mẫu cho{" "}
                           <strong>{preview.progress.eligibleSkillCount}</strong>{" "}
-                          skill và{" "}
+                          kỹ năng và{" "}
                           <strong>
                             {preview.progress.eligibleSubskillCount}
                           </strong>{" "}
-                          subskill.
+                          chủ điểm.
                         </>
                       ) : (
                         <>
@@ -323,7 +316,7 @@ export default async function ProgressPage({
                   </p>
                   <p className="mt-2 max-w-2xl text-slate-600">
                     {vi
-                      ? "Free luôn giữ tiến độ tổng, Listening/Reading, từng Part và xu hướng 30 ngày. Premium bổ sung lịch sử 90 ngày và phân tích skill/subskill theo cỡ mẫu thực."
+                      ? "Bản miễn phí vẫn có tiến độ tổng, kết quả Nghe/Đọc, từng Part và xu hướng 30 ngày. Premium bổ sung lịch sử 90 ngày và kết quả theo kỹ năng, chủ điểm khi đủ số câu."
                       : "Free keeps overall, Listening/Reading, Part-level progress and a 30-day trend. Premium adds 90-day history and sample-aware skill/subskill analysis."}
                   </p>
                   <Link

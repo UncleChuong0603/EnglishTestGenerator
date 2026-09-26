@@ -1,4 +1,5 @@
-import { part1Expansion } from "./part1-expansion.mjs";
+import { part1Expansion, part1SceneExplanationsVi } from "./part1-expansion.mjs";
+import { part1Distractor } from "./part1-distractors.mjs";
 
 // Additional spoken descriptions are tied to photographs already reviewed for
 // the bank. Every sentence below describes the same visible action or object
@@ -60,29 +61,13 @@ const alternatives = [
   ["A woman is glancing at a wall clock.", "The time is being checked on a clock above a wall."],
 ];
 const keys = ["A", "B", "C", "D"];
-const distractorActions = [
-  "A pilot is checking flight equipment", "A sailor is repairing a boat", "A farmer is gathering crops",
-  "A lifeguard is watching swimmers", "A florist is arranging bouquets", "A chef is preparing a meal",
-  "A scientist is examining a sample", "A musician is tuning an instrument", "A park ranger is guiding hikers",
-];
-const distractorPlaces = [
-  "the Eastport airfield", "the Brookhaven marina", "the Westfield orchard", "the Lakeside pool", "the Maple Street florist", "the Hillcrest kitchen",
-  "the Bayview laboratory", "the Cedar Hall stage", "the Pine Valley trail", "the Riverbend terminal", "the Oakwood harbor", "the Silverlake farm",
-  "the Meadowbrook resort", "the Northgate greenhouse", "the Fairview cafeteria", "the Stonebridge research center", "the Highpoint theater", "the Juniper nature reserve",
-  "the Seabrook runway", "the Clearview pier", "the Greenford field", "the Sandstone aquatic center", "the Redcliff flower market", "the Southport restaurant",
-  "the Willow Creek institute", "the Elmwood concert hall", "the Crestview national park", "the Goldleaf airport", "the Fernhill fishing port", "the Ashgrove vineyard",
-];
-
 export const part1TwentyFiveFormExpansion = [
   ...alternatives.map((pair, index) => [index, pair[0]]),
   ...alternatives.slice(0, 36).map((pair, index) => [index, pair[1]]),
 ].map(([sourceIndex, correct], index) => {
   const source = part1Expansion[sourceIndex];
   const answerIndex = (index + 2) % 4;
-  const wrong = [0, 1, 2].map((offset) => {
-    const number = index * 3 + offset;
-    return `${distractorActions[Math.floor(number / distractorPlaces.length)]} at ${distractorPlaces[number % distractorPlaces.length]}.`;
-  });
+  const wrong = [0, 1, 2].map((offset) => part1Distractor(part1Expansion.length * 3 + index * 3 + offset));
   const choices = [...wrong]; choices.splice(answerIndex, 0, correct);
   const id = `L-P1-FORM25-${String(index + 1).padStart(3, "0")}`;
   return {
@@ -90,6 +75,6 @@ export const part1TwentyFiveFormExpansion = [
     transcript: choices.map((text, choiceIndex) => `${keys[choiceIndex]}. ${text}`).join("\n"),
     script: [{ speaker: "NARRATOR", text: choices.map((text, choiceIndex) => `${keys[choiceIndex]}. ${text}`).join(" ") }],
     media: source.media.map((media) => media.role === "IMAGE" ? { ...media, altText: correct } : { ...media, assetRef: `content/listening/audio/${id}.mp3` }),
-    question: { ...source.question, options: choices.map((text, choiceIndex) => ({ key: keys[choiceIndex], text })), correctKey: keys[answerIndex], explanationEn: `The photograph shows ${correct[0].toLowerCase()}${correct.slice(1)}`, explanationVi: `Bức ảnh thể hiện: ${correct}` },
+    question: { ...source.question, options: choices.map((text, choiceIndex) => ({ key: keys[choiceIndex], text })), correctKey: keys[answerIndex], explanationEn: `The photograph shows ${correct[0].toLowerCase()}${correct.slice(1)}`, explanationVi: `Bức ảnh cho thấy ${part1SceneExplanationsVi[sourceIndex][0].toLowerCase()}${part1SceneExplanationsVi[sourceIndex].slice(1)}` },
   };
 });

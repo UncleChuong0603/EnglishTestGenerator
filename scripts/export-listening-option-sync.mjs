@@ -11,6 +11,8 @@ const items = await Promise.all(productionListening.map(async (item) => ({
     externalId: `${item.externalId}-Q${question.order}`,
     correctKey: question.correctKey,
     options: question.options,
+    explanationEn: question.explanationEn,
+    explanationVi: question.explanationVi,
   })),
 })));
 const output = process.argv[2];

@@ -43,6 +43,7 @@ export function WordFormQuiz({ questions }: { questions: WordFormQuestion[] }) {
         </label>)}</div>
         {result && <p className={`mt-3 rounded-lg p-4 leading-7 ${answers[question.id] === result.correctOptionId ? "bg-teal-50 text-teal-900" : "bg-amber-50 text-amber-950"}`}>
           <strong>{answers[question.id] === result.correctOptionId ? "Đúng." : `Đáp án đúng: ${correct?.key}. ${correct?.text}.`}</strong> {result.explanation}
+          <span className="mt-2 block text-sm">Ôn lại: <Link className="font-bold underline underline-offset-2" href="/blog/loai-tu-trong-toeic-part-5">Loại từ trong TOEIC Part 5</Link></span>
         </p>}
       </fieldset>;
     })}</div>

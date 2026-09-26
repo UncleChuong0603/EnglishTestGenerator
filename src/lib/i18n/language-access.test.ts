@@ -8,6 +8,12 @@ describe("language access and learner-facing labels", () => {
     expect(taxonomyLabel(value, "en")).not.toBe(value);
   });
 
+  it("uses learner-facing labels for progress skills and subskills", () => {
+    expect(taxonomyLabel("grammar", "vi")).toBe("Ngữ pháp");
+    expect(taxonomyLabel("verb_tense", "vi")).toBe("Thì của động từ");
+    expect(taxonomyLabel("sentence_insertion", "en")).toBe("Sentence Insertion");
+  });
+
   it.each(["src/app/not-found.tsx", "src/app/error.tsx", "src/components/auth/auth-ui.tsx"])("keeps a language control on %s", (file) => {
     expect(readFileSync(file, "utf8")).toMatch(/LanguageSwitcher|AuthLanguageControl/);
   });

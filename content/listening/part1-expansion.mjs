@@ -1,3 +1,5 @@
+import { part1Distractor } from "./part1-distractors.mjs";
+
 const keys = ["A", "B", "C", "D"];
 
 const scenes = [
@@ -57,32 +59,67 @@ const scenes = [
   ["A woman is checking the time on a wall clock.", "businesswoman looking up to check a large wall clock in an office"],
 ];
 
-// Each generated photograph gets three distinct spoken alternatives. Keep this
-// deterministic: the transcript, answer key, and recorded audio must agree.
-const distractorPeople = [
-  ["A pilot", "at an airport"], ["A nurse", "at a clinic"],
-  ["A farmer", "on a farm"], ["A musician", "in a rehearsal room"],
-  ["A lifeguard", "at a swimming pool"], ["A scientist", "in a laboratory"],
-  ["A sailor", "at a harbor"], ["A firefighter", "at a fire station"],
-  ["A librarian", "in a library"], ["A florist", "at a flower shop"],
-  ["A tour guide", "at a museum"], ["A baker", "in a bakery"],
-  ["A veterinarian", "at an animal clinic"], ["A photographer", "in a studio"],
-  ["A carpenter", "in a workshop"], ["A chef", "in a kitchen"],
-  ["A swimming instructor", "at a sports center"], ["A painter", "in an art studio"],
+export const part1SceneExplanationsVi = [
+  "Một phụ nữ đang cất hồ sơ vào tủ tài liệu.",
+  "Một người đàn ông đang lau bàn trong nhà hàng.",
+  "Một số hành khách đang lên xe buýt.",
+  "Một nhân viên đang tưới cây trong văn phòng.",
+  "Một phụ nữ đang quét tài liệu bằng máy photocopy.",
+  "Hai người đàn ông đang khiêng ghế sofa qua cửa.",
+  "Một thợ máy đang kiểm tra bên dưới nắp ca pô ô tô.",
+  "Một nhóm người đang ngồi quanh bàn họp.",
+  "Một người đàn ông đang gắn biển lên tường.",
+  "Một phụ nữ đang chọn trái cây ở chợ ngoài trời.",
+  "Vài chiếc va li được xếp cạnh quầy phục vụ.",
+  "Một nhân viên phục vụ đang đưa thực đơn cho khách.",
+  "Một người đàn ông đang quét lối đi.",
+  "Sách được bày trên một chiếc bàn.",
+  "Một phụ nữ đang cài quai mũ bảo hiểm xe đạp.",
+  "Một kỹ thuật viên đang lắp đèn trên trần nhà.",
+  "Một người đàn ông đang xem lịch tàu chạy.",
+  "Một số thực khách đang ăn ở khu bàn ngoài trời.",
+  "Một phụ nữ đang gấp áo trên bàn trưng bày.",
+  "Một xe giao hàng đang đỗ cạnh nhà kho.",
+  "Hai công nhân đang đo khung cửa sổ.",
+  "Một người đàn ông đang đẩy xe mua hàng trong siêu thị.",
+  "Các ghế đã được xếp thành hàng.",
+  "Một phụ nữ đang phát biểu tại bục nói chuyện.",
+  "Một công nhân đang xếp thùng hàng lên tấm kê.",
+  "Một người đàn ông đang mở ô.",
+  "Một số khách hàng đang xếp hàng chờ thanh toán.",
+  "Một phụ nữ đang gõ máy tính xách tay cạnh cửa sổ.",
+  "Một người làm vườn đang tỉa hàng rào cây.",
+  "Hai người đang cùng xem bản đồ.",
+  "Một người đàn ông đang đặt va li vào cốp xe.",
+  "Bát đĩa sạch đang được để ráo bên cạnh bồn rửa.",
+  "Một phụ nữ đang chỉnh micro.",
+  "Một công nhân đang sơn cửa.",
+  "Một số thuyền đang được buộc vào cầu tàu.",
+  "Một người đàn ông đang thay hộp mực máy in.",
+  "Một số nhân viên đang đi vào tòa nhà văn phòng.",
+  "Một phụ nữ đang dán nhãn lên các kiện hàng.",
+  "Một người phục vụ đang rót nước vào cốc.",
+  "Một người đàn ông đang chụp ảnh tòa nhà.",
+  "Một số dụng cụ đang treo trên tường.",
+  "Một phụ nữ đang kéo rèm cửa ra.",
+  "Hai công nhân đang trải thảm trên sàn.",
+  "Một người đàn ông đang đọc thông báo trên bảng tin.",
+  "Một số xe đạp đang được đưa lên giá chở xe.",
+  "Một phụ nữ đang cân rau củ.",
+  "Một công nhân đang lau cửa kính.",
+  "Một người đàn ông đang đưa vé cho nhân viên soát vé.",
+  "Một số đèn được trưng bày trong phòng giới thiệu sản phẩm.",
+  "Một phụ nữ đang đóng đồ vào thùng giấy.",
+  "Một công nhân đang sửa mặt đường.",
+  "Một số người đang đi dạo dọc bờ sông.",
+  "Một người đàn ông đang xếp bánh vào tủ trưng bày.",
+  "Một phụ nữ đang xem giờ trên đồng hồ treo tường.",
 ];
-const distractorActions = [
-  "is speaking with a colleague", "is carrying a folder", "is checking a schedule",
-  "is making a phone call", "is writing on a clipboard", "is opening a cabinet",
-  "is reading a notice", "is sorting some paperwork", "is walking through a doorway",
-];
-const distractorPool = Array.from({ length: scenes.length * 3 }, (_, index) =>
-  `${distractorPeople[index % distractorPeople.length][0]} ${distractorActions[Math.floor(index / distractorPeople.length)]} ${distractorPeople[index % distractorPeople.length][1]}.`
-);
 
 export const part1Expansion = scenes.map(([correct, imagePrompt], index) => {
   const number = index + 7;
   const answer = index % 4;
-  const choices = distractorPool.slice(index * 3, index * 3 + 3);
+  const choices = [0, 1, 2].map((offset) => part1Distractor(index * 3 + offset));
   choices.splice(answer, 0, correct);
   const id = `L-P1-BANK-${String(number).padStart(3, "0")}`;
   return {
@@ -91,6 +128,6 @@ export const part1Expansion = scenes.map(([correct, imagePrompt], index) => {
     script: [{ speaker: "NARRATOR", text: choices.map((text, choiceIndex) => `${keys[choiceIndex]}. ${text}`).join(" ") }],
     media: [{ role: "IMAGE", assetRef: `content/listening/source/${id}.png`, altText: correct }, { role: "AUDIO", assetRef: `content/listening/audio/${id}.mp3` }],
     imagePrompt,
-    question: { order: 1, text: "[Spoken choices only]", skill: "photographs", subSkill: "visual_detail", difficulty: number % 5 === 0 ? "medium" : "easy", options: choices.map((text, choiceIndex) => ({ key: keys[choiceIndex], text })), correctKey: keys[answer], explanationEn: `The photograph shows that ${correct.toLowerCase()}`, explanationVi: `Bức ảnh cho thấy rõ: ${correct}`, },
+    question: { order: 1, text: "[Spoken choices only]", skill: "photographs", subSkill: "visual_detail", difficulty: number % 5 === 0 ? "medium" : "easy", options: choices.map((text, choiceIndex) => ({ key: keys[choiceIndex], text })), correctKey: keys[answer], explanationEn: `The photograph shows that ${correct.toLowerCase()}`, explanationVi: `Bức ảnh cho thấy ${part1SceneExplanationsVi[index][0].toLowerCase()}${part1SceneExplanationsVi[index].slice(1)}`, },
   };
 });
