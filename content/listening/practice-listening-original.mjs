@@ -1,3 +1,5 @@
+import { extraConversationScenarios, extraTalkScenarios } from "./practice-listening-extra.mjs";
+
 const companies = ["Alder", "Bellmont", "Creston", "Dover", "Elmwood", "Fairview", "Granite", "Harbor", "Ivory", "Juniper", "Kestrel", "Linden", "Maple", "Northstar", "Oakridge", "Parkview", "Quarry", "Riverside", "Stonebridge", "Tamarack", "Uplands", "Valley", "Westhaven", "Yorkfield", "Zenith"];
 const people = ["Amelia", "Ben", "Carla", "Daniel", "Elena", "Felix", "Grace", "Hugo", "Iris", "Jonah"];
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
@@ -29,7 +31,7 @@ function group(part, n, type, lines, qa) {
 }
 
 export function practiceConversation(n) {
-  const c = context(n), s = c.site, scene = (n - 1) % 6;
+  const c = context(n), s = c.site, scene = (n - 1) % 12;
   const scenarios = [
     () => ({
       lines: [["WOMAN", `The brochure for ${s} is ready, but the copier in the design office has stopped working.`], ["MAN", `I'll make the copies in the print room before ${c.time}.`], ["WOMAN", `Please leave one set for ${c.person} at reception.`]],
@@ -56,12 +58,12 @@ export function practiceConversation(n) {
       qa: [["What did the client request?", `A desk lamp sample at ${s}`, [`Directions to ${s}`, `A copy of the staff schedule at ${s}`, `A showroom reservation at ${s}`], "detail", "explicit_information", "The client asked to see a sample of the desk lamp."], [`Why will the man contact ${c.person}?`, `${c.person} has the storage room key at ${s}`, [`${c.person} knows the client visiting ${s}`, `${c.person} designed the lamp at ${s}`, `${c.person} reserved the ${s} showroom`], "detail", "explicit_information", "The woman says the colleague has the storage room key."], ["What does the man ask the woman to do?", `Prepare the showroom at ${s}`, [`Meet the client at ${s} at ${c.time}`, `Find a second lamp sample at ${s}`, `Call the director at ${s}`], "next_action", "next_action", "He asks her to prepare the showroom."]],
     }),
   ];
-  const { lines, qa } = scenarios[scene]();
+  const { lines, qa } = [...scenarios, ...extraConversationScenarios(c).map(value => () => value)][scene]();
   return group(3, n, "conversation", lines, qa);
 }
 
 export function practiceTalk(n) {
-  const c = context(n), s = c.site, scene = (n - 1) % 6;
+  const c = context(n), s = c.site, scene = (n - 1) % 12;
   const scenarios = [
     () => ({ type: "announcement", text: `Attention employees at ${s}. The main lobby will close from ${c.time} on ${c.day} while new lighting is installed. Please use the side entrance. The lobby will reopen the following morning.`,
       qa: [["What is the purpose of the announcement?", `To announce a temporary lobby closure at ${s}`, [`To introduce a new employee at ${s}`, `To advertise lighting products at ${s}`, `To change the training schedule at ${s}`], "purpose", "purpose", "The speaker announces when the lobby will close."], ["Why will the lobby be closed?", `New lighting will be installed at ${s}`, [`The floor at ${s} will be cleaned`, `A staff meeting will take place at ${s}`, `Furniture will arrive at ${s}`], "detail", "explicit_information", "The closure is for a lighting installation."], ["What should employees use?", `The side entrance at ${s}`, [`The closed main lobby at ${s}`, `The loading dock at ${s}`, `A nearby parking garage`], "next_action", "next_action", "Employees are asked to use the side entrance."]],
@@ -82,6 +84,6 @@ export function practiceTalk(n) {
       qa: [["What is the announcement about?", `A planning meeting at ${s}`, [`A product launch at ${s}`, `A customer tour at ${s}`, `A building inspection at ${s}`], "purpose", "purpose", "The speaker gives details of a planning meeting."], [`What will ${c.person} present?`, `The updated budget for ${s}`, [`A new staffing contract at ${s}`, `A revised agenda for ${s}`, `A sales brochure for ${s}`], "detail", "explicit_information", "The named colleague will present the updated budget."], ["What should listeners bring?", `Questions about staffing at ${s}`, [`Printed invitations to ${s}`, `Receipts from the previous meeting`, `Samples of a new product at ${s}`], "next_action", "next_action", "The speaker asks listeners to bring staffing questions."]],
     }),
   ];
-  const { type, text, qa } = scenarios[scene]();
+  const { type, text, qa } = [...scenarios, ...extraTalkScenarios(c).map(value => () => value)][scene]();
   return group(4, n, type, [["NARRATOR", text]], qa);
 }

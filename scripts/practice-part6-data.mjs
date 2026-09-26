@@ -1,3 +1,5 @@
+import { extraPart6Scenarios } from "./practice-part6-extra-data.mjs";
+
 const companies = ["Aster", "Bayview", "Clearwater", "Dunhill", "Easton", "Foxbridge", "Goldleaf", "Highland", "Ironwood", "Jasper", "Kestrel", "Longview", "Meadowbrook", "Newhaven", "Orchard", "Pinecrest", "Quarry", "Riverton", "Silverlake", "Tamarack"];
 const keys = ["A", "B", "C", "D"];
 
@@ -12,8 +14,8 @@ function row(order, title, skill, subSkill, correct, wrong, explanationEn, expla
 
 export function practicePart6Set(index) {
   const company = companies[Math.floor(index / 5)];
-  const variant = index % 5;
-  const date = `${["January", "March", "May", "July", "September"][variant]} ${8 + Math.floor(index / 5) % 18}`;
+  const variant = index % 20;
+  const date = `${["January", "March", "May", "July", "September"][variant % 5]} ${8 + Math.floor(index / 5) % 18}`;
   const scenarios = [
     {
       title: `${company} Safety Workshop`, documentType: "email",
@@ -66,7 +68,7 @@ export function practicePart6Set(index) {
       ],
     },
   ];
-  const scenario = scenarios[variant];
+  const scenario = [...scenarios, ...extraPart6Scenarios(company, date)][variant];
   return { key: `p6-practice-${String(index + 1).padStart(3, "0")}`, toeicPart: 6, setType: "part6", title: scenario.title, status: "published",
     passages: [{ key: "document", position: 1, documentType: scenario.documentType, title: scenario.title, content: scenario.content }],
     questions: scenario.answers.map(([skill, subSkill, correct, wrong, explanationEn, explanationVi], rowIndex) => row(rowIndex + 1, scenario.title, skill, subSkill, correct, wrong, explanationEn, explanationVi, index)),

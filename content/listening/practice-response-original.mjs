@@ -4,18 +4,20 @@ const people = ["Amelia", "Ben", "Carla", "Daniel", "Elena", "Felix", "Grace", "
 const departments = ["accounting", "design", "facilities", "human resources", "IT", "legal", "marketing", "operations", "purchasing", "sales"];
 const items = ["annual report", "brochure", "catering order", "delivery schedule", "expense form", "inventory list", "maintenance request", "price estimate", "project proposal", "training guide"];
 const places = ["conference room", "customer lounge", "loading dock", "main lobby", "north entrance", "print room", "reception desk", "staff kitchen", "storage room", "training center"];
+const rooms = ["conference room", "meeting room", "training room", "presentation hall", "seminar room"];
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 const times = ["8:30", "9:15", "10:00", "11:45", "1:30", "2:15", "3:00", "4:20"];
 
 export function practiceResponse(index) {
-  const scenario = index % 15;
-  const group = Math.floor(index / 15);
+  const scenario = index % 30;
+  const group = Math.floor(index / 30);
   const company = companies[group % companies.length];
-  const project = projects[Math.floor(group / companies.length)];
+  const project = projects[group % projects.length];
   const person = people[(group + scenario) % people.length];
   const department = departments[(group + scenario) % departments.length];
   const item = items[(group + scenario) % items.length];
   const place = places[(group + scenario) % places.length];
+  const room = rooms[(group + scenario) % rooms.length];
   const day = days[(group + scenario) % days.length];
   const time = times[(group + scenario) % times.length];
   const ref = `${company}'s ${project}`;
@@ -30,11 +32,26 @@ export function practiceResponse(index) {
     [`Why don't we discuss ${ref} on ${day}?`, `Good idea. That gives us more time to prepare.`, `The ${place} is on the first floor.`, `${person} discussed it yesterday.`, "suggestion"],
     [`Would you like me to send the ${item} for ${ref} to ${person}?`, `Yes, and please copy the ${department} manager.`, `It was printed at ${time}.`, `The ${place} has a copier.`, "offer"],
     [`The ${item} for ${ref} is at reception, isn't it?`, `No, ${person} moved it to the ${place}.`, `Yes, the office closes at ${time}.`, `The meeting went well.`, "indirect_response"],
-    [`Which room did ${person} reserve for the ${ref} workshop?`, `The ${place}.`, `At ${time} on ${day}.`, `The ${department} team planned it.`, "direct_response"],
+    [`Which room did ${person} reserve for the workshop about ${ref}?`, `The ${room}.`, `At ${time} on ${day}.`, `The ${department} team planned it.`, "direct_response"],
     [`Didn't ${person} approve the ${item} for ${ref}?`, `Not yet. The ${department} director is still checking it.`, `It's stored in the ${place}.`, `The review took an hour.`, "indirect_response"],
-    [`How often does ${department} update the ${item} for ${ref}?`, `Every other ${day}.`, `${person} updates the file.`, `In the ${place}.`, "direct_response"],
+    [`How often does ${department} update the schedule for ${ref}?`, `Every other ${day}.`, `${person} updates the file.`, `In the ${place}.`, "direct_response"],
     [`Can I meet ${person} about ${ref} before ${time}?`, `Yes. There's an opening on ${day} morning.`, `The ${place} is downstairs.`, `The ${department} report is ready.`, "request"],
     [`Where is ${person}'s copy of the ${item} for ${ref}?`, `The ${department} assistant may have it.`, `It has eight pages.`, `We discussed it on ${day}.`, "indirect_response"],
+    [`Has the agenda for ${ref} been approved?`, `Yes, the director signed off this morning.`, `At the ${place}.`, `It has eight pages.`, "direct_response"],
+    [`Would you mind checking the room booking for ${ref}?`, `Of course. I'll call reception now.`, `It costs less than expected.`, `${person} arrived on ${day}.`, "request"],
+    [`Isn't the deadline for ${ref} this ${day}?`, `It was moved to next week.`, `The ${place} is locked.`, `${person} wrote the summary.`, "indirect_response"],
+    [`Where can attendees find the schedule for ${ref}?`, `It's posted on the staff portal.`, `At ${time} on ${day}.`, `${person} approved the budget.`, "direct_response"],
+    [`Why are there extra chairs for the presentation about ${ref}?`, `We're expecting more visitors than planned.`, `They're next to the ${place}.`, `The event starts at ${time}.`, "direct_response"],
+    [`Should I email the revised plan for ${ref} to ${person} or the ${department} office?`, `Please send it directly to ${person}.`, `It was revised on ${day}.`, `The ${place} has a computer.`, "direct_response"],
+    [`Have you heard whether the presentation about ${ref} will be online?`, `Yes, the organizer sent a meeting link.`, `The ${place} has new chairs.`, `${person} usually arrives early.`, "indirect_response"],
+    [`Could we move the briefing for ${ref} to ${day}?`, `I'll check whether a room is available.`, `It was printed yesterday.`, `${person} works in ${department}.`, "request"],
+    [`When does ${person} want the summary for ${ref}?`, `By ${time} on ${day}.`, `In the ${place}.`, `The ${department} team prepared it.`, "direct_response"],
+    [`Who should I contact about the budget for ${ref}?`, `Ask ${person} in ${department}.`, `It was updated on ${day}.`, `The meeting is in the ${place}.`, "direct_response"],
+    [`Are we still using the old registration form for ${ref}?`, `No, there's a revised one on the portal.`, `The ${place} closes at ${time}.`, `${person} is in ${department}.`, "indirect_response"],
+    [`The visitors for ${ref} have arrived, haven't they?`, `Yes, they're waiting near reception.`, `They'll leave on ${day}.`, `The ${place} is upstairs.`, "indirect_response"],
+    [`Why hasn't the invoice for ${ref} been paid?`, `Accounting is checking the amount.`, `It is in the ${place}.`, `${person} printed it on ${day}.`, "direct_response"],
+    [`Would you prefer a printed or digital copy of the plan for ${ref}?`, `The digital version, please.`, `Before ${time} on ${day}.`, `${person} works in ${department}.`, "direct_response"],
+    [`How long will the orientation for ${ref} take?`, `About forty-five minutes.`, `In the ${place}.`, `${person} is leading it.`, "direct_response"],
   ];
   const [prompt, correct, wrong1, wrong2, subSkill] = scenarios[scenario];
   const choices = [correct, wrong1, wrong2];

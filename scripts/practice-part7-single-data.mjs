@@ -1,3 +1,5 @@
+import { extraSingleScenarios } from "./practice-part7-single-extra-data.mjs";
+
 const companies = ["Aster", "Bayview", "Clearwater", "Dunhill", "Easton", "Foxbridge", "Goldleaf", "Highland", "Ironwood", "Jasper", "Kestrel", "Longview", "Meadowbrook", "Newhaven", "Orchard", "Pinecrest", "Quarry", "Riverton", "Silverlake", "Tamarack"];
 const keys = ["A", "B", "C", "D"];
 
@@ -10,9 +12,9 @@ function question(index, order, prompt, correct, wrong, skill, subSkill, evidenc
 }
 
 export function practiceSingleSet(index) {
-  const company = companies[Math.floor(index / 10)];
+  const company = companies[Math.floor(index / 20)];
   const date = `${["February", "March", "April", "May", "June", "July", "August", "September", "October", "November"][index % 10]} ${5 + Math.floor(index / 10) % 20}`;
-  const scene = index % 10;
+  const scene = index % 20;
   const scenarios = [
     () => ({
       title: `${company} Vendor Application`, documentType: "notice",
@@ -75,7 +77,7 @@ export function practiceSingleSet(index) {
       ],
     }),
   ];
-  const { title, documentType, content, qa } = scenarios[scene]();
+  const { title, documentType, content, qa } = [...scenarios, ...extraSingleScenarios(company, date).map(value => () => value)][scene]();
   return { key: `p7-single-practice-${String(index + 1).padStart(3, "0")}`, toeicPart: 7, setType: "single", title, status: "published",
     passages: [{ key: "doc1", position: 1, documentType, title, content }],
     questions: qa.map(([text, correct, wrong, skill, subSkill, evidence], rowIndex) => question(index, rowIndex + 1, text, correct, wrong, skill, subSkill, evidence)),

@@ -35,6 +35,7 @@ function buildRows() {
       question_text: q.text, passage_id: passageId, passage_set_id: passageSetId,
       question_order: order, audio_url: null, image_url: null,
       metadata: { seed_key: q.key, source: SOURCE, content_kind: "original_development" }, status: q.status,
+      bank_pool: practiceBank ? "PRACTICE" : "MOCK",
     });
     optionRows.push(...options);
     solutionRows.push({
