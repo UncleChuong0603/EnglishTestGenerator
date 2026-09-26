@@ -192,7 +192,9 @@ export default async function Home() {
         <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[
             { href: "/toeic", title: vi ? "Tổng quan TOEIC" : "TOEIC overview", detail: vi ? "Hiểu từng Part và chọn điểm bắt đầu." : "Understand each Part and where to start." },
+            { href: "/toeic/part-3", title: "Part 3 Listening", detail: vi ? "Nghe hội thoại mẫu, làm 3 câu và xem transcript." : "Try a conversation with three questions and a transcript." },
             { href: "/toeic/part-5", title: "Part 5", detail: vi ? "Hoàn thành câu: ngữ pháp và từ vựng." : "Sentence completion, grammar and vocabulary." },
+            { href: "/toeic/part-5/thi-dong-tu", title: vi ? "Thì động từ Part 5" : "Part 5 verb tenses", detail: vi ? "Làm 5 câu có giải thích đáp án." : "Try five questions with explanations." },
             { href: "/toeic/part-5/word-form", title: "Word Form", detail: vi ? "Làm thử 5 câu có giải thích đáp án." : "Try five questions with explanations." },
             { href: "/toeic/part-6", title: "Part 6", detail: vi ? "Điền từ và câu theo mạch đoạn văn." : "Complete a text using its context." },
             { href: "/toeic/part-7", title: "Part 7", detail: vi ? "Tìm bằng chứng trong bài đọc." : "Find evidence in reading passages." },

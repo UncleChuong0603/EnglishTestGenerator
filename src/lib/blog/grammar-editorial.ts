@@ -122,7 +122,7 @@ Trong email, thông báo và câu Part 5, thì động từ cho biết sự vi�
 
 **The company _____ three new branches since January.** (A) opened (B) has opened (C) had opened (D) opening
 
-**Đáp án B.** *Since January* tính từ một mốc trước đến hiện tại; “the company” thực hiện hành động mở chi nhánh. Nếu ngữ cảnh có mốc kết thúc rõ trong quá khứ, lựa chọn sẽ khác. Xem thêm [hòa hợp chủ ngữ và động từ](/blog/hoa-hop-chu-ngu-dong-tu-toeic) để không chọn đúng thì nhưng sai số ít/số nhiều.`
+**Đáp án B.** *Since January* tính từ một mốc trước đến hiện tại; “the company” thực hiện hành động mở chi nhánh. Nếu ngữ cảnh có mốc kết thúc rõ trong quá khứ, lựa chọn sẽ khác. Hãy làm tiếp [5 câu thì động từ Part 5 có lời giải](/toeic/part-5/thi-dong-tu), rồi xem thêm [hòa hợp chủ ngữ và động từ](/blog/hoa-hop-chu-ngu-dong-tu-toeic) để không chọn đúng thì nhưng sai số ít/số nhiều.`
   }),
   grammarPost({
     slug: GRAMMAR_SLUGS[2],

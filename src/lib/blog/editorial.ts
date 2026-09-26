@@ -133,7 +133,7 @@ Theo dõi riêng ba loại lỗi: không nhận ra âm, không biết từ và b
 
 Trong câu hỏi tự luyện “What will the woman do next?”, bạn nghe “I’ll send the revised schedule this afternoon.” Đáp án đúng có thể viết “Email an updated timetable”. *Send* tương ứng với *email*, còn *revised schedule* tương ứng với *updated timetable*. Ví dụ này do TOEICGym biên soạn để minh họa kỹ thuật, không phải câu hỏi ETS.
 
-Sau khi chọn đáp án, gạch dưới cụm trong transcript tạo ra suy luận. Nếu không tìm được bằng chứng, đánh dấu là câu đoán đúng và ôn lại. Với câu suy luận, bằng chứng có thể nằm ở cả ngữ cảnh thay vì một cụm từ duy nhất. Nếu hay mất nhịp trước khi vào đoạn hội thoại, luyện [Part 2 hỏi đáp ngắn](/blog/meo-lam-toeic-part-2-hoi-dap); nếu Reading chậm, xem [khung luyện 75 phút](/blog/quan-ly-thoi-gian-toeic-reading-75-phut).`
+Sau khi chọn đáp án, gạch dưới cụm trong transcript tạo ra suy luận. Nếu không tìm được bằng chứng, đánh dấu là câu đoán đúng và ôn lại. Với câu suy luận, bằng chứng có thể nằm ở cả ngữ cảnh thay vì một cụm từ duy nhất. Hãy thử [một hội thoại Part 3 có audio, transcript và ba câu hỏi](/toeic/part-3) để áp dụng ngay. Nếu hay mất nhịp trước khi vào đoạn hội thoại, luyện [Part 2 hỏi đáp ngắn](/blog/meo-lam-toeic-part-2-hoi-dap); nếu Reading chậm, xem [khung luyện 75 phút](/blog/quan-ly-thoi-gian-toeic-reading-75-phut).`
   }),
   post({
     id: "editorial-reading", category: "READING", slug: "quan-ly-thoi-gian-toeic-reading-75-phut",
