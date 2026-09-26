@@ -26,7 +26,7 @@ x-app-environment: &app-environment
   MEDIA_STORAGE_PROVIDER: LOCAL
   LOCAL_MEDIA_ROOT: ${LOCAL_MEDIA_ROOT:-/var/lib/toeicgym/media}
   MEDIA_SIGNING_SECRET: ${MEDIA_SIGNING_SECRET:-}
-  PRACTICE_POOL_ISOLATED: ${PRACTICE_POOL_ISOLATED:-false}
+  PRACTICE_POOL_ISOLATED: ${PRACTICE_POOL_ISOLATED:-true}
 
 services:
   media-init:

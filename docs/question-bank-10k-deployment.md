@@ -1,5 +1,17 @@
 # Question bank 10,000: publication checklist
 
+## Production publication: 2026-09-27 (Asia/Bangkok)
+
+The production database was published and passed `audit-question-bank-pools.mjs --require-ready` with no issues. It contains 5,000 Mock and 5,000 Practice questions, with all 25 Full Mock mappings intact. `smoke-question-bank-pools.ts` selected Practice questions in all seven Parts and assembled separate 200-question Mock and Challenge forms. All 1,600 Practice media files matched their database checksums; public signed audio and image requests returned the expected bytes.
+
+Part 7 includes two-, three-, and four-question single passages so Challenge can assemble 29 single-passage questions across ten groups. Part 4 content genres are published under the canonical `talk` group type.
+
+Pre-publication backup: `/root/backups/toeicgym/bank10k-20260926T181311Z/database.dump`, verified with `pg_restore -l`; SHA-256 `3421f67e6a3f5a8e69e9f9f5b7b9682db868e2e2acb25e1159e1932148b9cb00`.
+
+Dokploy Compose now defaults `PRACTICE_POOL_ISOLATED` to `true`. An explicit environment value of `false` still supports the staged rollout or rollback procedure below. A fresh installation should set it to `false` until its bank audit passes.
+
+## Rollout procedure
+
 The target is 5,000 existing `MOCK` questions plus 5,000 new `PRACTICE` questions. The new Practice distribution is Part 1: 100, Part 2: 900, Part 3: 900, Part 4: 600, Part 5: 1,000, Part 6: 400, Part 7: 1,100. Keep `PRACTICE_POOL_ISOLATED=false` until the final database audit passes.
 
 ## Complete local media and content checks
