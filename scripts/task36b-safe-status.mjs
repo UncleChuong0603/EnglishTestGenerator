@@ -21,14 +21,18 @@ const allowedNames = new Set([
   "PAYOS_API_KEY", "PAYOS_CHECKSUM_KEY", "PAYOS_CLIENT_ID", "CASSO_WEBHOOK_SECRET",
   "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY",
 ]);
-const env = readFileSync(".env", "utf8");
+let env = "";
+let environmentFilePresent = false;
+try { env = readFileSync(".env", "utf8"); environmentFilePresent = true; } catch { /* Checkout can be replaced during deploy. */ }
 const configuredNames = env.split(/\r?\n/).flatMap(line => {
   const match = /^([A-Z][A-Z_0-9]*)=/.exec(line);
   return match && allowedNames.has(match[1]) ? [match[1]] : [];
 });
-const revision = run("git", ["rev-parse", "HEAD"]);
+let revision = "unknown";
+try { revision = run("git", ["rev-parse", "HEAD"]); } catch { /* Deploy in progress. */ }
 console.log(JSON.stringify({
   revision: /^[a-f0-9]{40}$/.test(revision) ? revision : "unknown",
+  environmentFilePresent,
   app: service("app"), scheduler: service("lifecycle-scheduler"),
   postgres: service("postgres"), migrate: service("migrate"),
   configuredCredentialNames: configuredNames.sort(),

@@ -19,6 +19,8 @@ History scan found exact matches to local credential values in `.next-seo-audit`
 
 No history rewrite or force-push was performed. Agree scope for the affected branches, tags, clones/forks and hosting caches before rewriting history. Never attach the affected blob contents to a ticket.
 
+The ignored local `.next-seo-audit` directory also retains matching secrets in generated caches/manifests. Automated removal was rejected by command approval policy; manual removal remains required. No raw diagnostic env payload was found in the 11 inspected Dokploy deployment logs.
+
 ## Required human actions
 
 In the provider console, revoke/replace exposed credentials, then update **Dokploy → this Compose project → Environment** directly:
@@ -40,7 +42,7 @@ Dokploy itself emitted warnings that its database uses legacy default credential
 - Task 36 integration with mock SMTP: passed, including failure/retry and duplicate processing.
 - Lifecycle policy unit tests: 5 passed.
 - Playwright: 4 passed — Free/Premium preference persistence, anonymous unsubscribe and token reuse rejection, admin summary and learner access denial.
-- Changed-file ESLint, TypeScript and whitespace checks: passed before the concurrent question-bank update; rerun relevant checks against the final revision.
+- Changed-file ESLint, TypeScript and whitespace checks: passed. Playwright and QA migrations passed again after incorporating the concurrent question-bank update.
 - No production test users, test email, real payment, DB reset or learner-data writes were made by Task 36B.
 
 Task 36 must remain incomplete until every exposed provider credential has been rotated/revoked.
