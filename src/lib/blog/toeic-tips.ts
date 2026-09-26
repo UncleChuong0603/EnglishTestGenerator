@@ -8,11 +8,13 @@ const etsSamples = "https://www.ets.org/content/ets-org/language-master/in/home/
 type Tip = Pick<EditorialPost, "id" | "slug" | "title" | "excerpt" | "content" | "seoTitle" | "seoDescription" | "coverAlt" | "socialTitle" | "socialDescription" | "targetTopic" | "tags"> & {
   category: PostCategory;
   editorialCover?: string;
+  revisedAt?: Date;
 };
 
 function tip(input: Tip): EditorialPost {
+  const { revisedAt, ...content } = input;
   return {
-    ...input,
+    ...content,
     status: "PUBLISHED",
     canonicalPath: `/blog/${input.slug}`,
     coverMediaId: null,
@@ -22,7 +24,7 @@ function tip(input: Tip): EditorialPost {
     noindex: false,
     publishedAt,
     createdAt: publishedAt,
-    updatedAt: publishedAt,
+    updatedAt: revisedAt ?? publishedAt,
     createdBy: "editorial",
     updatedBy: "editorial",
   };
@@ -116,6 +118,7 @@ Khi lỡ một câu trong bài thi, chọn phương án tốt nhất hiện có 
   }),
   tip({
     id: "tip-part-5", slug: "meo-lam-toeic-part-5-trong-thoi-gian-gioi-han", category: "READING",
+    revisedAt: new Date("2026-09-26T18:00:00.000Z"),
     title: "Mẹo làm TOEIC Part 5: tìm tín hiệu quanh chỗ trống",
     excerpt: "Phân biệt câu hỏi loại từ, ngữ pháp và nghĩa; thử quy trình giải nhanh có ví dụ và cách xử lý câu khó.",
     seoTitle: "Mẹo làm TOEIC Part 5: đọc chỗ trống đúng cách",
@@ -124,7 +127,9 @@ Khi lỡ một câu trong bài thi, chọn phương án tốt nhất hiện có 
     coverAlt: "Bút chì chỉ vào chỗ trống trong bài luyện câu tiếng Anh TOEIC Part 5",
     editorialCover: "/blog/meo-toeic-part-5.webp", targetTopic: "mẹo làm TOEIC Part 5",
     tags: [{ name: "TOEIC Reading", slug: "toeic-reading" }, { name: "Part 5", slug: "part-5" }],
-    content: `## Bước 1: nhìn bốn lựa chọn để nhận dạng dạng câu
+    content: `Nếu bạn chưa biết nên đọc đâu trước ở một câu Part 5, hãy nhìn bốn lựa chọn, tìm tín hiệu quanh chỗ trống, rồi đọc lại cả câu để kiểm tra nghĩa. Thử [10 câu Part 5 không cần tài khoản](/challenge/part-5) trước nếu bạn muốn áp dụng quy trình ngay.
+
+## Bước 1: nhìn bốn lựa chọn để nhận dạng dạng câu
 
 Nếu bốn lựa chọn cùng gốc từ (*clear, clearly, clarity, clarify*), đây nhiều khả năng là câu **loại từ**. Nếu là các thì của cùng một động từ, kiểm tra chủ ngữ và mốc thời gian. Nếu là bốn từ khác nghĩa, bạn thường phải đọc cả câu để hiểu ngữ cảnh. Nhận dạng trước giúp bạn biết cần đọc rộng đến đâu; đừng mặc định chỉ nhìn hai từ sát chỗ trống.
 
@@ -134,6 +139,8 @@ Ví dụ tự biên soạn: “The manager gave a ___ explanation of the policy.
 
 Với câu “The forms must be submitted ___ Friday”, chỉ nhìn sau chỗ trống chưa đủ. Đọc toàn câu để hiểu hạn chót, rồi cân nhắc giới từ chỉ thời hạn như *by*. Mẹo loại từ không thay thế việc hiểu nghĩa, nhất là khi đáp án đều cùng từ loại.
 
+**Thử một câu do TOEICGym biên soạn:** “The finance team will send the revised budget ___ the director approves it.” (A) because of (B) once (C) despite (D) during. Chọn **B. once**: sau chỗ trống là mệnh đề *the director approves it*, và việc gửi sẽ diễn ra khi việc phê duyệt hoàn tất. Ba lựa chọn còn lại cần cụm danh từ trong cấu trúc này; *because of the approval*, *despite the delay*, *during the meeting* đều có thể đúng trong câu khác nhưng không đi trực tiếp trước mệnh đề đã cho.
+
 ## Bước 3: chốt câu có bằng chứng; đánh dấu câu chưa chắc
 
 Nếu không thấy tín hiệu sau một lượt đọc có chủ đích, loại lựa chọn chắc chắn sai rồi chọn phương án tốt nhất theo khung thời gian bạn đã tập. Đừng để một câu khó lấy mất thời gian của cả đoạn Part 7. [Khung 75 phút Reading](/blog/quan-ly-thoi-gian-toeic-reading-75-phut) gợi ý mốc 12 phút cho Part 5 như một điểm bắt đầu để thử, không phải quy định của ETS.
@@ -142,7 +149,7 @@ Nếu không thấy tín hiệu sau một lượt đọc có chủ đích, loạ
 
 Làm 10 câu hỗn hợp và tự ghi ký hiệu bên cạnh mỗi câu: **F** (form/loại từ), **G** (grammar), **V** (vocabulary/ngữ cảnh). Sau khi chấm, ghi câu sai cùng **tín hiệu quyết định**; chẳng hạn “a + adjective + noun” hoặc “by + deadline”. Hai ngày sau làm lại các câu sai mà không nhìn ghi chú. Nếu làm đúng nhưng vẫn không giải thích được, giữ câu đó trong sổ lỗi.
 
-Để học phần nền, xem [7 chủ điểm ngữ pháp Part 5](/blog/ngu-phap-toeic-part-5-can-hoc). Bài đó giúp chọn kiến thức cần ôn; bài này tập trung vào trình tự quyết định trong lúc làm bài.
+Để học phần nền, xem [7 chủ điểm ngữ pháp Part 5](/blog/ngu-phap-toeic-part-5-can-hoc). Nếu lỗi chủ yếu ở dạng động từ, [luyện 5 câu thì động từ có lời giải](/toeic/part-5/thi-dong-tu); nếu lỗi ở loại từ, [thử Word Form](/toeic/part-5/word-form). Bài này tập trung vào trình tự quyết định trong lúc làm bài.
 
 **Nguồn đối chiếu:** [ETS xác nhận Part 5 là Incomplete Sentences](${etsFormat}) và có [đề mẫu](${etsSamples}). Ví dụ và mốc luyện tập do TOEICGym biên soạn.`,
   }),

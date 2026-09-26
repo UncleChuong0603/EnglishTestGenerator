@@ -53,9 +53,9 @@ Trong mẫu loại 1 thông thường, không viết *if the client will agree* 
 
 *I wish I had more time* nói về hiện tại chưa có đủ thời gian. *I wish I had checked the file* tiếc một hành động đã không làm trong quá khứ. *Wish + would* thường diễn tả mong người khác hoặc tình huống thay đổi: *I wish the supplier would respond sooner*. Không dùng *would* máy móc sau mọi *wish*.
 
-**If the documents arrive today, we _____ them tomorrow.** (A) review (B) will review (C) would have reviewed (D) had reviewed
+**If the documents arrive today, we _____ them tomorrow.** (A) reviews (B) will review (C) would have reviewed (D) had reviewed
 
-**Đáp án B** nếu câu dự báo kế hoạch tương lai. A có thể hợp nếu mô tả quy trình thường lệ, nhưng *today/tomorrow* trong ngữ cảnh kế hoạch làm B tự nhiên hơn. Ví dụ do TOEICGym tự biên soạn.
+**Đáp án B.** *Arrive today* đặt điều kiện có thể xảy ra, còn *tomorrow* chỉ kết quả tương lai. A không hòa hợp với *we*; C là kết quả giả định quá khứ; D là quá khứ hoàn thành. Ví dụ do TOEICGym tự biên soạn.
 
 ## Tự kiểm tra
 
@@ -117,9 +117,9 @@ Câu hỏi tường thuật giữ **trật tự câu kể**: *“Where is the me
 
 ## Ví dụ kiểu TOEIC
 
-**The supervisor told the staff that the meeting _____ at nine the next morning.** (A) starts (B) would start (C) starting (D) start
+**The supervisor told the staff that the meeting _____ at nine the next morning.** (A) would starting (B) would start (C) starting (D) start
 
-**Đáp án B** nếu đang kể lại một lịch trong tương lai nhìn từ một thời điểm quá khứ. *Starts* vẫn có thể đúng nếu lịch còn hiệu lực tại lúc kể; đề cần ngữ cảnh rõ để chỉ một đáp án. Ví dụ này minh họa khác biệt góc nhìn thời gian.
+**Đáp án B.** *Would start* kể lại lịch tương lai từ điểm nhìn quá khứ. A sai dạng sau modal; C thiếu động từ chia thì; D không hòa hợp với *the meeting*. Trong ngữ cảnh khác, người kể có thể giữ hiện tại nếu lịch còn hiệu lực; câu luyện này không đặt hai cách hiểu đó thành hai lựa chọn cạnh tranh.
 
 ## Tự kiểm tra
 
@@ -272,9 +272,9 @@ Khi *not only* đứng đầu mệnh đề, đảo trợ động từ trong vế
 
 ## Ví dụ kiểu TOEIC
 
-**Only after the inspection _____ the company reopen the facility.** (A) did (B) does (C) had (D) was
+**Only after yesterday's inspection _____ the company reopen the facility.** (A) did (B) do (C) had (D) was
 
-**Đáp án A** nếu sự kiện mở lại nằm trong quá khứ. Sau *only after the inspection* đứng đầu, mệnh đề chính cần *did + chủ ngữ + V*. Ví dụ do TOEICGym tự biên soạn.
+**Đáp án A.** *Yesterday's inspection* đặt sự kiện ở quá khứ. Sau *only after* đứng đầu, mệnh đề chính dùng *did + chủ ngữ + V*. B không hòa hợp với *company* và không đúng thời gian; C cần V3; D không nối trực tiếp với *reopen*. Ví dụ do TOEICGym tự biên soạn.
 
 ## Tự kiểm tra
 

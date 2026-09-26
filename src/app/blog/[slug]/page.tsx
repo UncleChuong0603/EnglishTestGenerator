@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { PublicHeader } from "@/components/public-header";
 import { PublicFooter } from "@/components/public-footer";
 import { ArticleView } from "@/components/blog/article-view";
-import { getPublishedPost, listPublishedPosts, coverUrl } from "@/lib/blog/service";
+import { getPublishedPost, getPostRedirect, listPublishedPosts, coverUrl } from "@/lib/blog/service";
+import { isManagedSeoSlug } from "@/lib/seo/routes";
 import { grammarImageForSlug } from "@/lib/blog/editorial";
 import { relatedGrammarLessons } from "@/lib/blog/grammar-learning-path";
 import { getCurrentUser } from "@/lib/auth/session";
@@ -12,6 +13,9 @@ import { getSiteUrl } from "@/lib/seo/site-url";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
+  if (isManagedSeoSlug(slug)) notFound();
+  const destination = await getPostRedirect(slug);
+  if (destination) permanentRedirect(destination);
   const post = await getPublishedPost(slug);
   if (!post) return { title: "Không tìm thấy bài viết", robots: { index: false, follow: false } };
   const image = await coverUrl(post.coverMediaId) || grammarImageForSlug(post.slug) || ("editorialCover" in post && typeof post.editorialCover === "string" ? post.editorialCover : null) || `/blog/cover/${post.category.toLowerCase()}`;
@@ -42,6 +46,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  if (isManagedSeoSlug(slug)) notFound();
+  const destination = await getPostRedirect(slug);
+  if (destination) permanentRedirect(destination);
   const post = await getPublishedPost(slug);
   if (!post) notFound();
   const user = await getCurrentUser();
@@ -53,7 +60,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   const base = getSiteUrl();
   const url = new URL(post.canonicalPath || `/blog/${post.slug}`, base).toString();
   const jsonLd = { "@context":"https://schema.org", "@graph": [
-    { "@type":"BlogPosting", headline: post.title, description: post.seoDescription || post.excerpt, datePublished: post.publishedAt?.toISOString(), dateModified: post.updatedAt.toISOString(), url, image: image ? new URL(image, base).toString() : undefined, author: !post.authorName || post.authorName === "TOEICGym Editorial" ? { "@type": "Organization", name: "TOEICGym" } : { "@type": "Person", name: post.authorName }, publisher: { "@type": "Organization", name: "TOEICGym" } },
+    { "@type":"BlogPosting", headline: post.title, description: post.seoDescription || post.excerpt, datePublished: post.publishedAt?.toISOString(), dateModified: post.updatedAt.toISOString(), url, image: image ? new URL(image, base).toString() : undefined, author: !post.authorName || /^(TOEICGym|TOEICGym Editorial)$/.test(post.authorName) ? { "@type": "Organization", name: "TOEICGym" } : { "@type": "Person", name: post.authorName }, publisher: { "@type": "Organization", name: "TOEICGym" } },
     { "@type": "BreadcrumbList", itemListElement: [
       { "@type": "ListItem", position: 1, name: "Kiến thức TOEIC", item: new URL("/blog", base).toString() },
       ...(post.category === "GRAMMAR" ? [{ "@type": "ListItem", position: 2, name: "Ngữ pháp tiếng Anh", item: new URL("/blog/ngu-phap", base).toString() }] : []),

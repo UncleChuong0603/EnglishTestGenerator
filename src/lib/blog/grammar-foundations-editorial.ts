@@ -199,7 +199,7 @@ Nếu có hai hành động đều đã hoàn tất theo trình tự, dùng quá
 
 ## Tự kiểm tra
 
-**While the engineers _____ the system, the power went out.** (A) tested (B) were testing (C) have tested (D) test
+**While the engineers _____ the system, the power went out.** (A) was testing (B) were testing (C) have testing (D) testing
 
 **Đáp án B.** *Were testing* diễn tả quá trình đang diễn ra trước và tại lúc mất điện. Sau khi giải, hãy tìm động từ chính của từng mệnh đề; nếu vẫn nhầm, ôn [cấu trúc câu tiếng Anh](/blog/cau-truc-cau-tieng-anh-co-ban).`,
   }),
@@ -228,7 +228,7 @@ Nếu có hai hành động đều đã hoàn tất theo trình tự, dùng quá
 
 ## Tự kiểm tra
 
-**The manager _____ the contract last Friday.** (A) signs (B) signed (C) has signed (D) had signed
+**The manager _____ the contract last Friday.** (A) signs (B) signed (C) has signed (D) signing
 
 **Đáp án B.** *Last Friday* là thời điểm quá khứ đã xác định. Nếu câu nói *The manager has signed the contract; we can proceed now*, hiện tại hoàn thành sẽ hợp vì nhấn vào kết quả hiện tại.
 
@@ -257,9 +257,7 @@ Trong mệnh đề thời gian với *when, before, after, as soon as*, thườn
 
 ## Ví dụ kiểu TOEIC
 
-**The board _____ the new policy at its scheduled meeting next Tuesday.** (A) discusses (B) is discussing (C) discussed (D) had discussed
-
-**Đáp án B** nếu muốn nhấn mạnh cuộc họp đã được sắp xếp. A cũng có thể hợp khi nói về lịch trình cố định; một đề có một đáp án cần thêm ngữ cảnh. Ví dụ này dùng để so sánh sắc thái, không phải câu chấm điểm.
+So sánh *The board discusses the policy next Tuesday* (lịch trình) và *The board is discussing the policy next Tuesday* (việc đã sắp xếp). Cả hai có thể đúng tùy ngữ cảnh; không dùng chúng làm hai đáp án đối lập trong một câu chỉ cho phép một lựa chọn.
 
 **Look at the confirmed schedule. The board _____ the new policy next Tuesday.** (A) discussed (B) is discussing (C) had discussed (D) discusses yesterday
 
@@ -295,9 +293,9 @@ Các từ *can, could, may, might, must, should* đứng trước **động từ
 
 Muốn nói khả năng trong quá khứ, dùng *could* khi phù hợp: *I could read the sign from the entrance*. Với một lần thành công cụ thể, *was able to* thường rõ hơn: *I was able to fix the printer yesterday*. *Must have + V3* có thể diễn tả suy đoán mạnh về quá khứ: *She must have received the email*; nó không phải nghĩa vụ quá khứ.
 
-**Employees _____ wear safety glasses in the laboratory.** (A) must (B) might (C) could (D) would
+**Under the mandatory safety policy, employees _____ wear safety glasses in the laboratory.** (A) must (B) might (C) could (D) would
 
-**Đáp án A** nếu đây là quy định bắt buộc. *Might* chỉ khả năng và không truyền đạt nghĩa vụ. Ví dụ do TOEICGym tự biên soạn.
+**Đáp án A.** *Mandatory safety policy* xác định đây là nghĩa vụ bắt buộc. *Might* chỉ khả năng; *could* nói khả năng hoặc sự cho phép; *would* không nêu nghĩa vụ hiện tại trong câu này. Ví dụ do TOEICGym tự biên soạn.
 
 ## Tự kiểm tra
 

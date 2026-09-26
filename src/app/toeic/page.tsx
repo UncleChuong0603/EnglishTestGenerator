@@ -1,6 +1,5 @@
-import { GuidePage } from "@/components/seo/guide-page";
-import { guides } from "@/lib/seo/guides";
-import { publicPageMetadata } from "@/lib/seo/public-metadata";
+import { ManagedPage, managedMetadata } from "@/components/seo/managed-page";
 
-export const metadata = publicPageMetadata({ title: "TOEIC Listening & Reading: cấu trúc và cách bắt đầu", description: guides.toeic.intro, canonical: "/toeic" });
-export default function Page() { return <GuidePage breadcrumbs={[{ name: "Trang chủ", path: "/" }, { name: "TOEIC", path: "/toeic" }]} guide={guides.toeic} />; }
+export const dynamic = "force-dynamic";
+export function generateMetadata() { return managedMetadata("seo-toeic"); }
+export default function Page() { return <ManagedPage slug="seo-toeic" />; }

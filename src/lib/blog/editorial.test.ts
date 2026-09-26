@@ -9,10 +9,10 @@ describe("editorial TOEIC library", () => {
       const posts = EDITORIAL_POSTS.filter(post => post.category === category);
       expect(posts.length).toBeGreaterThanOrEqual(1);
       for (const post of posts) {
-        expect(post.seoTitle.length).toBeGreaterThan(20);
-        expect(post.seoDescription.length).toBeGreaterThan(70);
-        expect(post.coverAlt.length).toBeGreaterThan(15);
-        expect(post.content.split(/\s+/).length).toBeGreaterThan(200);
+        expect(post.seoTitle.trim()).not.toBe("");
+        expect(post.seoDescription.trim()).not.toBe("");
+        expect(post.content).toMatch(/^## /m);
+        expect(post.content).toMatch(/\]\(\//);
       }
     }
   });

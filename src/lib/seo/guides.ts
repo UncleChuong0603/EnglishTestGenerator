@@ -27,7 +27,7 @@ export const guides = {
   },
   part5: {
     eyebrow: "TOEIC Reading · Part 5",
-    title: "TOEIC Part 5: cách làm câu hoàn thành câu",
+    title: "TOEIC Part 5: chọn chủ điểm và luyện câu hoàn thành câu",
     intro: "Part 5 kiểm tra khả năng chọn từ hoặc cấu trúc phù hợp trong một câu ngắn. Cách làm hiệu quả là xác định chỗ trống cần loại từ nào, rồi mới xét nghĩa và ngữ pháp của cả câu.",
     topCta: { href: "/challenge/part-5", label: "Làm thử 10 câu Part 5" },
     sections: [
@@ -37,7 +37,17 @@ export const guides = {
       { title: "Luyện Part 5 theo vòng nhỏ", paragraphs: ["Bắt đầu với một chủ đề như Word Form, thì và thời, hoặc giới từ. Làm một nhóm câu, xem giải thích và thử lại sau một đến ba ngày. Khi độ chính xác ổn định, trộn nhiều chủ đề để kiểm tra xem bạn còn nhận ra dấu hiệu trong câu mới hay không."] },
     ],
     example: { title: "Ví dụ: nhận diện loại từ", question: "The manager gave a _____ explanation of the revised schedule.", options: ["A. clearly", "B. clarity", "C. clear", "D. clarify"], answer: "Đáp án C. clear. Chỗ trống đứng trước danh từ explanation nên cần tính từ. Clearly là trạng từ, clarity là danh từ, clarify là động từ." },
-    links: [{ href: "/toeic/part-5/thi-dong-tu", label: "Luyện 5 câu thì động từ", description: "Nhận diện mốc thời gian và thứ tự sự kiện." }, { href: "/toeic/part-5/word-form", label: "Luyện 5 câu Word Form", description: "Chọn loại từ và xem giải thích sau khi nộp." }, { href: "/blog/ngu-phap-toeic-part-5-can-hoc", label: "7 chủ điểm ngữ pháp", description: "Đọc thêm cách chọn chủ điểm cần học." }, { href: "/blog/tu-vung-toeic-theo-chu-de-cong-so", label: "Từ vựng công sở theo cụm", description: "Học ngữ cảnh và các cụm từ thường đi cùng nhau." }, { href: "/blog/sua-de-mau-ets-toeic-2025-reading-part-5-6-7", label: "Sửa đề mẫu ETS Reading", description: "Xem cách giải thích câu Part 5 trong đề mẫu công khai." }],
+    links: [
+      { href: "/toeic/part-5/practice", label: "Luyện Part 5 hỗn hợp", description: "Bảy câu tự biên soạn để nhận ra dạng câu cần ôn." },
+      { href: "/toeic/part-5/word-form", label: "Bài tập Word Form", description: "Chọn loại từ dựa trên nhiệm vụ của chỗ trống." },
+      { href: "/toeic/part-5/thi-dong-tu", label: "Bài tập thì động từ", description: "Nhận diện mốc thời gian và thứ tự sự kiện." },
+      { href: "/blog/hoa-hop-chu-ngu-dong-tu-toeic", label: "Hòa hợp chủ ngữ – động từ", description: "Tìm chủ ngữ chính, tránh bị cụm chen giữa đánh lừa." },
+      { href: "/blog/gioi-tu-toeic-trong-cong-viec", label: "Giới từ trong công việc", description: "Học responsible for, comply with và hạn chót." },
+      { href: "/blog/lien-tu-va-tu-noi-toeic", label: "Liên từ và từ nối", description: "Phân biệt mệnh đề với cụm danh từ." },
+      { href: "/blog/menh-de-quan-he-toeic", label: "Mệnh đề quan hệ", description: "Chọn who, whose, where theo chức năng trong câu." },
+      { href: "/blog/tu-vung-toeic-theo-chu-de-cong-so", label: "Từ vựng và collocation công sở", description: "Đọc ngữ cảnh và học các từ thường đi cùng nhau." },
+      { href: "/blog/cach-review-loi-sai-toeic", label: "Review lỗi sai Part 5", description: "Biến kết quả thành một mục tiêu cho buổi sau." },
+    ],
     cta: { href: "/challenge/part-5", label: "Bắt đầu Part 5 Challenge", description: "Làm 10 câu Part 5 miễn phí, không cần tài khoản. Xem độ chính xác và lời giải sau khi nộp." },
   },
   part6: {
