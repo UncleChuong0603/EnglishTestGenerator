@@ -45,13 +45,13 @@ Khi nêu số lượng việc hoàn tất, hiện tại hoàn thành thường t
 
 Các động từ chỉ trạng thái như *know, own, belong* ít dùng ở dạng tiếp diễn khi giữ nghĩa trạng thái: *She has known the client for years*. Nếu chủ ngữ nhận hành động, hiện tại hoàn thành bị động là **has/have been + V3**: *The report has been checked*. Nó trông giống hoàn thành tiếp diễn ở *has been*, nhưng từ sau là V3 thay vì V-ing. Đọc [bài câu bị động](/blog/cau-bi-dong-toeic-part-5) nếu dễ nhầm hai dạng.
 
-**The engineers _____ the network for three hours, and the repair is still in progress.** (A) have tested (B) have been testing (C) tested (D) had tested
+**The engineers _____ the network for three hours, and the repair is still in progress.** (A) has been testing (B) have been testing (C) will testing (D) had testing
 
-**Đáp án B.** *Still in progress* nhấn quá trình đang tiếp tục, nên *have been testing* diễn đạt rõ nhất. Ví dụ do TOEICGym tự biên soạn.
+**Đáp án B.** *Still in progress* nhấn quá trình đang tiếp tục. A dùng *has* với chủ ngữ số nhiều; C phải dùng *will + V*; D thiếu *been* trước V-ing. Ví dụ do TOEICGym tự biên soạn.
 
 ## Tự kiểm tra
 
-**The team _____ all 40 applications so far.** (A) has reviewed (B) has been reviewing (C) reviewed yesterday (D) is reviewed
+**The team _____ all 40 applications so far.** (A) has reviewed (B) has reviewing (C) reviewed yesterday (D) is reviewed
 
 **Đáp án A.** *All 40 applications* và *so far* nhấn tổng số đã hoàn tất tính đến hiện tại. Nếu muốn nói quá trình chưa xong, câu có thể là *The team has been reviewing applications all morning*. Ôn lại [hiện tại hoàn thành và quá khứ đơn](/blog/hien-tai-hoan-thanh-va-qua-khu-don) để chọn đúng mốc thời gian.`,
   }),

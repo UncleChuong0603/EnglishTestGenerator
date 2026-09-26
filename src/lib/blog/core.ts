@@ -1,4 +1,6 @@
-export const POST_STATUSES = ["DRAFT", "PUBLISHED", "UNPUBLISHED"] as const;
+export const POST_STATUSES = ["DRAFT", "PUBLISHED", "UNPUBLISHED", "ARCHIVED"] as const;
+export const CONTENT_ORIGINS = ["HUMAN", "AI_ASSISTED", "MIGRATED"] as const;
+export type ContentOrigin = (typeof CONTENT_ORIGINS)[number];
 export const POST_CATEGORIES = ["TOEIC_STRATEGY", "LISTENING", "READING", "GRAMMAR", "VOCABULARY", "STUDY_PLAN", "EXAM_TIPS", "EXAM_REVIEW"] as const;
 export type PostStatus = (typeof POST_STATUSES)[number];
 export type PostCategory = (typeof POST_CATEGORIES)[number];
@@ -20,7 +22,7 @@ export function safeHref(value: string) {
   const href = value.trim();
   return (href.startsWith("/") && !href.startsWith("//")) || href.startsWith("#") || /^https?:\/\//i.test(href) || /^mailto:/i.test(href) ? href : null;
 }
-export const STATUS_LABELS: Record<PostStatus,string> = { DRAFT:"Bản nháp", PUBLISHED:"Đã xuất bản", UNPUBLISHED:"Chưa xuất bản" };
+export const STATUS_LABELS: Record<PostStatus,string> = { DRAFT:"Bản nháp", PUBLISHED:"Đã xuất bản", UNPUBLISHED:"Chưa xuất bản", ARCHIVED:"Đã lưu trữ" };
 export function isEditorialVisible(cmsStatus?: PostStatus) { return cmsStatus === undefined || cmsStatus === "DRAFT"; }
 export function validCanonical(path:string) { return !path || /^\/(?!\/)[a-z0-9/_-]*$/.test(path); }
 export function validatePost(input: PostInput, publishing = false) {
@@ -33,4 +35,4 @@ export function validatePost(input: PostInput, publishing = false) {
   if (publishing && !input.excerpt.trim()) errors.push("EXCERPT_REQUIRED");
   return errors;
 }
-export type PostInput = { title: string; slug: string; excerpt: string; content: string; category: PostCategory; seoTitle?: string; seoDescription?: string; canonicalPath?: string; coverMediaId?: string; coverAlt?: string; socialTitle?: string; socialDescription?: string; authorName?: string; targetTopic?: string; searchIntent?: string; noindex?: boolean; tags: string[] };
+export type PostInput = { title: string; slug: string; excerpt: string; content: string; category: PostCategory; seoTitle?: string; seoDescription?: string; canonicalPath?: string; redirectPath?: string; contentOrigin?: ContentOrigin; coverMediaId?: string; coverAlt?: string; socialTitle?: string; socialDescription?: string; authorName?: string; targetTopic?: string; searchIntent?: string; noindex?: boolean; tags: string[] };

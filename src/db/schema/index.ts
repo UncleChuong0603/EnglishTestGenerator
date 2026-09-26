@@ -495,7 +495,10 @@ export const contentPosts = pgTable("content_posts", {
   seoTitle: text("seo_title"),
   seoDescription: text("seo_description"),
   canonicalPath: text("canonical_path"),
+  redirectPath: text("redirect_path"),
   noindex: boolean("noindex").notNull().default(false),
+  contentOrigin: text("content_origin").notNull().default("MIGRATED"),
+  lastReviewedAt: timestamp("last_reviewed_at", { withTimezone: true, mode: "date" }),
   authorName: text("author_name"),
   coverAlt: text("cover_alt"),
   socialTitle: text("social_title"),
@@ -511,7 +514,8 @@ export const contentPosts = pgTable("content_posts", {
   uniqueIndex("content_posts_slug_uidx").on(table.slug),
   index("content_posts_public_idx").on(table.status, table.publishedAt),
   index("content_posts_admin_idx").on(table.updatedAt, table.status),
-  check("content_posts_status_check", sql`${table.status} in ('DRAFT','PUBLISHED','UNPUBLISHED')`),
+  check("content_posts_status_check", sql`${table.status} in ('DRAFT','PUBLISHED','UNPUBLISHED','ARCHIVED')`),
+  check("content_posts_origin_check", sql`${table.contentOrigin} in ('HUMAN','AI_ASSISTED','MIGRATED')`),
   check("content_posts_slug_check", sql`${table.slug} ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'`),
 ]);
 

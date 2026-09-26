@@ -9,13 +9,20 @@ import { CATEGORY_LABELS, POST_CATEGORIES, type PostCategory } from "@/lib/blog/
 import { getPreferences } from "@/lib/i18n/get-translations";
 import { publicPageMetadata } from "@/lib/seo/public-metadata";
 
-export const metadata = publicPageMetadata({ title: "Kiến thức TOEIC: ngữ pháp, Listening, Reading và lộ trình", description: "Thư viện kiến thức TOEIC với lộ trình ngữ pháp tiếng Anh, hướng dẫn Listening, Reading, từ vựng, mẹo làm bài và ví dụ có giải thích.", canonical: "/blog", socialTitle: "Kiến thức TOEIC | TOEIC GYM", socialDescription: "Học ngữ pháp theo chủ điểm, luyện Listening và Reading, rồi áp dụng ngay vào câu hỏi TOEIC.", image: "/blog/cover/toeic_strategy" });
+const blogMetadata = publicPageMetadata({ title: "Kiến thức TOEIC: ngữ pháp, Listening, Reading và lộ trình", description: "Thư viện kiến thức TOEIC với lộ trình ngữ pháp tiếng Anh, hướng dẫn Listening, Reading, từ vựng, mẹo làm bài và ví dụ có giải thích.", canonical: "/blog", socialTitle: "Kiến thức TOEIC | TOEIC GYM", socialDescription: "Học ngữ pháp theo chủ điểm, luyện Listening và Reading, rồi áp dụng ngay vào câu hỏi TOEIC.", image: "/blog/cover/toeic_strategy" });
+
+type Search = { category?: string; q?: string };
+export async function generateMetadata({ searchParams }: { searchParams: Promise<Search> }) {
+  const { q, category } = await searchParams;
+  return q?.trim() || category?.trim()
+    ? { ...blogMetadata, robots: { index: false, follow: true } }
+    : blogMetadata;
+}
 
 const categoryNotes: Record<PostCategory, { vi: string; en: string }> = {
   TOEIC_STRATEGY: { vi: "Tăng điểm có chiến lược", en: "Score-growth strategy" }, LISTENING: { vi: "Nghe ý, bắt paraphrase", en: "Listen for meaning" }, READING: { vi: "Đọc nhanh, giữ độ chính xác", en: "Read faster accurately" }, GRAMMAR: { vi: "Ngữ pháp tạo điểm", en: "High-value grammar" }, VOCABULARY: { vi: "Từ vựng theo ngữ cảnh", en: "Vocabulary in context" }, STUDY_PLAN: { vi: "Lịch học duy trì được", en: "Sustainable study plans" }, EXAM_TIPS: { vi: "Sẵn sàng cho ngày thi", en: "Test-day readiness" }, EXAM_REVIEW: { vi: "Phân tích đáp án và lỗi sai", en: "Review answers and mistakes" },
 };
 
-type Search = { category?: string; q?: string };
 export default async function BlogPage({ searchParams }: { searchParams: Promise<Search> }) {
   const user = await getCurrentUser();
   const [{ category, q }, prefs, posts] = await Promise.all([searchParams, getPreferences(user?.id), listPublishedPosts(200)]);

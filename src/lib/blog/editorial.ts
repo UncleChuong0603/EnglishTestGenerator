@@ -6,6 +6,9 @@ import { GRAMMAR_FOUNDATION_POSTS } from "./grammar-foundations-editorial";
 import { GRAMMAR_CLAUSE_POSTS } from "./grammar-clauses-editorial";
 import { GRAMMAR_ADVANCED_POSTS } from "./grammar-advanced-editorial";
 import { ETS_2025_REVIEW_POST } from "./ets-2025-review";
+import { PART5_REVIEW_GUIDE } from "./part5-review-guide";
+import { SCORE_ROADMAP_POST } from "./score-roadmap-editorial";
+import { MINI_PRACTICE } from "@/lib/seo/mini-practice";
 
 export type EditorialPost = {
   id: string;
@@ -33,64 +36,23 @@ export type EditorialPost = {
   updatedBy: string;
   tags: { name: string; slug: string }[];
   editorialCover: string;
+  contentOrigin?: "HUMAN" | "AI_ASSISTED" | "MIGRATED";
 };
 
 const dates = { publishedAt: new Date("2026-09-20T02:00:00.000Z"), createdAt: new Date("2026-09-20T02:00:00.000Z"), updatedAt: new Date("2026-09-23T02:00:00.000Z") };
 const tag = (name: string, slug: string) => ({ name, slug });
 const cover = (category: PostCategory) => `/blog/cover/${category.toLowerCase()}`;
 
-function post(input: Omit<EditorialPost, keyof typeof dates | "status" | "coverMediaId" | "noindex" | "createdBy" | "updatedBy" | "editorialCover">): EditorialPost {
-  return { ...input, ...dates, status: "PUBLISHED", coverMediaId: null, noindex: false, createdBy: "editorial", updatedBy: "editorial", editorialCover: cover(input.category) };
+function post(input: Omit<EditorialPost, keyof typeof dates | "status" | "coverMediaId" | "noindex" | "createdBy" | "updatedBy" | "editorialCover"> & { revisedAt?: Date }): EditorialPost {
+  const { revisedAt, ...content } = input;
+  return { ...content, ...dates, updatedAt: revisedAt ?? dates.updatedAt, status: "PUBLISHED", coverMediaId: null, noindex: false, createdBy: "editorial", updatedBy: "editorial", editorialCover: cover(input.category) };
 }
 
 export const EDITORIAL_POSTS: EditorialPost[] = [
+  PART5_REVIEW_GUIDE,
   ETS_2025_REVIEW_POST,
   ...TOEIC_TIP_POSTS,
-  post({
-    id: "editorial-score-roadmap", category: "TOEIC_STRATEGY", slug: "chien-luoc-tang-diem-toeic-450-den-700",
-    title: "Chiến lược tăng điểm TOEIC từ 450 lên 700: học gì trước?",
-    excerpt: "Lộ trình ưu tiên theo từng mốc điểm, giúp bạn ngừng học dàn trải và tập trung vào những phần tạo ra nhiều điểm nhất.",
-    seoTitle: "Cách tăng điểm TOEIC từ 450 lên 700 theo lộ trình",
-    seoDescription: "Lộ trình tăng điểm TOEIC 450 lên 700: chọn Part ưu tiên, phân bổ thời gian, đo tiến bộ và tránh các lỗi học dàn trải.", canonicalPath: "/blog/chien-luoc-tang-diem-toeic-450-den-700",
-    coverAlt: "Bản đồ lộ trình tăng điểm TOEIC từ 450 lên 700", socialTitle: "Tăng TOEIC 450 lên 700: lộ trình thực tế", socialDescription: "Biết rõ nên học gì trước ở từng giai đoạn thay vì luyện đề liên tục.", authorName: "TOEICGym Editorial", targetTopic: "tăng điểm TOEIC 450 lên 700", searchIntent: "informational", tags: [tag("Lộ trình TOEIC", "lo-trinh-toeic"), tag("TOEIC 700", "toeic-700")],
-    content: `## Đừng bắt đầu bằng một lịch học thật dày
-
-Từ 450 lên 700 không chỉ là làm thêm thật nhiều đề. Khoảng điểm này thường cho thấy người học đã nhận ra cấu trúc bài thi nhưng còn mất điểm vì ba nguyên nhân: vốn từ theo ngữ cảnh chưa đủ, ngữ pháp nền chưa tự động và tốc độ xử lý chưa ổn định. Vì vậy, lộ trình hiệu quả cần ưu tiên đúng thứ tự.
-
-## Giai đoạn 1: củng cố điểm chắc chắn
-
-Trong 2 tuần đầu, hãy dùng một bài đánh giá để xác định Part yếu thay vì đoán. Với Reading, ưu tiên Part 5 để củng cố loại từ, thì, mệnh đề quan hệ và liên từ. Với Listening, tập trung Part 2 vì câu ngắn giúp bạn nhận ra nhanh vấn đề về từ để hỏi, thì và ý định người nói.
-
-- Học 20–30 phút mỗi ngày, 5 ngày mỗi tuần.
-- Sau mỗi lượt luyện, ghi lại **lý do sai**, không chỉ đáp án đúng.
-- Ôn lại câu sai sau 1 ngày và 3 ngày.
-- Chỉ tăng số lượng khi độ chính xác đã ổn định.
-
-## Giai đoạn 2: chuyển từ kiến thức sang tốc độ
-
-Khi Part 5 và Part 2 đạt khoảng 75–80% trong các bộ câu vừa sức, bắt đầu ghép bài theo nhóm. Part 3–4 cần nghe theo cụm thông tin: ai, ở đâu, vấn đề gì và hành động tiếp theo. Part 6–7 cần đọc câu hỏi trước, tìm từ khóa và nhận ra cách đề diễn đạt lại thông tin.
-
-Đừng bấm giờ quá gắt ngay từ đầu. Hãy đo thời gian hoàn thành tự nhiên trong ba buổi, sau đó giảm mục tiêu khoảng 5–10% mỗi tuần. Tốc độ bền vững đến từ khả năng nhận dạng mẫu câu, không phải đọc hoặc nghe vội.
-
-## Giai đoạn 3: mô phỏng áp lực bài thi
-
-Trong 2–3 tuần cuối, xen kẽ một bài thi thử với các buổi sửa lỗi. Một bài thi thử chỉ có giá trị khi bạn dành đủ thời gian phân tích. Chia lỗi thành bốn nhóm: thiếu từ vựng, sai ngữ pháp, bỏ sót chi tiết và quản lý thời gian. Nhóm lỗi xuất hiện nhiều nhất sẽ là trọng tâm tuần tiếp theo.
-
-## Lịch mẫu 6 tuần
-
-- **Tuần 1–2:** Part 2, Part 5 và từ vựng nền. Theo dõi độ chính xác theo kỹ năng.
-- **Tuần 3–4:** Part 3–4, Part 6–7. Theo dõi tốc độ và lỗi paraphrase.
-- **Tuần 5:** Bài hỗn hợp theo nửa đề. Theo dõi sức bền và cách phân bổ thời gian.
-- **Tuần 6:** Thi thử, sửa lỗi và ôn nhẹ. Theo dõi độ ổn định qua nhiều lần làm bài.
-
-Điểm số không tăng tuyến tính từng ngày. Hãy nhìn xu hướng của 3–5 phiên gần nhất và số lỗi lặp lại. Khi lỗi cũ giảm, bạn đang tiến bộ ngay cả khi một bài cụ thể khó hơn.
-
-## Ví dụ: chọn việc học từ sổ lỗi
-
-Giả sử một bài luyện có 12 câu sai: 6 câu Part 5 do nhầm loại từ, 4 câu Part 7 do thiếu thời gian và 2 câu nghe sai tên riêng. Buổi tiếp theo nên bắt đầu bằng 10 câu loại từ có giải thích, rồi một cụm Part 7 bấm giờ. Đừng dành cả buổi để học từ mới chỉ vì đó là việc dễ bắt đầu. Sau một tuần, so lại *số lỗi cùng loại trên cùng số câu*, không so hai đề có độ khó khác nhau.
-
-Nếu bạn chỉ có 35 phút mỗi ngày, dùng [lộ trình TOEIC 30 ngày cho người bận rộn](/blog/lo-trinh-hoc-toeic-30-ngay-cho-nguoi-ban-ron) để chia nhỏ lịch. Mốc 450 và 700 là mục tiêu tham khảo, không phải lời hứa tăng điểm trong sáu tuần.`
-  }),
+  SCORE_ROADMAP_POST,
   post({
     id: "editorial-listening", category: "LISTENING", slug: "cach-luyen-nghe-toeic-part-3-4",
     title: "Cách luyện nghe TOEIC Part 3 và 4 không cần nghe từng từ",
@@ -185,36 +147,39 @@ Ví dụ khi còn 50 phút mà vẫn ở Part 5, hãy chốt các câu chưa ch�
   }),
   post({
     id: "editorial-grammar", category: "GRAMMAR", slug: "ngu-phap-toeic-part-5-can-hoc",
+    revisedAt: new Date("2026-09-26T18:00:00.000Z"),
     title: "7 chủ điểm ngữ pháp TOEIC Part 5 cần học trước",
-    excerpt: "Danh sách ngữ pháp có tần suất ứng dụng cao, dấu hiệu nhận biết và cách luyện để tránh học lan man.",
+    excerpt: "Chọn chủ điểm Part 5 theo lỗi bạn mắc: loại từ, động từ, hòa hợp, mệnh đề, liên từ, giới từ và lượng từ. Có ví dụ và đường học tiếp.",
     seoTitle: "7 chủ điểm ngữ pháp TOEIC Part 5 quan trọng", seoDescription: "Tổng hợp 7 chủ điểm ngữ pháp TOEIC Part 5 nên ưu tiên: loại từ, thì, hòa hợp, mệnh đề, liên từ, giới từ và cấu trúc so sánh.", canonicalPath: "/blog/ngu-phap-toeic-part-5-can-hoc", coverAlt: "Các khối câu minh họa ngữ pháp TOEIC Part 5", socialTitle: "Ngữ pháp Part 5: học 7 nhóm này trước", socialDescription: "Dấu hiệu nhận biết và cách ôn theo lỗi thay vì học thuộc rời rạc.", authorName: "TOEICGym Editorial", targetTopic: "ngữ pháp TOEIC Part 5", searchIntent: "informational", tags: [tag("Ngữ pháp TOEIC", "ngu-phap-toeic"), tag("Part 5", "part-5")],
-    content: `## 1. Loại từ
+    content: `Bạn không cần học lại toàn bộ ngữ pháp trước khi làm Part 5. Làm một nhóm câu hỗn hợp, ghi vì sao từng câu sai, rồi chọn chủ điểm tương ứng bên dưới. Nếu muốn bắt đầu ngay, [làm 10 câu Part 5 miễn phí](/challenge/part-5) và dùng kết quả để chọn bài ôn.
 
-Đây là nhóm tạo điểm nhanh vì vị trí trống thường cho biết cần danh từ, động từ, tính từ hay trạng từ. Hãy nhìn từ đứng trước và sau chỗ trống trước khi dịch cả câu. Ví dụ, sau mạo từ thường cần danh từ; trước danh từ thường là tính từ.
+## 1. Loại từ
+
+Khi các lựa chọn cùng gốc như *approve, approval, approved, approving*, hãy hỏi chỗ trống làm nhiệm vụ gì. Trong “The manager gave final ___ to the proposal”, sau tính từ *final* cần danh từ **approval**. Đừng dùng quy tắc “sau mạo từ là danh từ” một cách máy móc: *the revised schedule* có tính từ chen giữa.
 
 ## 2. Thì và dạng động từ
 
-Không học thì như một bảng công thức tách rời. Hãy gắn chúng với dấu hiệu thời gian và quan hệ giữa các sự kiện. TOEIC thường dùng hiện tại đơn cho quy trình, hiện tại hoàn thành cho trải nghiệm hoặc thay đổi đến hiện tại, và tương lai cho lịch trình hoặc cam kết.
+Tìm mốc thời gian và thứ tự sự kiện trước khi chọn thì. “The supplier ___ the revised invoice yesterday” cần quá khứ đơn **sent**; “By the time the meeting began, the supplier ___ the invoice” cần **had sent** để diễn tả việc gửi xảy ra trước cuộc họp. Sau đó kiểm tra chủ ngữ có thực hiện hành động hay nhận hành động.
 
 ## 3. Hòa hợp chủ ngữ – động từ
 
-Tìm chủ ngữ chính, bỏ qua cụm giới từ chen giữa. Các từ như each, every, neither thường đi với động từ số ít; trong khi a number of đi với số nhiều nhưng the number of đi với số ít.
+Tìm chủ ngữ chính, bỏ qua cụm giới từ chen giữa. Trong “The list of approved vendors ___ on the desk”, chủ ngữ là *list*, nên chọn **is**, dù *vendors* ở gần chỗ trống hơn. *A number of* thường đi với động từ số nhiều; *the number of* thường đi với số ít.
 
 ## 4. Mệnh đề quan hệ
 
-Phân biệt who, which, that, whose và where dựa trên danh từ được thay thế và vai trò còn thiếu trong mệnh đề. Đừng chọn chỉ vì thấy danh từ chỉ người hoặc vật; cần kiểm tra sau chỗ trống đã có chủ ngữ hay chưa.
+Xem danh từ đứng trước và phần còn thiếu trong mệnh đề. “The consultant ___ prepared the report” cần **who** vì thiếu chủ ngữ chỉ người; “The consultant ___ report was approved” cần **whose** vì thiếu từ chỉ sở hữu. Chọn theo cấu trúc của cả mệnh đề, không chỉ theo danh từ đứng trước.
 
 ## 5. Liên từ và trạng từ nối
 
-Because nối một mệnh đề, because of đi với cụm danh từ. Although tạo quan hệ nhượng bộ trong một câu, còn however thường nối ý giữa hai câu hoặc hai mệnh đề độc lập với dấu câu phù hợp.
+*Because* đi trước mệnh đề có chủ ngữ và động từ: “The event was moved **because** the room was unavailable.” *Because of* đi trước cụm danh từ: “The event was moved **because of** a room change.” Với *however*, kiểm tra dấu câu: nó thường nối hai câu độc lập hoặc theo sau dấu chấm phẩy, không thay trực tiếp *although* trong cùng cấu trúc.
 
 ## 6. Giới từ
 
-Giới từ trong TOEIC xuất hiện nhiều trong cụm cố định công sở: responsible for, interested in, comply with, prior to. Nên học cả cụm và một câu ví dụ thay vì ghi riêng từng từ.
+Học cả cụm và ngữ cảnh: **responsible for** the schedule, **comply with** the policy, **prior to** the meeting. Trong “Please submit the forms ___ Friday”, **by** diễn tả hạn chót; **on** chỉ đúng ngày. Nếu không biết câu muốn nói hạn chót hay ngày thực hiện, đừng đoán chỉ từ danh từ *Friday*.
 
 ## 7. So sánh và lượng từ
 
-Chú ý danh từ đếm được, không đếm được và cấu trúc so sánh. Fewer đi với danh từ đếm được số nhiều; less đi với danh từ không đếm được. Các cấu trúc the more…, the more… hoặc one of the most… cũng xuất hiện thường xuyên.
+Kiểm tra danh từ sau chỗ trống: **fewer orders** vì *orders* đếm được; **less time** vì *time* trong nghĩa này không đếm được. Với “one of the most ___ suppliers”, cần tính từ trước *suppliers*, chẳng hạn **reliable**. Đọc cả cụm thay vì học riêng một từ *more* hay *most*.
 
 ## Đọc sâu từng chủ điểm
 
@@ -373,5 +338,26 @@ Khi mất tập trung, dừng vài giây, thở chậm và quay lại từ câu 
 ];
 
 export { grammarImageForSlug };
+
+// Only these materially expanded pages receive a new modification date.
+for (const article of EDITORIAL_POSTS) {
+  if (MINI_PRACTICE[article.slug]) {
+    article.updatedAt = new Date("2026-09-26T18:00:00.000Z");
+    article.contentOrigin = "AI_ASSISTED";
+    article.content += "\n\n## Từ lỗi sai đến bài luyện tiếp\n\nSau khi thử các câu đầu bài, ghi lại tín hiệu đã bỏ qua và lý do đáp án bạn chọn sai. Đọc [cách review lỗi sai TOEIC](/blog/cach-review-loi-sai-toeic), rồi chuyển sang [bài Part 5 hỗn hợp](/toeic/part-5/practice) để kiểm tra khi không biết trước dạng câu.";
+  }
+}
+export const CORRECTED_EXERCISE_SLUGS = [
+  "qua-khu-don-va-qua-khu-tiep-dien", "hien-tai-hoan-thanh-va-qua-khu-don",
+  "tuong-lai-will-going-to-hien-tai-tiep-dien", "dong-tu-khuyet-thieu-can-must-should-may",
+  "cau-dieu-kien-tieng-anh-if-wish", "cau-tuong-thuat-tieng-anh-said-told-asked",
+  "dao-ngu-tieng-anh-only-never-not-only", "hien-tai-hoan-thanh-va-hoan-thanh-tiep-dien",
+];
+for (const article of EDITORIAL_POSTS) {
+  if (CORRECTED_EXERCISE_SLUGS.includes(article.slug)) {
+    article.updatedAt = new Date("2026-09-26T18:00:00.000Z");
+    article.contentOrigin = "AI_ASSISTED";
+  }
+}
 
 export function getEditorialPost(slug: string) { return EDITORIAL_POSTS.find(item => item.slug === slug) ?? null; }

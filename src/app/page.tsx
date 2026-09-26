@@ -27,7 +27,7 @@ const content = {
   vi: {
     eyebrow: "TOEIC GYM · Luyện đúng cách, tiến bộ mỗi ngày",
     title: "Luyện TOEIC không chỉ là làm thêm câu hỏi.",
-    body: "Bắt đầu bằng bài thử miễn phí, khám phá điểm mạnh và điểm cần cải thiện, rồi luyện nghe, đọc, ôn lỗi sai và thi thử theo nhịp của bạn.",
+    body: "Bắt đầu bằng 10 câu Part 5 miễn phí, xem lời giải, rồi chọn phần nghe hoặc đọc cần luyện tiếp theo nhịp của bạn.",
     primary: "Thử 10 câu miễn phí",
     secondary: "Khám phá TOEIC GYM",
     reassurance: "Không cần tài khoản · Có kết quả và lời giải ngay",
@@ -59,7 +59,7 @@ const content = {
     steps: [
       ["01", "Chọn bài và bắt đầu", "Thử thách Part 5 miễn phí, làm bài đánh giá đầu vào hoặc tự chọn bài luyện."],
       ["02", "Hiểu câu trả lời", "Xem lời giải, transcript khi luyện nghe và kết quả theo từng Part."],
-      ["03", "Luyện tiếp có mục tiêu", "Theo gợi ý bài tiếp theo, ôn lỗi sai hoặc thử sức với bài thi thử."],
+      ["03", "Luyện tiếp có mục tiêu", "Theo gợi ý bài tiếp theo, ôn lỗi sai hoặc làm một thử thách ngắn khác."],
     ],
     closing: "Bắt đầu từ 10 câu. Khám phá cả kho luyện tập.",
     closingBody: "Thử miễn phí mà không cần tài khoản. Tạo tài khoản khi bạn muốn lưu kết quả và tiếp tục theo mục tiêu của mình.",
@@ -67,7 +67,7 @@ const content = {
   en: {
     eyebrow: "TOEIC GYM · Practice with purpose",
     title: "TOEIC practice is more than answering questions.",
-    body: "Start with a free challenge, discover what needs work, then practice listening and reading, review mistakes and take timed mocks at your own pace.",
+    body: "Start with ten free Part 5 questions, read the explanations, then choose a Listening or Reading topic to practice next.",
     primary: "Try 10 questions free",
     secondary: "Explore TOEIC GYM",
     reassurance: "No account needed · Instant results and explanations",
@@ -99,7 +99,7 @@ const content = {
     steps: [
       ["01", "Choose and begin", "Try the free Part 5 challenge, take a diagnostic or build your own session."],
       ["02", "Understand your answers", "Review explanations, listening transcripts and Part-level results."],
-      ["03", "Practice with purpose", "Follow a recommendation, revisit mistakes or take a mock test."],
+      ["03", "Practice with purpose", "Follow a recommendation, revisit mistakes or try another short challenge."],
     ],
     closing: "Start with 10 questions. Explore the whole gym.",
     closingBody: "Try it free without an account. Sign up when you want to save your results and keep working toward your goal.",
@@ -142,7 +142,7 @@ export default async function Home() {
               <h2>{vi ? "Hôm nay bạn muốn luyện gì?" : "What will you practice today?"}</h2>
               <div className="gym-preview-main">
                 <div className="gym-preview-diagnostic"><span className="gym-preview-icon" aria-hidden="true">◎</span><small>{vi ? "BẮT ĐẦU TỪ ĐÂU?" : "WHERE TO START?"}</small><strong>{vi ? "Đánh giá điểm xuất phát" : "Find your starting point"}</strong><p>{vi ? "Xem kết quả theo Part và biết nên luyện gì tiếp." : "See results by Part and discover your next step."}</p><Link href="/diagnostic">{vi ? "Khám phá bài đánh giá" : "Explore the diagnostic"} <span aria-hidden="true">↗</span></Link></div>
-                <div className="gym-preview-stack"><div><span aria-hidden="true">♫</span><strong>{vi ? "Luyện nghe" : "Listening"}</strong><small>Part 1–4</small></div><div><span aria-hidden="true">▤</span><strong>{vi ? "Luyện đọc" : "Reading"}</strong><small>Part 5–7</small></div><div><span aria-hidden="true">◷</span><strong>{vi ? "Thi thử" : "Mock tests"}</strong><small>{vi ? "Có đồng hồ" : "Timed"}</small></div></div>
+                <div className="gym-preview-stack"><div><span aria-hidden="true">♫</span><strong>{vi ? "Luyện nghe" : "Listening"}</strong><small>Part 1–4</small></div><div><span aria-hidden="true">▤</span><strong>{vi ? "Luyện đọc" : "Reading"}</strong><small>Part 5–7</small></div><div><span aria-hidden="true">◷</span><strong>{vi ? "Thử thách" : "Challenge"}</strong><small>Part 5</small></div></div>
               </div>
               <div className="gym-preview-footer"><span aria-hidden="true">↗</span><p><strong>{vi ? "Làm bài → hiểu lỗi sai → luyện tiếp" : "Practice → understand → improve"}</strong><small>{vi ? "Một hành trình học nối liền từng buổi luyện." : "Every session points to what comes next."}</small></p></div>
             </div>
@@ -152,12 +152,12 @@ export default async function Home() {
       </section>
 
       <section className="marketing-explore" id="explore" aria-labelledby="explore-title">
-        <div className="marketing-explore-heading"><div><p className="section-kicker">{vi ? "Một phòng tập, nhiều cách tiến bộ" : "Explore your gym"}</p><h2 id="explore-title">{vi ? "Chọn điều bạn cần ngay hôm nay." : "Choose what you need today."}</h2></div><p>{vi ? "Dù chỉ có vài phút hay muốn làm trọn một đề, TOEIC GYM luôn có một điểm bắt đầu phù hợp." : "Whether you have a few minutes or time for a full test, find a useful place to start."}</p></div>
+        <div className="marketing-explore-heading"><div><p className="section-kicker">{vi ? "Một phòng tập, nhiều cách tiến bộ" : "Explore your gym"}</p><h2 id="explore-title">{vi ? "Chọn điều bạn cần ngay hôm nay." : "Choose what you need today."}</h2></div><p>{vi ? "Dù chỉ có vài phút hay muốn ôn một chủ điểm, hãy chọn điểm bắt đầu phù hợp." : "Whether you have a few minutes or want to review a topic, choose a useful place to start."}</p></div>
         <div className="marketing-explore-grid">
           {[
             { href: "/diagnostic", icon: "◎", label: vi ? "TÌM ĐIỂM XUẤT PHÁT" : "FIND YOUR STARTING POINT", title: vi ? "Đánh giá đầu vào" : "Diagnostic", body: vi ? "Một bài đánh giá Listening và Reading để thấy Part nào cần ưu tiên." : "See which Listening and Reading Parts deserve your attention.", tone: "mint" },
             { href: "/listening-lessons", icon: "♫", label: vi ? "NGHE VÀ NÓI THEO" : "LISTEN AND SHADOW", title: vi ? "Luyện nghe có transcript" : "Listening with transcripts", body: vi ? "Nghe các câu chuyện ngắn, theo dõi từng câu và luyện nói theo." : "Follow short talks line by line and practice speaking along.", tone: "peach" },
-            { href: "/full-mock", icon: "◷", label: vi ? "THỬ SỨC CÓ ĐỒNG HỒ" : "PRACTICE UNDER TIME", title: vi ? "Thi thử TOEIC" : "TOEIC mock tests", body: vi ? "Làm bài theo thời gian, xem kết quả và quay lại phần cần cải thiện." : "Practice with a timer, review results and revisit weak areas.", tone: "lavender" },
+            { href: "/challenge/part-5", icon: "◷", label: vi ? "LÀM BÀI NGAY" : "PRACTICE NOW", title: vi ? "Thử thách Part 5" : "Part 5 challenge", body: vi ? "Làm 10 câu miễn phí, không cần đăng nhập; xem lời giải sau khi nộp." : "Answer ten free questions without an account, then read the explanations.", tone: "lavender" },
             { href: "/mistakes", icon: "↺", label: vi ? "HỌC TỪ MỖI LỖI SAI" : "LEARN FROM MISTAKES", title: vi ? "Ôn tập thông minh" : "Smart review", body: vi ? "Quay lại câu đã sai, làm lại và theo dõi những gì mình đã nắm chắc." : "Retry missed questions and keep track of what you have mastered.", tone: "yellow" },
           ].map((item) => <Link className={`marketing-explore-card ${item.tone}`} href={item.href} key={item.href}><span className="marketing-explore-icon" aria-hidden="true">{item.icon}</span><span className="marketing-explore-label">{item.label}</span><h3>{item.title}</h3><p>{item.body}</p><span className="marketing-explore-arrow" aria-hidden="true">↗</span></Link>)}
         </div>
@@ -192,13 +192,13 @@ export default async function Home() {
         <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[
             { href: "/toeic", title: vi ? "Tổng quan TOEIC" : "TOEIC overview", detail: vi ? "Hiểu từng Part và chọn điểm bắt đầu." : "Understand each Part and where to start." },
-            { href: "/toeic/part-3", title: "Part 3 Listening", detail: vi ? "Nghe hội thoại mẫu, làm 3 câu và xem transcript." : "Try a conversation with three questions and a transcript." },
+            { href: "/challenge/part-5", title: vi ? "Thử thách Part 5" : "Part 5 challenge", detail: vi ? "Làm 10 câu miễn phí, xem kết quả và lời giải." : "Try ten free questions with results and explanations." },
             { href: "/toeic/part-5", title: "Part 5", detail: vi ? "Hoàn thành câu: ngữ pháp và từ vựng." : "Sentence completion, grammar and vocabulary." },
-            { href: "/toeic/part-5/thi-dong-tu", title: vi ? "Thì động từ Part 5" : "Part 5 verb tenses", detail: vi ? "Làm 5 câu có giải thích đáp án." : "Try five questions with explanations." },
-            { href: "/toeic/part-5/word-form", title: "Word Form", detail: vi ? "Làm thử 5 câu có giải thích đáp án." : "Try five questions with explanations." },
+            { href: "/toeic/part-5/thi-dong-tu", title: vi ? "Thì động từ Part 5" : "Part 5 verb tenses", detail: vi ? "Làm 3 câu có giải thích đáp án." : "Try three questions with explanations." },
+            { href: "/toeic/part-5/word-form", title: "Word Form", detail: vi ? "Làm thử 3 câu có giải thích đáp án." : "Try three questions with explanations." },
             { href: "/toeic/part-6", title: "Part 6", detail: vi ? "Điền từ và câu theo mạch đoạn văn." : "Complete a text using its context." },
             { href: "/toeic/part-7", title: "Part 7", detail: vi ? "Tìm bằng chứng trong bài đọc." : "Find evidence in reading passages." },
-            { href: "/luyen-thi-toeic-online", title: vi ? "Luyện TOEIC online" : "Online TOEIC practice", detail: vi ? "Lập một buổi luyện ngắn, có mục tiêu." : "Plan a focused practice session." },
+            { href: "/blog", title: vi ? "Bài hướng dẫn TOEIC" : "TOEIC guides", detail: vi ? "Đọc cách sửa lỗi và chọn chủ điểm cần ôn." : "Review common errors and choose a topic to study." },
           ].map((item) => <Link className="rounded-xl border border-slate-200 bg-white p-5 text-slate-900 shadow-sm transition hover:border-teal-700" href={item.href} key={item.href}><h3 className="text-lg font-black">{item.title} <span aria-hidden="true">→</span></h3><p className="mt-2 text-sm leading-6 text-slate-600">{item.detail}</p></Link>)}
         </div>
       </section>

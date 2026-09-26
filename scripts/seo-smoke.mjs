@@ -2,7 +2,7 @@
 // Usage: node scripts/seo-smoke.mjs [https://toeicgym.net]
 const origin = new URL(process.argv[2] ?? "https://toeicgym.net").origin;
 const privatePaths = ["/demo-test", "/practice", "/continue-learning", "/billing", "/admin", "/api/health", "/auth/callback"];
-const breadcrumbPaths = new Set(["/toeic", "/luyen-thi-toeic-online", "/toeic/part-5", "/toeic/part-5/word-form", "/toeic/part-6", "/toeic/part-7"]);
+const breadcrumbPaths = new Set(["/toeic", "/luyen-thi-toeic-online", "/toeic/part-5", "/toeic/part-5/word-form", "/toeic/part-5/thi-dong-tu", "/toeic/part-5/practice", "/toeic/part-6", "/toeic/part-7"]);
 const failures = [];
 const warnings = [];
 

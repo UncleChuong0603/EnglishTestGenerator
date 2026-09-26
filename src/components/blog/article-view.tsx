@@ -4,12 +4,15 @@ import { Markdown } from "./markdown";
 import { ArticleCard } from "./article-card";
 import { CATEGORY_LABELS, type PostCategory } from "@/lib/blog/core";
 import { readingMinutes } from "@/lib/blog/service";
+import { MiniPractice } from "@/components/seo/mini-practice";
+import { practiceForSlug } from "@/lib/seo/mini-practice";
 
 type Article = { slug?: string; title: string; excerpt: string; content: string; category: string; publishedAt: Date | null; updatedAt: Date; authorName?:string|null; coverAlt?:string|null; tags: { name: string; slug: string }[] };
 type Related = { id: string; slug: string; title: string; excerpt: string; category: string; content: string; publishedAt: Date | null };
 
 export function ArticleView({ post, locale, coverUrl, preview = false, signedIn = false, related = [] }: { post: Article; locale: "vi" | "en"; coverUrl: string | null; preview?: boolean; signedIn?: boolean; related?: Related[] }) {
   const category = CATEGORY_LABELS[post.category as PostCategory]?.[locale] ?? post.category;
+  const questions = practiceForSlug(post.slug ?? "");
   return <>
     <article className="mx-auto max-w-3xl px-5 pb-12 pt-9 sm:px-6 sm:pb-16 sm:pt-12" lang="vi">
       {preview && <p className="mb-6 rounded-xl bg-amber-100 p-4 text-center font-black text-amber-900">Bản xem trước — không công khai, không lập chỉ mục</p>}
@@ -22,6 +25,7 @@ export function ArticleView({ post, locale, coverUrl, preview = false, signedIn 
         <div className="mt-5 flex flex-wrap gap-x-2 gap-y-1 text-sm text-slate-500">{post.publishedAt ? <time dateTime={post.publishedAt.toISOString()}>{post.publishedAt.toLocaleDateString(locale === "vi" ? "vi-VN" : "en-US")}</time> : <span>{locale === "vi" ? "Bản nháp" : "Draft"}</span>}<span aria-hidden="true">·</span><span>{readingMinutes(post.content)} {locale === "vi" ? "phút đọc" : "min read"}</span></div>
       </header>
       {coverUrl && <Image alt={post.coverAlt||""} className="mt-8 aspect-[16/9] max-h-[32rem] w-full rounded-2xl object-cover" height={675} priority src={coverUrl} unoptimized width={1200} />}
+      {questions.length > 0 && <MiniPractice questions={questions} />}
       <div className="mt-9"><Markdown content={post.content} /></div>
       {post.category === "GRAMMAR" && <p className="mt-9 rounded-xl border border-teal-200 bg-teal-50 p-4 text-sm leading-7"><Link className="font-bold text-teal-800 underline" href="/blog/ngu-phap">{locale === "vi" ? "Xem toàn bộ lộ trình ngữ pháp tiếng Anh" : "Browse the full English grammar path"}</Link>{locale === "vi" ? " để chọn bài trước hoặc sau chủ điểm này." : " to find the lessons before and after this topic."}</p>}
       {post.tags.length > 0 && <div aria-label={locale === "vi" ? "Thẻ bài viết" : "Article tags"} className="mt-9 flex flex-wrap gap-2">{post.tags.map(tag => <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm font-semibold text-slate-700" key={tag.slug}>#{tag.name}</span>)}</div>}
