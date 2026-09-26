@@ -1,3 +1,5 @@
+import { extraDoubleScenarios } from "./practice-part7-double-extra-data.mjs";
+
 const companies = ["Aster", "Bayview", "Clearwater", "Dunhill", "Easton", "Foxbridge", "Goldleaf", "Highland", "Ironwood", "Jasper", "Kestrel", "Longview", "Meadowbrook", "Newhaven", "Orchard", "Pinecrest", "Quarry", "Riverton", "Silverlake", "Tamarack"];
 const people = ["Maya Chen", "Daniel Reed", "Priya Shah", "Owen Garcia", "Elena Park", "Jonah Lee", "Carla Ruiz", "Felix Martin", "Iris Wong", "Ben Carter"];
 const keys = ["A", "B", "C", "D"];
@@ -12,11 +14,11 @@ function question(index, order, text, correct, wrong, skill, subSkill, passageKe
 }
 
 export function practiceDoubleSet(index) {
-  const company = companies[Math.floor(index / 5)];
-  const person = people[Math.floor(index / 5) % people.length];
-  const day = 4 + Math.floor(index / 5);
+  const company = companies[Math.floor(index / 10)];
+  const person = people[Math.floor(index / 10) % people.length];
+  const day = 4 + Math.floor(index / 10);
   const date = `June ${day}`;
-  const scene = index % 5;
+  const scene = index % 10;
   const scenarios = [
     () => {
       const title = `${company} Meeting Center`;
@@ -79,7 +81,7 @@ export function practiceDoubleSet(index) {
       ] };
     },
   ];
-  const { title, ad, email, qa } = scenarios[scene]();
+  const { title, ad, email, qa } = [...scenarios, ...extraDoubleScenarios(company, person, date)][scene]();
   return { key: `p7-double-practice-${String(index + 1).padStart(3, "0")}`, toeicPart: 7, setType: "double", title, status: "published",
     passages: [{ key: "doc1", position: 1, documentType: "advertisement", title: `${title} offer`, content: ad }, { key: "doc2", position: 2, documentType: "email", title: `${title} inquiry`, content: email }],
     questions: qa.map(([text, correct, wrong, skill, subSkill, passageKey, evidence], rowIndex) => question(index, rowIndex + 1, text, correct, wrong, skill, subSkill, passageKey, evidence)),

@@ -1,4 +1,5 @@
 import { additionalPart5Patterns } from "./practice-part5-patterns.mjs";
+import { varyPart5Sentence } from "./practice-part5-variants.mjs";
 import { practicePart6Set } from "./practice-part6-data.mjs";
 import { practiceDoubleSet } from "./practice-part7-double-data.mjs";
 import { practiceSingleSet } from "./practice-part7-single-data.mjs";
@@ -16,7 +17,7 @@ export const practicePart5 = part5Patterns.flatMap((pattern, patternIndex) => pa
     key: `p5-practice-${String(patternIndex * part5Organizations.length + orgIndex + 1).padStart(4, "0")}`,
     toeicPart: 5, questionType: "incomplete_sentence", skill: pattern.skill, subSkill: pattern.subSkill,
     difficulty: orgIndex % 8 === 0 ? "hard" : orgIndex % 3 === 0 ? "easy" : "medium", status: "published",
-    text: pattern.sentence(org), options: values.map((text, position) => ({ key: keys[position], text })),
+    text: varyPart5Sentence(pattern.sentence("{c}"), patternIndex, orgIndex % 5).replaceAll("{c}", org), options: values.map((text, position) => ({ key: keys[position], text })),
     answer: keys[answerIndex], explanationEn: pattern.en, explanationVi: pattern.vi,
   };
   return question;
