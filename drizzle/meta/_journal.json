@@ -295,6 +295,13 @@
       "when": 1792627202000,
       "tag": "0041_question_bank_pools",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1792627203000,
+      "tag": "0042_modern_jocasta",
+      "breakpoints": true
     }
   ]
 }

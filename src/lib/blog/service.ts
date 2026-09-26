@@ -26,7 +26,7 @@ function visibleLibrary(rows: { slug: string; status: string }[]) {
 export async function listAdminPosts() {
   const rows = await loadRows();
   return [...rows.map(row => ({ ...row, source: "cms" as const })),
-    ...library.filter(post => !rows.some(row => row.slug === post.slug)).map(row => ({ ...row, source: "editorial" as const }))];
+    ...library.map(row => ({ ...row, source: "editorial" as const }))];
 }
 export async function listAdminPostTags() {
   return db.select({ postId: contentPostTags.postId, name: contentTags.name }).from(contentPostTags).innerJoin(contentTags, eq(contentPostTags.tagId, contentTags.id));
