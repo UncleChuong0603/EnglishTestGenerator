@@ -40,7 +40,19 @@ docker stats --no-stream
 
 Nếu health fail: xem `migrate` và `app` log, xác minh container Postgres healthy, dung lượng đĩa, DNS/certificate và biến bắt buộc theo tên (không echo giá trị). Không chạy reset schema, `DROP DATABASE`, seed development phá hủy dữ liệu hoặc xóa volume. Khi nghi ngờ compromise, giữ bằng chứng/log, chặn truy cập ở firewall nếu cần và rotate secrets qua một cửa sổ bảo trì.
 
+## Kiểm tra an toàn sau sự cố lộ môi trường (Task 36B)
+
+Trong checkout Dokploy, chạy `scripts/task36b-safe-status.mjs` bằng Node của container Dokploy (host production không cài Node). Ví dụ: `docker exec -w /etc/dokploy/compose/toeic-gym-frontend-bhwkds/code <dokploy-container> node scripts/task36b-safe-status.mjs`. Script chỉ in revision, trạng thái service, restart count và **tên** credential; không in giá trị môi trường. Kiểm tra `/api/health` qua HTTPS riêng.
+
+Không chạy hoặc chia sẻ `ps ... args`, `docker inspect .Config.Env`, `docker compose config`, nội dung `.env`, full Dokploy deployment command/log, hay chuỗi base64. Các đầu ra này có thể tái tạo toàn bộ môi trường production, kể cả khi được gọi là “encoded”. Nếu cần điều tra lỗi deploy, chỉ báo trạng thái và loại lỗi đã lọc; không dán log thô vào ticket/chat.
+
 ## Chẩn đoán lỗi tải image trên Dokploy
+
+Khi rotate `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY`, BuildKit secret không tự làm mất hiệu lực cache. Build lại app với `--no-cache` qua Compose của dự án và xác minh key trong server-reference manifest khớp cấu hình authoritative **chỉ bằng boolean**. Không in manifest hoặc key. Chỉ recreate app sau khi build thành công.
+
+Credential bên ngoài phải revoke tại provider, không chỉ thay biến trong Dokploy. Cập nhật tại Compose → Environment: Resend (`SMTP_PASSWORD`, `SMTP_USER` nếu thay đổi), Google (`GOOGLE_CLIENT_SECRET`), payOS (`PAYOS_API_KEY`, `PAYOS_CHECKSUM_KEY`, `PAYOS_CLIENT_ID` nếu được cấp lại), Cloudflare/R2 (`R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`). Với R2 legacy không còn dùng, revoke key tại Cloudflare rồi xóa biến cũ. Không chuyển secret qua chat/ticket. Redeploy bằng Dokploy và chỉ verify kết nối, không gửi mail hoặc tạo payment thật.
+
+Task 36B phát hiện secret trong lịch sử build artifact `.next-seo-audit` ở commit `917aaf9`; commit `957a622` xóa artifact khỏi cây hiện tại nhưng không xóa khỏi history. Phạm vi gồm cache Turbopack, `.rscinfo` và server-reference manifest. Rotate credential trước. Việc rewrite history, phối hợp clone/fork và xử lý cache của Git hosting phải có xác nhận phạm vi riêng; không tự force-push main.
 
 Lỗi `TLS handshake timeout` tới `registry-1.docker.io` xảy ra trước khi build
 ứng dụng. Chạy các lệnh đọc-only sau trên VPS:
