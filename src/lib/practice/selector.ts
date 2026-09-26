@@ -12,13 +12,14 @@ import { MASTERY_REVIEW_BATCH_SIZE } from "@/lib/mastery/constants";
 import { expandReviewGroups, getReviewCandidates, getSmartReviewCandidates } from "@/lib/mastery/queries";
 import { getEffectiveCapabilities } from "@/lib/entitlements/service";
 import { consumeUsage } from "@/lib/entitlements/service";
+import { resolveQuestionBankPool, type QuestionBankPool } from "./pool";
 
 const EMPTY_HISTORY: ContentHistory = { seenQuestionIds: new Set(), recentQuestionIds: new Set() };
 const keepOrder = () => 0.999;
-export type QuestionBankPool = "MOCK" | "PRACTICE";
+export type { QuestionBankPool } from "./pool";
 
-function selectedPool(requestedPool: QuestionBankPool): QuestionBankPool | null {
-  return requestedPool === "MOCK" || process.env.PRACTICE_POOL_ISOLATED === "true" ? requestedPool : null;
+function selectedPool(requestedPool: QuestionBankPool): QuestionBankPool {
+  return resolveQuestionBankPool(requestedPool, process.env.PRACTICE_POOL_ISOLATED === "true");
 }
 
 // A random UUID cursor gives every part of a growing bank a chance to be used
@@ -69,7 +70,7 @@ export async function selectListeningPractice(part: 1 | 2 | 3 | 4, target = 10, 
   if (!setIds.length) throw new Error(`NOT_ENOUGH_LISTENING_PART_${part}`);
   // Include the whole group when the bounded sample ends inside a conversation.
   const candidates = part <= 2 ? sampled : await db.select().from(questions)
-    .where(and(eq(questions.toeicPart, part), eq(questions.status, "published"), selectedPool(pool) ? eq(questions.bankPool, pool) : undefined, inArray(questions.passageSetId, setIds)))
+    .where(and(eq(questions.toeicPart, part), eq(questions.status, "published"), eq(questions.bankPool, selectedPool(pool)), inArray(questions.passageSetId, setIds)))
     .orderBy(asc(questions.questionOrder));
   const questionIds = candidates.map((q) => q.id);
   const [sets, options, solutions, attachments, transcripts] = await Promise.all([
@@ -138,7 +139,7 @@ export async function loadUnits(part: ReadingPart, skill?: string, subSkill?: st
   if (part !== 5) {
     if (!setIds.length) return []; const [sets, docs] = await Promise.all([db.select().from(passageSets).where(and(inArray(passageSets.id, setIds), eq(passageSets.status, "published"))), db.select().from(passages).where(inArray(passages.passageSetId, setIds))]);
     const expected: Record<string, number> = { part6: 1, single: 1, double: 2, triple: 3 }; const valid = sets.filter((s) => { const rows = docs.filter((d) => d.passageSetId === s.id); return rows.length === expected[s.setType] && rows.every((d) => d.status === "published"); }).map((s) => s.id);
-    if (!valid.length) return []; candidates = await db.select().from(questions).where(and(eq(questions.toeicPart, part), eq(questions.status, "published"), selectedPool(pool) ? eq(questions.bankPool, pool) : undefined, inArray(questions.passageSetId, valid))).orderBy(asc(questions.questionOrder));
+    if (!valid.length) return []; candidates = await db.select().from(questions).where(and(eq(questions.toeicPart, part), eq(questions.status, "published"), eq(questions.bankPool, selectedPool(pool)), inArray(questions.passageSetId, valid))).orderBy(asc(questions.questionOrder));
   }
   const ids = candidates.map((q) => q.id); if (!ids.length) return [];
   const [opts, solutions] = await Promise.all([db.select({ questionId: questionOptions.questionId }).from(questionOptions).where(inArray(questionOptions.questionId, ids)), db.select({ questionId: questionSolutions.questionId }).from(questionSolutions).where(inArray(questionSolutions.questionId, ids))]);
