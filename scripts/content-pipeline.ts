@@ -114,7 +114,10 @@ async function publish() {
   const providerName = (process.env.CONTENT_TTS_PROVIDER || "edge").toLowerCase() as ContentTtsProviderName;
   for (const item of additions) for (const spec of item.media) {
     const ext = spec.role === "AUDIO" ? "mp3" : "png";
-    if (!existsSync(resolve(generatedDir, `${item.externalId}.${ext}`))) throw new Error(`MISSING_GENERATED_MEDIA:${item.externalId}.${ext}`);
+    const local = resolve(generatedDir, `${item.externalId}.${ext}`);
+    if (!existsSync(local)) throw new Error(`MISSING_GENERATED_MEDIA:${item.externalId}.${ext}`);
+    const checked = await validateMediaUpload({ kind: spec.role, accessScope: "CONTENT", mimeType: spec.role === "AUDIO" ? "audio/mpeg" : "image/png", body: new Uint8Array(await readFile(local)) });
+    if (spec.role === "AUDIO" && !checked.audioDurationMs) throw new Error(`AUDIO_DURATION_UNREADABLE:${item.externalId}`);
   }
   for (const item of additions) {
     const metadataPath = resolve(generatedDir, `${item.externalId}.mp3.json`);
