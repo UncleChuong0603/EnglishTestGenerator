@@ -22,7 +22,7 @@ beforeAll(async () => {
     insert into full_mock_form_questions values
       (1,1,'10000000-0000-4000-8000-000000000001');
   `);
-  const migration = readFileSync("drizzle/0039_wise_gauntlet.sql", "utf8");
+  const migration = readFileSync("drizzle/0041_question_bank_pools.sql", "utf8");
   for (const statement of migration.split("--> statement-breakpoint").map((value) => value.trim()).filter(Boolean)) {
     await database.exec(statement);
   }
