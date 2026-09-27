@@ -92,7 +92,7 @@ test("learner paywall surfaces remain usable at every required width", async ({ 
     const page = await context.newPage();
     for (const route of ["/dashboard", "/practice", "/mistakes", "/progress", "/diagnostic", "/full-mock", "/billing", "/settings?tab=plan"]) {
       await page.goto(route, { waitUntil: "domcontentloaded" });
-      await expect(page.locator("main")).toBeVisible();
+      await expect(page.locator("main:not([aria-busy])")).toBeVisible();
       expect(new URL(page.url()).pathname).toBe(route.split("?")[0]);
       for (const width of [360, 390, 430, 1024, 1440]) {
         await page.setViewportSize({ width, height: 900 });
