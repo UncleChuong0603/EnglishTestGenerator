@@ -22,6 +22,7 @@ Reading demo on `/full-mock` is a separate free route. It does not consume the q
 - Practice quota paywall describes personalized targets only when learning history exists. Mock History gives learners without results an empty state instead of an upgrade prompt.
 - Progress and Weekly Review sample thresholds now come from the matching analytics policies.
 - The Free Weekly Plan preview count is shared by Pricing, plan generation, saved-plan rendering and Weekly Review completion. The public start CTA now describes free learning, matching its Part 5 entry route.
+- The authenticated responsive matrix found that long account summaries widened the mobile Settings navigation. Its grid and links now allow truncation within the viewport.
 
 ## Deferred product and billing findings
 
