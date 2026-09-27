@@ -1,5 +1,5 @@
 {
-  "id": "96cf547e-4820-4111-af91-658772ceb4ea",
+  "id": "7b526554-8849-46aa-94bf-779fc474dbc2",
   "prevId": "b81eda36-9d5a-4093-9650-df3d169541d4",
   "version": "7",
   "dialect": "postgresql",
@@ -712,31 +712,12 @@
           "primaryKey": false,
           "notNull": false
         },
-        "redirect_path": {
-          "name": "redirect_path",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "noindex": {
           "name": "noindex",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
           "default": false
-        },
-        "content_origin": {
-          "name": "content_origin",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'MIGRATED'"
-        },
-        "last_reviewed_at": {
-          "name": "last_reviewed_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
         },
         "author_name": {
           "name": "author_name",
@@ -919,11 +900,7 @@
       "checkConstraints": {
         "content_posts_status_check": {
           "name": "content_posts_status_check",
-          "value": "\"content_posts\".\"status\" in ('DRAFT','PUBLISHED','UNPUBLISHED','ARCHIVED')"
-        },
-        "content_posts_origin_check": {
-          "name": "content_posts_origin_check",
-          "value": "\"content_posts\".\"content_origin\" in ('HUMAN','AI_ASSISTED','MIGRATED')"
+          "value": "\"content_posts\".\"status\" in ('DRAFT','PUBLISHED','UNPUBLISHED')"
         },
         "content_posts_slug_check": {
           "name": "content_posts_slug_check",
@@ -5444,6 +5421,13 @@
           "notNull": true,
           "default": "'draft'"
         },
+        "bank_pool": {
+          "name": "bank_pool",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PRACTICE'"
+        },
         "provenance": {
           "name": "provenance",
           "type": "text",
@@ -5540,6 +5524,34 @@
         "questions_published_part_id_idx": {
           "name": "questions_published_part_id_idx",
           "columns": [
+            {
+              "expression": "toeic_part",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "where": "\"questions\".\"status\" = 'published'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "questions_published_pool_part_id_idx": {
+          "name": "questions_published_pool_part_id_idx",
+          "columns": [
+            {
+              "expression": "bank_pool",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
             {
               "expression": "toeic_part",
               "isExpression": false,
@@ -5661,6 +5673,10 @@
         "questions_lifecycle_check": {
           "name": "questions_lifecycle_check",
           "value": "\"questions\".\"status\" in ('draft','published','archived')"
+        },
+        "questions_bank_pool_check": {
+          "name": "questions_bank_pool_check",
+          "value": "\"questions\".\"bank_pool\" in ('MOCK','PRACTICE')"
         },
         "questions_provenance_check": {
           "name": "questions_provenance_check",

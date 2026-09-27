@@ -12,6 +12,7 @@ coverage
 debug.log
 npm-debug.log*
 migration-export
+incident-artifacts
 .content-generated
 .npm-cache
 test-results

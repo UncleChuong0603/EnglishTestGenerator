@@ -1,6 +1,6 @@
 {
-  "id": "d14403c5-82e3-4b9d-9bf9-fa78b6ed7d15",
-  "prevId": "96cf547e-4820-4111-af91-658772ceb4ea",
+  "id": "7b36dcbd-de08-48c6-a94d-20767d9fc9a5",
+  "prevId": "7b526554-8849-46aa-94bf-779fc474dbc2",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -5444,6 +5444,13 @@
           "notNull": true,
           "default": "'draft'"
         },
+        "bank_pool": {
+          "name": "bank_pool",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PRACTICE'"
+        },
         "provenance": {
           "name": "provenance",
           "type": "text",
@@ -5540,6 +5547,34 @@
         "questions_published_part_id_idx": {
           "name": "questions_published_part_id_idx",
           "columns": [
+            {
+              "expression": "toeic_part",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "where": "\"questions\".\"status\" = 'published'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "questions_published_pool_part_id_idx": {
+          "name": "questions_published_pool_part_id_idx",
+          "columns": [
+            {
+              "expression": "bank_pool",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
             {
               "expression": "toeic_part",
               "isExpression": false,
@@ -5661,6 +5696,10 @@
         "questions_lifecycle_check": {
           "name": "questions_lifecycle_check",
           "value": "\"questions\".\"status\" in ('draft','published','archived')"
+        },
+        "questions_bank_pool_check": {
+          "name": "questions_bank_pool_check",
+          "value": "\"questions\".\"bank_pool\" in ('MOCK','PRACTICE')"
         },
         "questions_provenance_check": {
           "name": "questions_provenance_check",
@@ -7078,12 +7117,6 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
-        },
-        "dictionary_card": {
-          "name": "dictionary_card",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
         },
         "source_question_id": {
           "name": "source_question_id",

@@ -86,6 +86,7 @@ async function run() {
     await client.query("select pg_advisory_xact_lock(hashtextextended('full-mock-25-form-seed',0))");
     await verifySource(client, rows);
     if (!process.argv.includes("--verify-only")) {
+      await client.query("update questions set bank_pool='MOCK' where id=any($1::uuid[])", [rows.map((row) => row.question_id)]);
       await client.query("delete from full_mock_form_questions");
       for (let offset = 0; offset < rows.length; offset += 500) {
         const batch = rows.slice(offset, offset + 500);
@@ -94,6 +95,8 @@ async function run() {
         [batch.map((row) => row.form_number), batch.map((row) => row.position), batch.map((row) => row.part), batch.map((row) => row.question_id)]);
       }
     }
+    const pools = await client.query("select count(*) filter (where bank_pool <> 'MOCK')::int as invalid from questions where id=any($1::uuid[])", [rows.map((row) => row.question_id)]);
+    if (pools.rows[0].invalid) throw new Error(`${pools.rows[0].invalid} mapped questions are outside the MOCK pool`);
     const actual = await client.query(`select form_number,position,part,question_id from full_mock_form_questions order by form_number,position`);
     if (actual.rows.length !== rows.length || actual.rows.some((row, index) => row.form_number !== rows[index].form_number || row.position !== rows[index].position || row.part !== rows[index].part || row.question_id !== rows[index].question_id)) throw new Error("Stored form assignments differ from the source plan");
     await client.query("commit");

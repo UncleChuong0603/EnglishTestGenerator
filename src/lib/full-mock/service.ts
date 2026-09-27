@@ -7,7 +7,7 @@ import { consumeUsage } from "@/lib/entitlements/service";
 import { awardCompletedLearning } from "@/lib/gamification/award";
 import { reconcileMasteryAnswers } from "@/lib/mastery/persistence";
 import { getSafeSessionContent } from "@/lib/practice/queries";
-import { loadUnits, selectListeningPractice } from "@/lib/practice/selector";
+import { loadUnits, selectListeningPractice, type QuestionBankPool } from "@/lib/practice/selector";
 import { assembleFullMock, assembleListeningMock, assembleReadingMock, deadlineFrom, type MockForm, type MockMode, type MockUnit } from "./blueprint";
 import type { MockHistoryEntry } from "./history";
 import { getEffectiveCapabilities } from "@/lib/entitlements/service";
@@ -19,17 +19,17 @@ export type MockHubReadiness = {
   full: MockReadiness;
 };
 
-async function listeningUnits(part: 1 | 2 | 3 | 4, groups: number): Promise<MockUnit[]> {
+async function listeningUnits(part: 1 | 2 | 3 | 4, groups: number, pool: QuestionBankPool): Promise<MockUnit[]> {
   for (let target = groups; target >= 1; target--) try {
-    const rows = await selectListeningPractice(part, target); const grouped = new Map<string, typeof rows>();
+    const rows = await selectListeningPractice(part, target, undefined, false, pool); const grouped = new Map<string, typeof rows>();
     for (const row of rows) if (row.passageSetId) grouped.set(row.passageSetId, [...(grouped.get(row.passageSetId) ?? []), row]);
     return [...grouped].map(([id, questions]) => ({ id, part, setType: part === 1 ? "photographs" : part === 2 ? "question_response" : part === 3 ? "conversation" : "talk", questionIds: questions.sort((a, b) => a.questionOrder - b.questionOrder).map((q) => q.id) }));
   } catch { /* Measure eligible coverage without relaxing canonical validation. */ }
   return [];
 }
 
-async function loadEligibleUnits() {
-  const [p1, p2, p3, p4, r5, r6, r7] = await Promise.all([listeningUnits(1, 6), listeningUnits(2, 25), listeningUnits(3, 13), listeningUnits(4, 10), loadUnits(5), loadUnits(6), loadUnits(7)]);
+async function loadEligibleUnits(pool: QuestionBankPool) {
+  const [p1, p2, p3, p4, r5, r6, r7] = await Promise.all([listeningUnits(1, 6, pool), listeningUnits(2, 25, pool), listeningUnits(3, 13, pool), listeningUnits(4, 10, pool), loadUnits(5, undefined, undefined, pool), loadUnits(6, undefined, undefined, pool), loadUnits(7, undefined, undefined, pool)]);
   const ids = [...new Set([...r6, ...r7].map((unit) => unit.id))];
   const sets = ids.length ? await db.select({ id: passageSets.id, setType: passageSets.setType }).from(passageSets).where(inArray(passageSets.id, ids)) : [];
   const types = new Map(sets.map((set) => [set.id, set.setType]));
@@ -42,7 +42,7 @@ type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 async function loadPlannedFullMock(tx: Tx, formNumber: number): Promise<{ configured: boolean; form: MockForm | null }> {
   const rows = await tx.select({
     position: fullMockFormQuestions.position, part: fullMockFormQuestions.part, questionId: fullMockFormQuestions.questionId,
-    questionPart: questions.toeicPart, questionStatus: questions.status, setId: questions.passageSetId,
+    questionPart: questions.toeicPart, questionStatus: questions.status, bankPool: questions.bankPool, setId: questions.passageSetId,
     setType: passageSets.setType, setStatus: passageSets.status,
   }).from(fullMockFormQuestions).innerJoin(questions, eq(questions.id, fullMockFormQuestions.questionId))
     .leftJoin(passageSets, eq(passageSets.id, questions.passageSetId))
@@ -51,7 +51,7 @@ async function loadPlannedFullMock(tx: Tx, formNumber: number): Promise<{ config
     const any = await tx.select({ number: fullMockFormQuestions.formNumber }).from(fullMockFormQuestions).limit(1);
     return { configured: any.length > 0, form: null };
   }
-  if (rows.length !== 200 || rows.some((row, index) => row.position !== index + 1 || row.part !== row.questionPart || row.questionStatus !== "published" || (row.part !== 5 && row.setStatus !== "published"))) return { configured: true, form: null };
+  if (rows.length !== 200 || rows.some((row, index) => row.position !== index + 1 || row.part !== row.questionPart || row.questionStatus !== "published" || row.bankPool !== "MOCK" || (row.part !== 5 && row.setStatus !== "published"))) return { configured: true, form: null };
   const units = new Map<string, MockUnit>();
   for (const row of rows) {
     const id = row.part === 5 ? row.questionId : row.setId;
@@ -66,7 +66,7 @@ async function loadPlannedFullMock(tx: Tx, formNumber: number): Promise<{ config
 }
 
 export async function getMockHubReadiness(): Promise<MockHubReadiness> {
-  const { listening, reading, raw } = await loadEligibleUnits(); const listeningForm = assembleListeningMock(listening); const readingForm = assembleReadingMock(reading); const fullForm = assembleFullMock([...listening, ...reading]);
+  const { listening, reading, raw } = await loadEligibleUnits("MOCK"); const listeningForm = assembleListeningMock(listening); const readingForm = assembleReadingMock(reading); const fullForm = assembleFullMock([...listening, ...reading]);
   const p7s = reading.filter((u) => u.part === 7 && u.setType === "single"); const p7m = reading.filter((u) => u.part === 7 && u.setType !== "single");
   return {
     listening: { ready: Boolean(listeningForm), ...(listeningForm ? { form: listeningForm } : {}), coverage: { p1: raw.p1.length, p2: raw.p2.length, p3Groups: raw.p3.length, p4Groups: raw.p4.length } },
@@ -77,6 +77,12 @@ export async function getMockHubReadiness(): Promise<MockHubReadiness> {
 export const getListeningMockReadiness = async () => (await getMockHubReadiness()).listening;
 export const getReadingMockReadiness = async () => (await getMockHubReadiness()).reading;
 export async function getFullMockReadiness() { const r = await getMockHubReadiness(); return { ready: r.full.ready, listening: r.listening.coverage, reading: r.reading.coverage, ...(r.full.form ? { form: r.full.form } : {}) }; }
+export async function getChallengeFormReadiness(): Promise<MockReadiness> {
+  if (process.env.PRACTICE_POOL_ISOLATED !== "true") return (await getMockHubReadiness()).full;
+  const { listening, reading } = await loadEligibleUnits("PRACTICE");
+  const form = assembleFullMock([...listening, ...reading]);
+  return { ready: Boolean(form), ...(form ? { form } : {}) };
+}
 
 export async function getActiveMock(userId: string, mode: MockMode) { return (await db.select().from(fullMockRuns).where(and(eq(fullMockRuns.userId, userId), eq(fullMockRuns.mode, mode), inArray(fullMockRuns.status, ["LISTENING", "READING"]))).orderBy(desc(fullMockRuns.createdAt)).limit(1))[0] ?? null; }
 export const getActiveFullMock = (userId: string) => getActiveMock(userId, "FULL");

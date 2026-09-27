@@ -10,7 +10,7 @@
 
 ## Migration
 
-Apply `drizzle/0042_simple_chat.sql` with the normal `npm run db:migrate` deployment step before running the updated app. This adds one nullable JSONB column; existing cards remain usable. The configured local PostgreSQL was offline during implementation, so it was not migrated; the complete migration chain was verified using PGlite.
+Apply `drizzle/0043_simple_chat.sql` with the normal `npm run db:migrate` deployment step before running the updated app. This adds one nullable JSONB column; existing cards remain usable. The configured local PostgreSQL was offline during implementation, so it was not migrated; the complete migration chain was verified using PGlite.
 
 ## Verification
 

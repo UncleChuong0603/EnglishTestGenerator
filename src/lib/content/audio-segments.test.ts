@@ -24,12 +24,17 @@ describe("listening audio pauses", () => {
     ]);
   });
 
-  it("separates Part 1 labels and leaves conversation speech intact", () => {
+  it("separates Part 1 labels and adds natural turn and sentence pauses", () => {
     expect(planListeningAudio({ part: 1, transcript: "A. One.\nB. Two.", question: { options: [{ key: "A", text: "One." }, { key: "B", text: "Two." }] } })).toEqual([
       { text: "A.", pauseAfterMs: 400 }, { text: "One.", pauseAfterMs: 1000 },
       { text: "B.", pauseAfterMs: 400 }, { text: "Two.", pauseAfterMs: 0 },
     ]);
-    expect(planListeningAudio({ part: 3, transcript: "MAN: Hello." })).toEqual([{ text: "MAN: Hello.", pauseAfterMs: 0 }]);
+    expect(planListeningAudio({ part: 3, transcript: "MAN: Hello.\nWOMAN: Good morning." })).toEqual([
+      { text: "Hello.", pauseAfterMs: 550 }, { text: "Good morning.", pauseAfterMs: 0 },
+    ]);
+    expect(planListeningAudio({ part: 4, transcript: "NARRATOR: Welcome. Please take a seat." })).toEqual([
+      { text: "Welcome.", pauseAfterMs: 450 }, { text: "Please take a seat.", pauseAfterMs: 0 },
+    ]);
   });
 
   it("inserts a measurable silent interval into the encoded audio", async () => {
