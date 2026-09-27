@@ -9,7 +9,7 @@ describe("audio shadowing", () => {
     expect(html).toContain("Another topic");
     expect(html.match(/1 phút/g)).toHaveLength(1);
     expect(html).toContain("Transcript");
-    expect(html).toContain("Listen and speak along.");
+    expect(html.replace(/<[^>]*>/g, "")).toContain("Listen and speak along.");
     expect(html).toContain("/sample.mp3");
     expect(html).not.toContain("type=\"radio\"");
     expect(html).not.toContain("Kiểm tra đáp án");

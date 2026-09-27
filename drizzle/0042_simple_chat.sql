@@ -1,0 +1,1 @@
+ALTER TABLE "user_vocabulary" ADD COLUMN "dictionary_card" jsonb;

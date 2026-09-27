@@ -6,6 +6,23 @@ import { getPracticeResult } from "@/lib/practice/queries";
 import { vocabularyByKey, vocabularySuggestions } from "./catalog";
 import { studyEntryByKey } from "./study-list";
 import { nextVocabularySchedule } from "./schedule";
+import { lookupDictionaryWord, normalizeDictionaryWord } from "./dictionary";
+import type { DictionaryCard } from "./dictionary-types";
+
+export async function saveDictionaryVocabulary(userId: string, input: string, context: string, toeicPart: number) {
+  const word = normalizeDictionaryWord(input);
+  if (!word || !Number.isInteger(toeicPart) || toeicPart < 1 || toeicPart > 7) return false;
+  const card = await lookupDictionaryWord(word);
+  if (!card) return false;
+  const entryKey = card.term;
+  await db.insert(userVocabulary).values({ userId, entryKey, dictionaryCard: card, contextSentence: context.slice(0, 500) || card.example || card.term, toeicPart }).onConflictDoUpdate({ target: [userVocabulary.userId, userVocabulary.entryKey], set: { dictionaryCard: card } });
+  return true;
+}
+
+function cardEntry(entryKey: string, dictionaryCard: DictionaryCard | null) {
+  const curated = vocabularyByKey(entryKey);
+  return dictionaryCard ? { key: entryKey, term: dictionaryCard.term, kind: "word" as const, meaningVi: dictionaryCard.meaningVi || dictionaryCard.meaningEn, meaningEn: dictionaryCard.meaningEn } : curated;
+}
 
 export async function saveVocabularyFromResult(userId: string, sessionId: string, questionId: string, entryKey: string) {
   const result = await getPracticeResult(sessionId, { userId });
@@ -35,7 +52,7 @@ export async function saveVocabularyFromStudyList(userId: string, entryKey: stri
 export async function getVocabularyCards(userId: string) {
   const rows = await db.select().from(userVocabulary).where(eq(userVocabulary.userId, userId)).orderBy(asc(userVocabulary.dueAt), asc(userVocabulary.createdAt));
   return rows.flatMap((row) => {
-    const entry = vocabularyByKey(row.entryKey);
+    const entry = cardEntry(row.entryKey, row.dictionaryCard);
     return entry ? [{ ...row, entry }] : [];
   });
 }
@@ -43,7 +60,7 @@ export async function getVocabularyCards(userId: string) {
 export async function reviewVocabulary(userId: string, cardId: string, remembered: boolean) {
   return db.transaction(async (tx) => {
     const [card] = await tx.select().from(userVocabulary).where(and(eq(userVocabulary.id, cardId), eq(userVocabulary.userId, userId))).for("update").limit(1);
-    if (!card || !vocabularyByKey(card.entryKey) || card.dueAt.getTime() > Date.now()) return false;
+    if (!card || !cardEntry(card.entryKey, card.dictionaryCard) || card.dueAt.getTime() > Date.now()) return false;
     const now = new Date();
     const { intervalDays, dueAt } = nextVocabularySchedule(card.intervalDays, remembered, now);
     await tx.update(userVocabulary).set({ intervalDays, dueAt, correctStreak: remembered ? card.correctStreak + 1 : 0, reviewCount: sql`${userVocabulary.reviewCount} + 1`, lastReviewedAt: now, updatedAt: now }).where(and(eq(userVocabulary.id, cardId), eq(userVocabulary.userId, userId), lte(userVocabulary.dueAt, now)));

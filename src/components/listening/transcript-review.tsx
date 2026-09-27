@@ -1,13 +1,19 @@
 import { buildTranscriptSegments, findAnswerKeywords } from "@/lib/listening/transcript-evidence";
+import { HoverWords } from "@/components/vocabulary/hover-words";
+import type { InterfaceLanguage } from "@/lib/i18n/config";
 
 export function TranscriptReview({
   transcript,
   correctAnswer,
   labels,
+  locale,
+  part,
 }: {
   transcript: string;
   correctAnswer: string;
   labels: { show: string; keywords: string; noExactMatch: string };
+  locale: InterfaceLanguage;
+  part: number;
 }) {
   const keywords = findAnswerKeywords(transcript, correctAnswer);
   const segments = buildTranscriptSegments(transcript, keywords);
@@ -19,8 +25,8 @@ export function TranscriptReview({
     </summary>
     <div className="mt-4 rounded-2xl bg-slate-50 p-4 sm:p-5">
       <p className="whitespace-pre-line leading-7" lang="en">{segments.map((segment, index) => segment.highlighted
-        ? <mark className="rounded bg-amber-200 px-1 font-bold text-slate-950" key={`${segment.text}-${index}`}>{segment.text}</mark>
-        : <span key={`${segment.text}-${index}`}>{segment.text}</span>)}</p>
+        ? <mark className="rounded bg-amber-200 px-1 font-bold text-slate-950" key={`${segment.text}-${index}`}><HoverWords locale={locale} part={part} text={segment.text} /></mark>
+        : <span key={`${segment.text}-${index}`}><HoverWords locale={locale} part={part} text={segment.text} /></span>)}</p>
       <div className="mt-4 border-t border-slate-200 pt-4">
         <p className="text-xs font-black uppercase tracking-wider text-slate-500">{labels.keywords}</p>
         {keywords.length ? <div className="mt-2 flex flex-wrap gap-2">{keywords.map((keyword) => <span className="rounded-full bg-amber-200 px-3 py-1 text-sm font-bold text-amber-950" key={keyword.toLocaleLowerCase("en-US")}>{keyword}</span>)}</div> : <p className="mt-2 text-sm text-slate-600">{labels.noExactMatch}</p>}

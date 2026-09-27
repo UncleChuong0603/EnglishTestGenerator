@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { matchingVocabulary, vocabularyCatalog, vocabularySuggestions } from "./catalog";
-import { vocabularyStudyTopics } from "./study-list";
+import { matchingVocabulary, vocabularyByKey, vocabularyCatalog, vocabularySuggestions } from "./catalog";
+import { studyEntryByKey, vocabularyStudyTopics } from "./study-list";
 import { nextVocabularySchedule } from "./schedule";
 
 describe("TOEIC vocabulary", () => {
@@ -21,13 +21,18 @@ describe("TOEIC vocabulary", () => {
     expect(vocabularySuggestions("The schedule and invoice mention a _____.", "refund")[0].key).toBe("refund");
   });
 
-  it("has 1000 unique study terms, with the first ten topics fully illustrated", () => {
-    expect(vocabularyStudyTopics).toHaveLength(19);
-    expect(vocabularyCatalog).toHaveLength(1000);
-    expect(new Set(vocabularyCatalog.map((entry) => entry.key)).size).toBe(1000);
+  it("has 5000 unique study terms and keeps the original study and practice entries", () => {
+    expect(vocabularyStudyTopics).toHaveLength(59);
+    expect(vocabularyCatalog).toHaveLength(5000);
+    expect(new Set(vocabularyCatalog.map((entry) => entry.key)).size).toBe(5000);
+    expect(new Set(vocabularyCatalog.map((entry) => entry.term.toLowerCase())).size).toBe(5000);
+    expect(vocabularyByKey("invoice")?.term).toBe("invoice");
+    expect(studyEntryByKey("pragmatic")?.meaningVi).toBeTruthy();
+    expect(vocabularySuggestions("We need to see the new invoice.", "").map((entry) => entry.key)).toContain("invoice");
     for (const topic of vocabularyStudyTopics) {
-      expect(topic.entries).toHaveLength(topic.id.startsWith("frequent-") ? 100 : 10);
+      expect(topic.entries).toHaveLength(topic.id.startsWith("frequent-") || topic.id.startsWith("common-") ? 100 : 10);
       for (const entry of topic.entries) {
+        expect(vocabularyByKey(entry.key)).toEqual(studyEntryByKey(entry.key));
         expect(entry.meaningVi.length).toBeGreaterThan(1);
         expect(entry.meaningEn.length).toBeGreaterThan(1);
         if (entry.example) expect(entry.example.length).toBeGreaterThan(15);

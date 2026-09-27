@@ -24,6 +24,7 @@
 /certbot/
 /backups/
 /migration-export/
+/incident-artifacts/
 *.dump
 *.backup
 *.sql.gz

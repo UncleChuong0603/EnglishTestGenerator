@@ -2,10 +2,13 @@ import { vocabularyStudyTopics } from "./study-list";
 
 export type VocabularyEntry = { key: string; term: string; meaningVi: string; meaningEn: string; kind: "word" | "phrase" };
 
-// Curated meanings for the sense commonly used in TOEIC workplace contexts.
+// The complete catalog supports saved study cards and lookup by key.
 export const vocabularyCatalog: VocabularyEntry[] = vocabularyStudyTopics.flatMap((topic) => topic.entries);
+const vocabularyByKeyMap = new Map(vocabularyCatalog.map((entry) => [entry.key, entry]));
+// Practice suggestions use the 1,000 terms selected from TOEIC topics and the practice bank.
+const practiceCatalog = vocabularyCatalog.slice(0, 1000);
 
-const vocabularyPatterns = vocabularyCatalog.map((entry) => {
+const vocabularyPatterns = practiceCatalog.map((entry) => {
   const forms = entry.kind === "phrase" ? [entry.term] : entry.term.endsWith("e")
     ? [entry.term, `${entry.term}s`, `${entry.term}d`, `${entry.term.slice(0, -1)}ing`]
     : [entry.term, `${entry.term}s`, `${entry.term}ed`, `${entry.term}ing`];
@@ -15,15 +18,15 @@ const vocabularyPatterns = vocabularyCatalog.map((entry) => {
 
 export function matchingVocabulary(text: string, limit = 2): VocabularyEntry[] {
   const normalized = text.toLocaleLowerCase("en-US").replace(/[\u2019]/g, "'");
-  return vocabularyCatalog.filter((_, index) => vocabularyPatterns[index].test(normalized)).slice(0, limit);
+  return practiceCatalog.filter((_, index) => vocabularyPatterns[index].test(normalized)).slice(0, limit);
 }
 
-export function vocabularyByKey(key: string) { return vocabularyCatalog.find((entry) => entry.key === key); }
+export function vocabularyByKey(key: string) { return vocabularyByKeyMap.get(key); }
 
 export function vocabularySuggestions(questionText: string, correctAnswer: string, passages: readonly string[] = [], limit = 2) {
-  const answerMatches = matchingVocabulary(correctAnswer, vocabularyCatalog.length);
-  const questionMatches = matchingVocabulary(questionText.replace(/_{2,}/g, correctAnswer), vocabularyCatalog.length);
-  const passageMatches = matchingVocabulary(passages.join(" "), vocabularyCatalog.length);
+  const answerMatches = matchingVocabulary(correctAnswer, practiceCatalog.length);
+  const questionMatches = matchingVocabulary(questionText.replace(/_{2,}/g, correctAnswer), practiceCatalog.length);
+  const passageMatches = matchingVocabulary(passages.join(" "), practiceCatalog.length);
   const candidates = new Map<string, { entry: VocabularyEntry; score: number }>();
   for (const [entries, sourceScore] of [[answerMatches, 2], [questionMatches, 1], [passageMatches, 1]] as const) {
     for (const entry of entries) {

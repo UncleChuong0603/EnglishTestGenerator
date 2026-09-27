@@ -353,7 +353,7 @@ export default async function PracticeResultsPage({
                     {locale === "vi" ? "Xem lại bài đọc" : "Review passage"}
                   </summary>
                   <div className="border-t border-slate-200 p-3" lang="en">
-                    <PassageDocuments passages={group.passages} />
+                    <PassageDocuments part={group.part} passages={group.passages} vocabulary />
                   </div>
                 </details>
               ) : null}

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export function PronunciationButton({ term, kind, locale }: { term: string; kind: "word" | "phrase"; locale: "vi" | "en" }) {
+export function PronunciationButton({ term, kind, locale, audioUrl }: { term: string; kind: "word" | "phrase"; locale: "vi" | "en"; audioUrl?: string | null }) {
   const [playing, setPlaying] = useState(false);
   function speak() {
     if (!("speechSynthesis" in window)) { setPlaying(false); return; }
@@ -17,7 +17,7 @@ export function PronunciationButton({ term, kind, locale }: { term: string; kind
   async function play() {
     setPlaying(true);
     if (kind === "phrase") { speak(); return; }
-    const audio = new Audio(`/api/vocabulary/audio/${encodeURIComponent(term)}`);
+    const audio = new Audio(audioUrl || `/api/vocabulary/audio/${encodeURIComponent(term)}`);
     let fallbackStarted = false;
     const fallback = () => { if (fallbackStarted) return; fallbackStarted = true; speak(); };
     audio.onended = () => setPlaying(false);

@@ -1,5 +1,6 @@
 import type { VocabularyEntry } from "./catalog";
 import expandedEntries from "./study-expanded.json";
+import additionalEntries from "./study-additional.json";
 
 export type StudyEntry = VocabularyEntry & { example: string };
 export type StudyTopic = { id: string; titleVi: string; titleEn: string; entries: StudyEntry[] };
@@ -139,6 +140,14 @@ const expansionTopics: StudyTopic[] = Array.from({ length: 9 }, (_, index) => ({
   entries: expandedEntries.slice(index * 100, (index + 1) * 100).map((entry) => ({ ...entry, kind: "word" as const })),
 }));
 
-export const vocabularyStudyTopics: StudyTopic[] = [...foundationalTopics, ...expansionTopics];
+const additionalTopics: StudyTopic[] = Array.from({ length: 40 }, (_, index) => ({
+  id: `common-${index + 1}`,
+  titleVi: `Từ thông dụng · nhóm ${index + 1}`,
+  titleEn: `Common vocabulary · set ${index + 1}`,
+  entries: additionalEntries.slice(index * 100, (index + 1) * 100).map((entry) => ({ ...entry, kind: "word" as const })),
+}));
+
+export const vocabularyStudyTopics: StudyTopic[] = [...foundationalTopics, ...expansionTopics, ...additionalTopics];
 export const vocabularyStudyEntries = vocabularyStudyTopics.flatMap((topic) => topic.entries);
-export function studyEntryByKey(key: string) { return vocabularyStudyEntries.find((entry) => entry.key === key); }
+const studyEntriesByKey = new Map(vocabularyStudyEntries.map((entry) => [entry.key, entry]));
+export function studyEntryByKey(key: string) { return studyEntriesByKey.get(key); }

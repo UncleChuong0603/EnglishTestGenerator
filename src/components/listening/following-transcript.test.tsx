@@ -19,7 +19,8 @@ describe("transcript following audio", () => {
     expect(currentSentenceIndex(sentences, 8, 10)).toBe(1);
     expect(currentSentenceIndex(sentences, 1, 10)).toBe(0);
     const html = renderToStaticMarkup(<FollowingTranscript duration={10} locale="vi" time={8} transcript={transcript} />);
-    expect(html).toContain("Listen now.");
-    expect(html).toMatch(/<mark[^>]*>Then speak along\.<\/mark>/);
+    expect(html.replace(/<[^>]*>/g, "")).toContain(transcript);
+    const highlighted = html.match(/<mark[^>]*>(.*?)<\/mark>/)?.[1];
+    expect(highlighted?.replace(/<[^>]*>/g, "")).toBe("Then speak along.");
   });
 });

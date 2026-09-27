@@ -40,6 +40,12 @@ docker stats --no-stream
 
 Nếu health fail: xem `migrate` và `app` log, xác minh container Postgres healthy, dung lượng đĩa, DNS/certificate và biến bắt buộc theo tên (không echo giá trị). Không chạy reset schema, `DROP DATABASE`, seed development phá hủy dữ liệu hoặc xóa volume. Khi nghi ngờ compromise, giữ bằng chứng/log, chặn truy cập ở firewall nếu cần và rotate secrets qua một cửa sổ bảo trì.
 
+## Kiểm tra an toàn sau sự cố lộ môi trường (Task 36B)
+
+Trong checkout Dokploy, chạy `scripts/task36b-safe-status.mjs` bằng Node của container Dokploy (host production không cài Node). Ví dụ: `docker exec -w /etc/dokploy/compose/toeic-gym-frontend-bhwkds/code <dokploy-container> node scripts/task36b-safe-status.mjs`. Script chỉ in revision, trạng thái service, restart count và **tên** credential; không in giá trị môi trường. Kiểm tra `/api/health` qua HTTPS riêng.
+
+Không chạy hoặc chia sẻ `ps ... args`, `docker inspect .Config.Env`, `docker compose config`, nội dung `.env`, full Dokploy deployment command/log, hay chuỗi base64. Các đầu ra này có thể tái tạo toàn bộ môi trường production, kể cả khi được gọi là “encoded”. Nếu cần điều tra lỗi deploy, chỉ báo trạng thái và loại lỗi đã lọc; không dán log thô vào ticket/chat.
+
 ## Chẩn đoán lỗi tải image trên Dokploy
 
 Lỗi `TLS handshake timeout` tới `registry-1.docker.io` xảy ra trước khi build

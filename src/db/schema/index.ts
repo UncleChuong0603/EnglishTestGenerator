@@ -621,6 +621,7 @@ export const userVocabulary = pgTable("user_vocabulary", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   entryKey: text("entry_key").notNull(),
+  dictionaryCard: jsonb("dictionary_card").$type<import("@/lib/vocabulary/dictionary-types").DictionaryCard>(),
   sourceQuestionId: uuid("source_question_id").references(() => questions.id, { onDelete: "set null" }),
   sourceSessionId: uuid("source_session_id").references(() => practiceSessions.id, { onDelete: "set null" }),
   sourceQuestionNumber: smallint("source_question_number"),

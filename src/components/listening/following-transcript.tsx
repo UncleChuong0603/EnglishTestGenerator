@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import type { InterfaceLanguage } from "@/lib/i18n/config";
+import { PracticeVocabularyHint } from "@/components/vocabulary/practice-vocabulary-hint";
+import { HoverWords } from "@/components/vocabulary/hover-words";
 
 const shortPrefix = /^(?:[A-D]|Mr|Mrs|Ms|Dr)\.$/i;
 
@@ -58,7 +60,8 @@ export function FollowingTranscript({ transcript, time, duration, locale }: { tr
     container.scrollTo({ top: Math.max(0, top - container.clientHeight / 3) });
   }, [active, transcript]);
   return <>
+    <PracticeVocabularyHint locale={locale} />
     <p className="mt-4 text-sm font-semibold text-teal-800">{locale === "vi" ? "Câu đang nghe được tô sáng ước lượng theo audio; câu tiếp theo vẫn hiển thị để bạn chuẩn bị." : "The current sentence is highlighted approximately; the next sentence stays visible so you can prepare."}</p>
-    <div className="mt-4 max-h-[60vh] overflow-y-auto pr-2" ref={scrollRef}><p className="text-lg leading-9" lang="en">{sentences.map((sentence, index) => <span className={paragraphStarts.has(index) && index > 0 ? "mt-5 block" : undefined} key={index}>{index > 0 && !paragraphStarts.has(index) ? " " : null}{index === active ? <mark aria-current="true" className="rounded-md bg-teal-100 px-1 py-0.5 font-semibold text-slate-950 ring-1 ring-teal-600" ref={activeRef}>{sentence}</mark> : sentence}</span>)}</p></div>
+    <div className="mt-4 max-h-[60vh] overflow-y-auto pr-2" ref={scrollRef}><p className="text-lg leading-9" lang="en">{sentences.map((sentence, index) => <span className={paragraphStarts.has(index) && index > 0 ? "mt-5 block" : undefined} key={index}>{index > 0 && !paragraphStarts.has(index) ? " " : null}{index === active ? <mark aria-current="true" className="rounded-md bg-teal-100 px-1 py-0.5 font-semibold text-slate-950 ring-1 ring-teal-600" ref={activeRef}><HoverWords locale={locale} part={3} text={sentence} /></mark> : <HoverWords locale={locale} part={3} text={sentence} />}</span>)}</p></div>
   </>;
 }
