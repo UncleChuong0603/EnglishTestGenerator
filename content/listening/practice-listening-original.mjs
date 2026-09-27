@@ -6,6 +6,8 @@ const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 const times = ["8:30", "9:15", "10:00", "11:45", "1:30", "2:15", "3:00", "4:20"];
 const keys = ["A", "B", "C", "D"];
 const pad = n => String(n).padStart(3, "0");
+const conversationTopics = ["brochure copying", "display stand delivery", "job interview", "workshop planning", "quarterly report", "desk lamp sample", "shipping label", "room booking", "monitor invoice", "software course", "trade show display", "cafe menu"];
+const talkTopics = ["lobby closure", "office supply order", "travel expense claim", "desk organizer sale", "business center tour", "planning meeting", "airport shuttle", "store closure", "refrigerator repair", "museum photography tour", "workshop safety", "product briefing"];
 
 function context(n) {
   const variant = Math.floor((n - 1) / 6);
@@ -16,7 +18,9 @@ function context(n) {
 
 function group(part, n, type, lines, qa) {
   const externalId = `L-P${part}-PRACTICE-G${pad(n)}`;
+  const context = contextForGroup(part, n);
   return { externalId, version: 1, part, type, status: "published", skillArea: "LISTENING", responseType: "MULTIPLE_CHOICE", difficulty: "medium",
+    distractorContext: context,
     transcript: lines.map(([speaker, text]) => `${speaker}: ${text}`).join("\n"),
     script: lines.map(([speaker, text]) => ({ speaker, text })),
     media: [{ role: "AUDIO", assetRef: `content/listening/audio/${externalId}.mp3` }],
@@ -28,6 +32,11 @@ function group(part, n, type, lines, qa) {
         explanationEn: evidence, explanationVi: `Bài nghe nêu rõ chi tiết tương ứng với đáp án “${correct}”.` };
     }),
   };
+}
+
+function contextForGroup(part, n) {
+  const { site, day, time } = context(n);
+  return { site, day, time, topic: (part === 3 ? conversationTopics : talkTopics)[(n - 1) % 12] };
 }
 
 export function practiceConversation(n) {

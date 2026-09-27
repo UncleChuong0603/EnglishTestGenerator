@@ -51,12 +51,17 @@ const settings = [
   "in the morning", "in the afternoon", "before noon", "near the end of the day",
   "early in the day", "late in the day", "at midday", "before sunset",
   "on a weekday morning", "on a weekend afternoon",
+  "during an early shift", "during a late shift", "before an afternoon appointment",
+  "during a scheduled rehearsal", "near the start of an event",
+  "during a weekend event", "before a morning meeting",
 ];
 
 export function part1Distractor(index) {
   const activity = activities[index % activities.length];
   const cycle = Math.floor(index / activities.length);
-  const setting = settings[(cycle + index % activities.length) % settings.length];
+  const setting = settings[index < 450
+    ? (cycle + index % activities.length) % 10
+    : 10 + (cycle - 10 + index % activities.length) % 7];
   if (cycle >= settings.length) throw new Error(`No Part 1 distractor for index ${index}`);
   return `${activity} ${setting}.`;
 }

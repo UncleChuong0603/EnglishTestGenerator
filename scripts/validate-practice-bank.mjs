@@ -27,6 +27,12 @@ for (const item of practiceListeningExpansion) {
   if (listeningTranscripts.has(transcript)) errors.push(`${label}: duplicate transcript across banks`);
   listeningTranscripts.add(transcript);
   if (item.part === 1 && item.media.filter(asset => asset.role === "IMAGE").length !== 1) errors.push(`${label}: expected one image`);
+  if (item.part === 1) {
+    const number = Number(label.match(/(\d+)$/)?.[1]);
+    const sceneIndex = (number - 1) % 4;
+    const originalCorrectKey = ["A", "B", "C", "D"][(sceneIndex - number % 4 + 4) % 4];
+    if (item.question.correctKey !== originalCorrectKey) errors.push(`${label}: original answer key changed`);
+  }
   if (item.media.filter(asset => asset.role === "AUDIO").length !== 1) errors.push(`${label}: expected one audio file`);
   if (item.part >= 3 && questions.length !== 3) errors.push(`${label}: expected three questions`);
   if (item.part <= 2 && questions.length !== 1) errors.push(`${label}: expected one question`);

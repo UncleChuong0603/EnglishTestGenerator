@@ -1,11 +1,14 @@
 import { practicePart1Scenes } from "./practice-part1-scenes.mjs";
+import { part1Distractor } from "./part1-distractors.mjs";
 
 const keys = ["A", "B", "C", "D"];
 
 export const practicePart1Content = practicePart1Scenes.flatMap((sheet, sheetIndex) => sheet.map(([imagePrompt, correct], sceneIndex) => {
   const number = sheetIndex * 4 + sceneIndex + 1;
   const externalId = `L-P1-PRACTICE-${String(number).padStart(3, "0")}`;
-  const options = sheet.map(([, statement]) => statement);
+  const options = [0, 1, 2].map(offset => part1Distractor(450 + (number - 1) * 3 + offset));
+  // Keep the original correct option key so existing attempts retain their answer.
+  options.splice(sceneIndex, 0, correct);
   const rotation = number % 4;
   const choices = options.map((_, position) => options[(position + rotation) % 4]);
   const answerIndex = choices.indexOf(correct);

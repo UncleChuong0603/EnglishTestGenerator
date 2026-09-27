@@ -49,10 +49,22 @@ type ListeningAudioItem = {
   part: number;
   transcript: string;
   question?: { options: { key: string; text: string }[] };
+  script?: { speaker: string; text: string }[];
 };
 
 export function planListeningAudio(item: ListeningAudioItem): AudioSegment[] {
-  if (item.part !== 1 && item.part !== 2) return [{ text: item.transcript, pauseAfterMs: 0 }];
+  if (item.part === 3) {
+    const turns = item.script ?? item.transcript.split(/\r?\n/).map(line => ({ speaker: "", text: line.replace(/^[A-Z]+:\s*/, "") }));
+    if (!turns.length || turns.some(turn => !turn.text.trim())) throw new Error("LISTENING_AUDIO_SCRIPT_MISSING");
+    return turns.map((turn, index) => ({ text: turn.text, pauseAfterMs: index === turns.length - 1 ? 0 : 550 }));
+  }
+  if (item.part === 4) {
+    const talk = item.script?.map(turn => turn.text).join(" ") ?? item.transcript.replace(/^[A-Z]+:\s*/, "");
+    const sentences = talk.split(/(?<=[.!?])\s+(?=[A-Z])/).filter(Boolean);
+    if (!sentences.length) throw new Error("LISTENING_AUDIO_SCRIPT_MISSING");
+    return sentences.map((text, index) => ({ text, pauseAfterMs: index === sentences.length - 1 ? 0 : 450 }));
+  }
+  if (item.part !== 1 && item.part !== 2) throw new Error("LISTENING_AUDIO_PART_INVALID");
   const options = item.question?.options;
   if (!options?.length) throw new Error("LISTENING_AUDIO_OPTIONS_MISSING");
   const segments: AudioSegment[] = [];

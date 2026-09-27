@@ -20,7 +20,7 @@ export function practiceResponse(index) {
   const room = rooms[(group + scenario) % rooms.length];
   const day = days[(group + scenario) % days.length];
   const time = times[(group + scenario) % times.length];
-  const ref = `${company}'s ${project}`;
+  const ref = `${company}${company.endsWith("s") ? "'" : "'s"} ${project}`;
   const scenarios = [
     [`When will the ${item} for ${ref} be ready?`, `By ${time} on ${day}.`, `It is in the ${place}.`, `${person} works in ${department}.`, "direct_response"],
     [`Where should I send the ${item} for ${ref}?`, `To the ${department} office, please.`, `At about ${time}.`, `${person} wrote it yesterday.`, "direct_response"],
@@ -60,6 +60,7 @@ export function practiceResponse(index) {
   const externalId = `L-P2-PRACTICE-${String(index + 1).padStart(3, "0")}`;
   return {
     externalId, version: 1, part: 2, type: "question_response", status: "published", skillArea: "LISTENING", responseType: "MULTIPLE_CHOICE", difficulty: "medium",
+    distractorContext: { company, project, person, day, time },
     transcript: `Question: ${prompt}\nA. ${answers[0]}\nB. ${answers[1]}\nC. ${answers[2]}`,
     script: [{ speaker: index % 2 ? "WOMAN" : "MAN", text: prompt }, { speaker: "NARRATOR", text: `A. ${answers[0]} B. ${answers[1]} C. ${answers[2]}` }],
     media: [{ role: "AUDIO", assetRef: `content/listening/audio/${externalId}.mp3` }],
