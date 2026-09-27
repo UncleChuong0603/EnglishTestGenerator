@@ -9,14 +9,14 @@ test.skipIf(process.env.TASK37_POSTGRES_QA !== "1")("Free/Premium server enforce
 const url = new URL(process.env.DATABASE_URL ?? "");
 assert.deepEqual({ host: url.hostname, port: url.port, database: url.pathname, user: url.username },
   { host: "127.0.0.1", port: "15433", database: "/toeicgym_task17", user: "toeicgym_test" });
-const { db, pool } = await import("../src/db/index.ts");
-const { PLAN_CATALOG, PLAN_CAPABILITIES } = await import("../src/lib/entitlements/catalog.ts");
-const { consumeUsage, getEffectiveCapabilities, getMembershipState, getUsageStatus, UsageLimitError } = await import("../src/lib/entitlements/service.ts");
-const { getDiagnosticEligibility } = await import("../src/lib/diagnostic/service.ts");
-const { createMasteryReviewSession } = await import("../src/lib/practice/selector.ts");
-const { getAdvancedMockHistory, getMockHubReadiness, createMockRun } = await import("../src/lib/full-mock/service.ts");
-const { getMistakeBank } = await import("../src/lib/mastery/queries.ts");
-const { getPracticeResult } = await import("../src/lib/practice/queries.ts");
+const { db, pool } = await import("../src/db");
+const { PLAN_CATALOG, PLAN_CAPABILITIES } = await import("../src/lib/entitlements/catalog");
+const { consumeUsage, getEffectiveCapabilities, getMembershipState, getUsageStatus, UsageLimitError } = await import("../src/lib/entitlements/service");
+const { getDiagnosticEligibility } = await import("../src/lib/diagnostic/service");
+const { createMasteryReviewSession } = await import("../src/lib/practice/selector");
+const { getAdvancedMockHistory, getMockHubReadiness, createMockRun } = await import("../src/lib/full-mock/service");
+const { getMistakeBank } = await import("../src/lib/mastery/queries");
+const { getPracticeResult } = await import("../src/lib/practice/queries");
 const ids: string[] = [];
 const now = new Date();
 
