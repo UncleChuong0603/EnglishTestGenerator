@@ -102,3 +102,19 @@ test("learner paywall surfaces remain usable at every required width", async ({ 
     await context.close();
   }
 });
+
+test("stale quota errors do not show a paywall when allowance is available", async ({ browser }) => {
+  test.setTimeout(120_000);
+  for (const state of ["new", "premium", "complete"]) {
+    const context = await learner(browser, state);
+    await context.addCookies([{ name: "toeic_interface_language", value: "en", domain: "127.0.0.1", path: "/" }]);
+    const page = await context.newPage();
+    for (const route of ["/practice", "/mistakes", "/full-mock"]) {
+      await page.goto(`${route}?error=usage_limit`, { waitUntil: "domcontentloaded" });
+      await expect(page.locator("main:not([aria-busy])")).toBeVisible();
+      await expect(page.getByRole("heading", { name: /^(You used|Restore your)/ })).toHaveCount(0);
+      await expect(page.getByRole("alert")).toHaveCount(0);
+    }
+    await context.close();
+  }
+});

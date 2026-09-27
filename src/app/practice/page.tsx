@@ -69,6 +69,7 @@ export default async function PracticePage({ searchParams }: Props) {
     4: t.listening.talks,
   };
   const practiceUsage = preview.usage.MANUAL_PRACTICE;
+  const quotaReached = error === "usage_limit" && practiceUsage.type === "LIMITED" && practiceUsage.remaining === 0;
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 sm:px-6 sm:py-8">
       <div className="mx-auto max-w-6xl">
@@ -78,14 +79,14 @@ export default async function PracticePage({ searchParams }: Props) {
         <Link className="text-sm font-semibold text-teal-700" href="/dashboard">
           ← {t.practiceConfig.back}
         </Link>
-        {error === "usage_limit" && preview.visible ? (
+        {quotaReached && preview.visible ? (
           <div className="mt-6">
             <PremiumPreviewCard
               locale={locale}
               title={
                 locale === "vi"
-                  ? `Bạn đã dùng ${practiceUsage.used}/${practiceUsage.type === "LIMITED" ? practiceUsage.limit : practiceUsage.used} lượt luyện hôm nay`
-                  : `You used ${practiceUsage.used}/${practiceUsage.type === "LIMITED" ? practiceUsage.limit : practiceUsage.used} practice sessions today`
+                  ? `Bạn đã dùng ${practiceUsage.used}/${practiceUsage.limit} lượt luyện hôm nay`
+                  : `You used ${practiceUsage.used}/${practiceUsage.limit} practice sessions today`
               }
               body={
                 preview.progress.answeredCount > 0
@@ -99,7 +100,7 @@ export default async function PracticePage({ searchParams }: Props) {
               values={preview.values.includes("targeting") ? ["targeting"] : []}
             />
           </div>
-        ) : error === "usage_limit" && preview.lifecycle === "EXPIRED" ? (
+        ) : quotaReached && preview.lifecycle === "EXPIRED" ? (
           <div className="mt-6">
             <PremiumRenewalCard
               locale={locale}

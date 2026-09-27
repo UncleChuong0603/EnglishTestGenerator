@@ -131,6 +131,7 @@ export default async function FullMockPage({
     },
   ];
   const mockUsage = preview.usage.FULL_MOCK;
+  const quotaReached = query.error === "usage_limit" && mockUsage.type === "LIMITED" && mockUsage.remaining === 0 && (ready.listening.ready || ready.full.ready);
   return (
     <main className="min-h-screen overflow-x-hidden bg-slate-50 px-4 py-6 text-slate-900">
       <div className="mx-auto max-w-6xl">
@@ -141,14 +142,14 @@ export default async function FullMockPage({
           </h1>
           <p className="mt-3 text-base leading-7 text-slate-600">{t.intro}</p>
         </header>
-        {query.error === "usage_limit" && preview.visible ? (
+        {quotaReached && preview.visible ? (
           <div className="mt-6">
             <PremiumPreviewCard
               locale={preferences.interfaceLanguage}
               title={
                 locale === "vi"
-                  ? `Bạn đã dùng ${mockUsage.used}/${mockUsage.type === "LIMITED" ? mockUsage.limit : mockUsage.used} lượt Mock tháng này`
-                  : `You used ${mockUsage.used}/${mockUsage.type === "LIMITED" ? mockUsage.limit : mockUsage.used} mocks this month`
+                  ? `Bạn đã dùng ${mockUsage.used}/${mockUsage.limit} lượt Mock tháng này`
+                  : `You used ${mockUsage.used}/${mockUsage.limit} mocks this month`
               }
               body={
                 locale === "vi"
@@ -157,7 +158,7 @@ export default async function FullMockPage({
               }
             />
           </div>
-        ) : query.error === "usage_limit" &&
+        ) : quotaReached &&
           preview.lifecycle === "EXPIRED" ? (
           <div className="mt-6">
             <PremiumRenewalCard

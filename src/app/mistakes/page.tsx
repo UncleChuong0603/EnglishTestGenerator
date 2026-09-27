@@ -77,6 +77,7 @@ export default async function MistakesPage({
   const total = counts.unresolved + counts.mastered;
   const eligible = rows.filter((row) => row.available).length;
   const reviewUsage = preview.usage.MASTERY_REVIEW;
+  const quotaReached = query.error === "usage_limit" && reviewUsage.type === "LIMITED" && reviewUsage.remaining === 0;
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-6 pb-20 text-slate-900 sm:px-6">
       <div className="mx-auto max-w-5xl">
@@ -94,14 +95,14 @@ export default async function MistakesPage({
               : "Review real mistakes and track your progress toward mastery."}
           </p>
         </header>
-        {query.error === "usage_limit" && preview.visible ? (
+        {quotaReached && preview.visible ? (
           <div className="mt-5">
             <PremiumPreviewCard
               locale={preferences.interfaceLanguage}
               title={
                 vi
-                  ? `Bạn đã dùng ${reviewUsage.used}/${reviewUsage.type === "LIMITED" ? reviewUsage.limit : reviewUsage.used} lượt ôn Free hôm nay`
-                  : `You used ${reviewUsage.used}/${reviewUsage.type === "LIMITED" ? reviewUsage.limit : reviewUsage.used} Free reviews today`
+                  ? `Bạn đã dùng ${reviewUsage.used}/${reviewUsage.limit} lượt ôn Free hôm nay`
+                  : `You used ${reviewUsage.used}/${reviewUsage.limit} Free reviews today`
               }
               body={
                 vi ? (
@@ -148,7 +149,7 @@ export default async function MistakesPage({
               cta={vi ? "Xem Smart Review" : "See Smart Review"}
             />
           </div>
-        ) : query.error === "usage_limit" &&
+        ) : quotaReached &&
           preview.lifecycle === "EXPIRED" ? (
           <div className="mt-5">
             <PremiumRenewalCard
@@ -160,12 +161,12 @@ export default async function MistakesPage({
               }
               body={
                 vi
-                  ? `Gói trước đây đã hết hạn. ${preview.mistakes.unresolvedCount} lỗi chưa làm chủ vẫn được lưu an toàn để bạn tiếp tục ôn sau khi khôi phục.`
-                  : `Your previous plan expired. ${preview.mistakes.unresolvedCount} unresolved mistakes remain safely saved for your next review.`
+                  ? `Gói trước đây đã hết hạn. ${preview.mistakes.unresolvedCount} lỗi chưa làm chủ vẫn được lưu. Bạn có thể ôn Free khi lượt đặt lại; Premium mở Smart Review và bỏ giới hạn lượt ôn.`
+                  : `Your previous plan expired. ${preview.mistakes.unresolvedCount} unresolved mistakes remain saved. Free reviews resume when your allowance resets; Premium adds Smart Review and unlimited reviews.`
               }
             />
           </div>
-        ) : query.error ? (
+        ) : query.error && (query.error !== "usage_limit" || quotaReached) ? (
           <p
             className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900"
             role="alert"
