@@ -46,14 +46,44 @@ try {
   const urls = [...sitemap.body.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => decodeXml(match[1]));
   if (urls.length === 0) failures.push("sitemap.xml: no URLs found");
   if (new Set(urls).size !== urls.length) failures.push("sitemap.xml: duplicate URLs found");
+  const excludedPrefixes = [
+    "/admin", "/auth", "/dashboard", "/practice", "/demo-test", "/full-mock",
+    "/billing", "/api", "/continue-learning", "/onboarding", "/progress",
+    "/settings", "/mistakes", "/ranking", "/learners",
+  ];
+  for (const url of urls) {
+    try {
+      const parsed = new URL(url);
+      if (parsed.origin !== origin || parsed.search || parsed.hash || (parsed.pathname !== "/" && parsed.pathname.endsWith("/"))) {
+        failures.push(`${url}: sitemap entry is not a clean canonical URL`);
+      }
+      if (excludedPrefixes.some((prefix) => parsed.pathname === prefix || parsed.pathname.startsWith(`${prefix}/`))
+        || /^\/(?:diagnostic|challenge\/part-5)\/.+/.test(parsed.pathname)) {
+        failures.push(`${url}: private or session URL in sitemap`);
+      }
+    } catch {
+      failures.push(`${url}: invalid sitemap URL`);
+    }
+  }
 
-  // Keep the audit light enough to run against production after a deployment.
-  for (let offset = 0; offset < urls.length; offset += 4) {
-    await Promise.all(urls.slice(offset, offset + 4).map(async (url) => {
+  // Check every sitemap entry for syntax and duplicates, then fetch representative
+  // pages slowly enough to avoid tripping the production edge rate limit.
+  const samplePaths = [
+    "/", "/toeic", "/toeic/part-5", "/toeic/part-5/practice",
+    "/toeic/part-5/word-form", "/toeic/part-5/thi-dong-tu",
+    "/toeic/part-6", "/toeic/part-7", "/blog", "/blog/ngu-phap",
+    "/blog/cach-review-loi-sai-toeic", "/blog/chien-luoc-tang-diem-toeic-450-den-700",
+    "/challenge/part-5",
+  ];
+  for (const path of samplePaths) {
+    if (!urls.includes(path === "/" ? origin : `${origin}${path}`)) failures.push(`${path}: missing from sitemap`);
+  }
+  const sampleUrls = urls.filter((url) => samplePaths.includes(new URL(url).pathname));
+  for (const url of sampleUrls) {
       try {
         if (!url.startsWith(`${origin}/`) && url !== origin) {
           failures.push(`${url}: sitemap URL is outside ${origin}`);
-          return;
+          continue;
         }
         const first = await request(url);
         let page = first.response;
@@ -92,7 +122,7 @@ try {
       } catch (error) {
         failures.push(`${url}: ${error instanceof Error ? error.message : String(error)}`);
       }
-    }));
+    await new Promise((resolve) => setTimeout(resolve, 250));
   }
 
   for (const path of privatePaths) {
@@ -117,7 +147,7 @@ try {
     }
   }
 
-  console.log(`SEO smoke: ${urls.length} sitemap URLs and ${privatePaths.length} app routes checked at ${origin}`);
+  console.log(`SEO smoke: ${urls.length} sitemap URLs validated, ${sampleUrls.length} representative pages and ${privatePaths.length} app routes fetched at ${origin}`);
 } catch (error) {
   failures.push(error instanceof Error ? error.message : String(error));
 }
