@@ -19,7 +19,7 @@ describe("public activation configuration", () => {
 
   it("publishes every metered entitlement from the canonical catalog", () => {
     const rows = new Map(
-      publicPlanFeatures("en").map((row) => [row.key, row]),
+      publicPlanFeatures("en", true).map((row) => [row.key, row]),
     );
     const publicKeys: Record<EntitlementKey, PublicFeatureKey> = {
       TODAYS_WORKOUT: "recommendations",
@@ -39,6 +39,11 @@ describe("public activation configuration", () => {
       expect(premium.type).toBe("UNLIMITED");
       expect(rows.get(publicKey)?.premium).toBe("Unlimited");
     }
+  });
+
+  it("does not advertise new Mock access before a mode is ready", () => {
+    expect(publicPlanFeatures("en").some(row => row.key === "fullMock" || row.key === "mockHistory")).toBe(false);
+    expect(publicPlanFeatures("en", true).find(row => row.key === "fullMock")?.availability).toBe("READINESS_GATED");
   });
 
   it("publishes enforced capability differences instead of vague Premium copy", () => {
@@ -66,6 +71,7 @@ describe("public activation configuration", () => {
     expect(notes.reset).toContain("00:00 Vietnam time");
     expect(notes.reset).toContain("Resuming");
     expect(notes.mock).toContain("share the new-mock allowance");
+    expect(notes.mock).toContain("Reading demo is separate");
     expect(notes.mock).toContain("created");
   });
 });

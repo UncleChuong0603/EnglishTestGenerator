@@ -7,6 +7,7 @@ import { LearnerNav } from "@/components/learner-nav";
 import { getCurrentUser } from "@/lib/auth/session";
 import { loadRecommendedWorkout } from "@/lib/diagnosis/service";
 import { getEffectiveCapabilities } from "@/lib/entitlements/service";
+import { MIN_ATTEMPTS_FOR_CLASSIFICATION } from "@/lib/analytics/calculate";
 import { getPreferences, getTranslations } from "@/lib/i18n/get-translations";
 import { taxonomyLabel } from "@/lib/i18n/labels";
 import { getMistakeCounts } from "@/lib/mastery/queries";
@@ -231,13 +232,13 @@ export default async function ProgressPage({
                       </h2>
                     </div>
                     <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
-                      {vi ? "Tối thiểu 5 câu mỗi mục" : "At least 5 answers per area"}
+                      {vi ? `Tối thiểu ${MIN_ATTEMPTS_FOR_CLASSIFICATION} câu mỗi mục` : `At least ${MIN_ATTEMPTS_FOR_CLASSIFICATION} answers per area`}
                     </span>
                   </div>
                   <p className="mt-3 text-sm text-slate-600">
                     {vi
-                      ? "Tỷ lệ đúng của từng kỹ năng và chủ điểm sẽ hiện sau khi bạn làm ít nhất 5 câu ở mục đó."
-                      : "Accuracy for each skill and topic appears after at least 5 answers in that area."}
+                      ? `Tỷ lệ đúng của từng kỹ năng và chủ điểm sẽ hiện sau khi bạn làm ít nhất ${MIN_ATTEMPTS_FOR_CLASSIFICATION} câu ở mục đó.`
+                      : `Accuracy for each skill and topic appears after at least ${MIN_ATTEMPTS_FOR_CLASSIFICATION} answers in that area.`}
                   </p>
                   <div className="mt-6 grid gap-5 lg:grid-cols-2">
                     {progress.parts

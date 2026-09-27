@@ -11,6 +11,9 @@ export type PublicFeatureKey =
   | "manualPractice"
   | "recommendations"
   | "mistakeBank"
+  | "smartReview"
+  | "weeklyPlan"
+  | "weeklyReview"
   | "fullMock"
   | "diagnostic"
   | "targeting"
@@ -24,6 +27,16 @@ export type PublicFeature = {
   free: string;
   premium: string;
   featured?: boolean;
+  availability: "AVAILABLE_NOW" | "READINESS_GATED";
+};
+
+/** The mock engine and its history are advertised only while a startable mock mode exists. */
+export const PUBLIC_FEATURE_AVAILABILITY: Record<PublicFeatureKey, PublicFeature["availability"]> = {
+  listeningReading: "AVAILABLE_NOW", manualPractice: "AVAILABLE_NOW", recommendations: "AVAILABLE_NOW",
+  mistakeBank: "AVAILABLE_NOW", smartReview: "AVAILABLE_NOW", weeklyPlan: "AVAILABLE_NOW",
+  weeklyReview: "AVAILABLE_NOW", fullMock: "READINESS_GATED", diagnostic: "AVAILABLE_NOW",
+  targeting: "AVAILABLE_NOW", progress: "AVAILABLE_NOW", mockHistory: "READINESS_GATED",
+  explanations: "AVAILABLE_NOW", ranking: "AVAILABLE_NOW",
 };
 
 type Unit = { singular: string; plural: string };
@@ -51,7 +64,7 @@ function formatQuota(
   return `${value.count} ${noun}/${period}`;
 }
 
-export function publicPlanFeatures(locale: "vi" | "en"): PublicFeature[] {
+export function publicPlanFeatures(locale: "vi" | "en", mockReady = false): PublicFeature[] {
   const vi = locale === "vi";
   const quota = (
     plan: PlanKey,
@@ -65,7 +78,7 @@ export function publicPlanFeatures(locale: "vi" | "en"): PublicFeature[] {
       vi ? { singular: "lượt", plural: "lượt" } : enUnit,
     );
 
-  return [
+  const features: Omit<PublicFeature, "availability">[] = [
     {
       key: "listeningReading",
       free: vi ? "Có" : "Included",
@@ -109,6 +122,23 @@ export function publicPlanFeatures(locale: "vi" | "en"): PublicFeature[] {
       featured: true,
     },
     {
+      key: "smartReview",
+      free: vi ? "Ngân hàng lỗi sai và ôn cơ bản" : "Mistake Bank and basic review",
+      premium: vi ? "Thêm Smart Review ưu tiên lỗi cần ôn" : "Adds Smart Review for mistakes needing attention",
+      featured: true,
+    },
+    {
+      key: "weeklyPlan",
+      free: vi ? "Gợi ý 3 buổi đầu tuần" : "First 3 suggested sessions",
+      premium: vi ? "Kế hoạch đầy đủ theo mục tiêu và dữ liệu học" : "Full plan using your goal and learning data",
+      featured: true,
+    },
+    {
+      key: "weeklyReview",
+      free: vi ? "Tổng kết hoạt động và độ chính xác" : "Activity and accuracy summary",
+      premium: vi ? "Thêm phân tích Part, kỹ năng và so sánh khi đủ dữ liệu" : "Adds Part, skill and prior-week comparisons when supported by data",
+    },
+    {
       key: "fullMock",
       free: quota("FREE", "FULL_MOCK", {
         singular: "new mock",
@@ -124,8 +154,8 @@ export function publicPlanFeatures(locale: "vi" | "en"): PublicFeature[] {
       key: "diagnostic",
       free: vi ? "1 bài đánh giá đầu vào" : "1 baseline diagnostic",
       premium: vi
-        ? `Đầu vào + đánh giá lại mỗi ${DIAGNOSTIC_REASSESSMENT_INTERVAL_DAYS} ngày`
-        : `Baseline + reassessment every ${DIAGNOSTIC_REASSESSMENT_INTERVAL_DAYS} days`,
+        ? `Đầu vào + đánh giá lại sau thời gian chờ ${DIAGNOSTIC_REASSESSMENT_INTERVAL_DAYS} ngày`
+        : `Baseline + reassessment after a ${DIAGNOSTIC_REASSESSMENT_INTERVAL_DAYS}-day cooldown`,
     },
     {
       key: "targeting",
@@ -168,6 +198,8 @@ export function publicPlanFeatures(locale: "vi" | "en"): PublicFeature[] {
       premium: vi ? "Có · không tính quota gói" : "Included · no plan quota",
     },
   ];
+  return features.filter(feature => mockReady || PUBLIC_FEATURE_AVAILABILITY[feature.key] === "AVAILABLE_NOW")
+    .map(feature => ({ ...feature, availability: PUBLIC_FEATURE_AVAILABILITY[feature.key] }));
 }
 
 export function publicPlanNotes(locale: "vi" | "en") {
@@ -176,13 +208,13 @@ export function publicPlanNotes(locale: "vi" | "en") {
         reset:
           "Quota ngày và tháng đặt lại lúc 00:00 theo giờ Việt Nam. Tiếp tục bài đang làm không tốn thêm lượt.",
         mock:
-          "Listening Mock, Reading Mock và Full Mock dùng chung quota tạo bài mới. Quota được tính khi tạo bài; chỉ các mode có nội dung READY mới bắt đầu được.",
+          "Các bài Mock tạo qua hệ thống thi thử dùng chung quota tạo bài mới; bài Reading demo là trải nghiệm riêng. Quota được tính khi tạo bài Mock; chỉ mode có nội dung READY mới bắt đầu được.",
       }
     : {
         reset:
           "Daily and monthly quotas reset at 00:00 Vietnam time. Resuming an active session does not use another allowance.",
         mock:
-          "Listening, Reading and Full Mock share the new-mock allowance. It is consumed when a run is created, and only content-ready modes can start.",
+          "New runs in the Mock system share the new-mock allowance; the Reading demo is separate. The allowance is consumed when a Mock run is created, and only content-ready modes can start.",
       };
 }
 

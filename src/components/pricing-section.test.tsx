@@ -9,8 +9,13 @@ describe("PricingSection", () => {
     );
 
     expect(html).toContain("Custom practice: 3 sessions/day");
-    expect(html).toContain("Baseline + reassessment every 30 days");
+    expect(html).toContain("Baseline + reassessment after a 30-day cooldown");
+    expect(html).toContain("Smart mistake review");
+    expect(html).toContain("Weekly Plan");
+    expect(html).toContain("Weekly Review");
+    expect(html).not.toContain("New Mock Tests");
     expect(html).toContain("share the new-mock allowance");
+    expect(html).toContain("Reading demo is separate");
     expect(html).toContain("Premium upgrades");
     expect(html).toContain("Included in both plans");
     expect(html).toContain("lg:hidden");
@@ -18,6 +23,12 @@ describe("PricingSection", () => {
     expect(html).not.toContain("overflow-x-auto");
     expect(html).toContain('href="/try"');
     expect(html).toContain("Take free diagnostic");
+  });
+
+  it("advertises new mocks only when a startable mode is ready", () => {
+    const html = renderToStaticMarkup(<PricingSection locale="en" mockReady />);
+    expect(html).toContain("New Mock Tests: 1 new mock/month");
+    expect(html).toContain("New Mock Tests: Unlimited");
   });
 
   it("uses a truthful continuation action for a signed-in Free learner", () => {
@@ -40,6 +51,6 @@ describe("PricingSection", () => {
     );
 
     expect(html).toContain("Choose your plan");
-    expect(html).not.toContain("Start free. Upgrade when you need more practice.");
+    expect(html).not.toContain("Start free. Upgrade when you need more targeted practice.");
   });
 });

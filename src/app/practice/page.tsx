@@ -88,11 +88,15 @@ export default async function PracticePage({ searchParams }: Props) {
                   : `You used ${practiceUsage.used}/${practiceUsage.type === "LIMITED" ? practiceUsage.limit : practiceUsage.used} practice sessions today`
               }
               body={
-                locale === "vi"
-                  ? "Premium mở luyện không giới hạn và các mục tiêu luyện nâng cao từ chính lịch sử của bạn."
-                  : "Premium unlocks unlimited practice and advanced targets based on your history."
+                preview.progress.answeredCount > 0
+                  ? locale === "vi"
+                    ? "Premium mở luyện không giới hạn và các mục tiêu luyện nâng cao từ lịch sử học thực tế của bạn."
+                    : "Premium unlocks unlimited practice and advanced targets from your actual learning history."
+                  : locale === "vi"
+                    ? "Premium mở luyện không giới hạn. Mục tiêu luyện nâng cao sẽ dùng dữ liệu học tập khi bạn có đủ lịch sử."
+                    : "Premium unlocks unlimited practice. Advanced targets use learning history once you have enough data."
               }
-              values={["targeting"]}
+              values={preview.values.includes("targeting") ? ["targeting"] : []}
             />
           </div>
         ) : error === "usage_limit" && preview.lifecycle === "EXPIRED" ? (

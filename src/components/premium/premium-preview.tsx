@@ -147,7 +147,20 @@ export function PersonalizedPremiumSummary({
   locale: InterfaceLanguage;
   preview: PremiumPreviewData;
 }) {
-  if (!preview.visible || preview.values.length === 0) return null;
+  if (!preview.visible) return null;
+  if (preview.values.length === 0) return (
+    <section className="mx-auto mt-8 max-w-7xl px-5 sm:px-6" aria-labelledby="personal-premium">
+      <p className="text-xs font-black uppercase tracking-[.16em] text-teal-700">Premium</p>
+      <h2 className="mt-2 text-2xl font-black" id="personal-premium">
+        {locale === "vi" ? "Học miễn phí trước, mở rộng khi cần" : "Learn free first, go deeper when needed"}
+      </h2>
+      <p className="mt-2 max-w-2xl text-slate-600">
+        {locale === "vi"
+          ? "Bạn chưa có đủ dữ liệu học tập để gợi ý quyền lợi riêng. Free có bài học, lời giải và theo dõi tiến độ; Premium thêm kế hoạch tuần đầy đủ và công cụ ôn tập sâu hơn khi bạn cần."
+          : "There is not enough learning data for a personal recommendation yet. Free includes practice, explanations and progress; Premium adds a full weekly plan and deeper review when you need them."}
+      </p>
+    </section>
+  );
   const metrics = [
     preview.progress.answeredCount > 0
       ? [

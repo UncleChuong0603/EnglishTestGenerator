@@ -6,6 +6,7 @@ import { PremiumBadge } from "@/components/premium/premium-badge";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getPreferences } from "@/lib/i18n/get-translations";
 import { getPaymentCatalog } from "@/lib/payments/catalog";
+import { getMockHubReadiness } from "@/lib/full-mock/service";
 import { getPremiumAccount, premiumCopy } from "@/lib/premium/presentation";
 import { getPremiumPreview } from "@/lib/premium/preview";
 import { PersonalizedPremiumSummary } from "@/components/premium/premium-preview";
@@ -24,6 +25,7 @@ export default async function PricingPage() {
   const account = user ? await getPremiumAccount(user.id, user.email) : null;
   const copy = premiumCopy(locale);
   const preview = user ? await getPremiumPreview() : null;
+  const mockReadiness = await getMockHubReadiness().catch(() => null);
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
       <PublicHeader locale={locale} signedIn={Boolean(user)} />
@@ -37,8 +39,8 @@ export default async function PricingPage() {
               ? "Bạn đang dùng Premium. Gia hạn khi cần."
               : "You're on Premium. Extend when you need more time."
             : locale === "vi"
-              ? "Bắt đầu miễn phí. Nâng cấp khi cần luyện nhiều hơn."
-              : "Start free. Upgrade when you need more practice."}
+              ? "Bắt đầu miễn phí. Nâng cấp khi cần học sâu hơn."
+              : "Start free. Upgrade when you need deeper guidance."}
         </h1>
         <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
           {locale === "vi"
@@ -92,6 +94,7 @@ export default async function PricingPage() {
       ) : null}
       <PricingSection
         locale={locale}
+        mockReady={Boolean(mockReadiness?.listening.ready || mockReadiness?.full.ready)}
         showIntro={false}
         currentPlan={
           account?.isPremium ? "PREMIUM" : account ? "FREE" : undefined

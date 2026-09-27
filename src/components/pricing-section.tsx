@@ -16,6 +16,7 @@ type Product = {
 
 type Props = {
   locale: InterfaceLanguage;
+  mockReady?: boolean;
   compact?: boolean;
   showIntro?: boolean;
   startHref?: string;
@@ -42,6 +43,18 @@ const featureNames: Record<
   mistakeBank: {
     vi: "Ôn Ngân hàng lỗi sai",
     en: "Mistake Bank review",
+  },
+  smartReview: {
+    vi: "Ôn lỗi sai thông minh",
+    en: "Smart mistake review",
+  },
+  weeklyPlan: {
+    vi: "Kế hoạch học tuần",
+    en: "Weekly Plan",
+  },
+  weeklyReview: {
+    vi: "Tổng kết tuần",
+    en: "Weekly Review",
   },
   fullMock: {
     vi: "Tạo bài Mock mới",
@@ -75,6 +88,7 @@ const featureNames: Record<
 
 export function PricingSection({
   locale,
+  mockReady = false,
   compact = false,
   showIntro = true,
   startHref = "/try",
@@ -82,7 +96,7 @@ export function PricingSection({
   currentPlan,
 }: Props) {
   const vi = locale === "vi";
-  const features = publicPlanFeatures(locale);
+  const features = publicPlanFeatures(locale, mockReady);
   const featured = features.filter((feature) => feature.featured);
   const purchasable = products.some((product) => product.purchasable);
   const freeActionLabel = currentPlan
@@ -109,8 +123,8 @@ export function PricingSection({
                 ? "Bạn đang dùng Premium. Mua thêm thời hạn khi cần."
                 : "You have Premium. Add more time when you need it."
               : vi
-                ? "Bắt đầu miễn phí. Nâng cấp khi bạn cần luyện nhiều hơn."
-                : "Start free. Upgrade when you need more practice."}
+                ? "Bắt đầu miễn phí. Nâng cấp khi bạn cần học có trọng tâm hơn."
+                : "Start free. Upgrade when you need more targeted practice."}
           </h2>
           <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
             {vi
@@ -234,7 +248,7 @@ export function PricingSection({
           </Link>
         </div>
       ) : (
-        <Comparison locale={locale} />
+        <Comparison locale={locale} mockReady={mockReady} />
       )}
     </section>
   );
@@ -275,9 +289,9 @@ function Plan({
   );
 }
 
-function Comparison({ locale }: { locale: InterfaceLanguage }) {
+function Comparison({ locale, mockReady }: { locale: InterfaceLanguage; mockReady: boolean }) {
   const vi = locale === "vi";
-  const features = publicPlanFeatures(locale);
+  const features = publicPlanFeatures(locale, mockReady);
   const upgrades = features.filter((feature) => feature.free !== feature.premium);
   const shared = features.filter((feature) => feature.free === feature.premium);
   const notes = publicPlanNotes(locale);

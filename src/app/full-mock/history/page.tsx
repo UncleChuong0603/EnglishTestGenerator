@@ -15,7 +15,28 @@ const deltaText = (value: number) => `${value > 0 ? "+" : ""}${value} câu đún
 export default async function MockHistoryPage({ searchParams }: { searchParams: Promise<{ mode?: string }> }) {
   const user = await requireUser(); const requested = (await searchParams).mode; const selected = modes.includes(requested as typeof modes[number]) ? requested as typeof modes[number] : "ALL";
   const [advanced, basic, readiness, preferences] = await Promise.all([getAdvancedMockHistory(user.id), getFullMockHistory(user.id, 1), getMockHubReadiness(), getPreferences(user.id)]);
-  if (!advanced) return <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900"><div className="mx-auto max-w-4xl"><LearnerNav locale={preferences.interfaceLanguage}/><h1 className="mt-8 text-3xl font-black">Lịch sử thi thử</h1><section className="mt-6 rounded-2xl border bg-white p-6"><h2 className="text-xl font-black">So sánh lịch sử dành cho Premium</h2><p className="mt-2 text-slate-600">Kết quả đã hoàn thành vẫn được lưu. Nâng cấp Premium để xem xu hướng và so sánh theo Part.</p>{basic[0] ? <Link className="mt-4 inline-flex font-bold text-teal-700" href={`/full-mock/${basic[0].id}/results`}>Xem kết quả gần nhất</Link> : <Link className="mt-4 inline-flex font-bold text-teal-700" href="/full-mock">Bắt đầu thi thử</Link>}</section></div></main>;
+  if (!advanced) return (
+    <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900">
+      <div className="mx-auto max-w-4xl">
+        <LearnerNav locale={preferences.interfaceLanguage} />
+        <h1 className="mt-8 text-3xl font-black">Lịch sử thi thử</h1>
+        <section className="mt-6 rounded-2xl border bg-white p-6">
+          {basic[0] ? <>
+            <h2 className="text-xl font-black">So sánh lịch sử dành cho Premium</h2>
+            <p className="mt-2 text-slate-600">Kết quả đã hoàn thành vẫn được lưu. Premium mở xu hướng và so sánh theo Part từ lịch sử thực tế của bạn.</p>
+            <div className="mt-4 flex flex-wrap gap-5">
+              <Link className="inline-flex font-bold text-teal-700" href={`/full-mock/${basic[0].id}/results`}>Xem kết quả gần nhất</Link>
+              <Link className="inline-flex font-bold text-teal-700" href="/pricing">Xem Premium</Link>
+            </div>
+          </> : <>
+            <h2 className="text-xl font-black">Chưa có lịch sử thi thử</h2>
+            <p className="mt-2 text-slate-600">Khi bạn hoàn thành một bài Mock, kết quả sẽ xuất hiện tại đây.</p>
+            <Link className="mt-4 inline-flex font-bold text-teal-700" href="/full-mock">Xem bài thi thử</Link>
+          </>}
+        </section>
+      </div>
+    </main>
+  );
   const filtered = selected === "ALL" ? advanced : advanced.filter((entry) => entry.mode === selected); const focusMode = (selected === "ALL" ? advanced[0]?.mode : selected) as MockMode | undefined; const compatible = focusMode ? advanced.filter((entry) => entry.mode === focusMode) : []; const latest = compatible[0]; const comparison = focusMode ? compareCompatible(advanced, focusMode) : null; const weak = latest ? weakestPart(latest) : null;
   const readyModes = [{mode:"LISTENING",ready:readiness.listening.ready},{mode:"READING",ready:readiness.reading.ready},{mode:"FULL",ready:readiness.full.ready}].filter(x=>x.ready);
   return <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900"><div className="mx-auto max-w-6xl"><LearnerNav locale={preferences.interfaceLanguage}/><header className="mt-8"><p className="text-sm font-bold uppercase tracking-wider text-teal-700">Premium</p><h1 className="mt-2 text-3xl font-black sm:text-4xl">Lịch sử thi thử</h1><p className="mt-2 text-slate-600">Kết quả thô từ các bài đã hoàn thành; không phải điểm TOEIC quy đổi.</p></header>
