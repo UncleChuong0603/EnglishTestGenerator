@@ -104,8 +104,8 @@ export function PricingSection({
       ? "Tiếp tục học"
       : "Continue learning"
     : vi
-      ? "Làm đánh giá miễn phí"
-      : "Take free diagnostic";
+      ? "Bắt đầu học miễn phí"
+      : "Start learning free";
 
   return (
     <section

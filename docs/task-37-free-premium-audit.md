@@ -21,6 +21,7 @@ Reading demo on `/full-mock` is a separate free route. It does not consume the q
 - Low-data Premium Preview uses generic value copy. Personal metrics and weakness messages remain backed by stored attempts, mistakes and compatible Mock results.
 - Practice quota paywall describes personalized targets only when learning history exists. Mock History gives learners without results an empty state instead of an upgrade prompt.
 - Progress and Weekly Review sample thresholds now come from the matching analytics policies.
+- The Free Weekly Plan preview count is shared by Pricing, plan generation, saved-plan rendering and Weekly Review completion. The public start CTA now describes free learning, matching its Part 5 entry route.
 
 ## Deferred product and billing findings
 
@@ -31,3 +32,13 @@ Reading demo on `/full-mock` is a separate free route. It does not consume the q
 ## Verification scope
 
 No schema or environment changes. Isolated QA database `toeicgym_task17` on `english-vps` was migrated through the existing Drizzle journal. Task 37 Playwright uses only guarded `127.0.0.1:15433/toeicgym_task17` fixtures and checks anonymous pricing at 360/390/430/1024/1440, Free, Premium, expired Premium, retained progress, low-data copy and no-data Mock history. Production checks are read-only. No production user, payment or QA seed is created.
+
+The opt-in `scripts/task37-integration.test.ts` verifies actual PostgreSQL enforcement for all four quota limits, Premium quota bypass, expiration, Smart Review create/resume, retained owned results and explanations, retained Mistake Bank, advanced history denial, baseline/reassessment eligibility and its cooldown, and unavailable Mock rejection. Its fixture users are removed in `finally`; it creates no payments. It refuses any database except the isolated test identity.
+
+```powershell
+$env:TASK37_POSTGRES_QA='1'
+# DATABASE_URL must target the guarded isolated QA database through the SSH tunnel.
+npx vitest run scripts/task37-integration.test.ts
+```
+
+Initial verification passed: lint (two pre-existing warnings), typecheck, production build, 793 unit tests (one skipped), Task 37 authenticated Playwright and the PostgreSQL integration matrix. The production application and migrator were replaced successfully; the migrator exited 0, health reported database reachable and pricing returned 200. No new migration was introduced. Final revision parity is checked after the follow-up commit that adds the durable integration test and shared weekly preview count.

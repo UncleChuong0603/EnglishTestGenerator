@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { attemptAnswers, fullMockRuns, practiceSessions, questionMastery, questions, weeklyPlanSnapshots } from "@/db/schema";
 import { getMistakeOverview, type MistakeOverview } from "@/lib/mastery/queries";
 import { activityForSession, productWeekWindow, type PlanActivity } from "@/lib/weekly-plan/policy";
+import { FREE_WEEKLY_PLAN_PREVIEW_COUNT } from "@/lib/entitlements/catalog";
 import { buildWeeklyReview, type ReviewFacts } from "./policy";
 
 const WEEK_MS = 7 * 86_400_000;
@@ -49,7 +50,7 @@ async function getWeekFacts(userId: string, start: Date, end: Date, mistakes: Mi
     breakdown: breakdown.map(row => ({ part: row.part, skill: row.skill, subskill: row.subskill, answered: Number(row.answered), correct: Number(row.correct) })),
     unresolvedMistakes: mistakes.unresolvedCount, repeatedMistakes: mistakes.repeatedMistakeCount,
     masteredMistakes: Number(mastered[0]?.count ?? 0),
-    plannedActivities: snapshot[0] ? (snapshot[0].signature.startsWith('["FREE"') ? snapshot[0].items.slice(0, 3) : snapshot[0].items)
+    plannedActivities: snapshot[0] ? (snapshot[0].signature.startsWith('["FREE"') ? snapshot[0].items.slice(0, FREE_WEEKLY_PLAN_PREVIEW_COUNT) : snapshot[0].items)
       .flatMap(item => knownActivities.has(item.activity as PlanActivity) ? [item.activity as PlanActivity] : []) : null };
 }
 

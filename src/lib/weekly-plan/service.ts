@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { attemptAnswers, fullMockRuns, practiceSessions, weeklyPlanSnapshots } from "@/db/schema";
 import type { DashboardData } from "@/lib/dashboard/service";
 import type { UsageStatus } from "@/lib/entitlements/service";
-import { getPlanCapabilities } from "@/lib/entitlements/catalog";
+import { FREE_WEEKLY_PLAN_PREVIEW_COUNT, getPlanCapabilities } from "@/lib/entitlements/catalog";
 import type { GoalProfile } from "@/lib/goals/domain";
 import { getMockHubReadiness } from "@/lib/full-mock/service";
 import { selectListeningPractice, loadUnits } from "@/lib/practice/selector";
@@ -31,7 +31,7 @@ function applySnapshot(plan: WeeklyPlan, items: Array<{ slot: number; activity: 
     if (completed) remaining.set(activity, remaining.get(activity)! - 1);
     return [{ slot: item.slot, activity, minutes: item.minutes, reason: item.reason as WeeklyPlanItem["reason"], completed, available: availability.get(activity) ?? false }];
   });
-  return { ...plan, items: stable, preview: premium ? stable : stable.slice(0, 3), adjustmentReasons: reasons };
+  return { ...plan, items: stable, preview: premium ? stable : stable.slice(0, FREE_WEEKLY_PLAN_PREVIEW_COUNT), adjustmentReasons: reasons };
 }
 
 export async function getWeeklyPlan(userId: string, goal: GoalProfile | null, usage: UsageStatus, dashboard: DashboardData, review: WeeklyReview | null = null, now = new Date()) {

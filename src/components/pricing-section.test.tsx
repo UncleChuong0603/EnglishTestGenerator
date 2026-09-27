@@ -22,7 +22,7 @@ describe("PricingSection", () => {
     expect(html).toContain("lg:block");
     expect(html).not.toContain("overflow-x-auto");
     expect(html).toContain('href="/try"');
-    expect(html).toContain("Take free diagnostic");
+    expect(html).toContain("Start learning free");
   });
 
   it("advertises new mocks only when a startable mode is ready", () => {

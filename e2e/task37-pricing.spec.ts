@@ -84,3 +84,21 @@ test("Free workout quota shows available and reached states from stored usage", 
     await context.close();
   }
 });
+
+test("learner paywall surfaces remain usable at every required width", async ({ browser }) => {
+  test.setTimeout(300_000);
+  for (const state of ["active", "premium"]) {
+    const context = await learner(browser, state);
+    const page = await context.newPage();
+    for (const route of ["/dashboard", "/practice", "/mistakes", "/progress", "/diagnostic", "/full-mock", "/billing", "/settings?tab=plan"]) {
+      await page.goto(route, { waitUntil: "domcontentloaded" });
+      await expect(page.locator("main")).toBeVisible();
+      expect(new URL(page.url()).pathname).toBe(route.split("?")[0]);
+      for (const width of [360, 390, 430, 1024, 1440]) {
+        await page.setViewportSize({ width, height: 900 });
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${state} ${route} at ${width}px`).toBe(true);
+      }
+    }
+    await context.close();
+  }
+});

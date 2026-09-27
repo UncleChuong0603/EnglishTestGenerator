@@ -2,6 +2,7 @@ import { DIAGNOSTIC_REASSESSMENT_INTERVAL_DAYS } from "@/lib/diagnostic/policy";
 import {
   PLAN_CAPABILITIES,
   PLAN_CATALOG,
+  FREE_WEEKLY_PLAN_PREVIEW_COUNT,
   type EntitlementKey,
   type PlanKey,
 } from "@/lib/entitlements/catalog";
@@ -129,7 +130,7 @@ export function publicPlanFeatures(locale: "vi" | "en", mockReady = false): Publ
     },
     {
       key: "weeklyPlan",
-      free: vi ? "Gợi ý 3 buổi đầu tuần" : "First 3 suggested sessions",
+      free: vi ? `Gợi ý ${FREE_WEEKLY_PLAN_PREVIEW_COUNT} buổi đầu tuần` : `First ${FREE_WEEKLY_PLAN_PREVIEW_COUNT} suggested sessions`,
       premium: vi ? "Kế hoạch đầy đủ theo mục tiêu và dữ liệu học" : "Full plan using your goal and learning data",
       featured: true,
     },

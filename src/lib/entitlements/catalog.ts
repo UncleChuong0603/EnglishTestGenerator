@@ -1,4 +1,5 @@
 export const PRODUCT_TIME_ZONE = "Asia/Ho_Chi_Minh" as const;
+export const FREE_WEEKLY_PLAN_PREVIEW_COUNT = 3;
 
 export type PlanKey = "FREE" | "PREMIUM";
 export type EntitlementKey = "TODAYS_WORKOUT" | "MANUAL_PRACTICE" | "MASTERY_REVIEW" | "FULL_MOCK";

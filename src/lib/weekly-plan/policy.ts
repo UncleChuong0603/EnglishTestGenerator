@@ -1,5 +1,5 @@
 import type { GoalProfile } from "@/lib/goals/domain";
-import type { PlanKey } from "@/lib/entitlements/catalog";
+import { FREE_WEEKLY_PLAN_PREVIEW_COUNT, type PlanKey } from "@/lib/entitlements/catalog";
 import type { WorkoutRecommendation } from "@/lib/diagnosis/types";
 import type { WeeklyReview } from "@/lib/weekly-review/policy";
 
@@ -91,5 +91,5 @@ export function buildWeeklyPlan(input: Input): WeeklyPlan {
     if (completed) remainingCompletions[choice.activity]!--;
     return { slot: index + 1, activity: choice.activity, minutes: choice.activity === "MOCK_LISTENING" ? 45 : choice.activity === "REVIEW" ? Math.min(studyMinutes, input.plan === "PREMIUM" ? 20 : 10) : studyMinutes, completed, available: choice.available, reason: choice.reason };
   });
-  return { weekStart, studyDays, studyMinutes, learningDays: input.learningDays, items, preview: input.plan === "FREE" ? items.slice(0, 3) : items, history: input.plan === "PREMIUM" ? input.history ?? [] : [], adjustmentReasons: reasons };
+  return { weekStart, studyDays, studyMinutes, learningDays: input.learningDays, items, preview: input.plan === "FREE" ? items.slice(0, FREE_WEEKLY_PLAN_PREVIEW_COUNT) : items, history: input.plan === "PREMIUM" ? input.history ?? [] : [], adjustmentReasons: reasons };
 }
