@@ -1,221 +1,206 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { startPart5Challenge } from "@/app/challenge/actions";
+import { ChallengeStartButton } from "@/components/challenge-start-button";
 import { PublicFooter } from "@/components/public-footer";
 import { PublicHeader } from "@/components/public-header";
-import { PricingSection } from "@/components/pricing-section";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getPreferences } from "@/lib/i18n/get-translations";
-import { getPaymentCatalog } from "@/lib/payments/catalog";
-import { getPublishedQuestionBankStats } from "@/lib/questions/stats";
 import { getSiteUrl } from "@/lib/seo/site-url";
 import { serializeStructuredData } from "@/lib/seo/structured-data";
+import styles from "./home.module.css";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 export const dynamic = "force-dynamic";
 
-const parts = [
-  { number: "01", vi: "Hình ảnh", en: "Photographs" },
-  { number: "02", vi: "Hỏi đáp", en: "Question response" },
-  { number: "03", vi: "Hội thoại", en: "Conversations" },
-  { number: "04", vi: "Bài nói", en: "Talks" },
-  { number: "05", vi: "Hoàn thành câu", en: "Sentence completion" },
-  { number: "06", vi: "Hoàn thành đoạn", en: "Text completion" },
-  { number: "07", vi: "Đọc hiểu", en: "Reading comprehension" },
-] as const;
-
-const content = {
+const copy = {
   vi: {
-    eyebrow: "TOEIC GYM · Luyện đúng cách, tiến bộ mỗi ngày",
-    title: "Luyện TOEIC không chỉ là làm thêm câu hỏi.",
-    body: "Bắt đầu bằng 10 câu Part 5 miễn phí, xem lời giải, rồi chọn phần nghe hoặc đọc cần luyện tiếp theo nhịp của bạn.",
-    primary: "Thử 10 câu miễn phí",
-    secondary: "Khám phá TOEIC GYM",
-    reassurance: "Không cần tài khoản · Có kết quả và lời giải ngay",
-    publishedQuestions: "câu hỏi đã xuất bản",
-    bankKicker: "Nền tảng của mọi buổi luyện",
-    bankTitle: "Từ Part 1 đến Part 7, luôn có cách bắt đầu phù hợp.",
-    bankBody: "Kho câu hỏi được tổ chức theo cấu trúc TOEIC. Bạn có thể luyện một phần cụ thể, thử sức với Listening và Reading, rồi quay lại nội dung mình còn yếu.",
-    featuresKicker: "Không chỉ là làm bài",
-    featuresTitle: "Mỗi buổi học đều giúp bạn đi xa hơn.",
-    featuresBody: "Chọn bài vừa sức, hiểu đáp án và giữ lại kiến thức để lần luyện tiếp theo hiệu quả hơn.",
-    features: [
-      { title: "Tự chọn bài luyện", body: "Chọn Part 5–7, kỹ năng, nội dung trọng tâm và độ dài bài Reading theo thời gian bạn có.", tag: "Luyện theo ý bạn" },
-      { title: "Hiểu vì sao mình sai", body: "Xem đáp án và lời giải bằng tiếng Việt, tiếng Anh hoặc cả hai sau khi hoàn thành bài.", tag: "Lời giải rõ ràng" },
-      { title: "Được gợi ý bài tiếp theo", body: "Kết quả theo Part và lịch sử luyện tập giúp bạn biết phần nào nên dành thêm thời gian.", tag: "Luyện có hướng đi" },
-      { title: "Nhớ từ vựng lâu hơn", body: "Lưu từ trong câu hỏi, học theo chủ đề và ôn lại các từ đến hạn ngay trong TOEIC GYM.", tag: "Từ vựng & ôn tập" },
-      { title: "Giữ nhịp với mục tiêu tuần", body: "Đặt mục tiêu, xem tiến độ và chia hành trình luyện tập thành từng tuần dễ theo dõi.", tag: "Lộ trình của bạn" },
-      { title: "Thêm động lực mỗi ngày", body: "Tham gia thử thách, xem bảng xếp hạng và theo dõi chặng đường đến mục tiêu của bạn.", tag: "Thử thách & tiến độ" },
+    eyebrow: "TOEIC GYM / LUYỆN TẬP CÓ HƯỚNG ĐI",
+    title: "Luyện đúng phần yếu. Thấy rõ mình tiến bộ.",
+    lead: "Làm bài ngắn, hiểu từng câu sai và biết nên luyện gì tiếp theo. Bắt đầu ngay với TOEIC GYM, không cần tạo tài khoản.",
+    start: "Làm thử 10 câu miễn phí",
+    starting: "Đang chuẩn bị bài…",
+    continue: "Tiếp tục học",
+    how: "Xem cách học",
+    promise: ["Không cần đăng nhập", "Có lời giải sau khi nộp", "Biết phần cần luyện tiếp"],
+    sample: "Ví dụ về cách TOEIC GYM giải thích đáp án",
+    sampleLabel: "PART 5 / HOÀN THÀNH CÂU",
+    samplePrompt: "Please submit the report ___ Friday.",
+    sampleAnswer: "Đáp án: by",
+    sampleWhy: "“By Friday” diễn tả hạn chót: báo cáo cần được nộp trước hoặc chậm nhất vào thứ Sáu.",
+    sampleNext: "Làm bài thật để xem lời giải cho từng câu",
+    proofParts: "7 Part Listening & Reading",
+    proofAnswers: "Kết quả và lời giải rõ ràng",
+    proofNext: "Gợi ý buổi luyện tiếp theo",
+    proofStart: "câu để bắt đầu ngay",
+    entryEyebrow: "BẮT ĐẦU THEO CÁCH CỦA BẠN",
+    entryTitle: "Hôm nay bạn muốn tập gì?",
+    entryLead: "Chỉ cần chọn một điểm bắt đầu. Sau khi làm bài, kết quả sẽ giúp bạn quyết định bước tiếp theo.",
+    entries: [
+      { number: "01", label: "BẮT ĐẦU NHANH", title: "Thử 10 câu Part 5", body: "Làm bài ngay, xem câu đúng sai và đọc giải thích sau khi nộp.", href: "/challenge/part-5", action: "Làm bài thử" },
+      { number: "02", label: "TÌM ĐIỂM CẦN ÔN", title: "Đánh giá đầu vào", body: "Làm Listening và Reading để biết Part nào đang cần ưu tiên.", href: "/diagnostic", action: "Xem bài đánh giá" },
+      { number: "03", label: "LUYỆN THEO KỸ NĂNG", title: "Nghe và đọc theo Part", body: "Chọn Part 1–7, học qua câu hỏi, audio và phần giải thích.", href: "/toeic", action: "Khám phá các Part" },
     ],
-    exampleKicker: "Kết quả dẫn đến hành động",
-    example: "Làm xong không phải là kết thúc.",
-    exampleBody: "Xem mình đang làm tốt ở đâu, cần cải thiện Part nào và nên luyện gì tiếp theo. Bảng bên cạnh chỉ là ví dụ minh họa.",
-    sample: "Ví dụ minh họa",
-    focus: "Nên tập trung",
-    next: "Bài tiếp theo",
-    nextValue: "Part 3 · Hội thoại ngắn",
-    methodKicker: "Cách TOEIC GYM đồng hành",
-    method: "Một vòng học, rõ từng bước.",
-    methodBody: "Bạn có thể bắt đầu với bài thử ngắn, rồi dùng kết quả để xây dựng nhịp luyện tập của riêng mình.",
-    steps: [
-      ["01", "Chọn bài và bắt đầu", "Thử thách Part 5 miễn phí, làm bài đánh giá đầu vào hoặc tự chọn bài luyện."],
-      ["02", "Hiểu câu trả lời", "Xem lời giải, transcript khi luyện nghe và kết quả theo từng Part."],
-      ["03", "Luyện tiếp có mục tiêu", "Theo gợi ý bài tiếp theo, ôn lỗi sai hoặc làm một thử thách ngắn khác."],
+    loopEyebrow: "SAU MỖI BÀI LÀM",
+    loopTitle: "Một câu trả lời dẫn đến buổi học tốt hơn.",
+    loopLead: "TOEIC GYM nối bài làm, lời giải và lần ôn tiếp theo thành một nhịp học rõ ràng.",
+    loop: [
+      { number: "01", title: "Hiểu lỗi sai", body: "Xem đáp án, giải thích và transcript khi luyện nghe.", href: "/try", action: "Thử một bài ngắn" },
+      { number: "02", title: "Quay lại đúng lúc", body: "Lưu câu sai vào Mistake Bank và ôn lại khi cần.", href: "/mistakes", action: "Xem cách ôn lỗi sai" },
+      { number: "03", title: "Giữ nhịp tiến bộ", body: "Theo dõi kết quả theo Part, mục tiêu tuần và bài được gợi ý.", href: "/dashboard", action: "Khám phá lộ trình" },
     ],
-    closing: "Bắt đầu từ 10 câu. Khám phá cả kho luyện tập.",
-    closingBody: "Thử miễn phí mà không cần tài khoản. Tạo tài khoản khi bạn muốn lưu kết quả và tiếp tục theo mục tiêu của mình.",
+    bankEyebrow: "KHO LUYỆN TẬP",
+    bankTitle: "Đủ 7 Part. Chọn đúng phần cần tập.",
+    bankLead: "Đi từ bài nghe ngắn đến đọc hiểu dài hơn. Mỗi Part có một lối vào rõ ràng.",
+    listening: "Listening",
+    reading: "Reading",
+    guideEyebrow: "HỌC THÊM MỘT CHÚT",
+    guideTitle: "Đọc hướng dẫn rồi thử ngay.",
+    guideLinks: [
+      { href: "/toeic/part-5/thi-dong-tu", label: "Thì động từ Part 5" },
+      { href: "/toeic/part-5/word-form", label: "Word Form" },
+      { href: "/toeic/part-6", label: "Cách làm Part 6" },
+      { href: "/toeic/part-7", label: "Cách làm Part 7" },
+      { href: "/toeic/listening", label: "Luyện nghe TOEIC" },
+      { href: "/thi-thu-toeic-online", label: "Thi thử TOEIC online" },
+      { href: "/blog", label: "Bài học TOEIC" },
+    ],
+    closing: "Bắt đầu bằng một bài ngắn. Biết mình cần làm gì tiếp.",
+    closingBody: "10 câu Part 5, kết quả và lời giải ngay sau khi nộp. Không cần tài khoản.",
   },
   en: {
-    eyebrow: "TOEIC GYM · Practice with purpose",
-    title: "TOEIC practice is more than answering questions.",
-    body: "Start with ten free Part 5 questions, read the explanations, then choose a Listening or Reading topic to practice next.",
-    primary: "Try 10 questions free",
-    secondary: "Explore TOEIC GYM",
-    reassurance: "No account needed · Instant results and explanations",
-    publishedQuestions: "published questions",
-    bankKicker: "The foundation of every session",
-    bankTitle: "From Part 1 to Part 7, find your place to start.",
-    bankBody: "Questions are organized around the TOEIC format. Focus on a Part, practice Listening and Reading, and return to the areas that need work.",
-    featuresKicker: "More than answering questions",
-    featuresTitle: "Make every session move you forward.",
-    featuresBody: "Choose a focused workout, understand your answers and keep what you learn for the next session.",
-    features: [
-      { title: "Build your own practice", body: "Choose Reading Parts 5–7, a skill, a focus area and a session length that fits your day.", tag: "Your choice" },
-      { title: "Understand each mistake", body: "Review answers and explanations in English, Vietnamese or both after you finish.", tag: "Clear explanations" },
-      { title: "Know what to do next", body: "Part-level results and your practice history show where to spend more time.", tag: "Guided practice" },
-      { title: "Remember more vocabulary", body: "Save words from questions, study by topic and review words when they are due.", tag: "Vocabulary & review" },
-      { title: "Keep pace with a weekly goal", body: "Set a target, see your progress and follow your learning journey week by week.", tag: "Your learning path" },
-      { title: "Keep your momentum", body: "Join challenges, view rankings and track your progress toward your goal.", tag: "Challenges & progress" },
+    eyebrow: "TOEIC GYM / PRACTICE WITH PURPOSE",
+    title: "Work on your weak spots. See your progress.",
+    lead: "Take a short practice set, understand every mistake and know what to work on next. Start right away without an account.",
+    start: "Try 10 questions free",
+    starting: "Preparing your questions…",
+    continue: "Continue learning",
+    how: "See how it works",
+    promise: ["No account needed", "Explanations after submission", "A clear next step"],
+    sample: "An example of a TOEIC GYM explanation",
+    sampleLabel: "PART 5 / SENTENCE COMPLETION",
+    samplePrompt: "Please submit the report ___ Friday.",
+    sampleAnswer: "Answer: by",
+    sampleWhy: "“By Friday” gives a deadline: the report should be submitted no later than Friday.",
+    sampleNext: "Take a real set to see each explanation",
+    proofParts: "All 7 Listening & Reading Parts",
+    proofAnswers: "Clear results and explanations",
+    proofNext: "A suggested next workout",
+    proofStart: "questions to get started",
+    entryEyebrow: "START YOUR WAY",
+    entryTitle: "What will you practice today?",
+    entryLead: "Choose one place to start. Your result will help you decide what to do next.",
+    entries: [
+      { number: "01", label: "QUICK START", title: "Try 10 Part 5 questions", body: "Start now, see what you got right and read the explanations.", href: "/challenge/part-5", action: "Try the challenge" },
+      { number: "02", label: "FIND YOUR FOCUS", title: "Take a diagnostic", body: "Practice Listening and Reading to see which Parts need attention.", href: "/diagnostic", action: "Explore diagnostic" },
+      { number: "03", label: "PRACTICE A SKILL", title: "Listen and read by Part", body: "Choose Parts 1–7 and learn through questions, audio and explanations.", href: "/toeic", action: "Explore the Parts" },
     ],
-    exampleKicker: "Turn results into action",
-    example: "Finishing a session is only the start.",
-    exampleBody: "See where you are doing well, which Part needs work and what to practice next. The panel is an illustration.",
-    sample: "Illustrative example",
-    focus: "Focus area",
-    next: "Next practice",
-    nextValue: "Part 3 · Short conversations",
-    methodKicker: "Your learning loop",
-    method: "A clear next step, every time.",
-    methodBody: "Start with a short challenge, then use your results to build a practice rhythm that works for you.",
-    steps: [
-      ["01", "Choose and begin", "Try the free Part 5 challenge, take a diagnostic or build your own session."],
-      ["02", "Understand your answers", "Review explanations, listening transcripts and Part-level results."],
-      ["03", "Practice with purpose", "Follow a recommendation, revisit mistakes or try another short challenge."],
+    loopEyebrow: "AFTER EACH SESSION",
+    loopTitle: "Each answer points to better practice.",
+    loopLead: "TOEIC GYM connects the questions you answer, the explanations you read and what you review next.",
+    loop: [
+      { number: "01", title: "Understand mistakes", body: "Review answers, explanations and listening transcripts.", href: "/try", action: "Try a short set" },
+      { number: "02", title: "Return at the right time", body: "Keep missed questions in your Mistake Bank and revisit them.", href: "/mistakes", action: "Explore mistake review" },
+      { number: "03", title: "Keep moving forward", body: "Follow Part results, weekly goals and suggested practice.", href: "/dashboard", action: "Explore your learning path" },
     ],
-    closing: "Start with 10 questions. Explore the whole gym.",
-    closingBody: "Try it free without an account. Sign up when you want to save your results and keep working toward your goal.",
+    bankEyebrow: "QUESTION BANK",
+    bankTitle: "All 7 Parts. Practice what matters.",
+    bankLead: "Go from short listening questions to longer reading passages. Each Part has a clear starting point.",
+    listening: "Listening",
+    reading: "Reading",
+    guideEyebrow: "LEARN A LITTLE MORE",
+    guideTitle: "Read a guide, then try it.",
+    guideLinks: [
+      { href: "/toeic/part-5/thi-dong-tu", label: "Part 5 verb tenses" },
+      { href: "/toeic/part-5/word-form", label: "Word Form" },
+      { href: "/toeic/part-6", label: "Part 6 guide" },
+      { href: "/toeic/part-7", label: "Part 7 guide" },
+      { href: "/toeic/listening", label: "TOEIC Listening" },
+      { href: "/thi-thu-toeic-online", label: "TOEIC mock tests" },
+      { href: "/blog", label: "TOEIC guides" },
+    ],
+    closing: "Start with a short set. Know what comes next.",
+    closingBody: "Ten Part 5 questions, with results and explanations after submission. No account needed.",
   },
 } as const;
 
+const parts = [
+  { number: 1, vi: "Hình ảnh", en: "Photographs" },
+  { number: 2, vi: "Hỏi đáp", en: "Question response" },
+  { number: 3, vi: "Hội thoại", en: "Conversations" },
+  { number: 4, vi: "Bài nói", en: "Talks" },
+  { number: 5, vi: "Hoàn thành câu", en: "Sentence completion" },
+  { number: 6, vi: "Hoàn thành đoạn", en: "Text completion" },
+  { number: 7, vi: "Đọc hiểu", en: "Reading comprehension" },
+] as const;
+
 export default async function Home() {
-  const [user, bankStats] = await Promise.all([
-    getCurrentUser(),
-    getPublishedQuestionBankStats().catch(() => null),
-  ]);
+  const user = await getCurrentUser();
   const locale = (await getPreferences(user?.id)).interfaceLanguage;
   const vi = locale === "vi";
-  const copy = content[vi ? "vi" : "en"];
-  const primary = user ? "/dashboard" : "/challenge/part-5";
+  const t = copy[vi ? "vi" : "en"];
   const siteUrl = getSiteUrl();
   const websiteStructuredData = { "@context": "https://schema.org", "@type": "WebSite", name: "TOEIC GYM", alternateName: "TOEICGym", url: siteUrl };
 
-  return (
-    <main className="marketing-page min-h-screen overflow-x-hidden">
-      <script dangerouslySetInnerHTML={{ __html: serializeStructuredData(websiteStructuredData) }} type="application/ld+json" />
-      <PublicHeader locale={locale} signedIn={Boolean(user)} />
-      <section className="marketing-hero" aria-labelledby="home-title">
-        <div className="marketing-hero-copy">
-          <p className="section-kicker">{copy.eyebrow}</p>
-          <h1 id="home-title">{copy.title}</h1>
-          <p className="marketing-lead">{copy.body}</p>
-          {bankStats && bankStats.total > 0 ? <p className="marketing-bank-total"><strong>{bankStats.total.toLocaleString(vi ? "vi-VN" : "en-US")}</strong><span>{copy.publishedQuestions}</span></p> : null}
-          <div className="marketing-actions">
-            <Link className="button-primary" href={primary}>{user ? (vi ? "Tiếp tục học" : "Continue learning") : copy.primary}<span aria-hidden="true">↗</span></Link>
-            <Link className="button-text" href="#explore">{copy.secondary} <span aria-hidden="true">→</span></Link>
-          </div>
-          {!user && <p className="marketing-reassurance">{copy.reassurance}</p>}
+  return <div className={styles.page}>
+    <script dangerouslySetInnerHTML={{ __html: serializeStructuredData(websiteStructuredData) }} type="application/ld+json" />
+    <a className={styles.skipLink} href="#main-content">{vi ? "Bỏ qua điều hướng" : "Skip to content"}</a>
+    <PublicHeader locale={locale} signedIn={Boolean(user)} />
+    <main id="main-content">
+
+    <section aria-labelledby="home-title" className={styles.hero}>
+      <div className={styles.heroCopy}>
+        <p className={styles.eyebrow}>{t.eyebrow}</p>
+        <h1 id="home-title">{t.title}</h1>
+        <p className={styles.lead}>{t.lead}</p>
+        <ul className={styles.promise}>{t.promise.map((item) => <li key={item}>{item}</li>)}</ul>
+        <div className={styles.actions}>
+          {user ? <Link className={styles.primaryAction} href="/dashboard">{t.continue}<span aria-hidden="true">↗</span></Link> : <form action={startPart5Challenge}><ChallengeStartButton className={styles.primaryAction} label={t.start} pendingLabel={t.starting} /></form>}
+          <Link className={styles.secondaryAction} href="#how-it-works">{t.how} <span aria-hidden="true">↓</span></Link>
         </div>
-        <div className="marketing-hero-visual">
-          <div className="gym-preview">
-            <div className="gym-preview-top"><span className="bank-preview-mark">TG</span><span>TOEIC GYM / {vi ? "KHÔNG GIAN HỌC" : "YOUR LEARNING SPACE"}</span><span className="gym-preview-live">● {vi ? "SẴN SÀNG" : "READY"}</span></div>
-            <div className="gym-preview-body">
-              <p className="section-kicker">{vi ? "Mỗi ngày một bước tiến" : "A better session, every day"}</p>
-              <h2>{vi ? "Hôm nay bạn muốn luyện gì?" : "What will you practice today?"}</h2>
-              <div className="gym-preview-main">
-                <div className="gym-preview-diagnostic"><span className="gym-preview-icon" aria-hidden="true">◎</span><small>{vi ? "BẮT ĐẦU TỪ ĐÂU?" : "WHERE TO START?"}</small><strong>{vi ? "Đánh giá điểm xuất phát" : "Find your starting point"}</strong><p>{vi ? "Xem kết quả theo Part và biết nên luyện gì tiếp." : "See results by Part and discover your next step."}</p><Link href="/diagnostic">{vi ? "Khám phá bài đánh giá" : "Explore the diagnostic"} <span aria-hidden="true">↗</span></Link></div>
-                <div className="gym-preview-stack"><div><span aria-hidden="true">♫</span><strong>{vi ? "Luyện nghe" : "Listening"}</strong><small>Part 1–4</small></div><div><span aria-hidden="true">▤</span><strong>{vi ? "Luyện đọc" : "Reading"}</strong><small>Part 5–7</small></div><div><span aria-hidden="true">◷</span><strong>{vi ? "Thử thách" : "Challenge"}</strong><small>Part 5</small></div></div>
-              </div>
-              <div className="gym-preview-footer"><span aria-hidden="true">↗</span><p><strong>{vi ? "Làm bài → hiểu lỗi sai → luyện tiếp" : "Practice → understand → improve"}</strong><small>{vi ? "Một hành trình học nối liền từng buổi luyện." : "Every session points to what comes next."}</small></p></div>
+      </div>
+      <div className={styles.heroVisual}>
+        <div className={styles.sample}>
+          <div className={styles.sampleTop}><span>TOEIC GYM</span><span>{vi ? "MINH HỌA" : "EXAMPLE"}</span></div>
+          <div className={styles.sampleBody}>
+            <p className={styles.sampleKicker}>{t.sampleLabel}</p>
+            <p className={styles.sampleQuestion}>{t.samplePrompt}</p>
+            <div className={styles.sampleChoices} aria-label={vi ? "Các lựa chọn minh họa" : "Example choices"}>
+              <span>A <strong>at</strong></span><span className={styles.chosen}>B <strong>by</strong></span><span>C <strong>on</strong></span><span>D <strong>for</strong></span>
             </div>
+            <div className={styles.explanation}><strong>{t.sampleAnswer}</strong><p>{t.sampleWhy}</p></div>
           </div>
-          <span className="marketing-visual-caption">{vi ? "Minh họa các tính năng trong TOEIC GYM" : "TOEIC GYM feature illustration"}</span>
+          <div className={styles.sampleFoot}><span>{t.sampleNext}</span>{user ? <Link href="/dashboard">{t.continue} <span aria-hidden="true">↗</span></Link> : <form action={startPart5Challenge}><ChallengeStartButton className={styles.sampleFootAction} label={t.start} pendingLabel={t.starting} /></form>}</div>
         </div>
-      </section>
+        <p className={styles.sampleCaption}>{t.sample}</p>
+      </div>
+    </section>
 
-      <section className="marketing-explore" id="explore" aria-labelledby="explore-title">
-        <div className="marketing-explore-heading"><div><p className="section-kicker">{vi ? "Một phòng tập, nhiều cách tiến bộ" : "Explore your gym"}</p><h2 id="explore-title">{vi ? "Chọn điều bạn cần ngay hôm nay." : "Choose what you need today."}</h2></div><p>{vi ? "Dù chỉ có vài phút hay muốn ôn một chủ điểm, hãy chọn điểm bắt đầu phù hợp." : "Whether you have a few minutes or want to review a topic, choose a useful place to start."}</p></div>
-        <div className="marketing-explore-grid">
-          {[
-            { href: "/diagnostic", icon: "◎", label: vi ? "TÌM ĐIỂM XUẤT PHÁT" : "FIND YOUR STARTING POINT", title: vi ? "Đánh giá đầu vào" : "Diagnostic", body: vi ? "Một bài đánh giá Listening và Reading để thấy Part nào cần ưu tiên." : "See which Listening and Reading Parts deserve your attention.", tone: "mint" },
-            { href: "/listening-lessons", icon: "♫", label: vi ? "NGHE VÀ NÓI THEO" : "LISTEN AND SHADOW", title: vi ? "Luyện nghe có transcript" : "Listening with transcripts", body: vi ? "Nghe các câu chuyện ngắn, theo dõi từng câu và luyện nói theo." : "Follow short talks line by line and practice speaking along.", tone: "peach" },
-            { href: "/challenge/part-5", icon: "◷", label: vi ? "LÀM BÀI NGAY" : "PRACTICE NOW", title: vi ? "Thử thách Part 5" : "Part 5 challenge", body: vi ? "Làm 10 câu miễn phí, không cần đăng nhập; xem lời giải sau khi nộp." : "Answer ten free questions without an account, then read the explanations.", tone: "lavender" },
-            { href: "/mistakes", icon: "↺", label: vi ? "HỌC TỪ MỖI LỖI SAI" : "LEARN FROM MISTAKES", title: vi ? "Ôn lại lỗi sai" : "Review mistakes", body: vi ? "Quay lại câu đã sai, làm lại và theo dõi những gì mình đã nắm chắc." : "Retry missed questions and keep track of what you have mastered.", tone: "yellow" },
-          ].map((item) => <Link className={`marketing-explore-card ${item.tone}`} href={item.href} key={item.href}><span className="marketing-explore-icon" aria-hidden="true">{item.icon}</span><span className="marketing-explore-label">{item.label}</span><h3>{item.title}</h3><p>{item.body}</p><span className="marketing-explore-arrow" aria-hidden="true">↗</span></Link>)}
-        </div>
-        <div className="marketing-explore-more"><span>{vi ? "Còn có" : "Also inside"}</span><Link href="/vocabulary">{vi ? "Từ vựng" : "Vocabulary"} ↗</Link><Link href="/progress">{vi ? "Theo dõi tiến độ" : "Track progress"} ↗</Link><Link href="/ranking">{vi ? "Thử thách & bảng xếp hạng" : "Challenges & rankings"} ↗</Link></div>
-      </section>
+    <div className={styles.proof} aria-label={vi ? "Điểm mạnh của TOEIC GYM" : "TOEIC GYM highlights"}>
+      <div><strong>10</strong><span>{t.proofStart}</span></div>
+      <div><strong>01–07</strong><span>{t.proofParts}</span></div>
+      <div><strong>✓</strong><span>{t.proofAnswers}</span></div>
+      <div><strong>→</strong><span>{t.proofNext}</span></div>
+    </div>
 
-      <section className="marketing-bank" id="question-bank" aria-labelledby="bank-title">
-        <div className="marketing-bank-intro"><p className="section-kicker">{copy.bankKicker}</p><h2 id="bank-title">{copy.bankTitle}</h2><p>{copy.bankBody}</p></div>
-        <div className="marketing-bank-groups">
-          <div><span>Listening</span><div>{parts.slice(0, 4).map((part) => <span key={part.number}>P{Number(part.number)}</span>)}</div></div>
-          <div><span>Reading</span><div>{parts.slice(4).map((part) => <span key={part.number}>P{Number(part.number)}</span>)}</div></div>
-        </div>
-      </section>
+    <section aria-labelledby="explore-title" className={styles.section} id="explore">
+      <div className={styles.sectionIntro}><div><p className={styles.eyebrow}>{t.entryEyebrow}</p><h2 id="explore-title">{t.entryTitle}</h2></div><p>{t.entryLead}</p></div>
+      <div className={styles.entryGrid}>{t.entries.map((item) => <Link className={styles.entry} href={item.href} key={item.number}><span className={styles.entryNumber}>{item.number} / {item.label}</span><h3>{item.title}</h3><p>{item.body}</p><span className={styles.entryAction}>{item.action} <span aria-hidden="true">↗</span></span></Link>)}</div>
+    </section>
 
-      <section className="marketing-features" id="features" aria-labelledby="features-title">
-        <div className="marketing-features-heading"><div><p className="section-kicker">{copy.featuresKicker}</p><h2 id="features-title">{copy.featuresTitle}</h2></div><p>{copy.featuresBody}</p></div>
-        <div className="marketing-feature-grid">{copy.features.map((feature, index) => <article className="marketing-feature" key={feature.title}><span className="marketing-feature-number">0{index + 1}</span><span className="marketing-feature-tag">{feature.tag}</span><h3>{feature.title}</h3><p>{feature.body}</p><Link aria-label={`${vi ? "Khám phá" : "Explore"} ${feature.title}`} className="marketing-feature-link" href={["/practice", "/try", "/progress", "/vocabulary", "/dashboard", "/ranking"][index]}>{vi ? "Khám phá" : "Explore"} <span aria-hidden="true">↗</span></Link></article>)}</div>
-      </section>
+    <section aria-labelledby="features-title" className={styles.loopSection} id="features">
+      <div className={styles.loopInner}><div className={styles.loopIntro}><p className={styles.eyebrow}>{t.loopEyebrow}</p><h2 id="features-title">{t.loopTitle}</h2><p>{t.loopLead}</p></div><ol className={styles.loopList}>{t.loop.map((item) => <li key={item.number}><span>{item.number}</span><div><h3>{item.title}</h3><p>{item.body}</p><Link href={item.href}>{item.action} <span aria-hidden="true">↗</span></Link></div></li>)}</ol></div>
+    </section>
 
-      <section className="marketing-example" aria-labelledby="example-title">
-        <div className="marketing-section-intro"><p className="section-kicker">{copy.exampleKicker}</p><h2 id="example-title">{copy.example}</h2><p>{copy.exampleBody}</p></div>
-        <ProductPreview copy={copy} />
-      </section>
-      <section className="marketing-method" id="how-it-works" aria-labelledby="method-title">
-        <div className="marketing-section-intro"><p className="section-kicker">{copy.methodKicker}</p><h2 id="method-title">{copy.method}</h2><p>{copy.methodBody}</p></div>
-        <ol className="method-steps">{copy.steps.map(([number, title, detail]) => <li key={number}><span className="step-number">{number}</span><h3>{title}</h3><p>{detail}</p></li>)}</ol>
-      </section>
-      <PricingSection compact locale={locale} products={getPaymentCatalog()} startHref={primary} />
-      <section className="mx-auto max-w-7xl px-5 py-16 sm:px-6" aria-labelledby="learn-toeic-title">
-        <p className="section-kicker">{vi ? "Bắt đầu từ kiến thức nền" : "Start with the fundamentals"}</p>
-        <h2 className="mt-3 text-3xl font-black text-slate-900" id="learn-toeic-title">{vi ? "Chọn một chủ đề TOEIC để học ngay" : "Choose a TOEIC topic to study"}</h2>
-        <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {[
-            { href: "/toeic", title: vi ? "Tổng quan TOEIC" : "TOEIC overview", detail: vi ? "Hiểu từng Part và chọn điểm bắt đầu." : "Understand each Part and where to start." },
-            { href: "/challenge/part-5", title: vi ? "Thử thách Part 5" : "Part 5 challenge", detail: vi ? "Làm 10 câu miễn phí, xem kết quả và lời giải." : "Try ten free questions with results and explanations." },
-            { href: "/toeic/part-5", title: "Part 5", detail: vi ? "Hoàn thành câu: ngữ pháp và từ vựng." : "Sentence completion, grammar and vocabulary." },
-            { href: "/toeic/part-5/thi-dong-tu", title: vi ? "Thì động từ Part 5" : "Part 5 verb tenses", detail: vi ? "Làm 3 câu có giải thích đáp án." : "Try three questions with explanations." },
-            { href: "/toeic/part-5/word-form", title: "Word Form", detail: vi ? "Làm thử 3 câu có giải thích đáp án." : "Try three questions with explanations." },
-            { href: "/toeic/part-6", title: "Part 6", detail: vi ? "Điền từ và câu theo mạch đoạn văn." : "Complete a text using its context." },
-            { href: "/toeic/part-7", title: "Part 7", detail: vi ? "Tìm bằng chứng trong bài đọc." : "Find evidence in reading passages." },
-            { href: "/blog", title: vi ? "Bài hướng dẫn TOEIC" : "TOEIC guides", detail: vi ? "Đọc cách sửa lỗi và chọn chủ điểm cần ôn." : "Review common errors and choose a topic to study." },
-          ].map((item) => <Link className="rounded-xl border border-slate-200 bg-white p-5 text-slate-900 shadow-sm transition hover:border-teal-700" href={item.href} key={item.href}><h3 className="text-lg font-black">{item.title} <span aria-hidden="true">→</span></h3><p className="mt-2 text-sm leading-6 text-slate-600">{item.detail}</p></Link>)}
-        </div>
-      </section>
-      <section className="marketing-closing"><div><p className="section-kicker">{vi ? "Bắt đầu ngay" : "Get started"}</p><h2>{copy.closing}</h2><p>{copy.closingBody}</p></div><Link className="button-primary" href={primary}>{user ? (vi ? "Tiếp tục học" : "Continue learning") : copy.primary}<span aria-hidden="true">↗</span></Link></section>
-      <PublicFooter locale={locale} />
+    <section aria-labelledby="bank-title" className={styles.section} id="question-bank">
+      <div className={styles.sectionIntro}><div><p className={styles.eyebrow}>{t.bankEyebrow}</p><h2 id="bank-title">{t.bankTitle}</h2></div><p>{t.bankLead}</p></div>
+      <div className={styles.partGroups}><div><h3>{t.listening}</h3><div>{parts.slice(0, 4).map((part) => <Link href={`/toeic/part-${part.number}`} key={part.number}><span>0{part.number}</span><strong>Part {part.number}</strong><small>{vi ? part.vi : part.en}</small><span aria-hidden="true">↗</span></Link>)}</div></div><div><h3>{t.reading}</h3><div>{parts.slice(4).map((part) => <Link href={`/toeic/part-${part.number}`} key={part.number}><span>0{part.number}</span><strong>Part {part.number}</strong><small>{vi ? part.vi : part.en}</small><span aria-hidden="true">↗</span></Link>)}</div></div></div>
+    </section>
+
+    <section aria-labelledby="method-title" className={styles.method} id="how-it-works"><p className={styles.eyebrow}>{t.guideEyebrow}</p><h2 id="method-title">{t.guideTitle}</h2><div className={styles.guideLinks}>{t.guideLinks.map((item) => <Link href={item.href} key={item.href}>{item.label} <span aria-hidden="true">↗</span></Link>)}</div></section>
+
+    <section aria-labelledby="closing-title" className={styles.closing}><div><p className={styles.eyebrow}>TOEIC GYM</p><h2 id="closing-title">{t.closing}</h2><p>{t.closingBody}</p></div>{user ? <Link className={styles.primaryAction} href="/dashboard">{t.continue}<span aria-hidden="true">↗</span></Link> : <form action={startPart5Challenge}><ChallengeStartButton className={styles.primaryAction} label={t.start} pendingLabel={t.starting} /></form>}</section>
     </main>
-  );
-}
-
-function ProductPreview({ copy }: { copy: { sample: string; focus: string; next: string; nextValue: string } }) {
-  return <div className="result-sheet">
-    <div className="result-sheet-header"><span>TOEIC GYM / DIAGNOSTIC</span><span>{copy.sample}</span></div>
-    <div className="result-sheet-grid"><Score label="Listening" items={[["Part 2", 78], ["Part 3", 58]]} /><Score label="Reading" items={[["Part 5", 82], ["Part 7", 61]]} /></div>
-    <div className="result-sheet-next"><div><span>{copy.focus}</span><strong>Part 3 · Part 7</strong></div><div><span>{copy.next}</span><strong>{copy.nextValue}</strong></div></div>
+    <PublicFooter locale={locale} />
   </div>;
-}
-
-function Score({ label, items }: { label: string; items: (readonly [string, number])[] }) {
-  return <div className="result-score"><h3>{label}</h3>{items.map(([name, value]) => <div className="result-score-row" key={name}><div><span>{name}</span><strong>{value}%</strong></div><div className="result-bar"><span style={{ width: `${value}%` }} /></div></div>)}</div>;
 }

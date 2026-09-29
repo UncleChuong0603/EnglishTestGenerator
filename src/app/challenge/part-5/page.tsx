@@ -1,10 +1,12 @@
 import Link from "next/link";
+import { ChallengeStartButton } from "@/components/challenge-start-button";
 import { PublicFooter } from "@/components/public-footer";
 import { PublicHeader } from "@/components/public-header";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getPreferences } from "@/lib/i18n/get-translations";
 import { publicPageMetadata } from "@/lib/seo/public-metadata";
 import { startPart5Challenge } from "../actions";
+import styles from "./challenge-intro.module.css";
 
 export const metadata = publicPageMetadata({
   title: "Thử thách TOEIC Part 5: 10 câu miễn phí",
@@ -16,25 +18,42 @@ export default async function Part5ChallengePage({ searchParams }: PageProps<"/c
   const [user, query] = await Promise.all([getCurrentUser(), searchParams]);
   const locale = (await getPreferences(user?.id)).interfaceLanguage;
   const vi = locale === "vi";
-  return <main className="min-h-screen bg-[#f7f6f1] text-slate-900">
-    <PublicHeader locale={locale} signedIn={Boolean(user)} />
-    <section className="mx-auto max-w-5xl px-5 py-10 sm:px-6 sm:py-20">
-      <nav aria-label={vi ? "Điều hướng thử thách" : "Challenge navigation"} className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-bold text-teal-800">
-        <Link className="underline underline-offset-4" href="/">← {vi ? "Trang chủ" : "Home"}</Link>
-        <Link className="underline underline-offset-4" href="/challenge">Challenge</Link>
-      </nav>
-      <p className="mt-8 text-sm font-black uppercase tracking-[.18em] text-teal-800">TOEIC GYM / PART 5 CHALLENGE</p>
-      <h1 className="mt-4 max-w-3xl text-4xl font-black leading-tight sm:text-6xl">{vi ? "Bạn làm đúng bao nhiêu trong 10 câu Part 5?" : "How many of 10 Part 5 questions can you answer?"}</h1>
-      <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">{vi ? "10 câu hoàn thành câu về ngữ pháp và từ vựng. Làm bài trước, xem kết quả thật và giải thích đầy đủ sau khi nộp." : "Answer 10 grammar and vocabulary questions. See your real result and full explanations after submission."}</p>
-      <div className="mt-8 flex flex-wrap gap-3 text-sm font-bold text-slate-700"><span className="rounded-full bg-white px-4 py-2">10 {vi ? "câu" : "questions"}</span><span className="rounded-full bg-white px-4 py-2">{vi ? "Không cần tài khoản" : "No account needed"}</span><span className="rounded-full bg-white px-4 py-2">{vi ? "Xem lời giải sau khi nộp" : "Explanations after submission"}</span></div>
-      {query.error ? <p className="mt-6 max-w-xl rounded-xl border border-red-200 bg-red-50 p-4 text-red-800" role="alert">{query.error === "limit" ? (vi ? "Bạn đã dùng hết lượt tạo bài hôm nay. Hãy quay lại khi lượt được đặt lại." : "You have used today's session allowance. Please return after it resets.") : (vi ? "Chưa thể tạo thử thách đủ 10 câu. Vui lòng thử lại sau." : "Could not prepare a full 10-question challenge. Please try again later.")}</p> : null}
-      <form action={startPart5Challenge} className="mt-9"><button className="inline-flex min-h-14 w-full items-center justify-center rounded-xl bg-teal-700 px-8 text-lg font-black text-white shadow-lg shadow-teal-900/10 sm:w-auto" type="submit">{vi ? "Bắt đầu ngay" : "Start now"} <span aria-hidden="true" className="ml-3">→</span></button></form>
-      <p className="mt-4 text-sm text-slate-500">{vi ? "Kết quả là độ chính xác của 10 câu, không phải điểm TOEIC dự đoán." : "Your result is accuracy across 10 questions, not a predicted TOEIC score."}</p>
-      <nav aria-label={vi ? "Tìm hiểu Part 5" : "Explore Part 5"} className="mt-10 flex flex-wrap gap-x-6 gap-y-3 text-sm font-bold text-teal-800">
-        <Link className="underline underline-offset-4" href="/toeic/part-5">{vi ? "Cách làm TOEIC Part 5" : "TOEIC Part 5 guide"}</Link>
-        <Link className="underline underline-offset-4" href="/toeic/part-5/word-form">{vi ? "Luyện Word Form" : "Practice Word Form"}</Link>
-      </nav>
-    </section>
+  const steps = vi
+    ? [
+      { number: "01", title: "Làm 10 câu", body: "Ngữ pháp và từ vựng trong định dạng hoàn thành câu." },
+      { number: "02", title: "Xem lời giải", body: "Biết câu nào sai và vì sao đáp án đúng phù hợp." },
+      { number: "03", title: "Chọn bài tiếp", body: "Dùng kết quả để chọn chủ điểm cần luyện thêm." },
+    ]
+    : [
+      { number: "01", title: "Answer 10 questions", body: "Grammar and vocabulary in the sentence completion format." },
+      { number: "02", title: "Read explanations", body: "See which answers you missed and why the right one fits." },
+      { number: "03", title: "Choose what is next", body: "Use your result to pick a useful topic to practice." },
+    ];
+
+  return <div className={styles.page}>
+    <a className={styles.skipLink} href="#main-content">{vi ? "Bỏ qua điều hướng" : "Skip to content"}</a>
+    <PublicHeader locale={locale} showPrimary={false} signedIn={Boolean(user)} />
+    <main id="main-content">
+    <div className={styles.wrap}>
+      <nav aria-label={vi ? "Điều hướng thử thách" : "Challenge navigation"} className={styles.breadcrumb}><Link href="/">{vi ? "Trang chủ" : "Home"}</Link><span aria-hidden="true">/</span><span>Part 5</span></nav>
+      <section aria-labelledby="challenge-title" className={styles.hero}>
+        <div className={styles.intro}>
+          <p className={styles.kicker}>TOEIC GYM / PART 5</p>
+          <h1 id="challenge-title">{vi ? "Bắt đầu bằng 10 câu. Hiểu rõ từng lỗi sai." : "Start with 10 questions. Understand every mistake."}</h1>
+          <p className={styles.lead}>{vi ? "Làm một bài ngắn về ngữ pháp và từ vựng. Xem kết quả và lời giải ngay sau khi nộp, rồi chọn phần cần luyện tiếp." : "Take a short grammar and vocabulary set. See results and explanations after submission, then choose what to practice next."}</p>
+          <div className={styles.facts}><span>10 {vi ? "câu" : "questions"}</span><span>{vi ? "Không cần tài khoản" : "No account needed"}</span><span>{vi ? "Có lời giải" : "Explanations included"}</span></div>
+          {query.error ? <p className={styles.error} role="alert">{query.error === "limit" ? (vi ? "Bạn đã dùng hết lượt tạo bài hôm nay. Lượt tiếp theo sẽ có khi hạn mức được đặt lại; lúc này bạn có thể ôn một chủ điểm Part 5." : "You have used today's session allowance. You can start again when it resets; meanwhile, review a Part 5 topic.") : (vi ? "Chưa thể tạo đủ 10 câu cho bài này. Hãy thử lại sau hoặc chọn bài luyện khác." : "A full 10-question set is unavailable right now. Please try again later or choose another practice set.")}</p> : null}
+          {query.error === "limit" ? <Link className={styles.startButton} href="/toeic/part-5">{vi ? "Ôn lại Part 5" : "Review Part 5"} <span aria-hidden="true">↗</span></Link> : <form action={startPart5Challenge} className={styles.action}><ChallengeStartButton className={styles.startButton} label={vi ? "Bắt đầu ngay" : "Start now"} pendingLabel={vi ? "Đang chuẩn bị bài…" : "Preparing your questions…"} /></form>}
+          <p className={styles.note}>{vi ? "Kết quả thể hiện độ chính xác của bài này, không phải điểm TOEIC chính thức hoặc dự đoán điểm." : "The result shows accuracy on this set, not an official or predicted TOEIC score."}</p>
+        </div>
+        <aside aria-label={vi ? "Bạn sẽ làm gì trong bài thử" : "What to expect from this practice"} className={styles.process}>
+          <p className={styles.processHeading}>{vi ? "SAU KHI BẮT ĐẦU" : "AFTER YOU START"}</p>
+          <ol>{steps.map((step) => <li key={step.number}><span>{step.number}</span><div><h2>{step.title}</h2><p>{step.body}</p></div></li>)}</ol>
+        </aside>
+      </section>
+      <div className={styles.followup}><p>{vi ? "Muốn xem cách làm trước khi bắt đầu?" : "Want a quick guide before you start?"}</p><Link href="/toeic/part-5">{vi ? "Đọc hướng dẫn Part 5" : "Read the Part 5 guide"} <span aria-hidden="true">↗</span></Link></div>
+    </div>
+    </main>
     <PublicFooter locale={locale} />
-  </main>;
+  </div>;
 }

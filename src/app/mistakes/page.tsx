@@ -77,7 +77,7 @@ export default async function MistakesPage({
   const total = counts.unresolved + counts.mastered;
   const eligible = rows.filter((row) => row.available).length;
   const reviewUsage = preview.usage.MASTERY_REVIEW;
-  const quotaReached = query.error === "usage_limit" && reviewUsage.type === "LIMITED" && reviewUsage.remaining === 0;
+  const quotaReached = reviewUsage.type === "LIMITED" && reviewUsage.limit > 0 && reviewUsage.remaining === 0;
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-6 pb-20 text-slate-900 sm:px-6">
       <div className="mx-auto max-w-5xl">

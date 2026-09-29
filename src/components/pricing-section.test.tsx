@@ -8,7 +8,9 @@ describe("PricingSection", () => {
       <PricingSection locale="en" startHref="/try" />,
     );
 
-    expect(html).toContain("Custom practice: 3 sessions/day");
+    expect(html).toContain("Custom practice: 5 sessions/day");
+    expect(html).toContain("Mistake Bank review: 2 reviews/day");
+    expect(html).toContain("Full basic weekly plan");
     expect(html).toContain("Baseline + reassessment after a 30-day cooldown");
     expect(html).toContain("Smart mistake review");
     expect(html).toContain("Weekly Plan");
@@ -27,7 +29,7 @@ describe("PricingSection", () => {
 
   it("advertises new mocks only when a startable mode is ready", () => {
     const html = renderToStaticMarkup(<PricingSection locale="en" mockReady />);
-    expect(html).toContain("New Mock Tests: 1 new mock/month");
+    expect(html).toContain("New Mock Tests: 4 new mocks/month");
     expect(html).toContain("New Mock Tests: Unlimited");
   });
 

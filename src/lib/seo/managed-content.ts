@@ -3,15 +3,17 @@ import { guides } from "./guides";
 import { contentPath } from "./routes";
 
 const revisedAt = new Date("2026-09-26T18:00:00.000Z");
+const listeningReleaseAt = new Date("2026-09-29T17:00:00.000Z");
 
 function document(slug: string, title: string, excerpt: string, content: string, intent = "LEARN"): EditorialPost {
+  const updatedAt = slug === "seo-toeic" || slug === "seo-online" ? listeningReleaseAt : revisedAt;
   const category = slug === "seo-toeic" || slug === "seo-online" ? "TOEIC_STRATEGY"
     : slug === "seo-part6" || slug === "seo-part7" ? "READING" : "GRAMMAR";
   return { id: slug, slug, title, excerpt, content, status: "PUBLISHED", category,
     seoTitle: title, seoDescription: excerpt, canonicalPath: contentPath(slug), coverMediaId: null,
     coverAlt: "", editorialCover: "/brand/toeic-gym-social.png", socialTitle: title, socialDescription: excerpt,
     contentOrigin: "AI_ASSISTED", authorName: "TOEICGym", targetTopic: title, searchIntent: intent, noindex: false,
-    createdAt: revisedAt, updatedAt: revisedAt, publishedAt: revisedAt, createdBy: "editorial", updatedBy: "editorial", tags: [],
+    createdAt: revisedAt, updatedAt, publishedAt: revisedAt, createdBy: "editorial", updatedBy: "editorial", tags: [],
   };
 }
 

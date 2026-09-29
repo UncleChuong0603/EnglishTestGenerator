@@ -2,7 +2,7 @@
 // Usage: node scripts/seo-smoke.mjs [https://toeicgym.net]
 const origin = new URL(process.argv[2] ?? "https://toeicgym.net").origin;
 const privatePaths = ["/demo-test", "/practice", "/continue-learning", "/billing", "/admin", "/api/health", "/auth/callback"];
-const breadcrumbPaths = new Set(["/toeic", "/luyen-thi-toeic-online", "/toeic/part-5", "/toeic/part-5/word-form", "/toeic/part-5/thi-dong-tu", "/toeic/part-5/practice", "/toeic/part-6", "/toeic/part-7"]);
+const breadcrumbPaths = new Set(["/toeic", "/luyen-thi-toeic-online", "/toeic/listening", "/toeic/part-1", "/toeic/part-2", "/toeic/part-3", "/toeic/part-4", "/thi-thu-toeic-online", "/toeic/part-5", "/toeic/part-5/word-form", "/toeic/part-5/thi-dong-tu", "/toeic/part-5/practice", "/toeic/part-6", "/toeic/part-6/dien-cau-vao-doan-van", "/toeic/part-7", "/toeic/part-7/doc-hieu-hai-doan-van"]);
 const failures = [];
 const warnings = [];
 
@@ -41,6 +41,15 @@ try {
   if (!body.includes(`Sitemap: ${origin}/sitemap.xml`)) failures.push("robots.txt: sitemap URL does not match the site origin");
   if (/^Disallow:\s*\/(?:admin|dashboard|practice|demo-test|billing)/m.test(body)) failures.push("robots.txt: app routes are blocked before crawlers can read noindex");
 
+  const favicon = await fetch(new URL("/favicon.ico", origin), {
+    headers: { "user-agent": "Googlebot-Image" },
+    signal: AbortSignal.timeout(20000),
+  });
+  if (!favicon.ok) failures.push(`favicon.ico: HTTP ${favicon.status}`);
+  if (!/^image\/(?:x-icon|vnd\.microsoft\.icon)/i.test(favicon.headers.get("content-type") ?? "")) {
+    failures.push("favicon.ico: missing ICO content type");
+  }
+
   const sitemap = await request("/sitemap.xml");
   if (!sitemap.response.ok) throw new Error(`sitemap.xml: HTTP ${sitemap.response.status}`);
   const urls = [...sitemap.body.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => decodeXml(match[1]));
@@ -69,9 +78,9 @@ try {
   // Check every sitemap entry for syntax and duplicates, then fetch representative
   // pages slowly enough to avoid tripping the production edge rate limit.
   const samplePaths = [
-    "/", "/toeic", "/toeic/part-5", "/toeic/part-5/practice",
+    "/", "/toeic", "/toeic/listening", "/toeic/part-1", "/toeic/part-2", "/toeic/part-3", "/toeic/part-4", "/thi-thu-toeic-online", "/toeic/part-5", "/toeic/part-5/practice",
     "/toeic/part-5/word-form", "/toeic/part-5/thi-dong-tu",
-    "/toeic/part-6", "/toeic/part-7", "/blog", "/blog/ngu-phap",
+    "/toeic/part-6", "/toeic/part-6/dien-cau-vao-doan-van", "/toeic/part-7", "/toeic/part-7/doc-hieu-hai-doan-van", "/blog", "/blog/ngu-phap",
     "/blog/cach-review-loi-sai-toeic", "/blog/chien-luoc-tang-diem-toeic-450-den-700",
     "/challenge/part-5",
   ];
@@ -109,6 +118,9 @@ try {
         if (!title) failures.push(`${url}: missing title`);
         if (!description) failures.push(`${url}: missing description`);
         if (!shareImage) failures.push(`${url}: missing social image`);
+        if (new URL(url).pathname === "/" && !/<link\s+rel="icon"\s+href="\/favicon\.ico(?:\?[^\"]*)?"/i.test(head)) {
+          failures.push(`${url}: missing favicon link`);
+        }
         if (canonical !== url) failures.push(`${url}: canonical is ${canonical || "missing"}`);
         if (/noindex/i.test(robots) || /noindex/i.test(page.headers.get("x-robots-tag") ?? "")) failures.push(`${url}: sitemap page is noindex`);
         if ((title.match(/TOEIC\s*GYM/gi) ?? []).length > 1) failures.push(`${url}: repeated brand in title`);
@@ -129,6 +141,21 @@ try {
     try {
       const { response: page } = await request(path, { redirect: "manual" });
       if (!/noindex/i.test(page.headers.get("x-robots-tag") ?? "")) failures.push(`${path}: missing X-Robots-Tag noindex`);
+    } catch (error) {
+      failures.push(`${path}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  for (const [path, contentType] of [
+    ["/seo/toeic-part-1-office-folders.webp", "image/webp"],
+    ["/seo/toeic-part-1-sample.mp3", "audio/mpeg"],
+    ["/seo/toeic-part-2-sample.mp3", "audio/mpeg"],
+    ["/seo/toeic-part-4-sample.mp3", "audio/mpeg"],
+  ]) {
+    try {
+      const asset = await fetch(new URL(path, origin), { method: "HEAD", signal: AbortSignal.timeout(20000) });
+      if (!asset.ok) failures.push(`${path}: HTTP ${asset.status}`);
+      if (!(asset.headers.get("content-type") ?? "").startsWith(contentType)) failures.push(`${path}: unexpected content type`);
     } catch (error) {
       failures.push(`${path}: ${error instanceof Error ? error.message : String(error)}`);
     }

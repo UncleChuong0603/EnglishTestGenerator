@@ -1,5 +1,6 @@
 export const PRODUCT_TIME_ZONE = "Asia/Ho_Chi_Minh" as const;
-export const FREE_WEEKLY_PLAN_PREVIEW_COUNT = 3;
+// A weekly goal can contain at most seven sessions, so Free can see the full basic plan.
+export const FREE_WEEKLY_PLAN_PREVIEW_COUNT = 7;
 
 export type PlanKey = "FREE" | "PREMIUM";
 export type EntitlementKey = "TODAYS_WORKOUT" | "MANUAL_PRACTICE" | "MASTERY_REVIEW" | "FULL_MOCK";
@@ -19,9 +20,9 @@ const unlimited = { type: "UNLIMITED" } as const;
 export const PLAN_CATALOG: Record<PlanKey, { key: PlanKey; entitlements: Record<EntitlementKey, EntitlementLimit> }> = {
   FREE: { key: "FREE", entitlements: {
     TODAYS_WORKOUT: { type: "LIMITED", count: 1, period: "DAY" },
-    MANUAL_PRACTICE: { type: "LIMITED", count: 3, period: "DAY" },
-    MASTERY_REVIEW: { type: "LIMITED", count: 1, period: "DAY" },
-    FULL_MOCK: { type: "LIMITED", count: 1, period: "MONTH" },
+    MANUAL_PRACTICE: { type: "LIMITED", count: 5, period: "DAY" },
+    MASTERY_REVIEW: { type: "LIMITED", count: 2, period: "DAY" },
+    FULL_MOCK: { type: "LIMITED", count: 4, period: "MONTH" },
   } },
   PREMIUM: { key: "PREMIUM", entitlements: { TODAYS_WORKOUT: unlimited, MANUAL_PRACTICE: unlimited, MASTERY_REVIEW: unlimited, FULL_MOCK: unlimited } },
 };

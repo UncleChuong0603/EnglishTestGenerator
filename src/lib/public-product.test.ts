@@ -60,6 +60,8 @@ describe("public activation configuration", () => {
       String(PLAN_CAPABILITIES.PREMIUM.historyWindowDays),
     );
     expect(rows.get("targeting")?.premium).toContain("unseen-first");
+    expect(rows.get("weeklyPlan")?.free).toBe("Full basic weekly plan");
+    expect(rows.get("weeklyPlan")?.premium).toContain("weakness");
   });
 
   it("renders equivalent EN and VI comparison rows", () => {

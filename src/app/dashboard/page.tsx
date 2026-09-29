@@ -153,6 +153,10 @@ export default async function DashboardPage() {
   const dashboardPremiumPreview = dashboardResult
     ? progressPreviewFrom(dashboardResult.progress)
     : null;
+  const freeLimitReached = (["TODAYS_WORKOUT", "MANUAL_PRACTICE", "MASTERY_REVIEW", "FULL_MOCK"] as const).some((key) => {
+    const item = usage.entitlements[key];
+    return item.type === "LIMITED" && item.limit > 0 && item.remaining === 0;
+  });
   const weeklyReview = dashboardResult
     ? await getWeeklyReview(user.id, new Date(), dashboardResult.mistakes).catch((error) => {
         console.error("Could not load weekly review", error);
@@ -320,9 +324,9 @@ export default async function DashboardPage() {
           {goal ? <p className="mt-3 text-xs text-slate-500">{goal.examDate ? `${locale === "vi" ? "Ngày thi" : "Test date"}: ${formatExamDate(goal.examDate, locale)} · ` : ""}{goal.studyDaysPerWeek ? `${goal.studyDaysPerWeek} ${locale === "vi" ? "ngày/tuần" : "days/week"} · ` : ""}{workload.studyMinutes} {locale === "vi" ? "phút/ngày" : "min/day"}</p> : null}
         </section>
 
-        <RoadToTarget section="plan" goal={goal} weekly={weeklyPlan} locale={locale} premium={usage.effectivePlan === "PREMIUM"} previewEligible={Boolean(goal?.targetScore && goal?.dailyStudyMinutes && goal?.studyDaysPerWeek && dashboardResult?.recommendation?.reasonCode === "SUPPORTED_WEAKNESS")} />
+        <RoadToTarget section="plan" goal={goal} weekly={weeklyPlan} locale={locale} premium={usage.effectivePlan === "PREMIUM"} previewEligible={freeLimitReached && Boolean(goal?.targetScore && goal?.dailyStudyMinutes && goal?.studyDaysPerWeek && dashboardResult?.recommendation?.reasonCode === "SUPPORTED_WEAKNESS")} />
         <WeeklyReviewCard review={weeklyReview} weekly={weeklyPlan} locale={locale} premium={usage.effectivePlan === "PREMIUM"} />
-        {trialEligibility.eligible ? <TrialCta locale={locale} /> : null}
+        {trialEligibility.eligible && freeLimitReached ? <TrialCta locale={locale} /> : null}
 
         {showContextPrompt ? <LearnerContextPrompt locale={locale} /> : null}
 
@@ -514,7 +518,7 @@ export default async function DashboardPage() {
           </section>
         ) : null}
 
-        {account.lifecycle === "FREE" &&
+        {account.lifecycle === "FREE" && freeLimitReached &&
         dashboardPremiumPreview?.hasSkillBreakdownPotential ? (
           <div className="mt-8">
             <PremiumPreviewCard
@@ -716,9 +720,9 @@ export default async function DashboardPage() {
                   {locale === "vi" ? "Mức sử dụng" : "Plan usage"}
                 </h2>
               </div>
-              <Link className="font-bold text-teal-700" href="/pricing">
-                {locale === "vi" ? "Xem Premium" : "View Premium"}
-              </Link>
+              {freeLimitReached ? <Link className="font-bold text-teal-700" href="/pricing">
+                {locale === "vi" ? "Cần thêm lượt?" : "Need more sessions?"}
+              </Link> : null}
             </div>
             <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
               {(

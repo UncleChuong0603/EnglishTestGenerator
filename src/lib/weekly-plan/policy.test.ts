@@ -26,7 +26,7 @@ describe("weekly plan policy", () => {
   it.each([3, 5, 7] as const)("builds %i study sessions without requiring a target", days => {
     const plan = buildWeeklyPlan({ ...input, goal: goal(days, 20) });
     expect(plan.items).toHaveLength(days);
-    expect(plan.preview).toHaveLength(Math.min(days, 3));
+    expect(plan.preview).toEqual(plan.items);
   });
 
   it.each([10, 20, 30, 45, 60] as const)("uses a %i-minute capacity", minutes => {

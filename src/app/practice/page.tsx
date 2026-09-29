@@ -69,7 +69,7 @@ export default async function PracticePage({ searchParams }: Props) {
     4: t.listening.talks,
   };
   const practiceUsage = preview.usage.MANUAL_PRACTICE;
-  const quotaReached = error === "usage_limit" && practiceUsage.type === "LIMITED" && practiceUsage.remaining === 0;
+  const quotaReached = practiceUsage.type === "LIMITED" && practiceUsage.limit > 0 && practiceUsage.remaining === 0;
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 sm:px-6 sm:py-8">
       <div className="mx-auto max-w-6xl">

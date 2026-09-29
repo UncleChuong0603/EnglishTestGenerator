@@ -56,13 +56,8 @@ const copy = {
   },
 } as const;
 
-export default async function FullMockPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ error?: string }>;
-}) {
-  const user = await requireUser(),
-    query = await searchParams;
+export default async function FullMockPage() {
+  const user = await requireUser();
   const [
     ready,
     actives,
@@ -131,7 +126,7 @@ export default async function FullMockPage({
     },
   ];
   const mockUsage = preview.usage.FULL_MOCK;
-  const quotaReached = query.error === "usage_limit" && mockUsage.type === "LIMITED" && mockUsage.remaining === 0 && (ready.listening.ready || ready.full.ready);
+  const quotaReached = mockUsage.type === "LIMITED" && mockUsage.limit > 0 && mockUsage.remaining === 0 && (ready.listening.ready || ready.full.ready);
   return (
     <main className="min-h-screen overflow-x-hidden bg-slate-50 px-4 py-6 text-slate-900">
       <div className="mx-auto max-w-6xl">

@@ -46,7 +46,7 @@ export function FeedbackWidget() {
   const dialog = useRef<HTMLDialogElement>(null);
   const [opened, setOpened] = useState(false);
 
-  if (hidden || pathname === "/support" || pathname.startsWith("/admin")) return null;
+  if (hidden || pathname === "/" || pathname === "/challenge/part-5" || pathname === "/support" || pathname.startsWith("/admin")) return null;
 
   return <div className="feedback-widget fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] z-40 print:hidden">
     <div className="flex items-center overflow-hidden rounded-full border border-white/20 bg-[#245a43] text-white shadow-lg shadow-black/15">
