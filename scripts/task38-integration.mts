@@ -50,6 +50,10 @@ async function learning(userId: string, items: Array<{ id: string; option: strin
 }
 
 try {
+  const migration = await raw.query(`select max(id)::int as id from drizzle.__drizzle_migrations`);
+  assert.equal(migration.rows[0].id, 45);
+  const index = await raw.query(`select count(*)::int as total from pg_indexes where indexname='user_plan_memberships_trial_lifetime_uidx'`);
+  assert.equal(index.rows[0].total, 1);
   const items = await questions();
   const fresh = await user("fresh");
   assert.equal((await getTrialEligibility(fresh)).reason, "INSUFFICIENT_DATA");
