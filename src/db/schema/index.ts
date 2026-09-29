@@ -65,7 +65,8 @@ export const userPlanMemberships = pgTable("user_plan_memberships", {
 }, (table) => [
   index("user_plan_memberships_user_window_idx").on(table.userId, table.startsAt, table.endsAt, table.revokedAt),
   check("user_plan_memberships_plan_check", sql`${table.planKey} = 'PREMIUM'`),
-  check("user_plan_memberships_source_check", sql`${table.source} in ('MANUAL','PROMOTION','PAYMENT')`),
+  check("user_plan_memberships_source_check", sql`${table.source} in ('MANUAL','PROMOTION','PAYMENT','TRIAL')`),
+  uniqueIndex("user_plan_memberships_trial_lifetime_uidx").on(table.userId).where(sql`${table.source} = 'TRIAL'`),
   check("user_plan_memberships_range_check", sql`${table.endsAt} is null or ${table.endsAt} > ${table.startsAt}`),
   uniqueIndex("user_plan_memberships_payment_order_uidx").on(table.paymentOrderId).where(sql`${table.paymentOrderId} is not null`),
   check("user_plan_memberships_payment_source_check", sql`(${table.source} = 'PAYMENT') = (${table.paymentOrderId} is not null)`),
@@ -338,7 +339,7 @@ export const productEvents = pgTable("product_events", {
   index("product_events_guest_occurred_idx").on(table.guestReference, table.occurredAt),
   uniqueIndex("product_events_dedup_uidx").on(table.deduplicationKey).where(sql`${table.deduplicationKey} is not null`),
   check("product_events_actor_check", sql`num_nonnulls(${table.userId}, ${table.guestReference}) <= 1`),
-  check("product_events_name_check", sql`${table.eventName} in ('landing_viewed','try_viewed','guest_practice_started','guest_practice_completed','diagnostic_started','diagnostic_completed','signup_started','signup_completed','login_completed','first_authenticated_practice_started','first_authenticated_practice_completed','first_workout_completed','first_mistake_review_completed','practice_started','practice_completed','workout_started','workout_completed','mistake_review_started','mistake_review_completed','smart_review_started','smart_review_completed','diagnostic_reassessment_started','diagnostic_reassessment_completed','mock_started','mock_completed','pricing_viewed','checkout_started','checkout_created','premium_activated','premium_renewed','challenge_viewed','challenge_started','challenge_completed','signup_after_challenge','first_authenticated_workout_after_challenge')`),
+  check("product_events_name_check", sql`${table.eventName} in ('landing_viewed','try_viewed','guest_practice_started','guest_practice_completed','diagnostic_started','diagnostic_completed','signup_started','signup_completed','login_completed','first_authenticated_practice_started','first_authenticated_practice_completed','first_workout_completed','first_mistake_review_completed','practice_started','practice_completed','workout_started','workout_completed','mistake_review_started','mistake_review_completed','smart_review_started','smart_review_completed','diagnostic_reassessment_started','diagnostic_reassessment_completed','mock_started','mock_completed','pricing_viewed','checkout_started','checkout_created','premium_activated','premium_renewed','trial_eligible','trial_started','trial_expired','trial_to_paid','challenge_viewed','challenge_started','challenge_completed','signup_after_challenge','first_authenticated_workout_after_challenge')`),
   check("product_events_source_check", sql`${table.source} in ('browser','server','payment')`),
 ]);
 

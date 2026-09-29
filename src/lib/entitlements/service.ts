@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { usageConsumptions, userPlanMemberships } from "@/db/schema";
 import { getPlanCapabilities, getUsageWindow, PLAN_CATALOG, type EntitlementKey, type PlanKey } from "./catalog";
 import { quoteResultingExpiry } from "@/lib/premium/lifecycle";
+import { recordTrialExpiry } from "@/lib/premium/trial";
 
 function activePremiumMembership(userId: string, now: Date) {
   return and(
@@ -26,7 +27,8 @@ export async function getEffectiveCapabilities(userId: string, now = new Date())
 
 export type MembershipState = { status: "ACTIVE" | "EXPIRED" | "FREE"; expiresAt: Date | null; daysRemaining: number | null };
 export async function getMembershipState(userId: string, now = new Date()): Promise<MembershipState> {
-  const [active] = await db.select({ endsAt: userPlanMemberships.endsAt }).from(userPlanMemberships).where(activePremiumMembership(userId, now)).orderBy(sql`${userPlanMemberships.endsAt} desc nulls first`, desc(userPlanMemberships.createdAt)).limit(1);
+  await recordTrialExpiry(userId, now);
+  const [active] = await db.select({ endsAt: userPlanMemberships.endsAt }).from(userPlanMemberships).where(activePremiumMembership(userId, now)).orderBy(sql`case when ${userPlanMemberships.source} = 'TRIAL' then 1 else 0 end`, sql`${userPlanMemberships.endsAt} desc nulls first`, desc(userPlanMemberships.createdAt)).limit(1);
   if (active) return { status: "ACTIVE", expiresAt: active.endsAt, daysRemaining: active.endsAt ? Math.max(1, Math.ceil((active.endsAt.getTime() - now.getTime()) / 86_400_000)) : null };
   const [row] = await db.select({ endsAt: userPlanMemberships.endsAt }).from(userPlanMemberships).where(and(eq(userPlanMemberships.userId, userId), eq(userPlanMemberships.planKey, "PREMIUM")))
     .orderBy(sql`${userPlanMemberships.endsAt} desc nulls first`, desc(userPlanMemberships.createdAt)).limit(1);

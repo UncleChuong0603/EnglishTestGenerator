@@ -2,7 +2,7 @@ import "server-only";
 import { randomBytes } from "node:crypto";
 import { and, desc, eq, gt, sql, count, or, gte } from "drizzle-orm";
 import { db } from "@/db";
-import { paymentEvents, paymentOrders, userPlanMemberships, users } from "@/db/schema";
+import { paymentEvents, paymentOrders, productEvents, userPlanMemberships, users } from "@/db/schema";
 import { grantPremiumWithTx } from "@/lib/entitlements/service";
 import { resolveProduct, resolveProductDuration } from "./catalog";
 import { getPaymentProvider, type VerifiedPayment } from "./provider";
@@ -16,6 +16,7 @@ function safeOrigin() { const url = new URL(process.env.APP_URL ?? "http://local
 export async function createPaymentOrder(userId: string, productKey: string, provider = getPaymentProvider()) {
   const product = resolveProduct(productKey), now = new Date(), expiresAt = new Date(now.getTime() + ORDER_TTL_MS);
   const reserved = await db.transaction(async (tx) => {
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${userId}:plan`}, 0))`);
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${userId}:${product.key}:checkout`}, 0))`);
     const [existing] = await tx.select().from(paymentOrders).where(and(eq(paymentOrders.userId, userId), eq(paymentOrders.productKey, product.key), eq(paymentOrders.status, "PENDING"), gt(paymentOrders.expiresAt, now))).orderBy(desc(paymentOrders.createdAt)).limit(1);
     if (existing?.checkoutUrl) return { order: existing, reused: true as const };
@@ -54,6 +55,8 @@ export async function applyVerifiedPayment(event: VerifiedPayment, providerName:
     }
     const days = resolveProductDuration(order.productKey);
     await grantPremiumWithTx(tx, { userId: order.userId, days, source: "PAYMENT", paymentOrderId: order.id });
+    const [trial] = await tx.select({ id: userPlanMemberships.id }).from(userPlanMemberships).where(and(eq(userPlanMemberships.userId, order.userId), eq(userPlanMemberships.source, "TRIAL"))).limit(1);
+    if (trial) await tx.insert(productEvents).values({ userId: order.userId, eventName: "trial_to_paid", source: "payment", deduplicationKey: `trial-to-paid:${order.userId}`, properties: { orderId: order.id } }).onConflictDoNothing();
     if (injectFailure) throw new Error("INJECTED_ROLLBACK");
     const now = new Date(); await tx.update(paymentOrders).set({ status: "PAID", paidAt: now, updatedAt: now }).where(eq(paymentOrders.id, order.id));
     await tx.update(paymentEvents).set({ processingStatus: "PROCESSED", processedAt: now }).where(eq(paymentEvents.id, inserted[0].id));

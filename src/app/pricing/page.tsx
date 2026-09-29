@@ -12,6 +12,8 @@ import { getPremiumPreview } from "@/lib/premium/preview";
 import { PersonalizedPremiumSummary } from "@/components/premium/premium-preview";
 import { PUBLIC_ACTIVATION_HREF } from "@/lib/public-product";
 import { publicPageMetadata } from "@/lib/seo/public-metadata";
+import { getTrialEligibility } from "@/lib/premium/trial";
+import { TrialCta } from "@/components/premium/trial-cta";
 
 export const metadata = publicPageMetadata({
   title: "Bảng giá",
@@ -25,6 +27,7 @@ export default async function PricingPage() {
   const account = user ? await getPremiumAccount(user.id, user.email) : null;
   const copy = premiumCopy(locale);
   const preview = user ? await getPremiumPreview() : null;
+  const trialEligibility = user ? await getTrialEligibility(user.id) : null;
   const mockReadiness = await getMockHubReadiness().catch(() => null);
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
@@ -34,7 +37,9 @@ export default async function PricingPage() {
           {locale === "vi" ? "Gói TOEICGym" : "TOEICGym plans"}
         </p>
         <h1 className="mt-3 max-w-4xl text-3xl font-black tracking-tight sm:text-5xl">
-          {account?.isPremium
+          {account?.isTrial
+            ? locale === "vi" ? "Bạn đang dùng thử Premium 3 ngày." : "You're on a 3-day Premium trial."
+            : account?.isPremium
             ? locale === "vi"
               ? "Bạn đang dùng Premium. Gia hạn khi cần."
               : "You're on Premium. Extend when you need more time."
@@ -51,15 +56,15 @@ export default async function PricingPage() {
       {account?.isPremium ? (
         <aside className="mx-auto mt-8 flex max-w-5xl flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
           <div className="flex items-center gap-3">
-            <PremiumBadge />
+            {account.isTrial ? <span className="rounded-full bg-amber-200 px-3 py-1 text-xs font-black text-amber-950">{locale === "vi" ? "Premium dùng thử" : "Premium trial"}</span> : <PremiumBadge />}
             <div>
-              <strong>{copy.current}</strong>
+              <strong>{account.isTrial ? (locale === "vi" ? "Premium dùng thử" : "Premium trial") : copy.current}</strong>
               {account.expiresAt ? (
                 <p className="mt-1 text-sm text-amber-950">
                   {copy.expires}{" "}
-                  {account.expiresAt.toLocaleDateString(
+                  {account.expiresAt.toLocaleString(
                     locale === "vi" ? "vi-VN" : "en-US",
-                    { timeZone: "Asia/Ho_Chi_Minh" },
+                    { timeZone: "Asia/Ho_Chi_Minh", dateStyle: "medium", timeStyle: "short" },
                   )}
                 </p>
               ) : null}
@@ -92,6 +97,7 @@ export default async function PricingPage() {
       {preview ? (
         <PersonalizedPremiumSummary locale={locale} preview={preview} />
       ) : null}
+      {trialEligibility?.eligible ? <div className="mx-auto mt-8 max-w-5xl px-5 sm:px-6"><TrialCta locale={locale} /></div> : null}
       <PricingSection
         locale={locale}
         mockReady={Boolean(mockReadiness?.listening.ready || mockReadiness?.full.ready)}

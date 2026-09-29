@@ -19,12 +19,9 @@ export function ComparisonBars({ items, noData = "Chưa có dữ liệu", unit =
 }
 
 function formatChartDay(day: string, locale: InterfaceLanguage, includeYear = false) {
-  return new Intl.DateTimeFormat(locale === "vi" ? "vi-VN" : "en-US", {
-    day: "2-digit",
-    month: "short",
-    ...(includeYear ? { year: "numeric" } : {}),
-    timeZone: "UTC",
-  }).format(new Date(`${day}T00:00:00Z`));
+  const [year, month, date] = day.split("-");
+  const short = locale === "vi" ? `${date}/${month}` : `${month}/${date}`;
+  return includeYear ? `${short}/${year}` : short;
 }
 
 export function TrendChart({ points, title, emptyText, locale = "en" }: { points: TrendPoint[]; title: string; emptyText: string; locale?: InterfaceLanguage }) {
@@ -67,10 +64,10 @@ export function TrendChart({ points, title, emptyText, locale = "en" }: { points
         {points.map((point, index) => {
           if (!point.answeredCount) return null;
           const barHeight = Math.max(5, (point.answeredCount / maxAnswered) * (plotHeight * 0.42));
-          return <rect key={`bar-${point.day}`} x={x(index) - barWidth / 2} y={plot.top + plotHeight - barHeight} width={barWidth} height={barHeight} rx="3" fill="#ccfbf1" stroke="#99f6e4"><title>{formatChartDay(point.day, locale, true)}: {point.answeredCount} {copy.questions}</title></rect>;
+          return <rect key={`bar-${point.day}`} x={x(index) - barWidth / 2} y={plot.top + plotHeight - barHeight} width={barWidth} height={barHeight} rx="3" fill="#ccfbf1" stroke="#99f6e4"><title>{`${formatChartDay(point.day, locale, true)}: ${point.answeredCount} ${copy.questions}`}</title></rect>;
         })}
         {segments.filter((segment) => segment.length > 1).map((segment) => <polyline key={segment[0].day} fill="none" points={segment.map((point) => `${x(points.indexOf(point))},${y(point.accuracy!)}`).join(" ")} stroke="#0d9488" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />)}
-        {active.map((point) => <circle key={point.day} cx={x(points.indexOf(point))} cy={y(point.accuracy!)} fill="#ffffff" stroke="#0f766e" strokeWidth="3" r="5"><title>{formatChartDay(point.day, locale, true)}: {point.accuracy}% · {point.answeredCount} {copy.questions}</title></circle>)}
+        {active.map((point) => <circle key={point.day} cx={x(points.indexOf(point))} cy={y(point.accuracy!)} fill="#ffffff" stroke="#0f766e" strokeWidth="3" r="5"><title>{`${formatChartDay(point.day, locale, true)}: ${point.accuracy}% · ${point.answeredCount} ${copy.questions}`}</title></circle>)}
         {labelIndexes.map((index) => <text key={points[index].day} x={x(index)} y={height - 7} fill="#64748b" fontSize="11" textAnchor={index === 0 ? "start" : index === points.length - 1 ? "end" : "middle"}>{formatChartDay(points[index].day, locale)}</text>)}
       </svg>
     </div>

@@ -32,6 +32,8 @@ import { RoadToTarget } from "@/components/weekly-plan/road-to-target";
 import { getWeeklyPlan } from "@/lib/weekly-plan/service";
 import { getWeeklyReview } from "@/lib/weekly-review/service";
 import { WeeklyReviewCard } from "@/components/weekly-plan/weekly-review";
+import { getTrialEligibility } from "@/lib/premium/trial";
+import { TrialCta } from "@/components/premium/trial-cta";
 
 function ProgressCard({
   area,
@@ -72,12 +74,13 @@ function ProgressCard({
 export default async function DashboardPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/sign-in");
-  const [profileResult, preferences, account, goal, showContextPrompt] = await Promise.all([
+  const [profileResult, preferences, account, goal, showContextPrompt, trialEligibility] = await Promise.all([
     getCurrentProfile(user.id),
     getPreferences(user.id),
     getPremiumAccount(user.id, user.email),
     getLearnerGoal(user.id).catch(() => null),
     shouldPromptForLearnerContext(user.id).catch(() => false),
+    getTrialEligibility(user.id),
   ]);
   const locale = preferences.interfaceLanguage;
   const translations = getTranslations(locale);
@@ -167,7 +170,12 @@ export default async function DashboardPage() {
     <main className="learner-page min-h-screen px-4 py-6 pb-24 text-slate-900 sm:px-6 sm:py-8 lg:pb-8">
       <div className="mx-auto max-w-6xl">
         <LearnerNav locale={locale} />
-        {account.lifecycle === "ACTIVE_EXPIRING_SOON" ||
+        {account.isTrial ? (
+          <aside className="mt-6 rounded-2xl border border-teal-200 bg-white p-4" aria-label={locale === "vi" ? "Premium dùng thử" : "Premium trial"}>
+            <p className="font-bold">{locale === "vi" ? "Premium dùng thử" : "Premium trial"}</p>
+            <p className="mt-1 text-sm text-slate-600">{locale === "vi" ? "Hết hạn" : "Ends"}: {account.expiresAt?.toLocaleString(locale === "vi" ? "vi-VN" : "en-US", { timeZone: "Asia/Ho_Chi_Minh", dateStyle: "medium", timeStyle: "short" })}. {locale === "vi" ? "Sau đó bạn trở lại Free; dữ liệu học được giữ. Không cần thẻ và không tự gia hạn." : "You then return to Free with your learning data saved. No card or automatic renewal."}</p>
+          </aside>
+        ) : account.lifecycle === "ACTIVE_EXPIRING_SOON" ||
         account.lifecycle === "ACTIVE_EXPIRING_VERY_SOON" ? (
           <aside
             className="mt-6 flex flex-col gap-3 rounded-2xl border border-teal-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
@@ -214,9 +222,9 @@ export default async function DashboardPage() {
           </h1>
           {account.isPremium ? (
             <p className="mt-2 text-sm font-semibold text-amber-900">
-              Premium
+              {account.isTrial ? (locale === "vi" ? "Premium dùng thử" : "Premium trial") : "Premium"}
               {account.expiresAt
-                ? ` · ${locale === "vi" ? "Hết hạn vào" : "Expires on"} ${account.expiresAt.toLocaleDateString(locale === "vi" ? "vi-VN" : "en-US")}`
+                ? ` · ${locale === "vi" ? "Hết hạn vào" : "Expires on"} ${account.expiresAt.toLocaleString(locale === "vi" ? "vi-VN" : "en-US", { timeZone: "Asia/Ho_Chi_Minh", dateStyle: "medium", timeStyle: "short" })}`
                 : ""}
             </p>
           ) : null}
@@ -314,6 +322,7 @@ export default async function DashboardPage() {
 
         <RoadToTarget section="plan" goal={goal} weekly={weeklyPlan} locale={locale} premium={usage.effectivePlan === "PREMIUM"} previewEligible={Boolean(goal?.targetScore && goal?.dailyStudyMinutes && goal?.studyDaysPerWeek && dashboardResult?.recommendation?.reasonCode === "SUPPORTED_WEAKNESS")} />
         <WeeklyReviewCard review={weeklyReview} weekly={weeklyPlan} locale={locale} premium={usage.effectivePlan === "PREMIUM"} />
+        {trialEligibility.eligible ? <TrialCta locale={locale} /> : null}
 
         {showContextPrompt ? <LearnerContextPrompt locale={locale} /> : null}
 

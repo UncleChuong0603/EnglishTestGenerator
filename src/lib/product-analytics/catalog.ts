@@ -7,6 +7,7 @@ export const PRODUCT_EVENT_NAMES = [
   "practice_started", "practice_completed", "workout_started", "workout_completed", "mistake_review_started", "mistake_review_completed",
   "smart_review_started", "smart_review_completed", "diagnostic_reassessment_started", "diagnostic_reassessment_completed",
   "mock_started", "mock_completed", "pricing_viewed", "checkout_started", "checkout_created", "premium_activated", "premium_renewed",
+  "trial_eligible", "trial_started", "trial_expired", "trial_to_paid",
   "challenge_viewed", "challenge_started", "challenge_completed", "signup_after_challenge", "first_authenticated_workout_after_challenge",
 ] as const;
 

@@ -45,6 +45,14 @@ export async function getChallengeFunnel(period: AnalyticsPeriod): Promise<Chall
 const daysFor = (period: AnalyticsPeriod) => period === "today" ? 1 : period === "30d" ? 30 : 7;
 
 export async function getProductAnalytics(period: AnalyticsPeriod) {
+  try { await db.execute(sql`
+    insert into product_events(event_name,occurred_at,user_id,source,deduplication_key,properties)
+    select 'trial_expired', m.ends_at, m.user_id, 'server', 'trial-expired:' || m.user_id::text,
+      jsonb_build_object('membershipId',m.id::text)
+    from user_plan_memberships m
+    where m.source='TRIAL' and m.ends_at<=now()
+    on conflict do nothing`); }
+  catch (error) { console.error("[product-analytics] trial expiry sync failed", error instanceof Error ? error.message : "unknown"); }
   const days = daysFor(period);
   const result = await db.execute(sql`
     with bounds as (select now() - (${days} * interval '1 day') as since),
@@ -67,7 +75,7 @@ export async function getProductAnalytics(period: AnalyticsPeriod) {
     wau as (select count(distinct user_id)::int value from practice_sessions where status='submitted' and submitted_at >= now() - interval '7 day' and user_id is not null),
     dau as (select count(distinct user_id)::int value from practice_sessions where status='submitted' and submitted_at >= date_trunc('day', now() at time zone 'Asia/Ho_Chi_Minh') at time zone 'Asia/Ho_Chi_Minh' and user_id is not null),
     payments as (select count(*) filter (where created_at >= (select since from bounds))::int checkout_created, count(*) filter (where paid_at >= (select since from bounds))::int premium_activated from payment_orders),
-    active_premium as (select count(distinct user_id)::int value from user_plan_memberships where plan_key = 'PREMIUM' and revoked_at is null and starts_at <= now() and (ends_at is null or ends_at > now())),
+    active_premium as (select count(distinct user_id)::int value from user_plan_memberships where plan_key = 'PREMIUM' and source <> 'TRIAL' and revoked_at is null and starts_at <= now() and (ends_at is null or ends_at > now())),
     retention as (
       select n, count(*)::int cohort, count(*) filter (where exists(select 1 from practice_sessions p where p.user_id=u.id and p.status='submitted' and p.submitted_at >= u.created_at + (n || ' day')::interval and p.submitted_at < u.created_at + ((n+1) || ' day')::interval))::int returned
       from users u cross join (values (1),(7),(30)) d(n) where u.created_at < now() - (n || ' day')::interval group by n

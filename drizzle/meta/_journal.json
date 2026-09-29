@@ -309,6 +309,13 @@
       "when": 1792627204000,
       "tag": "0043_simple_chat",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1790698142996,
+      "tag": "0044_cooing_pet_avengers",
+      "breakpoints": true
     }
   ]
 }

@@ -8,6 +8,8 @@ import { listUserOrders } from "@/lib/payments/service";
 import { getPremiumAccount } from "@/lib/premium/presentation";
 import { getPremiumValueRecap } from "@/lib/premium/value-recap";
 import { PremiumValueRecapView } from "@/components/premium/premium-value-recap";
+import { getTrialEligibility } from "@/lib/premium/trial";
+import { TrialCta } from "@/components/premium/trial-cta";
 
 export const metadata: Metadata = { title: "Thanh toán và gói", robots: { index: false, follow: false } };
 
@@ -25,9 +27,9 @@ const statusLabels: Record<string, [string, string]> = {
 };
 // Premium is fixed-duration access; extending adds time and never creates a recurring charge.
 
-export default async function BillingPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+export default async function BillingPage({ searchParams }: { searchParams: Promise<{ error?: string; trial?: string }> }) {
   const user = await requireUser();
-  const [prefs, account, orders, recap] = await Promise.all([getPreferences(user.id), getPremiumAccount(user.id, user.email), listUserOrders(user.id), getPremiumValueRecap(user.id)]);
+  const [prefs, account, orders, recap, trialEligibility] = await Promise.all([getPreferences(user.id), getPremiumAccount(user.id, user.email), listUserOrders(user.id), getPremiumValueRecap(user.id), getTrialEligibility(user.id)]);
   const vi = prefs.interfaceLanguage === "vi";
   const expiry = account.expiresAt?.toLocaleDateString(vi ? "vi-VN" : "en-US", {
     day: "numeric",
@@ -35,6 +37,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
     year: "numeric",
     timeZone: "Asia/Ho_Chi_Minh",
   });
+  const trialExpiry = account.expiresAt?.toLocaleString(vi ? "vi-VN" : "en-US", { timeZone: "Asia/Ho_Chi_Minh", dateStyle: "medium", timeStyle: "short" });
   const date = (value: Date) =>
     value.toLocaleDateString(vi ? "vi-VN" : "en-US", {
       day: "numeric",
@@ -59,6 +62,8 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
               {vi ? "Chưa thể bắt đầu thanh toán. Vui lòng thử lại sau hoặc chọn gói khác." : "Payment could not be started. Please try again later or choose another plan."}
             </div>
           ) : null}
+          {(await searchParams).trial === "unavailable" ? <p className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm" role="alert">{vi ? "Chưa thể bắt đầu dùng thử. Điều kiện tài khoản hoặc dữ liệu học đã thay đổi." : "The trial could not start because account or learning eligibility changed."}</p> : null}
+          {trialEligibility.eligible ? <TrialCta locale={prefs.interfaceLanguage} /> : null}
           {account.membershipStatus === "EXPIRED" ? (
             <section className="rounded-[20px] border border-slate-300 bg-white p-6" aria-label={vi ? "Premium đã hết hạn" : "Premium expired"}>
               <h2 className="text-xl font-black">{vi ? "Premium đã hết hạn" : "Premium expired"}</h2>
@@ -76,24 +81,24 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
           <section aria-labelledby="current-plan" className={`rounded-[20px] border p-6 shadow-sm sm:p-8 ${account.isPremium ? "border-amber-200 bg-[#fffaf0]" : "border-teal-200 bg-[#eff8f6]"}`}>
             <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
               <div className="max-w-2xl">
-                <span className={`inline-flex rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-wide ${account.isPremium ? "bg-amber-200 text-amber-950" : "bg-white text-teal-900"}`}>{account.isPremium ? (vi ? "Premium đang hoạt động" : "Premium active") : vi ? "Gói hiện tại · Free" : "Current plan · Free"}</span>
+                <span className={`inline-flex rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-wide ${account.isPremium ? "bg-amber-200 text-amber-950" : "bg-white text-teal-900"}`}>{account.isTrial ? (vi ? "Premium dùng thử" : "Premium trial") : account.isPremium ? (vi ? "Premium đang hoạt động" : "Premium active") : vi ? "Gói hiện tại · Free" : "Current plan · Free"}</span>
                 <h2 id="current-plan" className="mt-4 text-2xl font-black tracking-tight sm:text-3xl">
                   {account.isPremium ? (vi ? "Tiếp tục học không gián đoạn" : "Keep learning without interruption") : vi ? "Bắt đầu với Free, tiến xa hơn cùng Premium" : "Start with Free, go further with Premium"}
                 </h2>
                 <p className="mt-3 leading-7 text-slate-700">{account.isPremium ? (vi ? "Quyền truy cập Premium của bạn đang có hiệu lực." : "Your Premium access is active.") : vi ? "Bạn đang sử dụng trải nghiệm học tập Free của TOEICGym. Chọn một thời hạn bên dưới khi sẵn sàng nâng cấp." : "You are using TOEICGym Free. Choose a duration below when ready to upgrade."}</p>
                 {account.isPremium && expiry ? (
                   <p className="mt-3 font-bold">
-                    {vi ? "Hết hạn vào" : "Expires on"} <time dateTime={account.expiresAt!.toISOString()}>{expiry}</time>
+                    {vi ? "Hết hạn vào" : "Expires on"} <time dateTime={account.expiresAt!.toISOString()}>{account.isTrial ? trialExpiry : expiry}</time>
                   </p>
                 ) : null}
-                {account.isPremium ? <p className="mt-1 text-sm text-slate-600">{vi ? "Thanh toán một lần · Không tự động gia hạn" : "One-time payment · No automatic renewal"}</p> : null}
+                {account.isTrial ? <p className="mt-1 text-sm text-slate-600">{vi ? "Miễn phí · Không cần thẻ · Không tự gia hạn · Hết hạn trở lại Free; dữ liệu học được giữ" : "Free · No card · No automatic renewal · Returns to Free; learning data stays saved"}</p> : account.isPremium ? <p className="mt-1 text-sm text-slate-600">{vi ? "Thanh toán một lần · Không tự động gia hạn" : "One-time payment · No automatic renewal"}</p> : null}
               </div>
               <a href="#billing-plans" className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl bg-teal-800 px-6 font-bold text-white transition-colors duration-150 hover:bg-teal-900">
                 {account.isPremium ? (vi ? "Mua thêm thời hạn" : "Add more time") : vi ? "Khám phá các gói" : "Explore plans"}
               </a>
             </div>
           </section>
-          {account.isPremium && account.daysRemaining !== null ? <p className="text-sm font-semibold text-slate-700">{vi ? `Còn ${account.daysRemaining} ngày Premium · Thanh toán một lần · Không tự động gia hạn` : `${account.daysRemaining} Premium days remaining · One-time payment · No automatic renewal`}</p> : null}
+          {account.isPremium && account.daysRemaining !== null && !account.isTrial ? <p className="text-sm font-semibold text-slate-700">{vi ? `Còn ${account.daysRemaining} ngày Premium · Thanh toán một lần · Không tự động gia hạn` : `${account.daysRemaining} Premium days remaining · One-time payment · No automatic renewal`}</p> : null}
           <PremiumValueRecapView locale={prefs.interfaceLanguage} recap={recap} />
           <section id="billing-plans" aria-labelledby="billing-plans-heading" className="scroll-mt-6">
             <h2 id="billing-plans-heading" className="text-2xl font-black">
