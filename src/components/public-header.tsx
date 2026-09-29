@@ -21,7 +21,6 @@ export function PublicHeader({ locale, signedIn = false }: { locale: InterfaceLa
         <Link className={navLink} href="/toeic">{locale === "vi" ? "Học TOEIC" : "TOEIC guide"}</Link>
         <Link className={navLink} href="/pricing">{t.nav.pricing}</Link>
         <Link className={navLink} href="/blog">{locale === "vi" ? "Kiến thức" : "Guides"}</Link>
-        <Link className={navLink} href="/support">{locale === "vi" ? "Trợ giúp" : "Support"}</Link>
       </nav>
       <div className="hidden items-center gap-2 lg:flex">
         <LanguageSwitcher locale={locale} />
@@ -35,7 +34,6 @@ export function PublicHeader({ locale, signedIn = false }: { locale: InterfaceLa
           <Link className={mobileLink} href="/toeic">{locale === "vi" ? "Học TOEIC" : "TOEIC guide"}</Link>
           <Link className={mobileLink} href="/pricing">{t.nav.pricing}</Link>
           <Link className={mobileLink} href="/blog">{locale === "vi" ? "Kiến thức" : "Guides"}</Link>
-          <Link className={mobileLink} href="/support">{locale === "vi" ? "Trợ giúp & phản hồi" : "Support & feedback"}</Link>
           <Link className={mobileLink} href={accountHref}>{signedIn ? t.nav.dashboard : t.nav.signIn}</Link>
           <div className="px-2 py-3"><LanguageSwitcher locale={locale} /></div>
           <Link className="flex min-h-12 items-center justify-center rounded-md bg-[#245a43] px-4 font-bold text-white" href={primaryHref}>{primaryLabel}</Link>
