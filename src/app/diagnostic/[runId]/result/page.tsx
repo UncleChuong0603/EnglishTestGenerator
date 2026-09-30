@@ -8,6 +8,7 @@ import { compareDiagnosticSummaries, getDiagnosticResult } from "@/lib/diagnosti
 import { getGuestOwnerHash } from "@/lib/guest/identity";
 import { getPreferences } from "@/lib/i18n/get-translations";
 import { guestContinuationPath } from "@/lib/auth/redirect";
+import { LearnerNav } from "@/components/learner-nav";
 
 export default async function DiagnosticResultPage({ params }: { params: Promise<{ runId: string }> }) {
   const [{ runId }, user, guest] = await Promise.all([params, getCurrentUser(), getGuestOwnerHash()]);
@@ -20,8 +21,9 @@ export default async function DiagnosticResultPage({ params }: { params: Promise
   const summary = "summary" in result ? result.summary : null; const previous = "previous" in result ? result.previous : null;
   const comparison = summary && previous ? compareDiagnosticSummaries(summary, previous) : null;
   const deltaText = (value: number | null) => value === null ? (vi ? "Chưa đủ dữ liệu" : "Not enough data") : `${value > 0 ? "+" : ""}${value} ${vi ? "điểm %" : "percentage points"}`;
-  return <main className="min-h-screen bg-slate-50 px-4 py-8 text-slate-900"><div className="mx-auto max-w-4xl">
-    <p className="text-sm font-black uppercase tracking-wider text-teal-700">{vi ? "Đã hoàn thành đánh giá" : "Diagnostic complete"}</p>
+  return <main className="min-h-screen bg-slate-50 px-4 py-6 pb-24 text-slate-900 sm:px-6 lg:pb-10"><div className="mx-auto max-w-5xl">
+    <LearnerNav locale={vi ? "vi" : "en"} />
+    <p className="mt-8 text-sm font-black uppercase tracking-wider text-teal-700">{vi ? "Đã hoàn thành đánh giá" : "Diagnostic complete"}</p>
     <h1 className="mt-2 text-3xl font-black sm:text-4xl">{result.run.purpose === "REASSESSMENT" ? (vi ? "Kết quả đánh giá lại" : "Reassessment result") : (vi ? "Hồ sơ TOEIC ban đầu" : "Initial TOEIC profile")}</h1>
     <p className="mt-3 text-slate-600">{vi ? "Độ chính xác thô tại một thời điểm; không phải điểm TOEIC quy đổi hay dự đoán." : "Raw checkpoint accuracy; not an official or predicted TOEIC score."}</p>
     <div className="mt-7 grid gap-4 sm:grid-cols-2">{[["Listening", listening], ["Reading", reading]].map(([name, data]) => { const item = data as typeof listening; return <article className="rounded-2xl border border-slate-200 bg-white p-6" key={String(name)}><h2 className="text-xl font-black">{String(name)}</h2><p className="mt-3 text-4xl font-black text-teal-700">{item.accuracy === null ? "—" : `${item.accuracy}%`}</p><p className="mt-2 text-slate-600">{item.correct}/{item.total} {vi ? "câu đúng" : "correct"}</p></article>; })}</div>

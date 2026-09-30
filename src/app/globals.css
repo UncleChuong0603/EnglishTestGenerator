@@ -502,6 +502,14 @@ main:has(.admin-navigation) :is(section, article).shadow-xl { box-shadow: none; 
 img, video, svg { max-width: 100%; }
 summary::-webkit-details-marker { display: none; }
 
+.result-review[data-review-filter="correct"] [data-result-status="incorrect"],
+.result-review[data-review-filter="incorrect"] [data-result-status="correct"],
+.result-review[data-review-filter="correct"] [data-result-group][data-has-correct="false"],
+.result-review[data-review-filter="incorrect"] [data-result-group][data-has-incorrect="false"] {
+  display: none;
+}
+.result-review [id^="review-question-"] { scroll-margin-top: 11rem; }
+
 :focus-visible {
   outline: 3px solid #0f766e;
   outline-offset: 3px;

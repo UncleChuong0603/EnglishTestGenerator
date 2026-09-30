@@ -1,7 +1,12 @@
 "use client";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 export function MockNavigationGuard() { useEffect(() => { const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); }; window.addEventListener("beforeunload", warn); return () => window.removeEventListener("beforeunload", warn); }, []); return null; }
+
+export function MockExitLink({ href, label }: { href: string; label: string }) {
+  return <Link className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-600 px-3 text-sm font-bold text-white hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white" href={href} onClick={(event) => { if (!window.confirm("Rời bài thi? Các đáp án đã lưu vẫn được giữ lại.")) event.preventDefault(); }}>{label}</Link>;
+}
 
 export function MockTimer({ deadline, finishAction }: { deadline: string; finishAction: () => Promise<void> }) {
   const form = useRef<HTMLFormElement>(null); const submitted = useRef(false); const [seconds, setSeconds] = useState(() => Math.max(0, Math.ceil((new Date(deadline).getTime() - Date.now()) / 1_000)));
