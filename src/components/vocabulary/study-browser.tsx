@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { saveStudyVocabularyAction } from "@/app/vocabulary/actions";
 import { PronunciationButton } from "./pronunciation-button";
+import { VocabularyMeaningQuiz } from "./meaning-quiz";
 import type { StudyTopic } from "@/lib/vocabulary/study-list";
 
 export function StudyBrowser({ topics, savedKeys, locale }: { topics: StudyTopic[]; savedKeys: string[]; locale: "vi" | "en" }) {
@@ -26,6 +27,7 @@ export function StudyBrowser({ topics, savedKeys, locale }: { topics: StudyTopic
   }).filter((topic) => topic.entries.length);
 
   return <section className="mt-10" id="toeic-study-list">
+    <VocabularyMeaningQuiz locale={locale} topics={topics} />
     <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[.16em] text-teal-800">{vi ? "Tự học theo chủ đề" : "Study by topic"}</p><h2 className="mt-1 text-2xl font-black sm:text-3xl">{vi ? `${totalLabel} từ vựng luyện TOEIC` : `${totalLabel} TOEIC study terms`}</h2></div><p className="text-sm font-semibold text-slate-600">{vi ? `${saved.size}/${totalLabel} mục đã lưu` : `${saved.size}/${totalLabel} saved`}</p></div>
     <p className="mt-3 max-w-3xl text-slate-600">{vi ? "Học 100 từ nền theo chủ đề, 900 từ ưu tiên từ kho đề luyện và 4.000 từ thông dụng bổ sung. Đoán nghĩa trước khi mở đáp án, rồi lưu từ cần ôn tiếp." : "Study 100 foundational terms, 900 prioritized from our practice bank, and 4,000 additional common words. Recall the meaning before revealing it, then save terms to review."}</p>
     <div className="mt-5 grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:grid-cols-[1fr_auto]">
