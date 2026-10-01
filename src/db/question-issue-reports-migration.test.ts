@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
@@ -12,6 +12,17 @@ beforeAll(async () => {
 afterAll(async () => database.close());
 
 describe("question issue reports migration", () => {
+  it("keeps journal timestamps ordered and migration numbers unique", () => {
+    const journal = JSON.parse(readFileSync("drizzle/meta/_journal.json", "utf8")) as { entries: Array<{ idx: number; tag: string; when: number }> };
+    expect(journal.entries.map((entry) => entry.idx)).toEqual(journal.entries.map((_, index) => index));
+    for (let index = 1; index < journal.entries.length; index += 1) {
+      expect(journal.entries[index].when).toBeGreaterThan(journal.entries[index - 1].when);
+    }
+    const prefixes = readdirSync("drizzle").filter((file) => /^\d{4}_.+\.sql$/.test(file)).map((file) => file.slice(0, 4));
+    expect(new Set(prefixes).size).toBe(prefixes.length);
+    expect(journal.entries.at(-1)?.tag).toBe("0048_merge_question_issue");
+  });
+
   it("stores one durable system report for each detected pair", async () => {
     const first = crypto.randomUUID();
     const second = crypto.randomUUID();

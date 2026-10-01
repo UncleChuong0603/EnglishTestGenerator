@@ -10,6 +10,9 @@ describe("Task 40 question reporting architecture", () => {
   const learnerControl = read("src/components/practice/question-report-control.tsx");
   const adminActions = read("src/app/admin/content/reports/actions.ts");
   const adminDetail = read("src/app/admin/content/reports/[questionId]/page.tsx");
+  const adminQueue = read("src/app/admin/content/reports/page.tsx");
+  const similarityQueue = read("src/app/admin/content/similarity/page.tsx");
+  const similarityActions = read("src/app/admin/content/similarity/actions.ts");
   const resultCard = read("src/components/practice/answer-review-card.tsx");
   const listeningResult = read("src/app/practice/[sessionId]/results/listening-result.tsx");
   const diagnosticResult = read("src/app/diagnostic/[runId]/result/page.tsx");
@@ -54,6 +57,16 @@ describe("Task 40 question reporting architecture", () => {
     expect(adminActions).toContain("/edit?question=");
     expect(adminDetail).toContain("CORRECTION_NOT_PUBLISHED");
     expect(adminDetail).toContain("ORIGINAL_STILL_PUBLISHED");
+  });
+
+  it("keeps learner reports and automatic duplicate review on separate working routes", () => {
+    expect(adminQueue).toContain("listQuestionReports");
+    expect(similarityQueue).toContain("listQuestionIssueReports");
+    expect(similarityQueue).toContain('action={queuePath}');
+    expect(similarityQueue).not.toContain('redirect(`/admin/content/reports');
+    expect(similarityActions).toContain('requireAdmin("CONTENT_MANAGE")');
+    expect(similarityActions).toContain("updateQuestionIssueReportStatus");
+    expect(similarityActions).toContain('revalidatePath(queuePath)');
   });
 
   it("does not expose learner email or recalculate historical answers", () => {

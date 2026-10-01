@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
+import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 
 const url = new URL(process.env.DATABASE_URL ?? "");
@@ -13,9 +14,23 @@ const { issueSessionToken, getSessionByToken } = await import("../src/lib/auth/s
 const { startPractice } = await import("../src/lib/practice/service");
 const { applyVerifiedPayment, createPaymentOrder } = await import("../src/lib/payments/service");
 const { FakePaymentProvider } = await import("../src/lib/payments/provider");
+const migrationsFolder = process.env.TASK42_QA_PRE_MIGRATED ? "drizzle-pre-0045" : "drizzle";
+if (process.env.TASK42_QA_PRE_MIGRATED) {
+  const journal = JSON.parse(readFileSync("drizzle/meta/_journal.json", "utf8")) as { entries: Array<{ tag: string }>; [key: string]: unknown };
+  journal.entries = journal.entries.slice(0, 45);
+  mkdirSync(`${migrationsFolder}/meta`, { recursive: true });
+  writeFileSync(`${migrationsFolder}/meta/_journal.json`, JSON.stringify(journal));
+  for (const entry of journal.entries) {
+    copyFileSync(`drizzle/${entry.tag}.sql`, `${migrationsFolder}/${entry.tag}.sql`);
+    copyFileSync(`drizzle/meta/${entry.tag}_snapshot.json`, `${migrationsFolder}/meta/${entry.tag}_snapshot.json`);
+  }
+}
+await migrate(db, { migrationsFolder });
+if (process.env.TASK42_QA_PRE_MIGRATED) await migrate(db, { migrationsFolder: "drizzle" });
 await migrate(db, { migrationsFolder: "drizzle" });
-await migrate(db, { migrationsFolder: "drizzle" });
-assert.equal(Number((await pool.query("select max(created_at) as value from drizzle.__drizzle_migrations")).rows[0].value), 1792627208000);
+assert.equal(Number((await pool.query("select max(created_at) as value from drizzle.__drizzle_migrations")).rows[0].value), 1792627209000);
+assert.equal((await pool.query("select to_regclass('public.question_issue_reports') as value")).rows[0].value, "question_issue_reports");
+assert.equal((await pool.query("select to_regclass('public.question_duplicate_scans') as value")).rows[0].value, "question_duplicate_scans");
 console.log("PostgreSQL migration + repeat migration: PASS");
 
 const a = randomUUID(), b = randomUUID(), privateUser = randomUUID(), q = randomUUID();

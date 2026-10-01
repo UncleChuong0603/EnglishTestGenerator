@@ -24,7 +24,7 @@ async function createQuestion(label: string, text: string, correctText: string) 
   const id = randomUUID();
   const optionIds = Array.from({ length: 4 }, () => randomUUID());
   await pool.query(
-    "insert into questions(id,toeic_part,skill_area,question_type,skill,sub_skill,difficulty,question_text,status,question_order) values($1,5,'READING','standalone','grammar','verb_tense','medium',$2,'published',1)",
+    "insert into questions(id,toeic_part,skill_area,question_type,skill,sub_skill,difficulty,question_text,status,question_order,bank_pool) values($1,5,'READING','standalone','grammar','verb_tense','medium',$2,'published',1,'PRACTICE')",
     [id, text],
   );
   const options = ["complete", correctText, "completing", "completion"];

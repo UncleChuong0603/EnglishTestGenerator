@@ -20,11 +20,13 @@ function ApplyButton({ locale }: { locale: InterfaceLanguage }) {
 }
 
 export function QuestionReportFilters({
+  action = "/admin/content/reports",
   issueType,
   locale,
   part,
   status,
 }: {
+  action?: string;
   issueType?: QuestionReportType;
   locale: InterfaceLanguage;
   part?: number;
@@ -33,7 +35,7 @@ export function QuestionReportFilters({
   const vi = locale === "vi";
   const id = useId();
   return (
-    <Form action="/admin/content/reports" className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:grid-cols-3 lg:grid-cols-[1fr_1fr_1fr_auto]" replace>
+    <Form action={action} className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:grid-cols-3 lg:grid-cols-[1fr_1fr_1fr_auto]" replace>
       <div className="min-w-0 text-sm font-bold text-slate-800">
         <label htmlFor={`${id}-part`}>Part</label>
         <select id={`${id}-part`} className="mt-1 block min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-base" defaultValue={part ?? ""} name="part">

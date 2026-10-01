@@ -33,6 +33,7 @@ done
 docker run --rm --label task=task42-isolated --network "$network" -v "$qa_dir:/work" -w /work \
   -e TASK42_QA=isolated-task42 -e CI=true -e NEXT_TELEMETRY_DISABLED=1 \
   -e TASK42_QA_PHASE="$phase" \
+  -e TASK42_QA_PRE_MIGRATED="${TASK42_QA_PRE_MIGRATED:-}" \
   -e DATABASE_URL=postgresql://task42:qa-only-not-production@task42-postgres:5432/toeicgym_task42 \
   -e SESSION_SECRET=task42-qa-isolated-session-secret-no-production \
   -e APP_URL=https://toeicgym-task42.invalid -e MEDIA_ENABLED=false \
