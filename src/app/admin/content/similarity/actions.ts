@@ -11,7 +11,7 @@ import {
   type QuestionReportType,
 } from "@/lib/admin/question-issue-reports";
 
-const queuePath = "/admin/content/similarity";
+const queuePath = "/admin/content/reports";
 
 export async function updateQuestionIssueReportStatusAction(formData: FormData) {
   const actor = await requireAdmin("CONTENT_MANAGE");

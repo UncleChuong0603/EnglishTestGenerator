@@ -14,7 +14,7 @@ export function AdminNav({ locale }: { locale: InterfaceLanguage }) {
   const vi = locale === "vi";
   const groups = [
     { name: vi ? "Tổng quan" : "Overview", links: [["/admin", vi ? "Bảng điều hành" : "Dashboard"], ["/admin/analytics", vi ? "Phân tích" : "Analytics"]] },
-    { name: vi ? "Học liệu" : "Content", links: [["/admin/content", vi ? "Ngân hàng câu hỏi" : "Question bank"], ["/admin/content/reports", vi ? "Báo lỗi câu hỏi" : "Question reports"], ["/admin/listening-lessons", vi ? "Luyện nghe" : "Listening lessons"], ["/admin/content/similarity", vi ? "Trùng lặp" : "Similarity"], ["/admin/content/media", "Media"]] },
+    { name: vi ? "Học liệu" : "Content", links: [["/admin/content", vi ? "Ngân hàng câu hỏi" : "Question bank"], ["/admin/content/reports", vi ? "Báo lỗi câu hỏi" : "Question reports"], ["/admin/listening-lessons", vi ? "Luyện nghe" : "Listening lessons"], ["/admin/content/media", "Media"]] },
     { name: vi ? "Người học" : "Learners", links: [["/admin/users", vi ? "Người dùng" : "Users"], ["/admin/support", vi ? "Phản hồi" : "Feedback"]] },
     { name: vi ? "Vận hành" : "Operations", links: [["/admin/posts", vi ? "Bài viết" : "Posts"], ["/admin/challenges", vi ? "Sự kiện" : "Events"], ["/admin/payments", vi ? "Thanh toán" : "Payments"], ["/admin/email", vi ? "Email học tập" : "Learning email"], ["/admin/audit", vi ? "Nhật ký" : "Audit log"], ["/admin/settings", vi ? "Cài đặt" : "Settings"]] },
   ];

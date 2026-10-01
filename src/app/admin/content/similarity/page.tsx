@@ -17,7 +17,7 @@ import {
 import { getPreferences } from "@/lib/i18n/get-translations";
 import { updateQuestionIssueReportStatusAction } from "./actions";
 
-const queuePath = "/admin/content/similarity";
+const queuePath = "/admin/content/reports";
 const statusStyle: Record<QuestionReportStatus, string> = {
   OPEN: "bg-rose-50 text-rose-800 ring-rose-200",
   IN_REVIEW: "bg-amber-50 text-amber-900 ring-amber-200",
@@ -104,7 +104,7 @@ function ReportCard({ report, selectedStatus, part, issueType, vi }: { report: Q
   );
 }
 
-export default async function SimilarityPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+export async function QuestionIssueReportsQueue({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const actor = await requireAdmin("CONTENT_READ");
   const [prefs, query] = await Promise.all([getPreferences(actor.id), searchParams]);
   const vi = prefs.interfaceLanguage === "vi";
@@ -156,4 +156,12 @@ export default async function SimilarityPage({ searchParams }: { searchParams: P
       </div>
     </main>
   );
+}
+
+export default async function SimilarityPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+  const query = await searchParams;
+  const params = new URLSearchParams({ type: "DUPLICATE", status: query.status ?? "OPEN" });
+  if (query.part) params.set("part", query.part);
+  if (query.page) params.set("page", query.page);
+  redirect(`/admin/content/reports?${params.toString()}`);
 }

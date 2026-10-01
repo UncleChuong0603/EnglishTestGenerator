@@ -5,10 +5,15 @@ import { requireAdmin } from "@/lib/admin/authorization";
 import { getPreferences } from "@/lib/i18n/get-translations";
 import { QUESTION_REPORT_REASONS, QUESTION_REPORT_STATUSES, questionReportLabels, questionReportStatusLabels, type QuestionReportReason, type QuestionReportStatus } from "@/lib/question-reports/catalog";
 import { listQuestionReports } from "@/lib/question-reports/service";
+import { QuestionIssueReportsQueue } from "../similarity/page";
 
 export default async function QuestionReportsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+  const initialQuery = await searchParams;
+  if (initialQuery.type === "DUPLICATE") {
+    return await QuestionIssueReportsQueue({ searchParams: Promise.resolve(initialQuery) });
+  }
   const actor = await requireAdmin("CONTENT_READ");
-  const [query, preferences] = await Promise.all([searchParams, getPreferences(actor.id)]);
+  const [query, preferences] = await Promise.all([Promise.resolve(initialQuery), getPreferences(actor.id)]);
   const vi = preferences.interfaceLanguage === "vi";
   const status = query.status === undefined ? "OPEN" : query.status || undefined;
   const filters = { part: query.part ? Number(query.part) : undefined, reason: query.reason || undefined, status, page: Number(query.page) || 1 };
@@ -17,7 +22,7 @@ export default async function QuestionReportsPage({ searchParams }: { searchPara
   const href = (page: number) => `/admin/content/reports?${new URLSearchParams(Object.entries({ ...query, page: String(page) }).filter((entry): entry is [string, string] => Boolean(entry[1])))}`;
   return <main className="min-h-screen bg-slate-50 px-4 py-6 pb-16 text-slate-900 sm:px-6"><div className="mx-auto max-w-6xl">
     <AdminNav locale={preferences.interfaceLanguage} />
-    <header className="mt-8"><p className="text-sm font-black uppercase tracking-wider text-teal-700">CONTENT QA</p><h1 className="mt-2 text-3xl font-black">{vi ? "Báo lỗi câu hỏi" : "Question reports"}</h1><p className="mt-2 max-w-3xl text-slate-600">{vi ? "Ưu tiên dựa trên số báo cáo đang mở và loại bằng chứng. Không có nội dung nào được AI tự sửa hoặc tự xuất bản." : "Priority reflects open report volume and issue evidence. Content is never auto-corrected or auto-published by AI."}</p></header>
+    <header className="mt-8"><p className="text-sm font-black uppercase tracking-wider text-teal-700">CONTENT QA</p><h1 className="mt-2 text-3xl font-black">{vi ? "Báo lỗi câu hỏi" : "Question reports"}</h1><p className="mt-2 max-w-3xl text-slate-600">{vi ? "Ưu tiên dựa trên số báo cáo đang mở và loại bằng chứng. Không có nội dung nào được AI tự sửa hoặc tự xuất bản." : "Priority reflects open report volume and issue evidence. Content is never auto-corrected or auto-published by AI."}</p><Link className="mt-4 inline-flex min-h-11 items-center rounded-lg border border-teal-700 px-4 font-bold text-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700" href="/admin/content/reports?type=DUPLICATE&status=OPEN">{vi ? "Kiểm tra nghi trùng lặp" : "Review possible duplicates"} →</Link></header>
     <AdminFilterPanel activeCount={activeFilterCount} className="mt-5" clearHref="/admin/content/reports?status=OPEN" clearLabel={vi ? "Xóa bộ lọc" : "Clear filters"} label={vi ? "Bộ lọc" : "Filters"}>
       <form className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-4">
         <label className="text-sm font-bold">Part<select className="mt-1 min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3" name="part" defaultValue={filters.part ?? ""}><option value="">{vi ? "Mọi Part" : "All Parts"}</option>{[1,2,3,4,5,6,7].map((part) => <option key={part} value={part}>Part {part}</option>)}</select></label>
