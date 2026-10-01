@@ -13,7 +13,7 @@ export const MANAGED_SEO_ROUTES: Record<string, string> = {
 export const STATIC_PUBLIC_PATHS = [
   "/", "/toeic/listening", "/toeic/part-1", "/toeic/part-2", "/toeic/part-3", "/toeic/part-4",
   "/toeic/part-6/dien-cau-vao-doan-van", "/toeic/part-7/doc-hieu-hai-doan-van", "/toeic/part-7/doc-hieu-ba-van-ban",
-  "/toeic/checklist-hoc-tuan", "/toeic/flashcards-tu-vung-cong-so", "/ve-toeic-gym", "/thi-thu-toeic-online", "/blog", "/blog/ngu-phap", "/pricing", "/try",
+  "/toeic/checklist-hoc-tuan", "/toeic/flashcards-tu-vung-cong-so", "/toeic/tu-vung", "/ve-toeic-gym", "/thi-thu-toeic-online", "/blog", "/blog/ngu-phap", "/pricing", "/try",
   "/diagnostic", "/challenge", "/challenge/part-5", "/support", "/privacy", "/terms",
 ] as const;
 
