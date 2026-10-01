@@ -6,6 +6,7 @@ export type PracticeOption = {
 
 export type { ReadingPart } from "@/lib/toeic/domain";
 import type { ListeningPart, ReadingPart } from "@/lib/toeic/domain";
+import type { RemediationStage } from "@/lib/remediation/policy";
 export type ReadingPracticeMode = "part_5" | "part_6" | "part_7" | "mixed_reading";
 export type ListeningPracticeMode = "listening_part_1" | "listening_part_2" | "listening_part_3" | "listening_part_4";
 export type PracticeMode = ReadingPracticeMode | ListeningPracticeMode;
@@ -71,6 +72,12 @@ export type ReviewQuestion = PracticeQuestion & {
   explanationEn: string | null;
   explanationVi: string | null;
   transcript?: string;
+  remediation?: {
+    stage: RemediationStage;
+    reviewSuccessStreak: number;
+    reviewAttemptCount: number;
+    focusedEvidence: boolean;
+  };
 };
 
 export type PracticeResult = {

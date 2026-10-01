@@ -1,12 +1,13 @@
 import "server-only";
 import { and, asc, eq, gt, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import { attemptAnswers, diagnosticRuns, fullMockRuns, listeningTranscripts, mediaAssets, passageSets, passages, practiceSessionQuestions, practiceSessions, questionGroupMedia, questionOptions, questionSolutions, questions, rankedChallengeRuns, rankedChallenges } from "@/db/schema";
+import { attemptAnswers, diagnosticRuns, fullMockRuns, listeningTranscripts, mediaAssets, passageSets, passages, practiceSessionQuestions, practiceSessions, questionGroupMedia, questionMastery, questionOptions, questionSolutions, questions, rankedChallengeRuns, rankedChallenges } from "@/db/schema";
 import { createMediaStorage } from "@/lib/media/storage";
 import type { PracticeGroup, PracticeQuestion, PracticeResult, PracticeSession } from "./types";
 import { toLearnerPracticeQuestion } from "./learner-dto";
 import { challengePhase } from "@/lib/challenges/policy";
 import { readingAssignmentSetId, validReadingAssignment } from "./reading-assignment";
+import { remediationStage } from "@/lib/remediation/policy";
 
 export type PracticeOwner = { userId: string; guestOwnerHash?: never } | { userId?: never; guestOwnerHash: string };
 function ownerCondition(owner: PracticeOwner) { return "userId" in owner ? eq(practiceSessions.userId, owner.userId!) : and(eq(practiceSessions.guestOwnerHash, owner.guestOwnerHash), gt(practiceSessions.expiresAt, new Date())); }
@@ -75,13 +76,23 @@ export async function getPracticeResult(sessionId: string, owner: PracticeOwner)
   if (session.rankedChallengeRunId) { const parent=(await db.select({status:rankedChallengeRuns.status,challenge:rankedChallenges}).from(rankedChallengeRuns).innerJoin(rankedChallenges,eq(rankedChallenges.id,rankedChallengeRuns.challengeId)).where(eq(rankedChallengeRuns.id,session.rankedChallengeRunId)).limit(1))[0];if(!parent||parent.status!=="COMPLETED"||challengePhase(parent.challenge)!=="CLOSED")return null; }
   if (session.status !== "submitted" || session.scoreCorrect === null || session.scoreTotal === null || !session.submittedAt) return null;
   const listening = session.skillArea === "LISTENING"; const content = await getSafeSessionContent(session.id, listening); const ids = content.questions.map((q) => q.id);
-  const [answers, solutions] = await Promise.all([db.select().from(attemptAnswers).where(eq(attemptAnswers.sessionId, session.id)), db.select().from(questionSolutions).where(inArray(questionSolutions.questionId, ids))]);
+  const [answers, solutions, assignments] = await Promise.all([
+    db.select().from(attemptAnswers).where(eq(attemptAnswers.sessionId, session.id)),
+    db.select().from(questionSolutions).where(inArray(questionSolutions.questionId, ids)),
+    db.select({ questionId: practiceSessionQuestions.questionId, masteryTargetQuestionId: practiceSessionQuestions.masteryTargetQuestionId }).from(practiceSessionQuestions).where(eq(practiceSessionQuestions.sessionId, session.id)),
+  ]);
+  const targetByQuestion = new Map(assignments.map((assignment) => [assignment.questionId, assignment.masteryTargetQuestionId]));
+  const masteryIds = [...new Set(ids.map((id) => targetByQuestion.get(id) ?? id))];
+  const masteryRows = "userId" in owner && owner.userId && masteryIds.length
+    ? await db.select({ questionId: questionMastery.questionId, status: questionMastery.status, reviewSuccessStreak: questionMastery.reviewSuccessStreak, reviewAttemptCount: questionMastery.reviewAttemptCount }).from(questionMastery).where(and(eq(questionMastery.userId, owner.userId), inArray(questionMastery.questionId, masteryIds)))
+    : [];
+  const masteryMap = new Map(masteryRows.map((row) => [row.questionId, row]));
   const answerMap = new Map(answers.map((a) => [a.questionId, a])); const solutionMap = new Map(solutions.map((s) => [s.questionId, s]));
   const transcriptRows = "transcripts" in content && content.transcripts ? content.transcripts : [];
   const transcriptMap = new Map<string, string>();
   for (const row of transcriptRows) if (row.questionGroupId) transcriptMap.set(row.questionGroupId, row.content);
   const fullOptions = listening ? await db.select().from(questionOptions).where(inArray(questionOptions.questionId, ids)).orderBy(asc(questionOptions.displayOrder)) : [];
-  const reviewQuestions = content.questions.map((q) => { const a = answerMap.get(q.id); const s = solutionMap.get(q.id); if (!a || !s) throw new Error("INCOMPLETE_PRACTICE_RESULT"); return { ...q, options: listening ? fullOptions.filter((o) => o.questionId === q.id).map((o) => ({ id: o.id, key: o.optionKey, text: o.optionText })) : q.options, selectedOptionId: a.selectedOptionId, correctOptionId: s.correctOptionId, isCorrect: a.isCorrect, explanationEn: s.explanationEn, explanationVi: s.explanationVi, ...(listening ? { transcript: q.passageSetId ? transcriptMap.get(q.passageSetId) ?? "" : "" } : {}) }; });
+  const reviewQuestions = content.questions.map((q) => { const a = answerMap.get(q.id); const s = solutionMap.get(q.id); if (!a || !s) throw new Error("INCOMPLETE_PRACTICE_RESULT"); const masteryTargetQuestionId = targetByQuestion.get(q.id); const mastery = masteryMap.get(masteryTargetQuestionId ?? q.id); const hasExplanation = Boolean(s.explanationEn?.trim() || s.explanationVi?.trim()); return { ...q, options: listening ? fullOptions.filter((o) => o.questionId === q.id).map((o) => ({ id: o.id, key: o.optionKey, text: o.optionText })) : q.options, selectedOptionId: a.selectedOptionId, correctOptionId: s.correctOptionId, isCorrect: a.isCorrect, explanationEn: s.explanationEn, explanationVi: s.explanationVi, ...(mastery && hasExplanation ? { remediation: { stage: remediationStage(mastery.status as "UNRESOLVED" | "MASTERED", mastery.reviewSuccessStreak), reviewSuccessStreak: mastery.reviewSuccessStreak, reviewAttemptCount: mastery.reviewAttemptCount, focusedEvidence: Boolean(masteryTargetQuestionId) } } : {}), ...(listening ? { transcript: q.passageSetId ? transcriptMap.get(q.passageSetId) ?? "" : "" } : {}) }; });
   const map = new Map(reviewQuestions.map((q) => [q.id, q]));
   return { id: session.id, mode: session.practiceType as PracticeResult["mode"], skillArea: listening ? "LISTENING" : "READING", source: session.source as PracticeResult["source"], requestedSkill: session.requestedSkill, requestedSubSkill: session.requestedSubSkill, requestedQuestionCount: session.requestedQuestionCount, scoreCorrect: session.scoreCorrect, scoreTotal: session.scoreTotal, submittedAt: session.submittedAt.toISOString(), questions: reviewQuestions, groups: content.groups.map((group) => ({ ...group, questions: group.questions.map((q) => map.get(q.id)!) })) };
 }

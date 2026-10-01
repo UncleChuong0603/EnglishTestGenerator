@@ -3,6 +3,7 @@ import { LearnerNav } from "@/components/learner-nav";
 import { requireUser } from "@/lib/auth/session";
 import { getEffectiveCapabilities } from "@/lib/entitlements/service";
 import { getPreferences } from "@/lib/i18n/get-translations";
+import { taxonomyLabel } from "@/lib/i18n/labels";
 import {
   getMistakeBank,
   getMistakeCounts,
@@ -19,6 +20,7 @@ import {
   PremiumRenewalCard,
 } from "@/components/premium/premium-preview";
 import { getPremiumPreview } from "@/lib/premium/preview";
+import { remediationStage, type RemediationStage } from "@/lib/remediation/policy";
 
 export default async function MistakesPage({
   searchParams,
@@ -35,8 +37,13 @@ export default async function MistakesPage({
   ]);
   const premium = capabilities.canUseSmartMistakeReview;
   const vi = preferences.interfaceLanguage === "vi";
-  const status: MistakeStatus =
-    query.tab === "mastered" ? "MASTERED" : "UNRESOLVED";
+  const view: RemediationStage =
+    query.tab === "mastered"
+      ? "MASTERED"
+      : query.tab === "strengthening"
+        ? "STRENGTHENING"
+        : "NEEDS_REVIEW";
+  const status: MistakeStatus = view === "MASTERED" ? "MASTERED" : "UNRESOLVED";
   const part = [1, 2, 3, 4, 5, 6, 7].includes(Number(query.part))
     ? Number(query.part)
     : undefined;
@@ -50,9 +57,10 @@ export default async function MistakesPage({
       : "priority";
   const repeated = premium && query.filter === "repeated";
   const rows = await getMistakeBank(user.id, status, { part, skillArea: area });
-  const items = repeated
-    ? rows.filter((row) => row.wrongCount >= REPEATED_MISS_THRESHOLD)
-    : rows;
+  const skills = [...new Set(rows.map((row) => row.skill))].sort((a, b) => a.localeCompare(b));
+  const skill = typeof query.skill === "string" && skills.includes(query.skill) ? query.skill : undefined;
+  const stagedRows = rows.filter((row) => remediationStage(row.status, row.reviewSuccessStreak) === view && (!skill || row.skill === skill));
+  const items = repeated ? stagedRows.filter((row) => row.wrongCount >= REPEATED_MISS_THRESHOLD) : stagedRows;
   if (premium && status === "UNRESOLVED")
     items.sort((a, b) => {
       if (sort === "recent")
@@ -73,9 +81,9 @@ export default async function MistakesPage({
       return compareReviewPriority(a, b);
     });
   const href = (changes: Record<string, string | undefined>) =>
-    `/mistakes?${new URLSearchParams(Object.entries({ tab: status === "MASTERED" ? "mastered" : "review", area, part: part?.toString(), filter: repeated ? "repeated" : undefined, sort: premium ? sort : undefined, ...changes }).filter((entry): entry is [string, string] => Boolean(entry[1])))}`;
+    `/mistakes?${new URLSearchParams(Object.entries({ tab: view === "MASTERED" ? "mastered" : view === "STRENGTHENING" ? "strengthening" : "review", area, part: part?.toString(), skill, filter: repeated ? "repeated" : undefined, sort: premium ? sort : undefined, ...changes }).filter((entry): entry is [string, string] => Boolean(entry[1])))}`;
   const total = counts.unresolved + counts.mastered;
-  const eligible = rows.filter((row) => row.available).length;
+  const eligible = items.filter((row) => row.available).length;
   const reviewUsage = preview.usage.MASTERY_REVIEW;
   const quotaReached = reviewUsage.type === "LIMITED" && reviewUsage.limit > 0 && reviewUsage.remaining === 0;
   return (
@@ -189,16 +197,22 @@ export default async function MistakesPage({
             className="mt-7 rounded-2xl border border-slate-200 bg-white p-5"
             aria-label={vi ? "Tóm tắt lỗi sai" : "Mistake summary"}
           >
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-3">
               <div>
                 <p className="text-sm text-slate-600">
                   {vi ? "Cần ôn" : "To review"}
                 </p>
-                <p className="text-3xl font-black">{counts.unresolved}</p>
+                <p className="text-3xl font-black">{counts.needsReview}</p>
               </div>
               <div>
                 <p className="text-sm text-slate-600">
-                  {vi ? "Đã làm chủ" : "Mastered"}
+                  {vi ? "Đang củng cố" : "Strengthening"}
+                </p>
+                <p className="text-3xl font-black">{counts.strengthening}</p>
+              </div>
+              <div>
+                <p className="text-sm text-slate-600">
+                  {vi ? "Đã nắm" : "Mastered"}
                 </p>
                 <p className="text-3xl font-black">{counts.mastered}</p>
               </div>
@@ -206,11 +220,15 @@ export default async function MistakesPage({
             <div
               className="mt-4 flex h-3 overflow-hidden rounded-full bg-slate-100"
               role="img"
-              aria-label={`${counts.unresolved} ${vi ? "cần ôn" : "to review"}, ${counts.mastered} ${vi ? "đã làm chủ" : "mastered"}`}
+              aria-label={`${counts.needsReview} ${vi ? "cần ôn" : "to review"}, ${counts.strengthening} ${vi ? "đang củng cố" : "strengthening"}, ${counts.mastered} ${vi ? "đã nắm" : "mastered"}`}
             >
               <div
-                className="bg-teal-600"
-                style={{ width: `${(counts.unresolved / total) * 100}%` }}
+                className="bg-amber-500"
+                style={{ width: `${(counts.needsReview / total) * 100}%` }}
+              />
+              <div
+                className="bg-sky-500"
+                style={{ width: `${(counts.strengthening / total) * 100}%` }}
               />
               <div
                 className="bg-emerald-500"
@@ -287,16 +305,25 @@ export default async function MistakesPage({
           aria-label={vi ? "Trạng thái" : "Status"}
         >
           <Link
-            className={`rounded-full px-4 py-2 font-bold ${status === "UNRESOLVED" ? "bg-slate-900 text-white" : "bg-white"}`}
+            aria-current={view === "NEEDS_REVIEW" ? "page" : undefined}
+            className={`inline-flex min-h-11 items-center rounded-full px-4 py-2 font-bold ${view === "NEEDS_REVIEW" ? "bg-slate-900 text-white" : "bg-white"}`}
             href={href({ tab: "review", filter: undefined })}
           >
-            {vi ? "Cần ôn" : "To review"} · {counts.unresolved}
+            {vi ? "Cần ôn" : "To review"} · {counts.needsReview}
           </Link>
           <Link
-            className={`rounded-full px-4 py-2 font-bold ${status === "MASTERED" ? "bg-slate-900 text-white" : "bg-white"}`}
+            aria-current={view === "STRENGTHENING" ? "page" : undefined}
+            className={`inline-flex min-h-11 items-center rounded-full px-4 py-2 font-bold ${view === "STRENGTHENING" ? "bg-slate-900 text-white" : "bg-white"}`}
+            href={href({ tab: "strengthening", filter: undefined })}
+          >
+            {vi ? "Đang củng cố" : "Strengthening"} · {counts.strengthening}
+          </Link>
+          <Link
+            aria-current={view === "MASTERED" ? "page" : undefined}
+            className={`inline-flex min-h-11 items-center rounded-full px-4 py-2 font-bold ${view === "MASTERED" ? "bg-slate-900 text-white" : "bg-white"}`}
             href={href({ tab: "mastered", filter: undefined })}
           >
-            {vi ? "Đã làm chủ" : "Mastered"} · {counts.mastered}
+            {vi ? "Đã nắm" : "Mastered"} · {counts.mastered}
           </Link>
         </nav>
         <div
@@ -306,10 +333,11 @@ export default async function MistakesPage({
           {["ALL", "LISTENING", "READING"].map((value) => (
             <Link
               aria-current={(area ?? "ALL") === value ? "page" : undefined}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold focus-visible:outline-2"
+              className="inline-flex min-h-11 items-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold focus-visible:outline-2"
               href={href({
                 area: value === "ALL" ? undefined : value,
                 part: undefined,
+                skill: undefined,
               })}
               key={value}
             >
@@ -319,14 +347,35 @@ export default async function MistakesPage({
           {[1, 2, 3, 4, 5, 6, 7].map((value) => (
             <Link
               aria-current={part === value ? "page" : undefined}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold focus-visible:outline-2"
-              href={href({ part: String(value), area: undefined })}
+              className="inline-flex min-h-11 items-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold focus-visible:outline-2"
+              href={href({ part: String(value), area: undefined, skill: undefined })}
               key={value}
             >
               Part {value}
             </Link>
           ))}
         </div>
+        {skills.length > 1 ? (
+          <div className="mt-3 flex flex-wrap gap-2" aria-label={vi ? "Lọc theo kỹ năng" : "Filter by skill"}>
+            <Link
+              aria-current={!skill ? "page" : undefined}
+              className="inline-flex min-h-11 items-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold focus-visible:outline-2"
+              href={href({ skill: undefined })}
+            >
+              {vi ? "Mọi kỹ năng" : "All skills"}
+            </Link>
+            {skills.map((value) => (
+              <Link
+                aria-current={skill === value ? "page" : undefined}
+                className="inline-flex min-h-11 items-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold focus-visible:outline-2"
+                href={href({ skill: value })}
+                key={value}
+              >
+                {taxonomyLabel(value, preferences.interfaceLanguage)}
+              </Link>
+            ))}
+          </div>
+        ) : null}
         {premium ? (
           <div className="mt-4 flex flex-wrap gap-2">
             <Link
@@ -336,7 +385,7 @@ export default async function MistakesPage({
               {vi ? "Sai nhiều lần" : "Repeated misses"}
               {repeated ? " ✓" : ""}
             </Link>
-            {status === "UNRESOLVED"
+            {view !== "MASTERED"
               ? (["priority", "recent", "oldest", "most"] as const).map(
                   (value) => (
                     <Link
@@ -373,10 +422,14 @@ export default async function MistakesPage({
                 ? vi
                   ? "Chưa có lỗi sai cần ôn"
                   : "No mistakes yet"
-                : status === "UNRESOLVED" && counts.unresolved === 0
+                : view === "NEEDS_REVIEW" && counts.needsReview === 0
                   ? vi
-                    ? "Bạn đã làm chủ mọi lỗi sai"
-                    : "All mistakes mastered"
+                    ? "Không còn lỗi ở trạng thái cần ôn"
+                    : "No mistakes currently need review"
+                  : view === "STRENGTHENING" && counts.strengthening === 0
+                    ? vi
+                      ? "Chưa có lỗi đang củng cố"
+                      : "No mistakes are being strengthened"
                   : vi
                     ? "Không có câu trong bộ lọc này"
                     : "No questions match this filter"}
@@ -403,8 +456,12 @@ export default async function MistakesPage({
                 <p className="text-sm font-black text-teal-700">
                   {item.skillArea} · Part {item.part}
                 </p>
-                <h2 className="mt-2 text-lg font-black">{item.skill}</h2>
-                <p className="text-sm text-slate-600">{item.subSkill}</p>
+                <h2 className="mt-2 text-lg font-black">
+                  {taxonomyLabel(item.skill, preferences.interfaceLanguage)}
+                </h2>
+                <p className="text-sm text-slate-600">
+                  {taxonomyLabel(item.subSkill, preferences.interfaceLanguage)}
+                </p>
                 {premium ? (
                   <p className="mt-3 text-sm text-slate-700">
                     {vi
@@ -418,16 +475,21 @@ export default async function MistakesPage({
                 </p>
                 {item.status === "MASTERED" ? (
                   <p className="mt-2 font-bold text-emerald-700">
-                    {vi ? "Đã làm chủ" : "Mastered"}
+                    {vi ? "Đã nắm" : "Mastered"}
+                  </p>
+                ) : item.reviewSuccessStreak > 0 ? (
+                  <p className="mt-2 font-bold text-sky-800">
+                    {vi ? "Đang củng cố" : "Strengthening"}
                   </p>
                 ) : (
-                  <p className="mt-2 font-bold">
-                    {item.reviewSuccessStreak} / 2{" "}
-                    {vi
-                      ? "lần đúng liên tiếp khi ôn"
-                      : "consecutive correct reviews"}
+                  <p className="mt-2 font-bold text-amber-800">
+                    {vi ? "Cần ôn" : "Needs review"}
                   </p>
                 )}
+                <p className="mt-2 text-sm font-semibold text-slate-700">
+                  {item.reviewSuccessStreak} / 2 {vi ? "lần đúng liên tiếp" : "consecutive correct reviews"}
+                  {` · ${item.reviewAttemptCount} ${vi ? "lượt ôn" : "reviews"}`}
+                </p>
                 {premium && item.status === "UNRESOLVED" ? (
                   <p className="mt-2 text-sm font-semibold text-teal-800">
                     {priorityReason(item) === "repeated"

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { startReadingPractice } from "@/app/practice/actions";
+import { startFocusedRemediation, startReadingPractice } from "@/app/practice/actions";
 import { PerformanceList } from "@/components/analytics/performance-list";
 import { LearnerNav } from "@/components/learner-nav";
 import { PassageDocuments } from "@/components/practice/passage-documents";
@@ -71,6 +71,7 @@ export default async function PracticeResultsPage({
           navigation={<LearnerNav locale={locale} />}
           premiumPreview={preview}
           reportAction={submitQuestionReportAction}
+          remediationAction={startFocusedRemediation}
           recommendation={recommendation}
           result={result}
           reviewOutcome={reviewOutcome}
@@ -358,6 +359,7 @@ export default async function PracticeResultsPage({
                     locale={locale}
                     question={question}
                     reportAction={submitQuestionReportAction}
+                    remediationAction={startFocusedRemediation}
                     sessionId={result.id}
                   /><ResultVocabularySuggestions entries={vocabulary} locale={locale} questionId={question.id} savedKeys={savedKeys} sessionId={result.id} signedIn={Boolean(user)} /></div>;
                 })}
