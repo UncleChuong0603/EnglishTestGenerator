@@ -155,6 +155,7 @@ try {
     ["/seo/toeic-part-1-sample.mp3", "audio/mpeg"],
     ["/seo/toeic-part-2-sample.mp3", "audio/mpeg"],
     ["/seo/toeic-part-4-sample.mp3", "audio/mpeg"],
+    ["/seo/toeic-100-tu-vung.pdf", "application/pdf"],
   ]) {
     try {
       const asset = await fetch(new URL(path, origin), { method: "HEAD", signal: AbortSignal.timeout(20000) });

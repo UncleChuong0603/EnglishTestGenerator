@@ -48,8 +48,9 @@ export default async function PublicVocabularyPage() {
         <h1 className="mt-4 text-4xl font-black leading-tight sm:text-6xl">{vi ? "100 từ vựng TOEIC theo chủ đề" : "100 TOEIC vocabulary terms by topic"}</h1>
         <p className="mt-5 max-w-3xl text-lg leading-8 text-[#45584d]">{vi ? "Học từ trong 10 tình huống thường gặp ở môi trường công sở. Mỗi mục có nghĩa tiếng Việt, định nghĩa tiếng Anh và câu ví dụ để bạn gặp lại từ trong ngữ cảnh." : "Study words from 10 common workplace situations. Each entry includes Vietnamese meaning, an English definition and an example sentence so you meet the word in context."}</p>
         <p className="mt-4 text-sm leading-6 text-[#45584d]">{vi ? "100 mục đầu tiên do TOEIC GYM biên soạn và rà soát cho tài nguyên công khai; nội dung không phải đề ETS và không cần tài khoản." : "These 100 entries are written and reviewed by TOEIC GYM for this public resource; they are not ETS questions and no account is required."}</p>
+        <a className="mt-5 inline-flex min-h-11 items-center rounded-md bg-[#245a43] px-4 font-bold text-white hover:bg-[#184631] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-[#245a43] print:hidden" download href="/seo/toeic-100-tu-vung.pdf">{vi ? "Tải PDF 100 từ vựng (A4)" : "Download 100-word PDF (A4)"}</a>
       </header>
-      <nav aria-label={vi ? "Chủ đề từ vựng" : "Vocabulary topics"} className="mt-8 flex flex-wrap gap-2">
+      <nav aria-label={vi ? "Chủ đề từ vựng" : "Vocabulary topics"} className="mt-8 flex flex-wrap gap-2 print:hidden">
         {PUBLIC_TOEIC_VOCABULARY_TOPICS.map((topic) => <a className="rounded-full border border-[#b9cdbd] bg-white px-4 py-2 text-sm font-bold text-[#245a43] underline-offset-2 hover:underline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#245a43]" href={`#${topic.id}`} key={topic.id}>{vi ? topic.titleVi : topic.titleEn}</a>)}
       </nav>
       <div className="mt-10 space-y-12">
@@ -64,7 +65,7 @@ export default async function PublicVocabularyPage() {
           </dl>
         </section>)}
       </div>
-      <section className="mt-14 rounded-md border border-[#cbd9cd] bg-[#e7eee8] p-6 sm:p-8">
+      <section className="mt-14 rounded-md border border-[#cbd9cd] bg-[#e7eee8] p-6 sm:p-8 print:hidden">
         <h2 className="text-2xl font-black">{vi ? "Biến danh sách từ thành buổi luyện" : "Turn the list into a practice session"}</h2>
         <p className="mt-3 max-w-3xl leading-7 text-[#45584d]">{vi ? "Sau khi học một chủ đề, hãy tự đặt câu, mở flashcard để kiểm tra nhớ cụm và làm Part 5 để gặp từ trong dạng câu thi." : "After one topic, write a sentence, use the flashcards to check recall and try Part 5 to meet the words in test-style sentences."}</p>
         <div className="mt-5 flex flex-wrap gap-x-6 gap-y-3 text-sm"><Link className="font-bold text-[#245a43] underline" href="/toeic/flashcards-tu-vung-cong-so">{vi ? "Ôn flashcard từ vựng công sở →" : "Review workplace flashcards →"}</Link><Link className="font-bold text-[#245a43] underline" href="/toeic/part-5/practice">{vi ? "Làm bài Part 5 hỗn hợp →" : "Try mixed Part 5 practice →"}</Link><Link className="font-bold text-[#245a43] underline" href="/blog/tu-vung-toeic-theo-chu-de-cong-so">{vi ? "Đọc phương pháp học theo cụm →" : "Read the collocation study guide →"}</Link></div>
