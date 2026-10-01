@@ -51,6 +51,8 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       { source: "/(.*)", headers: securityHeaders },
+      // The downloadable worksheet is a copy of the indexed HTML resource.
+      { source: "/seo/toeic-checklist-hoc-tuan.pdf", headers: [{ key: "X-Robots-Tag", value: "noindex" }] },
       ...noindexPaths.map((source) => ({ source, headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] })),
     ];
   },

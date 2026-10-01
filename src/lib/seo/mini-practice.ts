@@ -54,6 +54,12 @@ export const MINI_PRACTICE: Record<string, MiniQuestion[]> = {
       "The heavy rain là cụm danh từ; despite diễn tả sự tương phản giữa mưa lớn và việc vẫn giao xong.", ["Although cần mệnh đề.", "Because cần mệnh đề.", "Đúng: despite + cụm danh từ.", "Unless cần mệnh đề điều kiện."]),
     question("conjunction-3", "Please email the invoice _____ the customer can arrange payment.", ["so that", "because of", "in spite of", "during"], 0,
       "So that + mệnh đề diễn tả mục đích: gửi hóa đơn để khách có thể thanh toán.", ["Đúng: so that + chủ ngữ + động từ.", "Because of cần cụm danh từ.", "In spite of cần cụm danh từ hoặc V-ing.", "During cần cụm danh từ."]),
+    question("conjunction-4", "The outdoor demonstration was canceled _____ a severe storm warning.", ["although", "because", "however", "because of"], 3,
+      "A severe storm warning là cụm danh từ chỉ nguyên nhân hủy buổi trình diễn, nên dùng because of.", ["Although không nối trực tiếp cụm danh từ này và không thể hiện nguyên nhân.", "Because cần mệnh đề có chủ ngữ và động từ.", "However không nối canceled với cụm danh từ chỉ nguyên nhân.", "Đúng: because of + cụm danh từ."]),
+    question("conjunction-5", "_____ the new printer costs more, it uses less electricity than the old model.", ["Although", "Despite", "Because of", "During"], 0,
+      "Although + mệnh đề the new printer costs more diễn tả sự nhượng bộ: giá mua cao hơn nhưng tiêu thụ ít điện hơn.", ["Đúng: although + chủ ngữ + động từ.", "Despite không đi trực tiếp với mệnh đề the new printer costs more.", "Because of cần cụm danh từ, không phải mệnh đề costs more.", "During cần cụm danh từ chỉ một khoảng thời gian."]),
+    question("conjunction-6", "The warehouse is closed today; _____, online orders will still be processed.", ["although", "however", "despite", "because"], 1,
+      "However nối hai ý tương phản; dấu chấm phẩy trước và dấu phẩy sau phù hợp với hai mệnh đề độc lập trong câu này.", ["Although mở mệnh đề phụ; không đứng trước dấu phẩy theo cấu trúc này.", "Đúng: however với dấu câu nối hai mệnh đề độc lập.", "Despite cần cụm danh từ hoặc V-ing, không đứng độc lập trước dấu phẩy ở đây.", "Because cần mệnh đề ngay sau, không tách khỏi chủ ngữ bằng dấu phẩy này."]),
   ],
   "menh-de-quan-he-toeic": [
     question("relative-1", "The consultant _____ report won the award will speak at Friday's meeting.", ["who", "whom", "whose", "which"], 2,

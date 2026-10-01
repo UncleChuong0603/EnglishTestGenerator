@@ -342,7 +342,7 @@ export { grammarImageForSlug };
 // Only these materially expanded pages receive a new modification date.
 for (const article of EDITORIAL_POSTS) {
   if (MINI_PRACTICE[article.slug]) {
-    article.updatedAt = new Date("2026-09-26T18:00:00.000Z");
+    article.updatedAt = new Date(article.slug === "lien-tu-va-tu-noi-toeic" ? "2026-10-01T10:00:00.000Z" : "2026-09-26T18:00:00.000Z");
     article.contentOrigin = "AI_ASSISTED";
     article.content += "\n\n## Từ lỗi sai đến bài luyện tiếp\n\nSau khi thử các câu đầu bài, ghi lại tín hiệu đã bỏ qua và lý do đáp án bạn chọn sai. Đọc [cách review lỗi sai TOEIC](/blog/cach-review-loi-sai-toeic), rồi chuyển sang [bài Part 5 hỗn hợp](/toeic/part-5/practice) để kiểm tra khi không biết trước dạng câu.";
   }

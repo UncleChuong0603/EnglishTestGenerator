@@ -201,7 +201,7 @@ So sánh: *The technician **whom** we contacted...* có *we* làm chủ ngữ, c
     slug: GRAMMAR_SLUGS[4],
     title: "Liên từ TOEIC: phân biệt because, because of, although, however",
     excerpt: "Chọn liên từ theo thành phần đứng sau và dấu câu, từ nguyên nhân đến nhượng bộ trong Part 5 và Part 6.",
-    seoTitle: "Liên từ TOEIC: because, although, however dễ hiểu",
+    seoTitle: "Liên từ TOEIC: because/because of, although/despite + bài tập",
     seoDescription: "Phân biệt because/because of, although/despite và however trong TOEIC bằng mệnh đề, cụm danh từ và dấu câu; kèm bài tập giải thích.",
     coverAlt: "Hai tài liệu được kết nối bằng dải giấy minh họa liên từ và từ nối",
     targetTopic: "liên từ TOEIC",
@@ -220,6 +220,34 @@ So sánh: *The technician **whom** we contacted...* có *we* làm chủ ngữ, c
 **Although + mệnh đề:** *Although the deadline was tight, the team finished on time.* **Despite + cụm danh từ hoặc V-ing:** *Despite the tight deadline, the team finished on time.* Không viết *despite the deadline was tight*.
 
 **However** thường là trạng từ nối ý giữa hai câu hoặc hai mệnh đề độc lập với dấu câu thích hợp: *The deadline was tight. However, the team finished on time.* Không dùng *however* y như *although* để mở một mệnh đề phụ trong cùng cấu trúc.
+
+## Quy trình phân biệt liên từ và giới từ trong Part 5
+
+1. **Khoanh thành phần sau chỗ trống.** *The truck arrived late* có chủ ngữ và động từ; *the late arrival of the truck* là cụm danh từ. Trong dạng đầy đủ đang luyện ở đây, because/although đi với mệnh đề, còn because of/despite đi với cụm danh từ. Một số cấu trúc rút gọn có cách dùng riêng, nên đừng xem quy tắc này là mọi trường hợp của although.
+2. **Đọc quan hệ giữa hai ý.** Vì xe đến muộn nên hoãn bốc hàng là nguyên nhân. Xe đến muộn nhưng vẫn kịp bốc hàng là nhượng bộ. Cấu trúc đúng chưa đủ nếu quan hệ ý sai.
+3. **Kiểm tra dấu câu.** *Although the truck arrived late, unloading finished on time.* Có thể viết lại thành *The truck arrived late; however, unloading finished on time.* Không nối hai mệnh đề độc lập chỉ bằng dấu phẩy và however.
+
+Hai cặp câu sau giữ cùng ý nhưng đổi cấu trúc:
+
+- *The workshop was canceled because the instructor was ill.* → *The workshop was canceled because of the instructor's illness.* Đổi cả mệnh đề thành cụm danh từ, không chỉ thay because bằng because of.
+- *Although the room was small, it accommodated the whole team.* → *Despite the room's small size, it accommodated the whole team.* Cả hai đều diễn tả kết quả trái với điều dễ dự đoán.
+
+## Các bẫy cần ghi vào sổ lỗi
+
+- **Despite of:** viết despite hoặc in spite of; không ghép thành despite of.
+- **Although … but:** trong các câu mẫu này, dùng *Although it rained, we continued* hoặc *It rained, but we continued*; không dùng cả although và but để nối cùng hai ý.
+- **Chỉ nhìn still:** still có thể gợi nhượng bộ, nhưng phải đọc xem hai sự việc thực sự tương phản hay không.
+- **Chọn however vì dịch được “tuy nhiên”:** đọc cả dấu câu và cấu trúc trước khi chọn. *However,* ở đầu câu mới khác với *although* mở mệnh đề phụ.
+
+## Mang cách chọn từ nối sang Part 6
+
+*The usual meeting room is being renovated. _____, Friday's briefing will take place in Room 204.* Với bốn lựa chọn *Therefore / Despite / Although / Because of*, **Therefore** phù hợp: việc đổi phòng là kết quả của việc sửa phòng, và phần sau là một câu đầy đủ. Despite và because of cần cụm danh từ; although sẽ làm câu sau thành mệnh đề phụ không có mệnh đề chính.
+
+Với bài dài hơn, hãy đọc câu trước và câu sau để phân biệt kết quả, bổ sung hay tương phản. Xem [hướng dẫn Part 6](/toeic/part-6) hoặc [bài điền câu vào đoạn văn](/toeic/part-6/dien-cau-vao-doan-van) nếu bạn chọn đúng ngữ pháp nhưng chưa nối được mạch ý.
+
+## Cách dùng sáu câu luyện ở đầu bài
+
+Chọn đáp án trước khi mở lời giải. Với mỗi câu sai hoặc đúng do đoán, ghi ba mục: phần sau là mệnh đề hay cụm danh từ, quan hệ ý, và lý do loại lựa chọn của bạn. Sáu câu tự biên soạn là bài luyện cấu trúc, không phải đề ETS. Sau đó thử [bảy câu Part 5 hỗn hợp](/toeic/part-5/practice) để nhận diện dạng khi không biết trước chủ điểm.
 
 ## Câu kiểu TOEIC
 

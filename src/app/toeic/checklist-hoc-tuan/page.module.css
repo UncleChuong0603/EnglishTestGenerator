@@ -1,0 +1,76 @@
+.page {
+  min-height: 100vh;
+  background: #f7f6f1;
+  color: #172821;
+}
+
+.printOnly { display: none; }
+
+.field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: .4rem;
+  font-size: .875rem;
+  font-weight: 600;
+}
+
+.field input, .field textarea {
+  min-width: 0;
+  min-height: 44px;
+  width: 100%;
+  border: 1px solid #b4c2b6;
+  border-radius: 4px;
+  background: white;
+  padding: .65rem .75rem;
+  color: #172821;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.field input::placeholder, .field textarea::placeholder { color: #45584d; }
+.field textarea { resize: vertical; }
+.page :is(input, textarea, a, button):focus-visible {
+  outline: 3px solid #245a43;
+  outline-offset: 3px;
+}
+
+.session {
+  padding: 1rem 0;
+  border-top: 1px solid #dce3d9;
+}
+
+.completion {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: .75rem;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.completion input { width: 20px; height: 20px; flex-shrink: 0; accent-color: #245a43; }
+
+@media print {
+  @page { size: A4; margin: 12mm; }
+  .page { min-height: 0; background: white; }
+  .screenOnly { display: none !important; }
+  .printOnly { display: block; }
+  .page article { max-width: none; padding: 0; }
+  .sheet { margin: 0; border: 0; padding: 0; }
+  .sheet h2 { margin-top: 4px; font-size: 20px; }
+  .sheet p { font-size: 10px; line-height: 1.45; }
+  .goals { margin-top: 12px; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
+  .field { gap: 2px; font-size: 10px; }
+  .field input, .field textarea {
+    min-height: 24px;
+    padding: 4px 6px;
+    border-radius: 0;
+    font-size: 11px;
+  }
+  .field input::placeholder, .field textarea::placeholder { color: transparent; }
+  .completion { min-height: 24px; gap: 8px; font-size: 12px; }
+  .completion input { width: 14px; height: 14px; }
+  .session { break-inside: avoid; padding: 9px 0; }
+  .sheet ol { margin-top: 12px; }
+}

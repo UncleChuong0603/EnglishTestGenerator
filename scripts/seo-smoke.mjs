@@ -4,6 +4,7 @@ const origin = new URL(process.argv[2] ?? "https://toeicgym.net").origin;
 const privatePaths = ["/demo-test", "/practice", "/continue-learning", "/billing", "/admin", "/api/health", "/auth/callback"];
 const breadcrumbPaths = new Set(["/toeic", "/luyen-thi-toeic-online", "/toeic/listening", "/toeic/part-1", "/toeic/part-2", "/toeic/part-3", "/toeic/part-4", "/thi-thu-toeic-online", "/toeic/part-5", "/toeic/part-5/word-form", "/toeic/part-5/thi-dong-tu", "/toeic/part-5/practice", "/toeic/part-6", "/toeic/part-6/dien-cau-vao-doan-van", "/toeic/part-7", "/toeic/part-7/doc-hieu-hai-doan-van", "/toeic/part-7/doc-hieu-ba-van-ban"]);
 const failures = [];
+breadcrumbPaths.add("/toeic/checklist-hoc-tuan");
 const warnings = [];
 
 function decodeXml(value) {
