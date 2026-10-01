@@ -626,3 +626,7 @@ main:has(.admin-navigation) { padding-left: calc(15.5rem + 1.5rem) !important; }
   .home-sidebar { display: none; }
   .home-content .marketing-hero { min-height: 0; }
 }
+
+/* Account erasure controls must not be covered by the floating support widget.
+   Account & Data offers an inline support link instead. */
+body:has([data-account-data-page]) .feedback-widget { display: none; }

@@ -1,34 +1,21 @@
 import "server-only";
-import { and, eq, gt, isNull } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { securityEvents, userSessions, users } from "@/db/schema";
-import { createToken, hashToken } from "./crypto";
-
-export const SESSION_COOKIE = "etg_session";
-export const SESSION_DAYS = 30;
-
-export type CurrentUser = { id: string; email: string; emailNormalized: string; emailVerifiedAt: Date | null; status: string };
+import { securityEvents, userSessions } from "@/db/schema";
+import { getSessionByToken, issueSessionToken, SESSION_COOKIE } from "./session-core";
+export { getSessionByToken, issueSessionToken, SESSION_COOKIE, SESSION_DAYS, type CurrentUser } from "./session-core";
 
 export async function createSession(userId: string) {
-  const raw = createToken(); const expiresAt = new Date(Date.now() + SESSION_DAYS * 86_400_000);
   const cookieStore = await cookies(); const previous = cookieStore.get(SESSION_COOKIE)?.value;
-  await db.transaction(async (tx) => {
-    if (previous) await tx.update(userSessions).set({ revokedAt: new Date() }).where(and(eq(userSessions.sessionTokenHash, hashToken(previous)), isNull(userSessions.revokedAt)));
-    await tx.insert(userSessions).values({ userId, sessionTokenHash: hashToken(raw), expiresAt });
-  });
+  const { token, expiresAt } = await issueSessionToken(userId, previous);
+  const raw = token;
   cookieStore.set(SESSION_COOKIE, raw, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", expires: expiresAt });
 }
 
 export async function getCurrentSession() {
-  const raw = (await cookies()).get(SESSION_COOKIE)?.value;
-  if (!raw) return null;
-  const [row] = await db.select({ sessionId: userSessions.id, userId: users.id, email: users.email, emailNormalized: users.emailNormalized, emailVerifiedAt: users.emailVerifiedAt, status: users.status })
-    .from(userSessions).innerJoin(users, eq(users.id, userSessions.userId))
-    .where(and(eq(userSessions.sessionTokenHash, hashToken(raw)), isNull(userSessions.revokedAt), gt(userSessions.expiresAt, new Date()))).limit(1);
-  if (!row || row.status !== "active") return null;
-  return { sessionId: row.sessionId, user: { id: row.userId, email: row.email, emailNormalized: row.emailNormalized, emailVerifiedAt: row.emailVerifiedAt, status: row.status } satisfies CurrentUser };
+  return getSessionByToken((await cookies()).get(SESSION_COOKIE)?.value);
 }
 
 export async function getCurrentUser() { return (await getCurrentSession())?.user ?? null; }

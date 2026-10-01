@@ -9,6 +9,8 @@ export default defineConfig([
     ".next/**",
     ".next-seo-audit/**",
     ".tmp/**",
+    // Agent skill utilities are not application JavaScript/TypeScript.
+    ".agents/**",
     ".npm-cache/**",
     ".debug-*.cjs",
     "node_modules/**",

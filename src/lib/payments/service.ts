@@ -16,6 +16,8 @@ function safeOrigin() { const url = new URL(process.env.APP_URL ?? "http://local
 export async function createPaymentOrder(userId: string, productKey: string, provider = getPaymentProvider()) {
   const product = resolveProduct(productKey), now = new Date(), expiresAt = new Date(now.getTime() + ORDER_TTL_MS);
   const reserved = await db.transaction(async (tx) => {
+    const [account] = await tx.select({ deletedAt: users.deletedAt }).from(users).where(eq(users.id, userId)).for("key share").limit(1);
+    if (!account || account.deletedAt) throw new Error("ACCOUNT_UNAVAILABLE");
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${userId}:plan`}, 0))`);
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${userId}:${product.key}:checkout`}, 0))`);
     const [existing] = await tx.select().from(paymentOrders).where(and(eq(paymentOrders.userId, userId), eq(paymentOrders.productKey, product.key), eq(paymentOrders.status, "PENDING"), gt(paymentOrders.expiresAt, now))).orderBy(desc(paymentOrders.createdAt)).limit(1);
@@ -26,8 +28,19 @@ export async function createPaymentOrder(userId: string, productKey: string, pro
   if (reserved.reused) return reserved.order;
   try {
     const origin = safeOrigin(), created = await provider.create({ orderCode: reserved.order.orderCode, amountVnd: product.amountVnd, description: `TG${reserved.order.orderCode}`, returnUrl: `${origin}/billing/return?order=${reserved.order.id}`, cancelUrl: `${origin}/billing/cancel?order=${reserved.order.id}`, expiresAt });
-    const [updated] = await db.update(paymentOrders).set({ checkoutUrl: created.checkoutUrl, providerPaymentId: created.providerPaymentId, updatedAt: new Date() }).where(eq(paymentOrders.id, reserved.order.id)).returning(); return updated;
-  } catch (error) { await db.update(paymentOrders).set({ status: "FAILED", updatedAt: new Date() }).where(eq(paymentOrders.id, reserved.order.id)); throw error; }
+    const completed = await db.transaction(async (tx) => {
+      const [account] = await tx.select({ deletedAt: users.deletedAt }).from(users).where(eq(users.id, userId)).for("key share").limit(1);
+      const [updated] = await tx.update(paymentOrders).set({ checkoutUrl: account && !account.deletedAt ? created.checkoutUrl : null, providerPaymentId: created.providerPaymentId, updatedAt: new Date() }).where(eq(paymentOrders.id, reserved.order.id)).returning();
+      return { order: updated, erased: !account || account.deletedAt !== null };
+    });
+    // Keep the provider reference committed for late settlement/refund accounting,
+    // but never return a usable checkout to an erased account.
+    if (completed.erased) throw new Error("ACCOUNT_UNAVAILABLE");
+    return completed.order;
+  } catch (error) {
+    if (!(error instanceof Error && error.message === "ACCOUNT_UNAVAILABLE")) await db.update(paymentOrders).set({ status: "FAILED", updatedAt: new Date() }).where(and(eq(paymentOrders.id, reserved.order.id), eq(paymentOrders.status, "PENDING")));
+    throw error;
+  }
 }
 
 export async function getRenewalQuote(userId: string, productKey: string, now = new Date()) {
@@ -46,6 +59,10 @@ export async function getRenewalQuote(userId: string, productKey: string, now = 
 
 export async function applyVerifiedPayment(event: VerifiedPayment, providerName: "PAYOS" | "FAKE", injectFailure = false) {
   return db.transaction(async (tx) => {
+    // Acquire owner before order, matching deletion's lock order.
+    const [owner] = await tx.select({ userId: paymentOrders.userId }).from(paymentOrders).where(and(eq(paymentOrders.orderCode, event.orderCode), eq(paymentOrders.provider, providerName))).limit(1);
+    if (!owner) throw new Error("PAYMENT_ORDER_NOT_FOUND");
+    const [account] = await tx.select({ deletedAt: users.deletedAt }).from(users).where(eq(users.id, owner.userId)).for("key share").limit(1);
     const [order] = await tx.select().from(paymentOrders).where(and(eq(paymentOrders.orderCode, event.orderCode), eq(paymentOrders.provider, providerName))).for("update").limit(1);
     if (!order) throw new Error("PAYMENT_ORDER_NOT_FOUND");
     const inserted = await tx.insert(paymentEvents).values({ provider: providerName, providerEventKey: event.eventKey, orderId: order.id, eventType: event.paid ? "PAYMENT_SUCCEEDED" : "PAYMENT_FAILED", metadata: { orderCode: event.orderCode, amount: event.amountVnd, currency: event.currency, reference: event.providerPaymentId } }).onConflictDoNothing().returning({ id: paymentEvents.id });
@@ -53,10 +70,12 @@ export async function applyVerifiedPayment(event: VerifiedPayment, providerName:
     if (!event.paid || event.amountVnd !== order.amount || event.currency !== order.currency || event.providerPaymentId !== order.providerPaymentId) {
       await tx.update(paymentEvents).set({ processingStatus: "REJECTED", processedAt: new Date() }).where(eq(paymentEvents.id, inserted[0].id)); return { status: order.status, rejected: true };
     }
+    // A late provider callback must retain accounting facts without restoring
+    // access, membership or learner analytics for an erased account.
     const days = resolveProductDuration(order.productKey);
-    await grantPremiumWithTx(tx, { userId: order.userId, days, source: "PAYMENT", paymentOrderId: order.id });
+    if (account && !account.deletedAt) await grantPremiumWithTx(tx, { userId: order.userId, days, source: "PAYMENT", paymentOrderId: order.id });
     const [trial] = await tx.select({ id: userPlanMemberships.id }).from(userPlanMemberships).where(and(eq(userPlanMemberships.userId, order.userId), eq(userPlanMemberships.source, "TRIAL"))).limit(1);
-    if (trial) await tx.insert(productEvents).values({ userId: order.userId, eventName: "trial_to_paid", source: "payment", deduplicationKey: `trial-to-paid:${order.userId}`, properties: { orderId: order.id } }).onConflictDoNothing();
+    if (trial && account && !account.deletedAt) await tx.insert(productEvents).values({ userId: order.userId, eventName: "trial_to_paid", source: "payment", deduplicationKey: `trial-to-paid:${order.userId}`, properties: { orderId: order.id } }).onConflictDoNothing();
     if (injectFailure) throw new Error("INJECTED_ROLLBACK");
     const now = new Date(); await tx.update(paymentOrders).set({ status: "PAID", paidAt: now, updatedAt: now }).where(eq(paymentOrders.id, order.id));
     await tx.update(paymentEvents).set({ processingStatus: "PROCESSED", processedAt: now }).where(eq(paymentEvents.id, inserted[0].id));

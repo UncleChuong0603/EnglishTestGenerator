@@ -14,6 +14,7 @@ export const users = pgTable("users", {
   emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true, mode: "date" }),
   status: text("status").notNull().default("pending_verification"),
   lastLoginAt: timestamp("last_login_at", { withTimezone: true, mode: "date" }),
+  deletedAt: timestamp("deleted_at", { withTimezone: true, mode: "date" }),
   ...timestamps,
 }, (table) => [
   uniqueIndex("users_email_normalized_uidx").on(table.emailNormalized),
