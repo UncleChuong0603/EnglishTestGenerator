@@ -8,6 +8,7 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { getPreferences } from "@/lib/i18n/get-translations";
 import { getSiteUrl } from "@/lib/seo/site-url";
 import { serializeStructuredData } from "@/lib/seo/structured-data";
+import { toeicGymOrganizationStructuredData } from "@/lib/seo/site-structured-data";
 import styles from "./home.module.css";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
@@ -140,7 +141,10 @@ export default async function Home() {
   const vi = locale === "vi";
   const t = copy[vi ? "vi" : "en"];
   const siteUrl = getSiteUrl();
-  const websiteStructuredData = { "@context": "https://schema.org", "@type": "WebSite", name: "TOEIC GYM", alternateName: "TOEICGym", url: siteUrl };
+  const websiteStructuredData = { "@context": "https://schema.org", "@graph": [
+    { "@type": "WebSite", "@id": `${siteUrl}#website`, name: "TOEIC GYM", alternateName: "TOEICGym", url: siteUrl, publisher: { "@id": `${siteUrl}#organization` } },
+    toeicGymOrganizationStructuredData(siteUrl),
+  ] };
 
   return <div className={styles.page}>
     <script dangerouslySetInnerHTML={{ __html: serializeStructuredData(websiteStructuredData) }} type="application/ld+json" />
