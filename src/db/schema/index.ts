@@ -114,7 +114,7 @@ export const adminAuditLogs = pgTable("admin_audit_logs", {
   index("admin_audit_logs_actor_idx").on(table.actorUserId),
   index("admin_audit_logs_target_idx").on(table.targetUserId),
   index("admin_audit_logs_action_idx").on(table.action),
-  check("admin_audit_logs_action_check", sql`${table.action} in ('ADMIN_ROLE_GRANTED','ADMIN_ROLE_REVOKED','USER_SUSPENDED','USER_REACTIVATED','PREMIUM_GRANTED','PREMIUM_REVOKED','CONTENT_DRAFT_CREATED','CONTENT_DRAFT_UPDATED','CONTENT_CLONED','CONTENT_PUBLISHED','CONTENT_ARCHIVED','CONTENT_DRAFT_DISCARDED','CONTENT_UNARCHIVED','CONTENT_DUPLICATE_DELETED','MEDIA_UPLOADED','CHALLENGE_DRAFT_CREATED','CHALLENGE_FORM_GENERATED','CHALLENGE_PUBLISHED','CHALLENGE_CANCELLED','SEO_POST_CREATED','SEO_POST_UPDATED','SEO_POST_PUBLISHED','SEO_POST_UNPUBLISHED','SEO_POST_DELETED','IMPORT_VALIDATED','IMPORT_COMMITTED','IMPORT_FAILED','QUESTION_BANK_BLUEPRINT_UPDATED','CONTENT_QUALITY_SETTINGS_UPDATED','SUPPORT_SETTINGS_UPDATED','LISTENING_LESSON_CREATED','LISTENING_LESSON_UPDATED','LISTENING_LESSON_PUBLISHED','LISTENING_LESSON_ARCHIVED')`),
+  check("admin_audit_logs_action_check", sql`${table.action} in ('ADMIN_ROLE_GRANTED','ADMIN_ROLE_REVOKED','USER_SUSPENDED','USER_REACTIVATED','PREMIUM_GRANTED','PREMIUM_REVOKED','CONTENT_DRAFT_CREATED','CONTENT_DRAFT_UPDATED','CONTENT_CLONED','CONTENT_PUBLISHED','CONTENT_ARCHIVED','CONTENT_DRAFT_DISCARDED','CONTENT_UNARCHIVED','CONTENT_DUPLICATE_DELETED','MEDIA_UPLOADED','CHALLENGE_DRAFT_CREATED','CHALLENGE_FORM_GENERATED','CHALLENGE_PUBLISHED','CHALLENGE_CANCELLED','SEO_POST_CREATED','SEO_POST_UPDATED','SEO_POST_PUBLISHED','SEO_POST_UNPUBLISHED','SEO_POST_DELETED','IMPORT_VALIDATED','IMPORT_COMMITTED','IMPORT_FAILED','QUESTION_BANK_BLUEPRINT_UPDATED','CONTENT_QUALITY_SETTINGS_UPDATED','SUPPORT_SETTINGS_UPDATED','LISTENING_LESSON_CREATED','LISTENING_LESSON_UPDATED','LISTENING_LESSON_PUBLISHED','LISTENING_LESSON_ARCHIVED','QUESTION_REPORT_REVIEW_STARTED','QUESTION_REPORT_RESOLVED','QUESTION_REPORT_DISMISSED','QUESTION_REPORT_CORRECTION_DRAFTED')`),
 ]);
 
 export const questionBankSettings = pgTable("question_bank_settings", {
@@ -619,6 +619,40 @@ export const practiceSessionQuestions = pgTable("practice_session_questions", {
 export const attemptAnswers = pgTable("attempt_answers", {
   id: uuid("id").primaryKey().defaultRandom(), sessionId: uuid("session_id").notNull().references(() => practiceSessions.id, { onDelete: "cascade" }), userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }), questionId: uuid("question_id").notNull().references(() => questions.id, { onDelete: "restrict" }), responseType: text("response_type").notNull().default("MULTIPLE_CHOICE"), selectedOptionId: uuid("selected_option_id").references(() => questionOptions.id, { onDelete: "restrict" }), isCorrect: boolean("is_correct").notNull(), responseTimeMs: integer("response_time_ms"), answeredAt: timestamp("answered_at", { withTimezone: true, mode: "date" }), createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
 }, (table) => [unique("attempt_answers_session_question_unique").on(table.sessionId, table.questionId), index("attempt_answers_user_session_idx").on(table.userId, table.sessionId), index("attempt_answers_user_question_session_idx").on(table.userId, table.questionId, table.sessionId), check("attempt_answers_response_type_check", sql`${table.responseType} = 'MULTIPLE_CHOICE'`)]);
+
+export const questionReports = pgTable("question_reports", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  questionId: uuid("question_id").notNull().references(() => questions.id, { onDelete: "restrict" }),
+  questionGroupId: uuid("question_group_id").references(() => passageSets.id, { onDelete: "restrict" }),
+  practiceSessionId: uuid("practice_session_id").references(() => practiceSessions.id, { onDelete: "set null" }),
+  reporterUserId: uuid("reporter_user_id").references(() => users.id, { onDelete: "restrict" }),
+  guestOwnerHash: text("guest_owner_hash"),
+  sourceType: text("source_type").notNull(),
+  reason: text("reason").notNull(),
+  description: text("description"),
+  status: text("status").notNull().default("OPEN"),
+  resolutionNote: text("resolution_note"),
+  reviewedBy: uuid("reviewed_by").references(() => users.id, { onDelete: "set null" }),
+  remediationGroupId: uuid("remediation_group_id").references(() => passageSets.id, { onDelete: "restrict" }),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true, mode: "date" }),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true, mode: "date" }),
+  ...timestamps,
+}, (table) => [
+  index("question_reports_status_created_idx").on(table.status, table.createdAt),
+  index("question_reports_question_status_idx").on(table.questionId, table.status),
+  index("question_reports_reason_status_idx").on(table.reason, table.status),
+  index("question_reports_user_created_idx").on(table.reporterUserId, table.createdAt),
+  index("question_reports_guest_created_idx").on(table.guestOwnerHash, table.createdAt),
+  uniqueIndex("question_reports_active_user_question_uidx").on(table.reporterUserId, table.questionId).where(sql`${table.reporterUserId} is not null and ${table.status} in ('OPEN','IN_REVIEW')`),
+  uniqueIndex("question_reports_active_guest_question_uidx").on(table.guestOwnerHash, table.questionId).where(sql`${table.guestOwnerHash} is not null and ${table.status} in ('OPEN','IN_REVIEW')`),
+  check("question_reports_actor_check", sql`num_nonnulls(${table.reporterUserId}, ${table.guestOwnerHash}) = 1`),
+  check("question_reports_source_check", sql`${table.sourceType} in ('PRACTICE','DIAGNOSTIC','CHALLENGE','MISTAKE_REVIEW','FULL_MOCK')`),
+  check("question_reports_reason_check", sql`${table.reason} in ('ANSWER_INCORRECT','EXPLANATION_ISSUE','AMBIGUOUS','TYPO_GRAMMAR','MEDIA_BROKEN','OTHER')`),
+  check("question_reports_status_check", sql`${table.status} in ('OPEN','IN_REVIEW','RESOLVED','DISMISSED')`),
+  check("question_reports_description_length_check", sql`${table.description} is null or char_length(${table.description}) between 1 and 500`),
+  check("question_reports_resolution_length_check", sql`${table.resolutionNote} is null or char_length(${table.resolutionNote}) between 1 and 1000`),
+  check("question_reports_resolution_check", sql`(${table.status} in ('RESOLVED','DISMISSED') and ${table.resolvedAt} is not null and ${table.resolutionNote} is not null) or (${table.status} in ('OPEN','IN_REVIEW') and ${table.resolvedAt} is null)`),
+]);
 
 export const userVocabulary = pgTable("user_vocabulary", {
   id: uuid("id").primaryKey().defaultRandom(),

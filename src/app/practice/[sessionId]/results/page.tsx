@@ -28,6 +28,7 @@ import { vocabularySuggestions } from "@/lib/vocabulary/catalog";
 import { getVocabularyCards } from "@/lib/vocabulary/service";
 import { ResultVocabularySuggestions } from "@/components/vocabulary/result-suggestions";
 import { ResultReview } from "@/components/practice/result-review";
+import { submitQuestionReportAction } from "@/app/question-reports/actions";
 
 export default async function PracticeResultsPage({
   params,
@@ -69,6 +70,7 @@ export default async function PracticeResultsPage({
           locale={locale}
           navigation={<LearnerNav locale={locale} />}
           premiumPreview={preview}
+          reportAction={submitQuestionReportAction}
           recommendation={recommendation}
           result={result}
           reviewOutcome={reviewOutcome}
@@ -355,6 +357,8 @@ export default async function PracticeResultsPage({
                     explanationLanguage={preferences.explanationLanguage}
                     locale={locale}
                     question={question}
+                    reportAction={submitQuestionReportAction}
+                    sessionId={result.id}
                   /><ResultVocabularySuggestions entries={vocabulary} locale={locale} questionId={question.id} savedKeys={savedKeys} sessionId={result.id} signedIn={Boolean(user)} /></div>;
                 })}
               </div>

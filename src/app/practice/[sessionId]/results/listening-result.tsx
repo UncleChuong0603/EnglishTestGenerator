@@ -14,13 +14,16 @@ import { vocabularySuggestions } from "@/lib/vocabulary/catalog";
 import { ResultVocabularySuggestions } from "@/components/vocabulary/result-suggestions";
 import { ResultReview } from "@/components/practice/result-review";
 import type { ReactNode } from "react";
+import { QuestionReportControl } from "@/components/practice/question-report-control";
+import type { QuestionReportFormState } from "@/lib/question-reports/catalog";
 
-export function ListeningResult({ result, locale, recommendation, reviewOutcome, premiumPreview, savedVocabularyKeys, signedIn, navigation }: {
+export function ListeningResult({ result, locale, recommendation, reviewOutcome, premiumPreview, reportAction, savedVocabularyKeys, signedIn, navigation }: {
   result: PracticeResult;
   locale: InterfaceLanguage;
   recommendation: WorkoutRecommendation | null;
   reviewOutcome?: ReviewOutcomeData | null;
   premiumPreview?: PremiumPreviewData | null;
+  reportAction: (previous: QuestionReportFormState, formData: FormData) => Promise<QuestionReportFormState>;
   savedVocabularyKeys: string[];
   signedIn: boolean;
   navigation?: ReactNode;
@@ -47,6 +50,7 @@ export function ListeningResult({ result, locale, recommendation, reviewOutcome,
         {question.transcript && correct ? <TranscriptReview correctAnswer={correct.text} labels={{ show: t.listening.checkTranscript, keywords: t.listening.answerKeywords, noExactMatch: t.listening.noExactKeywordMatch }} locale={locale} part={question.part} transcript={question.transcript} /> : null}
         <section className="mt-5"><h2 className="font-black">{t.results.explanation}</h2><p className="mt-2 leading-7">{question.explanationVi ?? question.explanationEn}</p></section>
         <ResultVocabularySuggestions entries={vocabularySuggestions(question.text, correct?.text ?? "", [question.transcript ?? ""])} locale={locale} questionId={question.id} savedKeys={savedVocabularyKeys} sessionId={result.id} signedIn={signedIn} />
+        <QuestionReportControl action={reportAction} locale={locale} questionId={question.id} sessionId={result.id} />
       </article>;
     })}</div></ResultReview>
   </div></main>;
