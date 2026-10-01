@@ -2,7 +2,7 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import { and, asc, desc, eq, gte, inArray, lt, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { attemptAnswers, listeningTranscripts, mediaAssets, passageSets, passages, practiceSessionQuestions, practiceSessions, questionGroupMedia, questionOptions, questionSolutions, questions } from "@/db/schema";
+import { attemptAnswers, listeningTranscripts, mediaAssets, passageSets, passages, practiceSessionQuestions, practiceSessions, questionGroupMedia, questionMastery, questionOptions, questionSolutions, questions } from "@/db/schema";
 import { validateListeningEligibility, validateListeningGroupEligibility } from "@/lib/listening/eligibility";
 import { MIXED_PART_WEIGHTS, READING_TAXONOMY } from "./constants";
 import { flattenUniqueQuestionIds, rankPreferUnseen, rankSelectionUnits, RECENT_CONTENT_SESSION_WINDOW, selectClosestUnits, shuffle, type ContentHistory, type SelectionUnit } from "./selection";
@@ -13,6 +13,7 @@ import { expandReviewGroups, getReviewCandidates, getSmartReviewCandidates } fro
 import { getEffectiveCapabilities } from "@/lib/entitlements/service";
 import { consumeUsage } from "@/lib/entitlements/service";
 import { resolveQuestionBankPool, type QuestionBankPool } from "./pool";
+import { chooseRemediationEvidenceQuestion, rankFocusedRemediationUnits } from "@/lib/remediation/policy";
 
 const EMPTY_HISTORY: ContentHistory = { seenQuestionIds: new Set(), recentQuestionIds: new Set() };
 const keepOrder = () => 0.999;
@@ -38,7 +39,7 @@ async function samplePublishedQuestions(part: number, limit: number, skill?: str
   return [...after, ...before];
 }
 
-async function loadContentHistory(userId: string, candidateIds: readonly string[]): Promise<ContentHistory> {
+export async function loadContentHistory(userId: string, candidateIds: readonly string[]): Promise<ContentHistory> {
   if (!candidateIds.length) return EMPTY_HISTORY;
   const recentSessions = await db.select({ id: practiceSessions.id }).from(practiceSessions)
     .where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "submitted")))
@@ -52,7 +53,14 @@ async function loadContentHistory(userId: string, candidateIds: readonly string[
   };
 }
 
-type ListeningTarget = { userId?: string; skill?: string; subSkill?: string; diverse?: boolean };
+type ListeningTarget = {
+  userId?: string;
+  skill?: string;
+  subSkill?: string;
+  diverse?: boolean;
+  strictTaxonomy?: boolean;
+  excludedPassageSetIds?: ReadonlySet<string>;
+};
 
 export function preferTaxonomyDiversity<T extends { id: string; skill: string; subSkill: string }>(items: readonly T[]): T[] {
   const remaining = [...items].sort((a, b) => a.id.localeCompare(b.id));
@@ -84,7 +92,10 @@ export async function selectListeningPractice(part: 1 | 2 | 3 | 4, target = 10, 
   const history = focus?.userId ? await loadContentHistory(focus.userId, questionIds) : EMPTY_HISTORY;
   const relevance = (q: (typeof candidates)[number]) => focus?.subSkill && q.subSkill === focus.subSkill ? 3 : focus?.skill && q.skill === focus.skill ? 2 : 1;
   if (part <= 2) {
-    const eligible = candidates.filter((q) => q.passageSetId && published.has(q.passageSetId) && validateListeningEligibility({ skillArea: q.skillArea, part: q.toeicPart, responseType: q.responseType, questionCount: candidates.filter((other) => other.passageSetId === q.passageSetId).length, options: options.filter((o) => o.questionId === q.id), correctOptionId: solutions.find((s) => s.questionId === q.id)?.correctOptionId ?? null, explanationEn: solutions.find((s) => s.questionId === q.id)?.explanationEn ?? null, explanationVi: solutions.find((s) => s.questionId === q.id)?.explanationVi ?? null, transcript: transcripts.find((t) => t.questionGroupId === q.passageSetId)?.content ?? null, media: attachments.filter((a) => a.groupId === q.passageSetId) as Parameters<typeof validateListeningEligibility>[0]["media"] }).eligible);
+    const eligible = candidates.filter((q) => q.passageSetId && published.has(q.passageSetId)
+      && !focus?.excludedPassageSetIds?.has(q.passageSetId)
+      && (!focus?.strictTaxonomy || ((!focus.skill || q.skill === focus.skill) && (!focus.subSkill || q.subSkill === focus.subSkill)))
+      && validateListeningEligibility({ skillArea: q.skillArea, part: q.toeicPart, responseType: q.responseType, questionCount: candidates.filter((other) => other.passageSetId === q.passageSetId).length, options: options.filter((o) => o.questionId === q.id), correctOptionId: solutions.find((s) => s.questionId === q.id)?.correctOptionId ?? null, explanationEn: solutions.find((s) => s.questionId === q.id)?.explanationEn ?? null, explanationVi: solutions.find((s) => s.questionId === q.id)?.explanationVi ?? null, transcript: transcripts.find((t) => t.questionGroupId === q.passageSetId)?.content ?? null, media: attachments.filter((a) => a.groupId === q.passageSetId) as Parameters<typeof validateListeningEligibility>[0]["media"] }).eligible);
     const ranked = focus ? rankSelectionUnits(eligible.map((q) => ({ ...q, part, questionIds: [q.id] })), history, relevance) : shuffle(eligible);
     const valid = focus?.diverse ? preferTaxonomyDiversity(ranked) : ranked;
     if (valid.length < target) throw new Error(`NOT_ENOUGH_LISTENING_PART_${part}`);
@@ -92,7 +103,9 @@ export async function selectListeningPractice(part: 1 | 2 | 3 | 4, target = 10, 
   }
   const eligibleSets = sets.filter((set) => {
     const children = candidates.filter((q) => q.passageSetId === set.id).sort((a, b) => a.questionOrder - b.questionOrder);
-    return validateListeningGroupEligibility({ skillArea: "LISTENING", part, setType: set.setType, status: set.status, transcript: transcripts.find((t) => t.questionGroupId === set.id)?.content ?? null, media: attachments.filter((a) => a.groupId === set.id) as Parameters<typeof validateListeningGroupEligibility>[0]["media"], questions: children.map((q) => { const solution = solutions.find((s) => s.questionId === q.id); return { order: q.questionOrder, text: q.questionText, responseType: q.responseType, options: options.filter((o) => o.questionId === q.id), correctOptionId: solution?.correctOptionId ?? null, explanationEn: solution?.explanationEn ?? null, explanationVi: solution?.explanationVi ?? null }; }) }).eligible;
+    return !focus?.excludedPassageSetIds?.has(set.id)
+      && (!focus?.strictTaxonomy || children.some((q) => (!focus.skill || q.skill === focus.skill) && (!focus.subSkill || q.subSkill === focus.subSkill)))
+      && validateListeningGroupEligibility({ skillArea: "LISTENING", part, setType: set.setType, status: set.status, transcript: transcripts.find((t) => t.questionGroupId === set.id)?.content ?? null, media: attachments.filter((a) => a.groupId === set.id) as Parameters<typeof validateListeningGroupEligibility>[0]["media"], questions: children.map((q) => { const solution = solutions.find((s) => s.questionId === q.id); return { order: q.questionOrder, text: q.questionText, responseType: q.responseType, options: options.filter((o) => o.questionId === q.id), correctOptionId: solution?.correctOptionId ?? null, explanationEn: solution?.explanationEn ?? null, explanationVi: solution?.explanationVi ?? null }; }) }).eligible;
   });
   if (eligibleSets.length < target) throw new Error(`NOT_ENOUGH_LISTENING_PART_${part}`);
   const rankedSets = focus ? rankSelectionUnits(eligibleSets.map((set) => ({ ...set, part, questionIds: candidates.filter((q) => q.passageSetId === set.id).map((q) => q.id) })), history, (set) => {
@@ -284,4 +297,190 @@ export async function createMasteryReviewSession(userId: string, requestedPart?:
     await tx.insert(practiceSessionQuestions).values(expanded.map((row, index) => ({ sessionId: session.id, questionId: row.id, displayOrder: index + 1, passageSetId: row.passageSetId })));
     return session.id;
   });
+}
+
+/**
+ * Builds a server-authoritative recheck from an owned submitted answer. The
+ * browser identifies only the result position; question identity, taxonomy,
+ * mastery ownership and the replacement content are all derived on the server.
+ */
+export async function createFocusedRemediationSession(
+  userId: string,
+  sourceSessionId: string,
+  questionNumber: number,
+): Promise<{ sessionId: string; focused: boolean }> {
+  if (!sourceSessionId || !Number.isInteger(questionNumber) || questionNumber < 1 || questionNumber > 200) {
+    throw new Error("INVALID_REMEDIATION_SOURCE");
+  }
+  const [target] = await db
+    .select({
+      questionId: questions.id,
+      masteryQuestionId: questionMastery.questionId,
+      passageSetId: questions.passageSetId,
+      part: questions.toeicPart,
+      skillArea: questions.skillArea,
+      skill: questions.skill,
+      subSkill: questions.subSkill,
+    })
+    .from(practiceSessionQuestions)
+    .innerJoin(
+      practiceSessions,
+      eq(practiceSessions.id, practiceSessionQuestions.sessionId),
+    )
+    .innerJoin(questions, eq(questions.id, practiceSessionQuestions.questionId))
+    .innerJoin(
+      attemptAnswers,
+      and(
+        eq(attemptAnswers.sessionId, practiceSessionQuestions.sessionId),
+        eq(attemptAnswers.questionId, practiceSessionQuestions.questionId),
+      ),
+    )
+    .innerJoin(
+      questionMastery,
+      and(
+        eq(questionMastery.userId, userId),
+        sql`${questionMastery.questionId} = coalesce(${practiceSessionQuestions.masteryTargetQuestionId}, ${practiceSessionQuestions.questionId})`,
+      ),
+    )
+    .where(
+      and(
+        eq(practiceSessions.id, sourceSessionId),
+        eq(practiceSessions.userId, userId),
+        eq(practiceSessions.status, "submitted"),
+        eq(practiceSessionQuestions.displayOrder, questionNumber),
+        eq(attemptAnswers.isCorrect, false),
+      ),
+    )
+    .limit(1);
+  if (!target || ![1, 2, 3, 4, 5, 6, 7].includes(target.part)) {
+    throw new Error("NO_MISTAKES");
+  }
+
+  const capabilities = await getEffectiveCapabilities(userId);
+  const fallback = async () => ({
+    sessionId: await createMasteryReviewSession(userId, target.part, {
+      smart: capabilities.canUseSmartMistakeReview,
+    }),
+    focused: false,
+  });
+
+  let selectedQuestions: Array<typeof questions.$inferSelect> = [];
+  try {
+    if (target.skillArea === "LISTENING" && target.part <= 4) {
+      selectedQuestions = await selectListeningPractice(
+        target.part as 1 | 2 | 3 | 4,
+        1,
+        {
+          userId,
+          skill: target.skill,
+          subSkill: target.subSkill,
+          strictTaxonomy: true,
+          excludedPassageSetIds: target.passageSetId
+            ? new Set([target.passageSetId])
+            : undefined,
+        },
+      );
+    } else if (target.skillArea === "READING" && target.part >= 5) {
+      const units = await loadUnits(
+        target.part as ReadingPart,
+        target.skill,
+        target.subSkill,
+      );
+      const candidateIds = flattenUniqueQuestionIds(units);
+      const history = await loadContentHistory(userId, candidateIds);
+      const selectedUnit = rankFocusedRemediationUnits(
+        units,
+        history,
+        target.passageSetId ?? target.questionId,
+      )[0];
+      if (selectedUnit) {
+        selectedQuestions = await db
+          .select()
+          .from(questions)
+          .where(inArray(questions.id, selectedUnit.questionIds))
+          .orderBy(asc(questions.questionOrder));
+      }
+    }
+  } catch {
+    selectedQuestions = [];
+  }
+  if (!selectedQuestions.length) return fallback();
+
+  const selectedHistory = await loadContentHistory(
+    userId,
+    selectedQuestions.map((question) => question.id),
+  );
+  const evidenceQuestion = chooseRemediationEvidenceQuestion(
+    selectedQuestions,
+    selectedHistory,
+    { skill: target.skill, subSkill: target.subSkill },
+  );
+  if (!evidenceQuestion) return fallback();
+  const [evidenceSolution] = await db
+    .select({
+      explanationEn: questionSolutions.explanationEn,
+      explanationVi: questionSolutions.explanationVi,
+    })
+    .from(questionSolutions)
+    .where(eq(questionSolutions.questionId, evidenceQuestion.id))
+    .limit(1);
+  if (!evidenceSolution || (!evidenceSolution.explanationEn?.trim() && !evidenceSolution.explanationVi?.trim())) {
+    return fallback();
+  }
+
+  const sessionId = randomUUID();
+  const now = new Date();
+  const savedId = await db.transaction(async (tx) => {
+    await tx.execute(
+      sql`select pg_advisory_xact_lock(hashtextextended(${`${userId}:practice`}, 0))`,
+    );
+    await tx
+      .update(practiceSessions)
+      .set({ status: "abandoned" })
+      .where(
+        and(
+          eq(practiceSessions.userId, userId),
+          eq(practiceSessions.status, "in_progress"),
+          ne(practiceSessions.practiceType, "demo_test"),
+          ne(practiceSessions.source, "diagnostic"),
+        ),
+      );
+    await consumeUsage(tx, {
+      userId,
+      entitlement: "MASTERY_REVIEW",
+      sourceType: "PRACTICE_SESSION",
+      sourceId: sessionId,
+      now,
+    });
+    const [session] = await tx
+      .insert(practiceSessions)
+      .values({
+        id: sessionId,
+        userId,
+        skillArea: target.skillArea,
+        practiceType:
+          target.skillArea === "LISTENING"
+            ? `listening_part_${target.part}`
+            : `part_${target.part}`,
+        part: target.part,
+        questionCount: selectedQuestions.length,
+        requestedQuestionCount: selectedQuestions.length,
+        source: "mastery_review",
+        requestedSkill: target.skill,
+        requestedSubSkill: target.subSkill,
+      })
+      .returning({ id: practiceSessions.id });
+    await tx.insert(practiceSessionQuestions).values(
+      selectedQuestions.map((question, index) => ({
+        sessionId: session.id,
+        questionId: question.id,
+        displayOrder: index + 1,
+        passageSetId: question.toeicPart === 5 ? null : question.passageSetId,
+        masteryTargetQuestionId:
+          question.id === evidenceQuestion.id ? target.masteryQuestionId : null,
+      })),
+    );
+    return session.id;
+  });
+  return { sessionId: savedId, focused: true };
 }

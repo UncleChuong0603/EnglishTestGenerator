@@ -13,10 +13,6 @@ import {
 } from "./selector";
 import type { PracticeConfig, ReadingPracticeMode } from "./types";
 
-function readingQuestionCount(value: number): PracticeConfig["targetQuestionCount"] {
-  return value >= 20 ? 20 : value >= 15 ? 15 : 10;
-}
-
 export type PracticeStartCommand =
   | { kind: "TODAYS_WORKOUT" }
   | { kind: "CUSTOM_READING"; config: PracticeConfig }
@@ -55,7 +51,7 @@ async function startTodaysWorkout(userId: string) {
     }
     return createReadingPracticeSession(userId, {
       mode: "mixed_reading",
-      targetQuestionCount: readingQuestionCount(safeSize.questionCount),
+      targetQuestionCount: 10,
       source: "recommended",
     });
   }

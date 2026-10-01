@@ -2,7 +2,6 @@ import "server-only";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { practiceSessions, questions } from "@/db/schema";
-import { getCurrentUser } from "@/lib/auth/session";
 import { getToeicProgress } from "@/lib/progress/queries";
 import type { ToeicProgress } from "@/lib/progress/types";
 import type { PartBearingSkillArea, ToeicPart } from "@/lib/toeic/domain";
@@ -28,7 +27,7 @@ export async function loadRecommendedWorkout(userId: string): Promise<WorkoutRec
 export async function loadRecommendedWorkoutFromProgress(userId: string, progress: ToeicProgress): Promise<WorkoutRecommendation> {
   return recommendWorkout(calculateToeicDiagnosis(progress), await contextFor(userId));
 }
-export async function getCurrentToeicDiagnosis(): Promise<ToeicDiagnosis | null> { const user = await getCurrentUser(); return user ? loadToeicDiagnosis(user.id) : null; }
-export async function getCurrentRecommendedWorkout(): Promise<WorkoutRecommendation | null> { const user = await getCurrentUser(); return user ? loadRecommendedWorkout(user.id) : null; }
+export async function getCurrentToeicDiagnosis(): Promise<ToeicDiagnosis | null> { const { getCurrentUser } = await import("@/lib/auth/session"); const user = await getCurrentUser(); return user ? loadToeicDiagnosis(user.id) : null; }
+export async function getCurrentRecommendedWorkout(): Promise<WorkoutRecommendation | null> { const { getCurrentUser } = await import("@/lib/auth/session"); const user = await getCurrentUser(); return user ? loadRecommendedWorkout(user.id) : null; }
 
 export function isListeningPart(part: ToeicPart | null): part is 1 | 2 | 3 | 4 { return part !== null && part >= 1 && part <= 4; }

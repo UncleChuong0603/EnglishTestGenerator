@@ -65,4 +65,11 @@ describe("mobile API v1 contracts", () => {
   it("standardizes error envelopes", () => {
     expect(apiErrorResponseSchema.parse({ error: { code: "UNAUTHENTICATED", message: "Authentication is required.", requestId: "request-123" } })).toBeTruthy();
   });
+
+  it("rejects inconsistent Reading/Listening sizes and parts", () => {
+    expect(createPracticeRequestSchema.safeParse({ kind: "CUSTOM", skillArea: "READING", part: 2, questionCount: 10 }).success).toBe(false);
+    expect(createPracticeRequestSchema.safeParse({ kind: "CUSTOM", skillArea: "READING", part: 5, questionCount: 3 }).success).toBe(false);
+    expect(createPracticeRequestSchema.safeParse({ kind: "CUSTOM", skillArea: "LISTENING", part: 3, questionCount: 10 }).success).toBe(false);
+    expect(createPracticeRequestSchema.safeParse({ kind: "CUSTOM", skillArea: "LISTENING", part: 3, questionCount: 9 }).success).toBe(true);
+  });
 });

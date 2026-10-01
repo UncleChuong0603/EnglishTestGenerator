@@ -53,8 +53,18 @@ export async function getMistakeBank(userId: string, status: MistakeStatus, filt
 }
 
 export async function getMistakeCounts(userId: string) {
-  const rows = await db.select({ status: questionMastery.status, count: sql<number>`count(*)::int` }).from(questionMastery).innerJoin(questions, eq(questions.id, questionMastery.questionId)).where(and(eq(questionMastery.userId, userId), visibleEvidence)).groupBy(questionMastery.status);
-  return { unresolved: rows.find((r) => r.status === "UNRESOLVED")?.count ?? 0, mastered: rows.find((r) => r.status === "MASTERED")?.count ?? 0 };
+  const [row] = await db.select({
+    unresolved: sql<number>`count(*) filter (where ${questionMastery.status} = 'UNRESOLVED')::int`,
+    needsReview: sql<number>`count(*) filter (where ${questionMastery.status} = 'UNRESOLVED' and ${questionMastery.reviewSuccessStreak} = 0)::int`,
+    strengthening: sql<number>`count(*) filter (where ${questionMastery.status} = 'UNRESOLVED' and ${questionMastery.reviewSuccessStreak} > 0)::int`,
+    mastered: sql<number>`count(*) filter (where ${questionMastery.status} = 'MASTERED')::int`,
+  }).from(questionMastery).innerJoin(questions, eq(questions.id, questionMastery.questionId)).where(and(eq(questionMastery.userId, userId), visibleEvidence));
+  return {
+    unresolved: Number(row?.unresolved ?? 0),
+    needsReview: Number(row?.needsReview ?? 0),
+    strengthening: Number(row?.strengthening ?? 0),
+    mastered: Number(row?.mastered ?? 0),
+  };
 }
 
 export type MistakeOverview = {
@@ -109,13 +119,13 @@ export async function expandReviewGroups(seedIds: string[], part: number) {
 export async function getMasteryReviewSummary(sessionId: string, userId: string) {
   const [session] = await db.select({ source: practiceSessions.source, startedAt: practiceSessions.startedAt }).from(practiceSessions).where(and(eq(practiceSessions.id, sessionId), eq(practiceSessions.userId, userId))).limit(1);
   if (!session || session.source !== "mastery_review") return null;
-  const assigned = await db.select({ questionId: practiceSessionQuestions.questionId }).from(practiceSessionQuestions).where(eq(practiceSessionQuestions.sessionId, sessionId));
-  const ids = assigned.map((row) => row.questionId); if (!ids.length) return null;
+  const assigned = await db.select({ questionId: practiceSessionQuestions.questionId, masteryTargetQuestionId: practiceSessionQuestions.masteryTargetQuestionId }).from(practiceSessionQuestions).where(eq(practiceSessionQuestions.sessionId, sessionId));
+  const ids = [...new Set(assigned.map((row) => row.masteryTargetQuestionId ?? row.questionId))]; if (!ids.length) return null;
   const rows = await db.select({ status: questionMastery.status, masteredAt: questionMastery.masteredAt }).from(questionMastery).where(and(eq(questionMastery.userId, userId), inArray(questionMastery.questionId, ids)));
   const overview = await getMistakeOverview(userId);
   return {
     trackedItems: rows.length,
-    answeredQuestions: ids.length,
+    answeredQuestions: assigned.length,
     masteredThisSession: rows.filter((row) => row.status === "MASTERED" && row.masteredAt && row.masteredAt >= session.startedAt).length,
     stillToReview: rows.filter((row) => row.status === "UNRESOLVED").length,
     remainingReviewable: overview.reviewableCount,

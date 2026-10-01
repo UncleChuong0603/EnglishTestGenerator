@@ -1,0 +1,3 @@
+ALTER TABLE "practice_session_questions" ADD COLUMN "mastery_target_question_id" uuid;--> statement-breakpoint
+ALTER TABLE "practice_session_questions" ADD CONSTRAINT "practice_session_questions_mastery_target_question_id_questions_id_fk" FOREIGN KEY ("mastery_target_question_id") REFERENCES "public"."questions"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "practice_session_questions_mastery_target_idx" ON "practice_session_questions" USING btree ("mastery_target_question_id");

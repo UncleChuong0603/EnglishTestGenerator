@@ -1,6 +1,6 @@
 {
-  "id": "1554c6ab-2c81-401a-8042-5b8fd11c88f6",
-  "prevId": "90cb21e1-7dac-4685-b91e-831da8231a94",
+  "id": "45909e73-9277-41eb-a452-de399ba90ec5",
+  "prevId": "25a631ea-42d5-4d2d-9c74-fb70eb1ba29c",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -240,7 +240,7 @@
       "checkConstraints": {
         "admin_audit_logs_action_check": {
           "name": "admin_audit_logs_action_check",
-          "value": "\"admin_audit_logs\".\"action\" in ('ADMIN_ROLE_GRANTED','ADMIN_ROLE_REVOKED','USER_SUSPENDED','USER_REACTIVATED','PREMIUM_GRANTED','PREMIUM_REVOKED','CONTENT_DRAFT_CREATED','CONTENT_DRAFT_UPDATED','CONTENT_CLONED','CONTENT_PUBLISHED','CONTENT_ARCHIVED','CONTENT_DRAFT_DISCARDED','CONTENT_UNARCHIVED','CONTENT_DUPLICATE_DELETED','QUESTION_REPORT_STATUS_UPDATED','MEDIA_UPLOADED','CHALLENGE_DRAFT_CREATED','CHALLENGE_FORM_GENERATED','CHALLENGE_PUBLISHED','CHALLENGE_CANCELLED','SEO_POST_CREATED','SEO_POST_UPDATED','SEO_POST_PUBLISHED','SEO_POST_UNPUBLISHED','SEO_POST_DELETED','IMPORT_VALIDATED','IMPORT_COMMITTED','IMPORT_FAILED','QUESTION_BANK_BLUEPRINT_UPDATED','CONTENT_QUALITY_SETTINGS_UPDATED','SUPPORT_SETTINGS_UPDATED','LISTENING_LESSON_CREATED','LISTENING_LESSON_UPDATED','LISTENING_LESSON_PUBLISHED','LISTENING_LESSON_ARCHIVED')"
+          "value": "\"admin_audit_logs\".\"action\" in ('ADMIN_ROLE_GRANTED','ADMIN_ROLE_REVOKED','USER_SUSPENDED','USER_REACTIVATED','PREMIUM_GRANTED','PREMIUM_REVOKED','CONTENT_DRAFT_CREATED','CONTENT_DRAFT_UPDATED','CONTENT_CLONED','CONTENT_PUBLISHED','CONTENT_ARCHIVED','CONTENT_DRAFT_DISCARDED','CONTENT_UNARCHIVED','CONTENT_DUPLICATE_DELETED','MEDIA_UPLOADED','CHALLENGE_DRAFT_CREATED','CHALLENGE_FORM_GENERATED','CHALLENGE_PUBLISHED','CHALLENGE_CANCELLED','SEO_POST_CREATED','SEO_POST_UPDATED','SEO_POST_PUBLISHED','SEO_POST_UNPUBLISHED','SEO_POST_DELETED','IMPORT_VALIDATED','IMPORT_COMMITTED','IMPORT_FAILED','QUESTION_BANK_BLUEPRINT_UPDATED','CONTENT_QUALITY_SETTINGS_UPDATED','SUPPORT_SETTINGS_UPDATED','LISTENING_LESSON_CREATED','LISTENING_LESSON_UPDATED','LISTENING_LESSON_PUBLISHED','LISTENING_LESSON_ARCHIVED','QUESTION_REPORT_REVIEW_STARTED','QUESTION_REPORT_RESOLVED','QUESTION_REPORT_DISMISSED','QUESTION_REPORT_CORRECTION_DRAFTED')"
         }
       },
       "isRLSEnabled": false
@@ -3681,9 +3681,31 @@
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
+        },
+        "mastery_target_question_id": {
+          "name": "mastery_target_question_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "practice_session_questions_mastery_target_idx": {
+          "name": "practice_session_questions_mastery_target_idx",
+          "columns": [
+            {
+              "expression": "mastery_target_question_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "practice_session_questions_session_id_practice_sessions_id_fk": {
           "name": "practice_session_questions_session_id_practice_sessions_id_fk",
@@ -3717,6 +3739,19 @@
           "tableTo": "passage_sets",
           "columnsFrom": [
             "passage_set_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "practice_session_questions_mastery_target_question_id_questions_id_fk": {
+          "name": "practice_session_questions_mastery_target_question_id_questions_id_fk",
+          "tableFrom": "practice_session_questions",
+          "tableTo": "questions",
+          "columnsFrom": [
+            "mastery_target_question_id"
           ],
           "columnsTo": [
             "id"
@@ -5004,282 +5039,6 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.question_issue_reports": {
-      "name": "question_issue_reports",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "fingerprint": {
-          "name": "fingerprint",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "source": {
-          "name": "source",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'SYSTEM'"
-        },
-        "issue_type": {
-          "name": "issue_type",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "status": {
-          "name": "status",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'OPEN'"
-        },
-        "toeic_part": {
-          "name": "toeic_part",
-          "type": "smallint",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "primary_group_id": {
-          "name": "primary_group_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "related_group_id": {
-          "name": "related_group_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "confidence_percent": {
-          "name": "confidence_percent",
-          "type": "smallint",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "evidence": {
-          "name": "evidence",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'{}'::jsonb"
-        },
-        "detected_at": {
-          "name": "detected_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "last_detected_at": {
-          "name": "last_detected_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "resolved_at": {
-          "name": "resolved_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "resolved_by": {
-          "name": "resolved_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "question_issue_reports_fingerprint_uidx": {
-          "name": "question_issue_reports_fingerprint_uidx",
-          "columns": [
-            {
-              "expression": "fingerprint",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "question_issue_reports_queue_idx": {
-          "name": "question_issue_reports_queue_idx",
-          "columns": [
-            {
-              "expression": "status",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "issue_type",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "last_detected_at",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "question_issue_reports_part_idx": {
-          "name": "question_issue_reports_part_idx",
-          "columns": [
-            {
-              "expression": "toeic_part",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "status",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "question_issue_reports_primary_group_idx": {
-          "name": "question_issue_reports_primary_group_idx",
-          "columns": [
-            {
-              "expression": "primary_group_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "question_issue_reports_related_group_idx": {
-          "name": "question_issue_reports_related_group_idx",
-          "columns": [
-            {
-              "expression": "related_group_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "question_issue_reports_primary_group_id_passage_sets_id_fk": {
-          "name": "question_issue_reports_primary_group_id_passage_sets_id_fk",
-          "tableFrom": "question_issue_reports",
-          "tableTo": "passage_sets",
-          "columnsFrom": [
-            "primary_group_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "question_issue_reports_related_group_id_passage_sets_id_fk": {
-          "name": "question_issue_reports_related_group_id_passage_sets_id_fk",
-          "tableFrom": "question_issue_reports",
-          "tableTo": "passage_sets",
-          "columnsFrom": [
-            "related_group_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "question_issue_reports_resolved_by_users_id_fk": {
-          "name": "question_issue_reports_resolved_by_users_id_fk",
-          "tableFrom": "question_issue_reports",
-          "tableTo": "users",
-          "columnsFrom": [
-            "resolved_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {
-        "question_issue_reports_source_check": {
-          "name": "question_issue_reports_source_check",
-          "value": "\"question_issue_reports\".\"source\" in ('SYSTEM','LEARNER')"
-        },
-        "question_issue_reports_type_check": {
-          "name": "question_issue_reports_type_check",
-          "value": "\"question_issue_reports\".\"issue_type\" in ('DUPLICATE','CONTENT_ERROR','ANSWER_ERROR','MEDIA_ERROR','OTHER')"
-        },
-        "question_issue_reports_status_check": {
-          "name": "question_issue_reports_status_check",
-          "value": "\"question_issue_reports\".\"status\" in ('OPEN','IN_REVIEW','RESOLVED','DISMISSED')"
-        },
-        "question_issue_reports_part_check": {
-          "name": "question_issue_reports_part_check",
-          "value": "\"question_issue_reports\".\"toeic_part\" between 1 and 7"
-        },
-        "question_issue_reports_confidence_check": {
-          "name": "question_issue_reports_confidence_check",
-          "value": "\"question_issue_reports\".\"confidence_percent\" is null or \"question_issue_reports\".\"confidence_percent\" between 0 and 100"
-        },
-        "question_issue_reports_pair_check": {
-          "name": "question_issue_reports_pair_check",
-          "value": "\"question_issue_reports\".\"issue_type\" <> 'DUPLICATE' or (\"question_issue_reports\".\"related_group_id\" is not null and \"question_issue_reports\".\"primary_group_id\" <> \"question_issue_reports\".\"related_group_id\")"
-        }
-      },
-      "isRLSEnabled": false
-    },
     "public.question_mastery": {
       "name": "question_mastery",
       "schema": "",
@@ -5547,6 +5306,383 @@
       },
       "policies": {},
       "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.question_reports": {
+      "name": "question_reports",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "question_id": {
+          "name": "question_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "question_group_id": {
+          "name": "question_group_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "practice_session_id": {
+          "name": "practice_session_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reporter_user_id": {
+          "name": "reporter_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "guest_owner_hash": {
+          "name": "guest_owner_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source_type": {
+          "name": "source_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reason": {
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'OPEN'"
+        },
+        "resolution_note": {
+          "name": "resolution_note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reviewed_by": {
+          "name": "reviewed_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "remediation_group_id": {
+          "name": "remediation_group_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reviewed_at": {
+          "name": "reviewed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "resolved_at": {
+          "name": "resolved_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "question_reports_status_created_idx": {
+          "name": "question_reports_status_created_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "question_reports_question_status_idx": {
+          "name": "question_reports_question_status_idx",
+          "columns": [
+            {
+              "expression": "question_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "question_reports_reason_status_idx": {
+          "name": "question_reports_reason_status_idx",
+          "columns": [
+            {
+              "expression": "reason",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "question_reports_user_created_idx": {
+          "name": "question_reports_user_created_idx",
+          "columns": [
+            {
+              "expression": "reporter_user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "question_reports_guest_created_idx": {
+          "name": "question_reports_guest_created_idx",
+          "columns": [
+            {
+              "expression": "guest_owner_hash",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "question_reports_active_user_question_uidx": {
+          "name": "question_reports_active_user_question_uidx",
+          "columns": [
+            {
+              "expression": "reporter_user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "question_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"question_reports\".\"reporter_user_id\" is not null and \"question_reports\".\"status\" in ('OPEN','IN_REVIEW')",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "question_reports_active_guest_question_uidx": {
+          "name": "question_reports_active_guest_question_uidx",
+          "columns": [
+            {
+              "expression": "guest_owner_hash",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "question_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"question_reports\".\"guest_owner_hash\" is not null and \"question_reports\".\"status\" in ('OPEN','IN_REVIEW')",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "question_reports_question_id_questions_id_fk": {
+          "name": "question_reports_question_id_questions_id_fk",
+          "tableFrom": "question_reports",
+          "tableTo": "questions",
+          "columnsFrom": [
+            "question_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "question_reports_question_group_id_passage_sets_id_fk": {
+          "name": "question_reports_question_group_id_passage_sets_id_fk",
+          "tableFrom": "question_reports",
+          "tableTo": "passage_sets",
+          "columnsFrom": [
+            "question_group_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "question_reports_practice_session_id_practice_sessions_id_fk": {
+          "name": "question_reports_practice_session_id_practice_sessions_id_fk",
+          "tableFrom": "question_reports",
+          "tableTo": "practice_sessions",
+          "columnsFrom": [
+            "practice_session_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "question_reports_reporter_user_id_users_id_fk": {
+          "name": "question_reports_reporter_user_id_users_id_fk",
+          "tableFrom": "question_reports",
+          "tableTo": "users",
+          "columnsFrom": [
+            "reporter_user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "question_reports_reviewed_by_users_id_fk": {
+          "name": "question_reports_reviewed_by_users_id_fk",
+          "tableFrom": "question_reports",
+          "tableTo": "users",
+          "columnsFrom": [
+            "reviewed_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "question_reports_remediation_group_id_passage_sets_id_fk": {
+          "name": "question_reports_remediation_group_id_passage_sets_id_fk",
+          "tableFrom": "question_reports",
+          "tableTo": "passage_sets",
+          "columnsFrom": [
+            "remediation_group_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "question_reports_actor_check": {
+          "name": "question_reports_actor_check",
+          "value": "num_nonnulls(\"question_reports\".\"reporter_user_id\", \"question_reports\".\"guest_owner_hash\") = 1"
+        },
+        "question_reports_source_check": {
+          "name": "question_reports_source_check",
+          "value": "\"question_reports\".\"source_type\" in ('PRACTICE','DIAGNOSTIC','CHALLENGE','MISTAKE_REVIEW','FULL_MOCK')"
+        },
+        "question_reports_reason_check": {
+          "name": "question_reports_reason_check",
+          "value": "\"question_reports\".\"reason\" in ('ANSWER_INCORRECT','EXPLANATION_ISSUE','AMBIGUOUS','TYPO_GRAMMAR','MEDIA_BROKEN','OTHER')"
+        },
+        "question_reports_status_check": {
+          "name": "question_reports_status_check",
+          "value": "\"question_reports\".\"status\" in ('OPEN','IN_REVIEW','RESOLVED','DISMISSED')"
+        },
+        "question_reports_description_length_check": {
+          "name": "question_reports_description_length_check",
+          "value": "\"question_reports\".\"description\" is null or char_length(\"question_reports\".\"description\") between 1 and 500"
+        },
+        "question_reports_resolution_length_check": {
+          "name": "question_reports_resolution_length_check",
+          "value": "\"question_reports\".\"resolution_note\" is null or char_length(\"question_reports\".\"resolution_note\") between 1 and 1000"
+        },
+        "question_reports_resolution_check": {
+          "name": "question_reports_resolution_check",
+          "value": "(\"question_reports\".\"status\" in ('RESOLVED','DISMISSED') and \"question_reports\".\"resolved_at\" is not null and \"question_reports\".\"resolution_note\" is not null) or (\"question_reports\".\"status\" in ('OPEN','IN_REVIEW') and \"question_reports\".\"resolved_at\" is null)"
+        }
+      },
       "isRLSEnabled": false
     },
     "public.question_solutions": {
@@ -7636,12 +7772,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'pending_verification'"
-        },
-        "deleted_at": {
-          "name": "deleted_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
         },
         "last_login_at": {
           "name": "last_login_at",

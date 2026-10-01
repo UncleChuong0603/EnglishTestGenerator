@@ -24,6 +24,7 @@ import {
   profiles,
   questionBankSettings,
   questionMastery,
+  questionReports,
   rankedChallengeRuns,
   securityEvents,
   studyStreaks,
@@ -84,20 +85,25 @@ export async function exportLearningData(userId: string, exportedAt = new Date()
       paymentRows,
       emailRows,
       supportRows,
-    ] = await Promise.all([
-      tx.select().from(profiles).where(eq(profiles.id, userId)),
-      tx.select().from(learnerGoals).where(eq(learnerGoals.userId, userId)),
-      tx.select().from(learnerContexts).where(eq(learnerContexts.userId, userId)),
-      tx.select({ provider: authIdentities.provider, createdAt: authIdentities.createdAt }).from(authIdentities).where(eq(authIdentities.userId, userId)),
-      tx.select({
+    ] = [
+      await tx.select().from(profiles).where(eq(profiles.id, userId)),
+      await tx.select().from(learnerGoals).where(eq(learnerGoals.userId, userId)),
+      await tx.select().from(learnerContexts).where(eq(learnerContexts.userId, userId)),
+      await tx.select({ provider: authIdentities.provider, createdAt: authIdentities.createdAt }).from(authIdentities).where(eq(authIdentities.userId, userId)),
+      await tx.select({
         id: practiceSessions.id, skillArea: practiceSessions.skillArea, practiceType: practiceSessions.practiceType,
         part: practiceSessions.part, status: practiceSessions.status, questionCount: practiceSessions.questionCount,
         startedAt: practiceSessions.startedAt, submittedAt: practiceSessions.submittedAt,
-        scoreCorrect: practiceSessions.scoreCorrect, scoreTotal: practiceSessions.scoreTotal,
+        // Scores can reveal answers to an unfinished parent exam.
+        scoreCorrect: sql<number | null>`case when ${practiceSessions.status} = 'submitted'
+          and (${practiceSessions.fullMockRunId} is null or exists (select 1 from full_mock_runs fm where fm.id = ${practiceSessions.fullMockRunId} and fm.status = 'COMPLETED'))
+          and (${practiceSessions.diagnosticRunId} is null or exists (select 1 from diagnostic_runs dr where dr.id = ${practiceSessions.diagnosticRunId} and dr.status = 'COMPLETED'))
+          and ${practiceSessions.rankedChallengeRunId} is null then ${practiceSessions.scoreCorrect} else null end`,
+        scoreTotal: practiceSessions.scoreTotal,
         source: practiceSessions.source, requestedQuestionCount: practiceSessions.requestedQuestionCount,
         requestedSkill: practiceSessions.requestedSkill, requestedSubSkill: practiceSessions.requestedSubSkill,
       }).from(practiceSessions).where(eq(practiceSessions.userId, userId)),
-      tx.select({
+      await tx.select({
         id: attemptAnswers.id,
         sessionId: attemptAnswers.sessionId,
         questionId: attemptAnswers.questionId,
@@ -113,19 +119,21 @@ export async function exportLearningData(userId: string, exportedAt = new Date()
         answeredAt: attemptAnswers.answeredAt,
         createdAt: attemptAnswers.createdAt,
       }).from(attemptAnswers).innerJoin(practiceSessions, and(eq(practiceSessions.id, attemptAnswers.sessionId), eq(practiceSessions.userId, attemptAnswers.userId))).where(eq(attemptAnswers.userId, userId)),
-      tx.select().from(questionMastery).where(eq(questionMastery.userId, userId)),
-      tx.select().from(userVocabulary).where(eq(userVocabulary.userId, userId)),
-      tx.select().from(weeklyPlanSnapshots).where(eq(weeklyPlanSnapshots.userId, userId)),
-      tx.select().from(studyStreaks).where(eq(studyStreaks.userId, userId)),
-      tx.select({ id: diagnosticRuns.id, status: diagnosticRuns.status, purpose: diagnosticRuns.purpose,
+      await tx.select().from(questionMastery).where(eq(questionMastery.userId, userId)),
+      await tx.select().from(userVocabulary).where(eq(userVocabulary.userId, userId)),
+      await tx.select().from(weeklyPlanSnapshots).where(eq(weeklyPlanSnapshots.userId, userId)),
+      await tx.select().from(studyStreaks).where(eq(studyStreaks.userId, userId)),
+      await tx.select({ id: diagnosticRuns.id, status: diagnosticRuns.status, purpose: diagnosticRuns.purpose,
         createdAt: diagnosticRuns.createdAt, expiresAt: diagnosticRuns.expiresAt,
         completedAt: diagnosticRuns.completedAt }).from(diagnosticRuns).where(eq(diagnosticRuns.userId, userId)),
-      tx.select().from(fullMockRuns).where(eq(fullMockRuns.userId, userId)),
-      tx.select().from(rankedChallengeRuns).where(eq(rankedChallengeRuns.userId, userId)),
-      tx.select().from(gamificationEvents).where(eq(gamificationEvents.userId, userId)),
-      tx.select().from(userPlanMemberships).where(eq(userPlanMemberships.userId, userId)),
-      tx.select().from(usageConsumptions).where(eq(usageConsumptions.userId, userId)),
-      tx.select({
+      await tx.select().from(fullMockRuns).where(eq(fullMockRuns.userId, userId)),
+      await tx.select({ id: rankedChallengeRuns.id, challengeId: rankedChallengeRuns.challengeId,
+        status: rankedChallengeRuns.status, startedAt: rankedChallengeRuns.startedAt,
+        completedAt: rankedChallengeRuns.completedAt }).from(rankedChallengeRuns).where(eq(rankedChallengeRuns.userId, userId)),
+      await tx.select().from(gamificationEvents).where(eq(gamificationEvents.userId, userId)),
+      await tx.select().from(userPlanMemberships).where(eq(userPlanMemberships.userId, userId)),
+      await tx.select().from(usageConsumptions).where(eq(usageConsumptions.userId, userId)),
+      await tx.select({
         id: paymentOrders.id,
         productKey: paymentOrders.productKey,
         provider: paymentOrders.provider,
@@ -139,7 +147,7 @@ export async function exportLearningData(userId: string, exportedAt = new Date()
         createdAt: paymentOrders.createdAt,
         updatedAt: paymentOrders.updatedAt,
       }).from(paymentOrders).where(eq(paymentOrders.userId, userId)),
-      tx.select({
+      await tx.select({
         type: lifecycleEmails.type,
         windowKey: lifecycleEmails.windowKey,
         status: lifecycleEmails.status,
@@ -149,7 +157,7 @@ export async function exportLearningData(userId: string, exportedAt = new Date()
         attempts: lifecycleEmails.attempts,
         createdAt: lifecycleEmails.createdAt,
       }).from(lifecycleEmails).where(eq(lifecycleEmails.userId, userId)),
-      tx.select({
+      await tx.select({
         id: supportTickets.id,
         category: supportTickets.category,
         subject: supportTickets.subject,
@@ -158,14 +166,19 @@ export async function exportLearningData(userId: string, exportedAt = new Date()
         createdAt: supportTickets.createdAt,
         updatedAt: supportTickets.updatedAt,
       }).from(supportTickets).where(eq(supportTickets.userId, userId)),
-    ]);
+    ] as const;
 
-    const [demoDrafts, mockDrafts] = await Promise.all([
-      tx.select({ sessionId: demoTestAnswers.sessionId, questionId: demoTestAnswers.questionId,
+    const [demoDrafts, mockDrafts, reports] = [
+      await tx.select({ sessionId: demoTestAnswers.sessionId, questionId: demoTestAnswers.questionId,
         selectedOptionId: demoTestAnswers.selectedOptionId, answeredAt: demoTestAnswers.answeredAt }).from(demoTestAnswers).where(eq(demoTestAnswers.userId, userId)),
-      tx.select({ sessionId: fullMockAnswers.sessionId, questionId: fullMockAnswers.questionId,
+      await tx.select({ sessionId: fullMockAnswers.sessionId, questionId: fullMockAnswers.questionId,
         selectedOptionId: fullMockAnswers.selectedOptionId, answeredAt: fullMockAnswers.answeredAt }).from(fullMockAnswers).where(eq(fullMockAnswers.userId, userId)),
-    ]);
+      await tx.select({ id: questionReports.id, questionId: questionReports.questionId,
+        sourceType: questionReports.sourceType, reason: questionReports.reason,
+        description: questionReports.description, status: questionReports.status,
+        createdAt: questionReports.createdAt, updatedAt: questionReports.updatedAt })
+        .from(questionReports).where(eq(questionReports.reporterUserId, userId)),
+    ] as const;
     return {
       format: "toeicgym-learning-data" as const,
       version: LEARNING_DATA_EXPORT_VERSION,
@@ -194,7 +207,7 @@ export async function exportLearningData(userId: string, exportedAt = new Date()
         gamification: gamificationRows,
       },
       planAndBilling: { memberships: membershipRows, usage: usageRows, payments: paymentRows },
-      communications: { lifecycleEmails: emailRows, supportTickets: supportRows },
+      communications: { lifecycleEmails: emailRows, supportTickets: supportRows, questionReports: reports },
     };
   });
 }
@@ -225,6 +238,10 @@ export async function deleteAccount(userId: string, confirmationEmail: string, n
     if (privateMedia) throw new AccountDataError("PRIVATE_DATA_HANDOFF_REQUIRED");
 
     // A row lock serializes duplicate requests; every mutation below is retry-safe.
+    // Learner-authored report text is personal data. Removing it does not remove
+    // the published correction or remediation mappings on practice assignments.
+    await tx.delete(questionReports).where(eq(questionReports.reporterUserId, userId));
+    await tx.update(questionReports).set({ reviewedBy: null }).where(eq(questionReports.reviewedBy, userId));
     await tx.delete(rankedChallengeRuns).where(eq(rankedChallengeRuns.userId, userId));
     await tx.delete(fullMockRuns).where(eq(fullMockRuns.userId, userId));
     await tx.delete(diagnosticRuns).where(eq(diagnosticRuns.userId, userId));

@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "Account deleted | TOEICGym", robots:
 
 export default async function AccountDeletedPage() {
   const vi = await getCookieLanguage() === "vi";
-  return <main className="min-h-screen bg-slate-50 px-4 py-16 text-slate-900">
+  return <main data-account-data-page className="min-h-screen bg-slate-50 px-4 py-16 text-slate-900">
     <div className="mx-auto max-w-xl rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
       <h1 className="text-3xl font-black">{vi ? "Tài khoản đã được xóa" : "Account deleted"}</h1>
       <p className="mt-4 leading-7 text-slate-600">{vi ? "Dữ liệu học tập đã được xóa và mọi phiên đăng nhập đã hết hiệu lực. Những hồ sơ thanh toán cần lưu được giữ dưới mã tài khoản đã ẩn danh." : "Your learning data has been removed and every session is invalidated. Required payment records are retained under a pseudonymous account reference."}</p>

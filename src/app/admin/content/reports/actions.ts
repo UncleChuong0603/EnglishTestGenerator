@@ -3,34 +3,35 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin/authorization";
-import {
-  QUESTION_REPORT_STATUSES,
-  QUESTION_REPORT_TYPES,
-  updateQuestionIssueReportStatus,
-  type QuestionReportStatus,
-  type QuestionReportType,
-} from "@/lib/admin/question-issue-reports";
+import { prepareQuestionReportCorrection, QuestionReportError, updateQuestionReportStatus } from "@/lib/question-reports/service";
+import type { QuestionReportStatus } from "@/lib/question-reports/catalog";
+
+const value = (formData: FormData, key: string) => String(formData.get(key) ?? "");
+const detailPath = (questionId: string, code?: string) => `/admin/content/reports/${encodeURIComponent(questionId)}${code ? `?notice=${encodeURIComponent(code)}` : ""}`;
 
 export async function updateQuestionReportStatusAction(formData: FormData) {
   const actor = await requireAdmin("CONTENT_MANAGE");
-  const id = String(formData.get("id") ?? "");
-  const status = String(formData.get("status") ?? "") as QuestionReportStatus;
-  const returnStatus = String(formData.get("returnStatus") ?? "OPEN") as QuestionReportStatus;
-  const issueType = String(formData.get("type") ?? "") as QuestionReportType;
-  const part = Number(formData.get("part"));
-  const expectedStatus = String(formData.get("expectedStatus") ?? "") as QuestionReportStatus;
-  const query = new URLSearchParams({ status: QUESTION_REPORT_STATUSES.includes(returnStatus) ? returnStatus : "OPEN" });
-  if (Number.isInteger(part) && part >= 1 && part <= 7) query.set("part", String(part));
-  if (QUESTION_REPORT_TYPES.includes(issueType)) query.set("type", issueType);
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id) || !QUESTION_REPORT_STATUSES.includes(status) || !QUESTION_REPORT_STATUSES.includes(expectedStatus)) {
-    redirect(`/admin/content/reports?${query}&error=invalid`);
-  }
+  const questionId = value(formData, "questionId");
+  const status = value(formData, "status") as Exclude<QuestionReportStatus, "OPEN">;
   try {
-    await updateQuestionIssueReportStatus(actor.id, id, status, expectedStatus);
+    await updateQuestionReportStatus(actor.id, { reportId: value(formData, "reportId"), status, note: value(formData, "note") });
+    revalidatePath("/admin/content/reports");
+    revalidatePath(detailPath(questionId));
   } catch (error) {
-    const code = error instanceof Error && error.message === "STALE_REPORT" ? "stale" : "failed";
-    redirect(`/admin/content/reports?${query}&error=${code}`);
+    redirect(detailPath(questionId, error instanceof QuestionReportError ? error.code : "FAILED"));
   }
-  revalidatePath("/admin/content/reports");
-  redirect(`/admin/content/reports?${query}&updated=1`);
+  redirect(detailPath(questionId, status));
+}
+
+export async function prepareQuestionReportCorrectionAction(formData: FormData) {
+  const actor = await requireAdmin("CONTENT_MANAGE");
+  const questionId = value(formData, "questionId");
+  let draft: Awaited<ReturnType<typeof prepareQuestionReportCorrection>>;
+  try {
+    draft = await prepareQuestionReportCorrection(actor.id, value(formData, "reportId"));
+    revalidatePath("/admin/content/reports");
+  } catch (error) {
+    redirect(detailPath(questionId, error instanceof QuestionReportError ? error.code : "FAILED"));
+  }
+  redirect(`/admin/content/questions/${encodeURIComponent(draft.groupId)}/edit?question=${encodeURIComponent(draft.questionId)}&fromReport=${encodeURIComponent(questionId)}`);
 }

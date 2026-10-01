@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { startReadingPractice } from "@/app/practice/actions";
+import { startFocusedRemediation, startReadingPractice } from "@/app/practice/actions";
 import { PerformanceList } from "@/components/analytics/performance-list";
 import { LearnerNav } from "@/components/learner-nav";
 import { PassageDocuments } from "@/components/practice/passage-documents";
@@ -27,6 +27,8 @@ import { guestContinuationPath } from "@/lib/auth/redirect";
 import { vocabularySuggestions } from "@/lib/vocabulary/catalog";
 import { getVocabularyCards } from "@/lib/vocabulary/service";
 import { ResultVocabularySuggestions } from "@/components/vocabulary/result-suggestions";
+import { ResultReview } from "@/components/practice/result-review";
+import { submitQuestionReportAction } from "@/app/question-reports/actions";
 
 export default async function PracticeResultsPage({
   params,
@@ -66,7 +68,10 @@ export default async function PracticeResultsPage({
       <>
         <ListeningResult
           locale={locale}
+          navigation={<LearnerNav locale={locale} />}
           premiumPreview={preview}
+          reportAction={submitQuestionReportAction}
+          remediationAction={startFocusedRemediation}
           recommendation={recommendation}
           result={result}
           reviewOutcome={reviewOutcome}
@@ -310,31 +315,19 @@ export default async function PracticeResultsPage({
             {t.results.learn}
           </p>
           <h2 className="mt-2 text-2xl font-black">{t.results.review}</h2>
-          <nav
-            aria-label={t.results.reviewNavigation}
-            className="mt-4 overflow-x-auto pb-2"
-          >
-            <div className="flex w-max min-w-full justify-center gap-2">
-              {result.questions.map((question) => (
-                <a
-                  className={`inline-flex h-10 min-w-10 shrink-0 items-center justify-center rounded-lg border px-2 text-sm font-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 ${question.isCorrect ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-red-200 bg-red-50 text-red-800"}`}
-                  href={`#review-question-${question.number}`}
-                  key={question.id}
-                >
-                  <span className="sr-only">{t.practice.question} </span>
-                  {question.number}{" "}
-                  <span aria-hidden="true" className="ml-1">
-                    {question.isCorrect ? "✓" : "✕"}
-                  </span>
-                </a>
-              ))}
-            </div>
-          </nav>
         </div>
+        <ResultReview
+          defaultFilter={result.questions.some((question) => !question.isCorrect) ? "incorrect" : "all"}
+          items={result.questions.map((question) => ({ id: question.id, number: question.number, isCorrect: question.isCorrect }))}
+          locale={locale}
+        >
         <div className="mt-4 space-y-6 pb-12">
           {result.groups.map((group) => (
             <section
               className="rounded-3xl border border-slate-200 bg-white/50 p-4 sm:p-6"
+              data-has-correct={group.questions.some((question) => question.isCorrect) ? "true" : "false"}
+              data-has-incorrect={group.questions.some((question) => !question.isCorrect) ? "true" : "false"}
+              data-result-group
               key={group.id}
             >
               <div className="mb-4">
@@ -361,16 +354,20 @@ export default async function PracticeResultsPage({
                 {group.questions.map((question) => {
                   const correct = question.options.find((option) => option.id === question.correctOptionId)?.text ?? "";
                   const vocabulary = vocabularySuggestions(question.text, correct, group.passages.map((passage) => passage.content));
-                  return <div key={question.id}><AnswerReviewCard
+                  return <div data-result-status={question.isCorrect ? "correct" : "incorrect"} key={question.id}><AnswerReviewCard
                     explanationLanguage={preferences.explanationLanguage}
                     locale={locale}
                     question={question}
+                    reportAction={submitQuestionReportAction}
+                    remediationAction={startFocusedRemediation}
+                    sessionId={result.id}
                   /><ResultVocabularySuggestions entries={vocabulary} locale={locale} questionId={question.id} savedKeys={savedKeys} sessionId={result.id} signedIn={Boolean(user)} /></div>;
                 })}
               </div>
             </section>
           ))}
         </div>
+        </ResultReview>
       </div>
     </main>
   );

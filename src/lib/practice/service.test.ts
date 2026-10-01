@@ -84,4 +84,11 @@ describe("shared practice start boundary", () => {
     await expect(startPractice("user-1", { kind: "WEEKLY_FOCUS" })).rejects.toThrow("PREMIUM_REQUIRED");
     expect(mocks.createRecommendedReadingPracticeSession).not.toHaveBeenCalled();
   });
+
+  it("preserves the existing ten-question mixed Reading fallback", async () => {
+    mocks.loadRecommendedWorkout.mockResolvedValue({ skillArea: "READING", part: null });
+    mocks.getGroupSafeWorkoutSize.mockReturnValue({ questionCount: 20 });
+    await startPractice("user-1", { kind: "TODAYS_WORKOUT" });
+    expect(mocks.createReadingPracticeSession).toHaveBeenCalledWith("user-1", { mode: "mixed_reading", targetQuestionCount: 10, source: "recommended" });
+  });
 });
