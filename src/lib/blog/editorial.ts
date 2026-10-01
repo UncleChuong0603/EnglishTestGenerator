@@ -269,7 +269,7 @@ Sau khi học 10–15 cụm, làm một bài ngắn đúng chủ đề. Đánh d
 
 Với *postpone a meeting*, ghi thêm câu “The team postponed the meeting until Friday.” Khi đọc email thông báo, bạn có thể gặp *the meeting has been rescheduled for Friday* — cùng ý đổi lịch nhưng cách diễn đạt khác. Hãy ghi cả hai cụm vào một thẻ, đọc lại sau vài ngày và tự viết một câu mới. Đây là ví dụ tự biên soạn để luyện cách diễn đạt lại.
 
-Trong tuần, kiểm tra từ đã học qua một đoạn email ngắn. Nếu chỉ nhận ra từ trên thẻ mà không hiểu nó trong câu, thêm câu chứa ngữ cảnh thay vì tăng số lượng thẻ. Xem [cách tìm bằng chứng trong Part 7](/blog/meo-lam-toeic-part-7-doc-hieu-nhieu-van-ban) để dùng vốn từ trong bài đọc thực tế.
+Trong tuần, kiểm tra từ đã học qua một đoạn email ngắn. Nếu chỉ nhận ra từ trên thẻ mà không hiểu nó trong câu, thêm câu chứa ngữ cảnh thay vì tăng số lượng thẻ. Xem [flashcard từ vựng TOEIC công sở](/toeic/flashcards-tu-vung-cong-so) để ôn lại các cụm trong câu hỏi và đáp án, rồi đọc [cách tìm bằng chứng trong Part 7](/blog/meo-lam-toeic-part-7-doc-hieu-nhieu-van-ban) để dùng vốn từ trong bài đọc thực tế.
 
 ## Bài kiểm tra nhớ lại sau bảy ngày
 

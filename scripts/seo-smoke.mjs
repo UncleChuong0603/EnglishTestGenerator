@@ -2,7 +2,7 @@
 // Usage: node scripts/seo-smoke.mjs [https://toeicgym.net]
 const origin = new URL(process.argv[2] ?? "https://toeicgym.net").origin;
 const privatePaths = ["/demo-test", "/practice", "/continue-learning", "/billing", "/admin", "/api/health", "/auth/callback"];
-const breadcrumbPaths = new Set(["/toeic", "/luyen-thi-toeic-online", "/toeic/listening", "/toeic/part-1", "/toeic/part-2", "/toeic/part-3", "/toeic/part-4", "/thi-thu-toeic-online", "/toeic/part-5", "/toeic/part-5/word-form", "/toeic/part-5/thi-dong-tu", "/toeic/part-5/practice", "/toeic/part-6", "/toeic/part-6/dien-cau-vao-doan-van", "/toeic/part-7", "/toeic/part-7/doc-hieu-hai-doan-van", "/toeic/part-7/doc-hieu-ba-van-ban", "/ve-toeic-gym"]);
+const breadcrumbPaths = new Set(["/toeic", "/luyen-thi-toeic-online", "/toeic/listening", "/toeic/part-1", "/toeic/part-2", "/toeic/part-3", "/toeic/part-4", "/thi-thu-toeic-online", "/toeic/part-5", "/toeic/part-5/word-form", "/toeic/part-5/thi-dong-tu", "/toeic/part-5/practice", "/toeic/part-6", "/toeic/part-6/dien-cau-vao-doan-van", "/toeic/part-7", "/toeic/part-7/doc-hieu-hai-doan-van", "/toeic/part-7/doc-hieu-ba-van-ban", "/toeic/flashcards-tu-vung-cong-so", "/ve-toeic-gym"]);
 const failures = [];
 breadcrumbPaths.add("/toeic/checklist-hoc-tuan");
 const warnings = [];
@@ -81,7 +81,7 @@ try {
   const samplePaths = [
     "/", "/toeic", "/toeic/listening", "/toeic/part-1", "/toeic/part-2", "/toeic/part-3", "/toeic/part-4", "/thi-thu-toeic-online", "/toeic/part-5", "/toeic/part-5/practice",
     "/toeic/part-5/word-form", "/toeic/part-5/thi-dong-tu",
-    "/toeic/part-6", "/toeic/part-6/dien-cau-vao-doan-van", "/toeic/part-7", "/toeic/part-7/doc-hieu-hai-doan-van", "/toeic/part-7/doc-hieu-ba-van-ban", "/blog", "/blog/ngu-phap",
+    "/toeic/part-6", "/toeic/part-6/dien-cau-vao-doan-van", "/toeic/part-7", "/toeic/part-7/doc-hieu-hai-doan-van", "/toeic/part-7/doc-hieu-ba-van-ban", "/toeic/flashcards-tu-vung-cong-so", "/ve-toeic-gym", "/blog", "/blog/ngu-phap",
     "/blog/cach-review-loi-sai-toeic", "/blog/chien-luoc-tang-diem-toeic-450-den-700",
     "/challenge/part-5",
   ];
@@ -128,6 +128,8 @@ try {
         const pathname = new URL(url).pathname;
         const schemas = structuredData(html);
         if (pathname === "/" && !schemas.some((schema) => schema["@type"] === "WebSite" && schema.name === "TOEIC GYM" && schema.url === canonical)) failures.push(`${url}: missing WebSite site-name data`);
+        if (pathname === "/" && !schemas.some((schema) => schema["@type"] === "Organization" && schema["@id"] === `${origin}#organization`)) failures.push(`${url}: missing Organization identity data`);
+        if (pathname === "/toeic/flashcards-tu-vung-cong-so" && !schemas.some((schema) => schema["@type"] === "Quiz" && schema.hasPart?.length === 8)) failures.push(`${url}: missing eight-card Quiz data`);
         if (breadcrumbPaths.has(pathname) && !schemas.some((schema) => schema["@type"] === "BreadcrumbList" && schema.itemListElement?.at(-1)?.item === url)) failures.push(`${url}: missing matching BreadcrumbList data`);
         if (pathname === "/blog/ngu-phap") {
           if (!schemas.some((schema) => schema["@type"] === "CollectionPage" && schema.url === url && schema.mainEntity?.["@type"] === "ItemList")) failures.push(`${url}: missing grammar CollectionPage and ItemList data`);
