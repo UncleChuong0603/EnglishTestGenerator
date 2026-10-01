@@ -13,6 +13,7 @@ export const users = pgTable("users", {
   passwordHash: text("password_hash"),
   emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true, mode: "date" }),
   status: text("status").notNull().default("pending_verification"),
+  deletedAt: timestamp("deleted_at", { withTimezone: true, mode: "date" }),
   lastLoginAt: timestamp("last_login_at", { withTimezone: true, mode: "date" }),
   ...timestamps,
 }, (table) => [
@@ -114,7 +115,7 @@ export const adminAuditLogs = pgTable("admin_audit_logs", {
   index("admin_audit_logs_actor_idx").on(table.actorUserId),
   index("admin_audit_logs_target_idx").on(table.targetUserId),
   index("admin_audit_logs_action_idx").on(table.action),
-  check("admin_audit_logs_action_check", sql`${table.action} in ('ADMIN_ROLE_GRANTED','ADMIN_ROLE_REVOKED','USER_SUSPENDED','USER_REACTIVATED','PREMIUM_GRANTED','PREMIUM_REVOKED','CONTENT_DRAFT_CREATED','CONTENT_DRAFT_UPDATED','CONTENT_CLONED','CONTENT_PUBLISHED','CONTENT_ARCHIVED','CONTENT_DRAFT_DISCARDED','CONTENT_UNARCHIVED','CONTENT_DUPLICATE_DELETED','MEDIA_UPLOADED','CHALLENGE_DRAFT_CREATED','CHALLENGE_FORM_GENERATED','CHALLENGE_PUBLISHED','CHALLENGE_CANCELLED','SEO_POST_CREATED','SEO_POST_UPDATED','SEO_POST_PUBLISHED','SEO_POST_UNPUBLISHED','SEO_POST_DELETED','IMPORT_VALIDATED','IMPORT_COMMITTED','IMPORT_FAILED','QUESTION_BANK_BLUEPRINT_UPDATED','CONTENT_QUALITY_SETTINGS_UPDATED','SUPPORT_SETTINGS_UPDATED','LISTENING_LESSON_CREATED','LISTENING_LESSON_UPDATED','LISTENING_LESSON_PUBLISHED','LISTENING_LESSON_ARCHIVED')`),
+  check("admin_audit_logs_action_check", sql`${table.action} in ('ADMIN_ROLE_GRANTED','ADMIN_ROLE_REVOKED','USER_SUSPENDED','USER_REACTIVATED','PREMIUM_GRANTED','PREMIUM_REVOKED','CONTENT_DRAFT_CREATED','CONTENT_DRAFT_UPDATED','CONTENT_CLONED','CONTENT_PUBLISHED','CONTENT_ARCHIVED','CONTENT_DRAFT_DISCARDED','CONTENT_UNARCHIVED','CONTENT_DUPLICATE_DELETED','QUESTION_REPORT_STATUS_UPDATED','MEDIA_UPLOADED','CHALLENGE_DRAFT_CREATED','CHALLENGE_FORM_GENERATED','CHALLENGE_PUBLISHED','CHALLENGE_CANCELLED','SEO_POST_CREATED','SEO_POST_UPDATED','SEO_POST_PUBLISHED','SEO_POST_UNPUBLISHED','SEO_POST_DELETED','IMPORT_VALIDATED','IMPORT_COMMITTED','IMPORT_FAILED','QUESTION_BANK_BLUEPRINT_UPDATED','CONTENT_QUALITY_SETTINGS_UPDATED','SUPPORT_SETTINGS_UPDATED','LISTENING_LESSON_CREATED','LISTENING_LESSON_UPDATED','LISTENING_LESSON_PUBLISHED','LISTENING_LESSON_ARCHIVED')`),
 ]);
 
 export const questionBankSettings = pgTable("question_bank_settings", {
@@ -353,6 +354,49 @@ export const passageSets = pgTable("passage_sets", {
   check("passage_sets_lifecycle_check", sql`${table.status} in ('draft','published','archived')`),
   check("passage_sets_provenance_check", sql`${table.provenance} in ('SEEDED','ADMIN')`),
   check("passage_sets_skill_part_check", sql`(${table.skillArea} = 'LISTENING' and ${table.toeicPart} between 1 and 4) or (${table.skillArea} = 'READING' and ${table.toeicPart} between 5 and 7)`),
+]);
+
+export const questionIssueReports = pgTable("question_issue_reports", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  fingerprint: text("fingerprint").notNull(),
+  source: text("source").notNull().default("SYSTEM"),
+  issueType: text("issue_type").notNull(),
+  status: text("status").notNull().default("OPEN"),
+  toeicPart: smallint("toeic_part").notNull(),
+  primaryGroupId: uuid("primary_group_id").notNull().references(() => passageSets.id, { onDelete: "cascade" }),
+  relatedGroupId: uuid("related_group_id").references(() => passageSets.id, { onDelete: "cascade" }),
+  confidencePercent: smallint("confidence_percent"),
+  evidence: jsonb("evidence").$type<Record<string, unknown>>().notNull().default({}),
+  detectedAt: timestamp("detected_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+  lastDetectedAt: timestamp("last_detected_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true, mode: "date" }),
+  resolvedBy: uuid("resolved_by").references(() => users.id, { onDelete: "set null" }),
+  ...timestamps,
+}, (table) => [
+  uniqueIndex("question_issue_reports_fingerprint_uidx").on(table.fingerprint),
+  index("question_issue_reports_queue_idx").on(table.status, table.issueType, table.lastDetectedAt),
+  index("question_issue_reports_part_idx").on(table.toeicPart, table.status),
+  index("question_issue_reports_primary_group_idx").on(table.primaryGroupId),
+  index("question_issue_reports_related_group_idx").on(table.relatedGroupId),
+  check("question_issue_reports_source_check", sql`${table.source} in ('SYSTEM','LEARNER')`),
+  check("question_issue_reports_type_check", sql`${table.issueType} in ('DUPLICATE','CONTENT_ERROR','ANSWER_ERROR','MEDIA_ERROR','OTHER')`),
+  check("question_issue_reports_status_check", sql`${table.status} in ('OPEN','IN_REVIEW','RESOLVED','DISMISSED')`),
+  check("question_issue_reports_part_check", sql`${table.toeicPart} between 1 and 7`),
+  check("question_issue_reports_confidence_check", sql`${table.confidencePercent} is null or ${table.confidencePercent} between 0 and 100`),
+  check("question_issue_reports_pair_check", sql`${table.issueType} <> 'DUPLICATE' or (${table.relatedGroupId} is not null and ${table.primaryGroupId} <> ${table.relatedGroupId})`),
+]);
+
+export const questionDuplicateScans = pgTable("question_duplicate_scans", {
+  toeicPart: smallint("toeic_part").primaryKey(),
+  contentVersion: text("content_version").notNull(),
+  scannedCount: integer("scanned_count").notNull(),
+  detectedCount: integer("detected_count").notNull(),
+  thresholdPercent: smallint("threshold_percent").notNull(),
+  scannedAt: timestamp("scanned_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+}, (table) => [
+  check("question_duplicate_scans_part_check", sql`${table.toeicPart} between 1 and 7`),
+  check("question_duplicate_scans_counts_check", sql`${table.scannedCount} >= 0 and ${table.detectedCount} >= 0`),
+  check("question_duplicate_scans_threshold_check", sql`${table.thresholdPercent} between 25 and 95`),
 ]);
 
 export const passages = pgTable("passages", {

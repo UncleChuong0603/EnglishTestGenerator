@@ -20,12 +20,19 @@ function tokenWeights(tokens: string[]) {
 }
 
 export function calculateContentSimilarity(left: string, right: string) {
-  const leftWeights = tokenWeights(similarityTokens(left));
-  const rightWeights = tokenWeights(similarityTokens(right));
+  return calculatePreparedSimilarity(prepareContentSimilarity(left), prepareContentSimilarity(right));
+}
+
+export function prepareContentSimilarity(text: string) {
+  const tokens = similarityTokens(text);
+  const weights = tokenWeights(tokens);
+  return { weights, terms: new Set(tokens), total: [...weights.values()].reduce((sum, value) => sum + value, 0) };
+}
+
+export function calculatePreparedSimilarity(left: ReturnType<typeof prepareContentSimilarity>, right: ReturnType<typeof prepareContentSimilarity>) {
   let overlap = 0;
-  let total = 0;
-  for (const value of leftWeights.values()) total += value;
-  for (const value of rightWeights.values()) total += value;
-  for (const [token, value] of leftWeights) overlap += Math.min(value, rightWeights.get(token) ?? 0);
+  const total = left.total + right.total;
+  const [smaller, larger] = left.weights.size <= right.weights.size ? [left.weights, right.weights] : [right.weights, left.weights];
+  for (const [token, value] of smaller) overlap += Math.min(value, larger.get(token) ?? 0);
   return total ? (2 * overlap) / total : 0;
 }

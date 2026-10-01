@@ -11,24 +11,38 @@ export const SESSION_DAYS = 30;
 
 export type CurrentUser = { id: string; email: string; emailNormalized: string; emailVerifiedAt: Date | null; status: string };
 
-export async function createSession(userId: string) {
+/** Transport-neutral session issuance for web cookies and future mobile bearer delivery. */
+export async function issueSessionToken(userId: string, previousRawToken?: string) {
   const raw = createToken(); const expiresAt = new Date(Date.now() + SESSION_DAYS * 86_400_000);
-  const cookieStore = await cookies(); const previous = cookieStore.get(SESSION_COOKIE)?.value;
   await db.transaction(async (tx) => {
-    if (previous) await tx.update(userSessions).set({ revokedAt: new Date() }).where(and(eq(userSessions.sessionTokenHash, hashToken(previous)), isNull(userSessions.revokedAt)));
+    const [account] = await tx.select({ id: users.id }).from(users)
+      .where(and(eq(users.id, userId), eq(users.status, "active"), isNull(users.deletedAt))).for("update").limit(1);
+    if (!account) throw new Error("ACCOUNT_UNAVAILABLE");
+    if (previousRawToken) await tx.update(userSessions).set({ revokedAt: new Date() }).where(and(eq(userSessions.sessionTokenHash, hashToken(previousRawToken)), isNull(userSessions.revokedAt)));
     await tx.insert(userSessions).values({ userId, sessionTokenHash: hashToken(raw), expiresAt });
   });
+  return { token: raw, expiresAt };
+}
+
+export async function createSession(userId: string) {
+  const cookieStore = await cookies(); const previous = cookieStore.get(SESSION_COOKIE)?.value;
+  const { token, expiresAt } = await issueSessionToken(userId, previous);
+  const raw = token;
   cookieStore.set(SESSION_COOKIE, raw, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", expires: expiresAt });
 }
 
-export async function getCurrentSession() {
-  const raw = (await cookies()).get(SESSION_COOKIE)?.value;
+/** Validates an opaque token without assuming cookie or Authorization transport. */
+export async function getSessionByToken(raw: string | null | undefined) {
   if (!raw) return null;
   const [row] = await db.select({ sessionId: userSessions.id, userId: users.id, email: users.email, emailNormalized: users.emailNormalized, emailVerifiedAt: users.emailVerifiedAt, status: users.status })
     .from(userSessions).innerJoin(users, eq(users.id, userSessions.userId))
     .where(and(eq(userSessions.sessionTokenHash, hashToken(raw)), isNull(userSessions.revokedAt), gt(userSessions.expiresAt, new Date()))).limit(1);
   if (!row || row.status !== "active") return null;
   return { sessionId: row.sessionId, user: { id: row.userId, email: row.email, emailNormalized: row.emailNormalized, emailVerifiedAt: row.emailVerifiedAt, status: row.status } satisfies CurrentUser };
+}
+
+export async function getCurrentSession() {
+  return getSessionByToken((await cookies()).get(SESSION_COOKIE)?.value);
 }
 
 export async function getCurrentUser() { return (await getCurrentSession())?.user ?? null; }

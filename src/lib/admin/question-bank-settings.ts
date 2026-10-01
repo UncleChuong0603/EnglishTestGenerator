@@ -8,8 +8,8 @@ const SETTINGS_ID = "default";
 export const DEFAULT_SIMILARITY_THRESHOLD_PERCENT = 58;
 export const DEFAULT_SUPPORT_RESPONSE_TARGET_HOURS = 24;
 
-export async function getQuestionBankSettings() {
-  const [settings] = await db
+export async function getQuestionBankSettings(client: Pick<typeof db, "select"> = db) {
+  const [settings] = await client
     .select({
       targetForms: questionBankSettings.targetForms,
       similarityThresholdPercent: questionBankSettings.similarityThresholdPercent,

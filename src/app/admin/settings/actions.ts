@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
+import { syncDuplicateQuestionReports } from "@/lib/admin/question-issue-reports";
 import { requireAdmin } from "@/lib/admin/authorization";
 import {
   saveContentQualitySettings,
@@ -34,7 +36,8 @@ export async function saveContentQualitySettingsAction(formData: FormData) {
     redirect("/admin/settings?error=INVALID_SIMILARITY_THRESHOLD#content-quality");
   }
 
-  revalidatePath("/admin/content/similarity");
+  revalidatePath("/admin/content/reports");
+  after(async () => { for (const part of [1, 2, 3, 4, 5, 6, 7]) await syncDuplicateQuestionReports(part); });
   revalidatePath("/admin/settings");
   redirect("/admin/settings?saved=content-quality#content-quality");
 }

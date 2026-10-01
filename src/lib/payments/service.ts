@@ -53,10 +53,13 @@ export async function applyVerifiedPayment(event: VerifiedPayment, providerName:
     if (!event.paid || event.amountVnd !== order.amount || event.currency !== order.currency || event.providerPaymentId !== order.providerPaymentId) {
       await tx.update(paymentEvents).set({ processingStatus: "REJECTED", processedAt: new Date() }).where(eq(paymentEvents.id, inserted[0].id)); return { status: order.status, rejected: true };
     }
+    // A late provider callback must retain accounting facts without restoring
+    // access, membership or learner analytics for an erased account.
+    const [account] = await tx.select({ deletedAt: users.deletedAt }).from(users).where(eq(users.id, order.userId)).for("key share").limit(1);
     const days = resolveProductDuration(order.productKey);
-    await grantPremiumWithTx(tx, { userId: order.userId, days, source: "PAYMENT", paymentOrderId: order.id });
+    if (account && !account.deletedAt) await grantPremiumWithTx(tx, { userId: order.userId, days, source: "PAYMENT", paymentOrderId: order.id });
     const [trial] = await tx.select({ id: userPlanMemberships.id }).from(userPlanMemberships).where(and(eq(userPlanMemberships.userId, order.userId), eq(userPlanMemberships.source, "TRIAL"))).limit(1);
-    if (trial) await tx.insert(productEvents).values({ userId: order.userId, eventName: "trial_to_paid", source: "payment", deduplicationKey: `trial-to-paid:${order.userId}`, properties: { orderId: order.id } }).onConflictDoNothing();
+    if (trial && account && !account.deletedAt) await tx.insert(productEvents).values({ userId: order.userId, eventName: "trial_to_paid", source: "payment", deduplicationKey: `trial-to-paid:${order.userId}`, properties: { orderId: order.id } }).onConflictDoNothing();
     if (injectFailure) throw new Error("INJECTED_ROLLBACK");
     const now = new Date(); await tx.update(paymentOrders).set({ status: "PAID", paidAt: now, updatedAt: now }).where(eq(paymentOrders.id, order.id));
     await tx.update(paymentEvents).set({ processingStatus: "PROCESSED", processedAt: now }).where(eq(paymentEvents.id, inserted[0].id));

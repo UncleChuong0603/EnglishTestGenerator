@@ -5,7 +5,7 @@ import { adminAuditLogs, listeningTranscripts, mediaAssets, passages, passageSet
 import { IMPORT_SCHEMA_VERSION, normalizeContent, sha256, validateImportValue, type QuestionImportFile } from "@/lib/question-import/schema";
 import { assembleFullMock, assembleListeningMock, assembleReadingMock, type MockUnit } from "@/lib/full-mock/blueprint";
 import { ROLE_PERMISSIONS } from "./permissions";
-import { calculateContentSimilarity, similarityTokens } from "./content-similarity";
+import { calculatePreparedSimilarity, prepareContentSimilarity } from "./content-similarity";
 export { calculateContentSimilarity } from "./content-similarity";
 
 export const CONTENT_PAGE_SIZE = 20;
@@ -225,19 +225,53 @@ export type SimilarContentItem = {
 };
 export type SimilarContentPair = { key: string; score: number; exact: boolean; sharedTerms: string[]; left: SimilarContentItem; right: SimilarContentItem };
 
-function similarityText(detail: NonNullable<Awaited<ReturnType<typeof getAdminContentDetail>>>) { return [...detail.passages.map((item) => item.content ?? ""), detail.transcript?.content ?? "", ...detail.questions.flatMap((question) => [question.questionText, ...question.options.map((option) => option.optionText)])].join(" "); }
+type SimilarityContentDetail = Omit<NonNullable<Awaited<ReturnType<typeof getAdminContentDetail>>>, "transcript"> & { transcript: typeof listeningTranscripts.$inferSelect | null };
+function similarityText(detail: SimilarityContentDetail) { return [...detail.passages.map((item) => item.content ?? ""), detail.transcript?.content ?? "", ...detail.questions.flatMap((question) => [question.questionText, ...question.options.map((option) => option.optionText)])].join(" "); }
 
-export async function findSimilarContent(part: number, options?: { lifecycle?: string; threshold?: number }) {
+export async function findSimilarContent(part: number, options?: { activeOnly?: boolean; lifecycle?: string; threshold?: number; contentVersion?: string }, client: Pick<typeof db, "select"> = db) {
   if (!Number.isInteger(part) || part < 1 || part > 7) throw new ContentAdminError("INVALID_PART");
   const lifecycle = CONTENT_LIFECYCLES.includes(options?.lifecycle as ContentLifecycle) ? options?.lifecycle as ContentLifecycle : undefined;
   const threshold = Math.min(0.95, Math.max(0.25, options?.threshold ?? 0.58));
-  const rows = await db.select({ id: passageSets.id }).from(passageSets).where(and(eq(passageSets.toeicPart, part), lifecycle ? eq(passageSets.status, lifecycle) : undefined)).orderBy(asc(passageSets.createdAt), asc(passageSets.id));
-  const details = (await Promise.all(rows.map((row) => getAdminContentDetail(row.id)))).filter((detail): detail is NonNullable<typeof detail> => Boolean(detail));
-  const prepared = details.map((detail) => { const text = similarityText(detail); return { detail, text, signature: contentSignature(detail), terms: new Set(similarityTokens(text)), item: { id: detail.group.id, title: detail.group.title, lifecycle: detail.group.status as ContentLifecycle, provenance: detail.group.provenance, questionCount: detail.questions.length, preview: (detail.questions[0]?.questionText || detail.transcript?.content || detail.passages[0]?.content || detail.group.title).slice(0, 240), createdAt: detail.group.createdAt, updatedAt: detail.group.updatedAt } satisfies SimilarContentItem }; });
+  const groupConditions = and(
+    eq(passageSets.toeicPart, part),
+    lifecycle ? eq(passageSets.status, lifecycle) : undefined,
+    options?.activeOnly ? sql`${passageSets.status} <> 'archived'` : undefined,
+  );
+  // Bulk reads keep query count fixed as the bank grows; a scan never fetches media bytes.
+  // A transactional client has one connection: do not dispatch concurrent queries on it.
+  const groups = await client.select().from(passageSets).where(groupConditions).orderBy(asc(passageSets.createdAt), asc(passageSets.id));
+  const documentRows = await client.select({ document: passages }).from(passages).innerJoin(passageSets, eq(passageSets.id, passages.passageSetId)).where(groupConditions).orderBy(asc(passages.position));
+  const transcriptRows = await client.select({ transcript: listeningTranscripts }).from(listeningTranscripts).innerJoin(passageSets, eq(passageSets.id, listeningTranscripts.questionGroupId)).where(groupConditions);
+  const questionRows = await client.select({ question: questions }).from(questions).innerJoin(passageSets, eq(passageSets.id, questions.passageSetId)).where(groupConditions).orderBy(asc(questions.questionOrder));
+  const optionRows = await client.select({ option: questionOptions }).from(questionOptions).innerJoin(questions, eq(questions.id, questionOptions.questionId)).innerJoin(passageSets, eq(passageSets.id, questions.passageSetId)).where(groupConditions).orderBy(asc(questionOptions.displayOrder));
+  const solutionRows = await client.select({ solution: questionSolutions }).from(questionSolutions).innerJoin(questions, eq(questions.id, questionSolutions.questionId)).innerJoin(passageSets, eq(passageSets.id, questions.passageSetId)).where(groupConditions);
+  function byParent<T>(rows: T[], parent: (row: T) => string | null) {
+    const map = new Map<string, T[]>();
+    for (const row of rows) { const id = parent(row); if (!id) continue; const siblings = map.get(id) ?? []; siblings.push(row); map.set(id, siblings); }
+    return map;
+  }
+  const documentsByGroup = byParent(documentRows.map((row) => row.document), (row) => row.passageSetId);
+  const transcriptsByGroup = byParent(transcriptRows.map((row) => row.transcript), (row) => row.questionGroupId);
+  const questionsByGroup = byParent(questionRows.map((row) => row.question), (row) => row.passageSetId);
+  const optionsByQuestion = byParent(optionRows.map((row) => row.option), (row) => row.questionId);
+  const solutionsByQuestion = new Map(solutionRows.map((row) => [row.solution.questionId, row.solution]));
+  const details = groups.map((group) => ({
+    group, media: [], passages: documentsByGroup.get(group.id) ?? [], transcript: transcriptsByGroup.get(group.id)?.[0] ?? null,
+    questions: (questionsByGroup.get(group.id) ?? []).map((question) => ({ ...question, options: optionsByQuestion.get(question.id) ?? [], solution: solutionsByQuestion.get(question.id) ?? null })),
+  })).filter((detail) => detail.questions.length > 0);
+  const prepared = details.map((detail) => { const text = similarityText(detail); const similarity = prepareContentSimilarity(text); return { signature: contentSignature(detail), similarity, terms: similarity.terms, item: { id: detail.group.id, title: detail.group.title, lifecycle: detail.group.status as ContentLifecycle, provenance: detail.group.provenance, questionCount: detail.questions.length, preview: (detail.questions[0]?.questionText || detail.transcript?.content || detail.passages[0]?.content || detail.group.title).slice(0, 240), createdAt: detail.group.createdAt, updatedAt: detail.group.updatedAt } satisfies SimilarContentItem }; });
+  const contentVersion = sha256(JSON.stringify([part, threshold, prepared.map((item) => [item.item.id, item.item.lifecycle, item.signature])]));
+  if (contentVersion === options?.contentVersion) return { part, threshold, scanned: prepared.length, pairs: [] as SimilarContentPair[], contentVersion, unchanged: true };
   const pairs: SimilarContentPair[] = [];
-  for (let leftIndex = 0; leftIndex < prepared.length; leftIndex++) for (let rightIndex = leftIndex + 1; rightIndex < prepared.length; rightIndex++) { const left = prepared[leftIndex]; const right = prepared[rightIndex]; const exact = left.signature === right.signature; const score = exact ? 1 : calculateContentSimilarity(left.text, right.text); if (score < threshold) continue; const sharedTerms = [...left.terms].filter((term) => right.terms.has(term) && term.length > 4).sort((a, b) => b.length - a.length || a.localeCompare(b)).slice(0, 8); pairs.push({ key: `${left.item.id}:${right.item.id}`, score, exact, sharedTerms, left: left.item, right: right.item }); }
+  for (let leftIndex = 0; leftIndex < prepared.length; leftIndex++) for (let rightIndex = leftIndex + 1; rightIndex < prepared.length; rightIndex++) {
+    const left = prepared[leftIndex]; const right = prepared[rightIndex]; const exact = left.signature === right.signature;
+    if (!exact && (2 * Math.min(left.similarity.total, right.similarity.total)) / (left.similarity.total + right.similarity.total) < threshold) continue;
+    const score = exact ? 1 : calculatePreparedSimilarity(left.similarity, right.similarity); if (score < threshold) continue;
+    const sharedTerms = [...left.terms].filter((term) => right.terms.has(term) && term.length > 4).sort((a, b) => b.length - a.length || a.localeCompare(b)).slice(0, 8);
+    pairs.push({ key: `${left.item.id}:${right.item.id}`, score, exact, sharedTerms, left: left.item, right: right.item });
+  }
   pairs.sort((a, b) => Number(b.exact) - Number(a.exact) || b.score - a.score || b.right.updatedAt.getTime() - a.right.updatedAt.getTime());
-  return { part, threshold, scanned: prepared.length, pairs };
+  return { part, threshold, scanned: prepared.length, pairs, contentVersion, unchanged: false };
 }
 
 export async function getImportContextForGroup(groupId: string) {
@@ -285,7 +319,7 @@ export async function publishImportBatch(actorUserId: string, batchKey: string) 
   });
 }
 
-function contentSignature(detail: NonNullable<Awaited<ReturnType<typeof getAdminContentDetail>>>) {
+function contentSignature(detail: SimilarityContentDetail) {
   return sha256(JSON.stringify({
     part: detail.group.toeicPart,
     setType: detail.group.setType,

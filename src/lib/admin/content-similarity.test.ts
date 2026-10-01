@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateContentSimilarity } from "./content-similarity";
+import { calculateContentSimilarity, calculatePreparedSimilarity, prepareContentSimilarity } from "./content-similarity";
 
 describe("content similarity", () => {
   it("scores duplicated questions much higher than unrelated questions", () => {
@@ -12,5 +12,15 @@ describe("content similarity", () => {
 
   it("normalizes punctuation and repeated whitespace", () => {
     expect(calculateContentSimilarity("The invoice is ready!", "  The invoice is ready. ")).toBe(1);
+  });
+
+  it("reuses prepared weights without changing scores or mutating inputs", () => {
+    const left = prepareContentSimilarity("The marketing team submits monthly reports.");
+    const right = prepareContentSimilarity("The marketing team submits quarterly reports.");
+    const before = [...left.weights.entries()];
+    expect(calculatePreparedSimilarity(left, right)).toBe(calculateContentSimilarity("The marketing team submits monthly reports.", "The marketing team submits quarterly reports."));
+    expect(calculatePreparedSimilarity(left, right)).toBe(calculatePreparedSimilarity(right, left));
+    expect([...left.weights.entries()]).toEqual(before);
+    expect(calculatePreparedSimilarity(prepareContentSimilarity(""), prepareContentSimilarity(""))).toBe(0);
   });
 });

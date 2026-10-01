@@ -69,7 +69,7 @@ export default async function Page({ searchParams }: PageProps<"/admin/settings"
               <PendingSubmit className={buttonClass} pendingLabel={vi ? "Đang lưu…" : "Saving…"}>{vi ? "Lưu ngưỡng" : "Save threshold"}</PendingSubmit>
             </div>
           </form>
-          <Link className="mt-5 inline-block font-black text-teal-800 underline" href="/admin/content/similarity">{vi ? "Mở công cụ rà soát →" : "Open similarity review →"}</Link>
+          <Link className="mt-5 inline-block font-black text-teal-800 underline" href="/admin/content/reports?type=DUPLICATE&status=OPEN">{vi ? "Mở báo cáo nghi trùng →" : "Open duplicate reports →"}</Link>
         </section>
 
         <section id="support-operations" className="scroll-mt-6 rounded-3xl border border-sky-200 bg-gradient-to-br from-sky-50 via-white to-blue-50 p-6 shadow-sm lg:col-span-2">
