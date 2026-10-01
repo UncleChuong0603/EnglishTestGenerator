@@ -17,6 +17,7 @@ This is a supporting entity/trust page, not a keyword doorway. It does not dupli
 - Build and TypeScript will be run in a temporary worktree based on the current branch, excluding unrelated workspace changes.
 - The SEO suites will check the existing editorial library and the new organization schema unit test. Targeted lint will cover the new page, homepage schema, footer, route list and smoke script.
 - Browser checks will cover anonymous Vietnamese and English interfaces at 375, 768, 1024 and 1440px, one H1, canonical, AboutPage/Organization JSON-LD, footer link, no horizontal overflow, keyboard focus and no page errors.
+- Representative visual checks: [375px Vietnamese](../artifacts/seo-entity-2026-10-01/about-mobile.png) and [1440px English](../artifacts/seo-entity-2026-10-01/about-desktop-en.png).
 
 The change is local until deployment. After deployment, run `node scripts/seo-smoke.mjs https://toeicgym.net` and confirm the route in the live sitemap. Search Console remains intentionally outside this workflow.
 
