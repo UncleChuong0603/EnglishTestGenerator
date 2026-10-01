@@ -76,6 +76,12 @@ export const MINI_PRACTICE: Record<string, MiniQuestion[]> = {
       "Purchase order là đơn đặt hàng, phù hợp với supplier, ship the goods và signed.", ["Weather không kết hợp với purchase trong ngữ cảnh này.", "Journey là chuyến đi.", "Đúng: purchase order.", "Traffic là giao thông hoặc lưu lượng."]),
     question("vocab-3", "The supervisor asked us to _____ the deadline by submitting the report before noon.", ["meet", "attend", "participate", "arrive"], 0,
       "Meet a deadline nghĩa là hoàn thành đúng hạn. Before noon giải thích hạn nộp báo cáo.", ["Đúng: meet the deadline.", "Attend dùng với sự kiện, không dùng với deadline.", "Participate cần in và một hoạt động.", "Arrive là nội động từ, không nhận deadline làm tân ngữ."]),
+    question("vocab-4", "The accounting team will _____ an invoice after verifying the order.", ["issue", "attend", "meet", "board"], 0,
+      "Issue an invoice là xuất hóa đơn; accounting team là chủ thể phù hợp với hành động này.", ["Đúng: issue an invoice.", "Attend đi với sự kiện hoặc cuộc họp.", "Meet đi với deadline hoặc người, không phải invoice trong câu này.", "Board là lên tàu hoặc hội đồng, không phù hợp ngữ cảnh."]),
+    question("vocab-5", "The manager asked us to _____ the deadline because the supplier needs two more days.", ["track", "extend", "reserve", "recruit"], 1,
+      "Supplier cần thêm thời gian nên deadline được gia hạn: extend the deadline.", ["Track thường đi với shipment hoặc order.", "Đúng: extend a deadline.", "Reserve đi với chỗ, bàn hoặc lịch đặt trước.", "Recruit đi với nhân sự cần tuyển."]),
+    question("vocab-6", "Please _____ the shipment online so we know when it will arrive.", ["track", "issue", "meet", "make"], 0,
+      "Track a shipment là theo dõi lô hàng; mệnh đề sau hỏi thời điểm hàng đến.", ["Đúng: track the shipment.", "Issue an invoice hoặc issue a notice, không issue shipment trong câu này.", "Meet đi với deadline hoặc người, không phải shipment.", "Make cần một cụm khác như make a reservation; make the shipment không diễn tả theo dõi."]),
   ],
 };
 

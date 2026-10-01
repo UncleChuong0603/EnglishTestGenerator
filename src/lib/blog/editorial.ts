@@ -240,6 +240,27 @@ Mặt trước ghi một câu có chỗ trống: “The supplier will ___ the or
 
 Ôn lại sau 1 ngày, 3 ngày, 7 ngày và 14 ngày. Mỗi lần, ưu tiên tự nhớ trước khi lật đáp án. Nếu một từ liên tục sai, thêm một câu ví dụ mới hoặc đối chiếu với từ dễ nhầm.
 
+## Phân biệt các cụm dễ nhầm trong email
+
+Học theo cặp tình huống để tránh chọn một từ đúng nghĩa nhưng sai cụm:
+
+- **make a reservation** là đặt chỗ; **make an appointment** là đặt lịch hẹn. *Reserve* thường đi với phòng, bàn hoặc chỗ cụ thể; *appoint* không dùng thay cho *reserve*.
+- **issue an invoice** là xuất hóa đơn; **pay an invoice** là thanh toán hóa đơn. Chủ thể và hành động trong email quyết định động từ.
+- **meet a deadline** là hoàn thành trước hạn; **extend a deadline** là gia hạn hạn chót. Đừng chọn *attend* chỉ vì thấy một danh từ sau chỗ trống.
+- **track a shipment** là theo dõi lô hàng; **deliver a shipment** là giao lô hàng. *Shipment* là vật/đơn hàng được vận chuyển, không phải hành động vận chuyển.
+
+Khi gặp một cụm mới, ghi chủ thể thường đi cùng, vật nhận hành động và một câu paraphrase. Cách này giúp bạn dùng từ trong Part 3, Part 6 và Part 7 thay vì chỉ nhận diện bản dịch.
+
+## Dùng ngữ cảnh để chọn từ trong Part 5
+
+**The accounting team will _____ an invoice after verifying the order.** (A) issue (B) attend (C) meet (D) board
+
+**Đáp án A.** Accounting team và invoice tạo thành cụm *issue an invoice*; *after verifying the order* mô tả bước trước khi xuất hóa đơn. *Pay an invoice* sẽ cần khách hàng hoặc bộ phận thanh toán làm chủ thể. Ví dụ tự biên soạn.
+
+**The manager asked us to _____ the deadline because the supplier needs two more days.** (A) track (B) extend (C) reserve (D) recruit
+
+**Đáp án B.** Supplier cần thêm thời gian nên deadline được gia hạn: *extend the deadline*. *Track* đi với shipment hoặc order, *reserve* đi với chỗ/lịch, còn *recruit* đi với nhân sự.
+
 ## Biến từ mới thành điểm số
 
 Sau khi học 10–15 cụm, làm một bài ngắn đúng chủ đề. Đánh dấu cụm đã gặp và cách đề biến đổi chúng. Chu trình học – gặp trong câu hỏi – sửa lỗi giúp từ vựng gắn với tín hiệu bài thi và được nhớ lâu hơn.
@@ -248,7 +269,11 @@ Sau khi học 10–15 cụm, làm một bài ngắn đúng chủ đề. Đánh d
 
 Với *postpone a meeting*, ghi thêm câu “The team postponed the meeting until Friday.” Khi đọc email thông báo, bạn có thể gặp *the meeting has been rescheduled for Friday* — cùng ý đổi lịch nhưng cách diễn đạt khác. Hãy ghi cả hai cụm vào một thẻ, đọc lại sau vài ngày và tự viết một câu mới. Đây là ví dụ tự biên soạn để luyện cách diễn đạt lại.
 
-Trong tuần, kiểm tra từ đã học qua một đoạn email ngắn. Nếu chỉ nhận ra từ trên thẻ mà không hiểu nó trong câu, thêm câu chứa ngữ cảnh thay vì tăng số lượng thẻ. Xem [cách tìm bằng chứng trong Part 7](/blog/meo-lam-toeic-part-7-doc-hieu-nhieu-van-ban) để dùng vốn từ trong bài đọc thực tế.`
+Trong tuần, kiểm tra từ đã học qua một đoạn email ngắn. Nếu chỉ nhận ra từ trên thẻ mà không hiểu nó trong câu, thêm câu chứa ngữ cảnh thay vì tăng số lượng thẻ. Xem [cách tìm bằng chứng trong Part 7](/blog/meo-lam-toeic-part-7-doc-hieu-nhieu-van-ban) để dùng vốn từ trong bài đọc thực tế.
+
+## Bài kiểm tra nhớ lại sau bảy ngày
+
+Che phần giải thích và viết một câu mới cho ba cụm: *issue an invoice*, *extend a deadline* và *track a shipment*. Sau đó làm [bài Part 5 hỗn hợp](/toeic/part-5/practice) mà không chọn trước chủ điểm. Nếu vẫn nhầm, quay lại tình huống cụ thể và giảm số cụm mới trong buổi tiếp theo; thêm danh sách dài hơn chỉ làm khó việc review.`
   }),
   post({
     id: "editorial-study-plan", category: "STUDY_PLAN", slug: "lo-trinh-hoc-toeic-30-ngay-cho-nguoi-ban-ron",
@@ -342,7 +367,7 @@ export { grammarImageForSlug };
 // Only these materially expanded pages receive a new modification date.
 for (const article of EDITORIAL_POSTS) {
   if (MINI_PRACTICE[article.slug]) {
-    article.updatedAt = new Date(article.slug === "lien-tu-va-tu-noi-toeic" ? "2026-10-01T10:00:00.000Z" : "2026-09-26T18:00:00.000Z");
+    article.updatedAt = new Date(article.slug === "lien-tu-va-tu-noi-toeic" || article.slug === "tu-vung-toeic-theo-chu-de-cong-so" ? "2026-10-01T14:00:00.000Z" : "2026-09-26T18:00:00.000Z");
     article.contentOrigin = "AI_ASSISTED";
     article.content += "\n\n## Từ lỗi sai đến bài luyện tiếp\n\nSau khi thử các câu đầu bài, ghi lại tín hiệu đã bỏ qua và lý do đáp án bạn chọn sai. Đọc [cách review lỗi sai TOEIC](/blog/cach-review-loi-sai-toeic), rồi chuyển sang [bài Part 5 hỗn hợp](/toeic/part-5/practice) để kiểm tra khi không biết trước dạng câu.";
   }
