@@ -4,9 +4,11 @@ import { contentPath } from "./routes";
 
 const revisedAt = new Date("2026-09-26T18:00:00.000Z");
 const listeningReleaseAt = new Date("2026-09-29T17:00:00.000Z");
+const readingReleaseAt = new Date("2026-09-30T17:00:00.000Z");
 
 function document(slug: string, title: string, excerpt: string, content: string, intent = "LEARN"): EditorialPost {
-  const updatedAt = slug === "seo-toeic" || slug === "seo-online" ? listeningReleaseAt : revisedAt;
+  const updatedAt = slug === "seo-toeic" || slug === "seo-online" ? listeningReleaseAt
+    : slug === "seo-part6" || slug === "seo-part7" ? readingReleaseAt : revisedAt;
   const category = slug === "seo-toeic" || slug === "seo-online" ? "TOEIC_STRATEGY"
     : slug === "seo-part6" || slug === "seo-part7" ? "READING" : "GRAMMAR";
   return { id: slug, slug, title, excerpt, content, status: "PUBLISHED", category,

@@ -8,8 +8,8 @@ Vietnamese results for queries about Part 6 sentence insertion, Part 7 multi-doc
 
 | Query family | Preferred URL | Distinct value | Status |
 | --- | --- | --- | --- |
-| `toeic part 6 điền câu vào đoạn văn`, `bài tập part 6 điền câu` | `/toeic/part-6/dien-cau-vao-doan-van` | Original email, sentence insertion, reason for every option | New in workspace |
-| `toeic part 7 hai đoạn văn`, `bài tập part 7 double passage` | `/toeic/part-7/doc-hieu-hai-doan-van` | Two original emails, three evidence-based questions | New in workspace |
+| `toeic part 6 điền câu vào đoạn văn`, `bài tập part 6 điền câu` | `/toeic/part-6/dien-cau-vao-doan-van` | Original email, sentence insertion, reason for every option | Live on production; HTTP 200 and in sitemap on 2026-10-01 |
+| `toeic part 7 hai đoạn văn`, `bài tập part 7 double passage` | `/toeic/part-7/doc-hieu-hai-doan-van` | Two original emails, three evidence-based questions | Live on production; HTTP 200 and in sitemap on 2026-10-01 |
 | `toeic part 6`, `cách làm part 6` | `/toeic/part-6` | Broad Part guide | Existing |
 | `toeic part 7`, `cách làm part 7` | `/toeic/part-7` | Broad Part guide | Existing |
 | `toeic part 5 loại từ`, `toeic part 5 thì động từ` | `/toeic/part-5/word-form`, `/toeic/part-5/thi-dong-tu` | Original topic practice | Existing |
@@ -37,6 +37,10 @@ One search intent should have one primary URL. Fold close variants into the same
 For each new URL record: target query family, intended learner task, reviewer, sample source, release date, internal incoming links and conversion event. At release, check anonymous HTTP 200, one H1, title, description, self canonical, breadcrumbs, sitemap, rendered exercise and mobile layout. Once a month, sample Google Vietnam results from a consistent device/location and record position as an *observed sample*, plus first-party landing-page traffic, practice starts and completions. Compare the new page with its parent: if they rank for the same query and neither serves a distinct task, consolidate the weaker page and redirect it. If the page gets visitors but few practice starts, improve the exercise and next-step link before producing more pages.
 
 No number of articles guarantees a top ranking. Google recommends original, useful content and warns against many low-value pages made primarily to capture search variations. Search position depends on competing pages and Google's systems after deployment and indexing.
+
+## October 1 verification and follow-up
+
+The two new URLs return HTTP 200 on `toeicgym.net`, show one H1, a self canonical and the intended sample questions, and appear in the live sitemap. The Part 6 and Part 7 parent pages link to their new child page. Both parent pages still show a primary practice link to `/toeic/part-5/practice` in production; the code now sends each parent to its matching Reading sample and adds Reading-specific follow-up links. That follow-up is local until another release. The focused SEO content suite passed 57 tests. A full workspace typecheck on October 1 is blocked by unrelated in-progress practice-service type errors and a stale generated `vocabulary/explore` route reference; it does not establish a failure in these SEO files.
 
 ## Sources
 

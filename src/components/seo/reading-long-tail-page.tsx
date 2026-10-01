@@ -4,12 +4,13 @@ import { PublicHeader } from "@/components/public-header";
 import { BreadcrumbTrail } from "@/components/seo/breadcrumb-trail";
 import { ReadingSampleQuiz } from "@/components/seo/reading-sample-quiz";
 import { getCurrentUser } from "@/lib/auth/session";
+import { getCookieLanguage } from "@/lib/i18n/get-translations";
 import type { ReadingLongTailGuide } from "@/lib/seo/reading-long-tail";
 
 export async function ReadingLongTailPage({ guide }: { guide: ReadingLongTailGuide }) {
-  const user = await getCurrentUser();
+  const [user, locale] = await Promise.all([getCurrentUser(), getCookieLanguage()]);
   return <main className="min-h-screen bg-[#f7f6f1] text-slate-900">
-    <PublicHeader locale="vi" signedIn={Boolean(user)} />
+    <PublicHeader locale={locale} signedIn={Boolean(user)} />
     <article className="mx-auto max-w-5xl px-5 pb-16 pt-10 sm:px-8 sm:pt-16" lang="vi">
       <BreadcrumbTrail items={[{ name: "Trang chủ", path: "/" }, { name: "TOEIC", path: "/toeic" }, { name: `Part ${guide.part}`, path: `/toeic/part-${guide.part}` }, { name: guide.part === 6 ? "Điền câu vào đoạn" : "Hai đoạn văn", path: guide.path }]} />
       <header className="mt-8 border-b border-slate-300 pb-10">
@@ -49,6 +50,6 @@ export async function ReadingLongTailPage({ guide }: { guide: ReadingLongTailGui
       </section>
       <p className="mt-8 text-xs text-slate-600">Tài liệu và câu hỏi mẫu do TOEIC GYM tự biên soạn. TOEIC GYM không liên kết với ETS; bài mẫu không dự đoán điểm thi chính thức.</p>
     </article>
-    <PublicFooter locale="vi" />
+    <PublicFooter locale={locale} />
   </main>;
 }

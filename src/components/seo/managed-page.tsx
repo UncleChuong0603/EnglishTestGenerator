@@ -30,6 +30,11 @@ export async function ManagedPage({ slug }: { slug: string }) {
   const user = await getCurrentUser();
   const path = contentPath(slug);
   const questions = practiceForSlug(slug);
+  const readingSample = slug === "seo-part6"
+    ? { href: "/toeic/part-6/dien-cau-vao-doan-van", label: "Làm bài điền câu Part 6" }
+    : slug === "seo-part7"
+      ? { href: "/toeic/part-7/doc-hieu-hai-doan-van", label: "Làm bài đọc hai đoạn Part 7" }
+      : { href: "/toeic/part-5/practice", label: "Luyện Part 5 miễn phí" };
   const crumbs = [{ name: "Trang chủ", path: "/" },
     ...(path === "/toeic" ? [] : [{ name: "TOEIC", path: "/toeic" }]),
     ...(path.startsWith("/toeic/part-5/") ? [{ name: "Part 5", path: "/toeic/part-5" }] : []),
@@ -39,10 +44,13 @@ export async function ManagedPage({ slug }: { slug: string }) {
     <article lang="vi" className="mx-auto max-w-4xl px-5 py-10 sm:px-8 sm:py-16">
       <BreadcrumbTrail items={crumbs} />
       <header className="mt-7"><h1 className="text-4xl font-black leading-tight sm:text-5xl">{post.title}</h1><p className="mt-5 text-lg leading-8 text-slate-700">{post.excerpt}</p></header>
-      {questions.length ? <MiniPractice questions={questions} /> : <Link className="mt-6 inline-flex min-h-12 items-center rounded-lg bg-teal-800 px-5 font-bold text-white" href="/toeic/part-5/practice">Luyện Part 5 miễn phí</Link>}
+      {questions.length ? <MiniPractice questions={questions} /> : <Link className="mt-6 inline-flex min-h-12 items-center rounded-lg bg-teal-800 px-5 font-bold text-white" href={readingSample.href}>{readingSample.label}</Link>}
       <Markdown content={post.content} />
       <nav aria-label="Luyện tập tiếp" className="mt-10 flex flex-wrap gap-5 border-t border-slate-300 pt-6 font-bold text-teal-800">
-        <Link href="/toeic/part-5">Chọn chủ điểm Part 5</Link><Link href="/challenge/part-5">Bắt đầu Challenge</Link><Link href="/blog">Thư viện hướng dẫn</Link>
+        {slug === "seo-part6" ? <><Link href="/toeic/part-6/dien-cau-vao-doan-van">Điền câu vào đoạn Part 6</Link><Link href="/toeic/part-7">Học tiếp Part 7</Link></>
+          : slug === "seo-part7" ? <><Link href="/toeic/part-7/doc-hieu-hai-doan-van">Đọc hai đoạn văn Part 7</Link><Link href="/toeic/part-6">Ôn lại Part 6</Link></>
+            : <><Link href="/toeic/part-5">Chọn chủ điểm Part 5</Link><Link href="/challenge/part-5">Bắt đầu Challenge</Link></>}
+        <Link href="/blog">Thư viện hướng dẫn</Link>
       </nav>
       <p className="mt-8 text-sm text-slate-600">TOEICGym là nền tảng luyện tập độc lập, không liên kết với ETS/IIG. Bài luyện không quy đổi thành điểm thi TOEIC.</p>
     </article><PublicFooter locale="vi" />
