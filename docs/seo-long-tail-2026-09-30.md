@@ -10,6 +10,7 @@ Vietnamese results for queries about Part 6 sentence insertion, Part 7 multi-doc
 | --- | --- | --- | --- |
 | `toeic part 6 điền câu vào đoạn văn`, `bài tập part 6 điền câu` | `/toeic/part-6/dien-cau-vao-doan-van` | Original email, sentence insertion, reason for every option | Live on production; HTTP 200 and in sitemap on 2026-10-01 |
 | `toeic part 7 hai đoạn văn`, `bài tập part 7 double passage` | `/toeic/part-7/doc-hieu-hai-doan-van` | Two original emails, three evidence-based questions | Live on production; HTTP 200 and in sitemap on 2026-10-01 |
+| `toeic part 7 ba văn bản`, `bài tập triple passage có lời giải` | `/toeic/part-7/doc-hieu-ba-van-ban` | Original event notice and two emails; five questions with cross-document evidence | October 1 batch; not deployed by this task |
 | `toeic part 6`, `cách làm part 6` | `/toeic/part-6` | Broad Part guide | Existing |
 | `toeic part 7`, `cách làm part 7` | `/toeic/part-7` | Broad Part guide | Existing |
 | `toeic part 5 loại từ`, `toeic part 5 thì động từ` | `/toeic/part-5/word-form`, `/toeic/part-5/thi-dong-tu` | Original topic practice | Existing |
@@ -19,8 +20,8 @@ One search intent should have one primary URL. Fold close variants into the same
 
 ## Next editorial queue
 
-1. **Part 7 triple passage**: Create one original three-document scenario with a question that genuinely needs two documents. Link from Part 7 and the double-passage page. Publish only after the sample, answer evidence and mobile interaction are reviewed.
-2. **Part 6 word/phrase vs. sentence insertion**: Expand the parent Part 6 guide with a comparison table and two distinct examples. A separate URL is justified only if the query results and available exercise bank show a separate learner task.
+1. **Part 7 triple passage — implemented October 1**: One original three-document scenario with five questions. Questions about event readiness and late delivery require evidence from the event notice and the final supplier email. The page is linked from Part 7, the double-passage exercise and the existing Part 7 blog; its route is in the sitemap and release smoke checks. Deployment and post-release verification remain.
+2. **Part 6 word/phrase vs. sentence insertion — expanded October 1**: The parent Part 6 guide now contrasts the two reading tasks with original examples and an actionable checklist. This extends the existing intent rather than creating another overlapping URL.
 3. **Part 5 conjunction vs. preposition**: The existing `/blog/lien-tu-va-tu-noi-toeic` has a relevant exercise. Improve its answer explanations and connect it more visibly to `/toeic/part-5`; avoid a near-duplicate page.
 4. **Target-score learning plans**: Improve the existing 450-to-700 guide with a downloadable weekly checklist and clear prerequisites. Add another target only if the curriculum and diagnostic data can support a genuinely different plan. Never imply a guaranteed score increase.
 5. **Vocabulary in work situations**: Expand the existing office-vocabulary post into a topic hub with original sentence examples and a recall exercise; add child pages only when they represent distinct contexts such as invoices or meetings.

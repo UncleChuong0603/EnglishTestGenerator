@@ -4,7 +4,7 @@ import { contentPath } from "./routes";
 
 const revisedAt = new Date("2026-09-26T18:00:00.000Z");
 const listeningReleaseAt = new Date("2026-09-29T17:00:00.000Z");
-const readingReleaseAt = new Date("2026-09-30T17:00:00.000Z");
+const readingReleaseAt = new Date("2026-10-01T09:00:00.000Z");
 
 function document(slug: string, title: string, excerpt: string, content: string, intent = "LEARN"): EditorialPost {
   const updatedAt = slug === "seo-toeic" || slug === "seo-online" ? listeningReleaseAt

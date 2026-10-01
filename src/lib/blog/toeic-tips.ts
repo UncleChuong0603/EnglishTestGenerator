@@ -187,6 +187,7 @@ Chọn một đoạn Part 6, bấm giờ theo tốc độ hiện tại. Với m�
   }),
   tip({
     id: "tip-part-7", slug: "meo-lam-toeic-part-7-doc-hieu-nhieu-van-ban", category: "READING",
+    revisedAt: new Date("2026-10-01T09:00:00.000Z"),
     title: "Mẹo làm TOEIC Part 7: tìm bằng chứng trong một hoặc nhiều văn bản",
     excerpt: "Đọc câu hỏi theo mục tiêu, tìm thông tin và đối chiếu nhiều tài liệu mà không phải đọc đi đọc lại toàn bộ.",
     seoTitle: "Mẹo làm TOEIC Part 7 đọc hiểu và đối chiếu văn bản",
@@ -216,6 +217,8 @@ Nếu bạn đọc một đoạn ba lần mà vẫn không thấy bằng chứng
 Làm một cụm bài đơn và một cụm nhiều văn bản. Sau mỗi câu, đánh dấu **dòng chứa bằng chứng**; nếu câu phải nối hai văn bản, đánh dấu cả hai nơi. Khi chấm, phân biệt “không tìm thấy vị trí” với “tìm thấy nhưng hiểu sai paraphrase”. Loại đầu cần luyện quét mốc thông tin; loại sau cần luyện diễn đạt lại bằng một câu tiếng Việt ngắn.
 
 Đừng học thuộc “vị trí đáp án thường nằm ở đâu”; vị trí thay đổi theo tài liệu. Kỹ năng bền hơn là truy vết bằng chứng và kiểm tra thời gian, người, điều kiện.
+
+Nếu cần bài áp dụng ngay, hãy bắt đầu với [hai email và ba câu hỏi Part 7](/toeic/part-7/doc-hieu-hai-doan-van). Sau đó làm [bài ba văn bản với năm câu hỏi](/toeic/part-7/doc-hieu-ba-van-ban): ít nhất hai câu cần nối lịch sự kiện với email cập nhật giao hàng. Cả hai bài đều mở công khai và có lời giải theo bằng chứng.
 
 **Nguồn đối chiếu:** [ETS giới thiệu Part 7 Reading Comprehension](${etsFormat}) và có [đề mẫu](${etsSamples}). Tình huống cùng quy trình trên do TOEICGym biên soạn.`,
   }),

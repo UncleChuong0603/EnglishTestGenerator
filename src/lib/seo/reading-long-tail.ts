@@ -8,6 +8,7 @@ export type ReadingSampleQuestion = {
 export type ReadingLongTailGuide = {
   path: string;
   part: 6 | 7;
+  breadcrumbLabel: string;
   title: string;
   description: string;
   intro: string;
@@ -23,6 +24,7 @@ export const readingLongTailGuides = {
   sentenceInsertion: {
     path: "/toeic/part-6/dien-cau-vao-doan-van",
     part: 6,
+    breadcrumbLabel: "Điền câu vào đoạn",
     title: "TOEIC Part 6 điền câu vào đoạn văn: cách chọn và bài tập có đáp án",
     description: "Học cách xử lý câu điền vào đoạn văn TOEIC Part 6 bằng dấu hiệu trước và sau chỗ trống. Làm bài email tự biên soạn, xem đáp án và lời giải miễn phí.",
     intro: "Dạng điền cả câu trong Part 6 yêu cầu bạn theo dõi mạch ý của đoạn, không chỉ kiểm tra ngữ pháp của một câu. Bài mẫu dưới đây cho bạn một cách đọc có thể áp dụng ngay: xác định vấn đề, tìm quan hệ nguyên nhân – kết quả, rồi kiểm tra câu sau chỗ trống.",
@@ -67,6 +69,7 @@ export const readingLongTailGuides = {
   doublePassage: {
     path: "/toeic/part-7/doc-hieu-hai-doan-van",
     part: 7,
+    breadcrumbLabel: "Hai văn bản",
     title: "TOEIC Part 7 đọc hiểu hai đoạn văn: bài tập đối chiếu có lời giải",
     description: "Luyện TOEIC Part 7 dạng hai đoạn văn với email đặt hàng và phản hồi tự biên soạn. Trả lời 3 câu, xem bằng chứng ở từng tài liệu và cách tránh bẫy mốc thời gian.",
     intro: "Ở dạng hai tài liệu, một câu hỏi có thể cần thông tin từ cả email ban đầu lẫn phản hồi. Bài mẫu này luyện cách ghép số lượng, ngày giao và hành động tiếp theo. Bạn có thể làm ngay trên trang rồi xem câu nào trong tài liệu chứng minh đáp án.",
@@ -105,8 +108,93 @@ export const readingLongTailGuides = {
     review: "Xem lại từng câu và chỉ ra email nào chứa bằng chứng. Câu về hóa đơn và lý do chấp nhận giao đợt phải dựa vào phản hồi của khách hàng; câu về số lượng có thể đối chiếu cả hai email. Nếu bạn chọn sai, ghi rõ mình đã nhầm tổng số lượng, đợt giao hay thời điểm mở phòng.",
     related: [
       { href: "/toeic/part-7", label: "Tổng quan TOEIC Part 7", description: "Ôn kỹ thuật định vị thông tin và nhận ra cách diễn đạt lại." },
+      { href: "/toeic/part-7/doc-hieu-ba-van-ban", label: "Bài đọc ba văn bản Part 7", description: "Nối lịch sự kiện với hai email để giải câu hỏi liên văn bản." },
       { href: "/blog/meo-lam-toeic-part-7-doc-hieu-nhieu-van-ban", label: "Chiến lược đọc nhiều văn bản", description: "Mở rộng sang câu hỏi cần nối hai hoặc ba tài liệu." },
       { href: "/toeic/part-6/dien-cau-vao-doan-van", label: "Điền câu vào đoạn Part 6", description: "Luyện mạch ý trong một email trước khi đối chiếu nhiều tài liệu." },
+    ],
+  },
+  triplePassage: {
+    path: "/toeic/part-7/doc-hieu-ba-van-ban",
+    part: 7,
+    breadcrumbLabel: "Ba văn bản",
+    title: "TOEIC Part 7 ba văn bản: bài tập triple passage có lời giải",
+    description: "Luyện TOEIC Part 7 dạng ba văn bản bằng thông báo và hai email tự biên soạn. Làm 5 câu, đối chiếu lịch, số lượng và phương án xử lý giao hàng chậm.",
+    intro: "Với ba văn bản, đáp án có thể nằm ở chỗ giao nhau giữa lịch sự kiện, yêu cầu đặt hàng và email cập nhật. Bài tập này cho bạn thực hành tìm tài liệu chứa dữ kiện đầu tiên, rồi kiểm tra xem tài liệu sau có thay đổi kế hoạch đó hay không.",
+    sections: [
+      {
+        title: "Tạo bản đồ ba tài liệu trước khi đọc chi tiết",
+        paragraphs: ["Thông báo sự kiện cho biết mỗi hoạt động diễn ra khi nào và cần bao nhiêu ghế. Email đặt hàng cho biết ban tổ chức dự kiến nhận hàng ra sao. Phản hồi của nhà cung cấp thay đổi một phần lịch giao. Nếu câu hỏi hỏi hoạt động nào vẫn đúng kế hoạch, bạn phải ghép thời điểm hoạt động với số ghế thực sự sẽ tới trước đó."],
+        steps: ["Đọc tiêu đề, người gửi và mục đích của từng tài liệu; gắn nhãn lịch, yêu cầu, cập nhật.", "Nhìn câu hỏi để xác định dữ kiện cần tìm: thời điểm, số lượng hay hành động.", "Đánh dấu dữ kiện ở tài liệu đầu rồi kiểm tra xem email mới nhất có sửa nó không.", "Chọn đáp án chỉ khi có câu trong tài liệu chứng minh; ghi cả hai tài liệu nếu câu hỏi cần đối chiếu."],
+      },
+      {
+        title: "Phân biệt hạn đăng ký với hạn xác nhận phương án thay thế",
+        paragraphs: ["Một ngày có thể xuất hiện ở nhiều việc khác nhau. Trong bài mẫu, người tham dự đăng ký sự kiện trước ngày 12 tháng 10; nhà cung cấp cũng cần được xác nhận việc dùng ghế mượn trước ngày đó. Hai hạn trùng nhau nhưng người chịu trách nhiệm và hành động khác nhau. Đọc động từ đi cùng ngày tháng để tránh chọn đáp án chỉ vì nhận ra con số."],
+      },
+      {
+        title: "Làm bài rồi chỉ ra đường đi của bằng chứng",
+        paragraphs: ["Sau khi trả lời, hãy viết ngắn gọn ‘thông báo → email nhà cung cấp’ bên cạnh câu cần đối chiếu. Câu chỉ hỏi số ghế giao đợt đầu có thể giải bằng email cuối. Câu hỏi về buổi học nào bị ảnh hưởng cần ít nhất lịch hoạt động trong thông báo và lịch giao cập nhật. Thao tác này giúp phát hiện bạn đang đọc thừa hay bỏ sót một văn bản."],
+      },
+    ],
+    documents: [
+      {
+        label: "Văn bản 1 · thông báo sự kiện",
+        paragraphs: [
+          "Workplace Skills Week — Event Notice",
+          "A product demonstration will take place in Room B on October 16 at 1 p.m. Thirty chairs are needed. A staff training session will take place in Room C on October 18 at 9 a.m. Ten chairs are needed there. Participants must register by October 12.",
+        ],
+      },
+      {
+        label: "Văn bản 2 · email đặt hàng",
+        paragraphs: [
+          "To: Cedar Office Supply | From: Nhi Tran | Subject: Order 842 — 40 folding chairs",
+          "As agreed, please deliver all 40 folding chairs by October 15. We need 30 chairs for the product demonstration in Room B and the other 10 for staff training in Room C. Please let me know immediately if either part of the delivery will be late.",
+        ],
+      },
+      {
+        label: "Văn bản 3 · phản hồi nhà cung cấp",
+        paragraphs: [
+          "To: Nhi Tran | From: Cedar Office Supply | Subject: Re: Order 842 — Delivery Update",
+          "We can deliver 30 chairs on October 15. Because one shipment is delayed, the remaining 10 chairs will arrive on October 19. We can provide 10 loaner chairs on October 17 for your training session if you confirm this arrangement by October 12. We will collect the loaner chairs on October 19.",
+        ],
+      },
+    ],
+    questions: [
+      {
+        prompt: "Which event can use the ordered chairs as originally planned?",
+        options: ["The product demonstration", "The staff training session", "Both events", "Neither event"],
+        answer: 0,
+        explanation: "A. The product demonstration. Thông báo nói buổi demo ngày 16/10 cần 30 ghế; email cuối xác nhận 30 ghế giao ngày 15/10. Buổi training ngày 18/10 cần 10 ghế còn lại, nhưng ghế đặt mua đến ngày 19/10. Vì vậy B và C sai; D bỏ qua đợt giao đầu.",
+      },
+      {
+        prompt: "What should Ms. Tran do to have chairs for the staff training session?",
+        options: ["Move the training to Room B", "Confirm the loaner-chair arrangement by October 12", "Cancel participant registration", "Wait for the ordered chairs on October 19"],
+        answer: 1,
+        explanation: "B. Confirm the loaner-chair arrangement by October 12. Thông báo xếp training ngày 18/10; phản hồi nhà cung cấp đề nghị 10 ghế mượn giao ngày 17/10 nếu xác nhận trước 12/10. A và C không xuất hiện trong tài liệu; D quá muộn so với buổi training.",
+      },
+      {
+        prompt: "How many ordered chairs will arrive on October 15?",
+        options: ["10", "20", "30", "40"],
+        answer: 2,
+        explanation: "C. 30. Email cuối xác nhận 30 ghế giao ngày 15/10. Mười ghế còn lại giao ngày 19/10; 40 là tổng đơn hàng trong email đặt mua, không phải số ghế giao đợt đầu.",
+      },
+      {
+        prompt: "When must participants register for Workplace Skills Week?",
+        options: ["October 12", "October 15", "October 17", "October 19"],
+        answer: 0,
+        explanation: "A. October 12. Thông báo sự kiện nói rõ participants must register by October 12. Cùng ngày này cũng là hạn xác nhận ghế mượn trong email nhà cung cấp, nhưng câu hỏi đang hỏi người tham dự đăng ký.",
+      },
+      {
+        prompt: "Why are loaner chairs offered?",
+        options: ["The demonstration needs more than 30 chairs", "The training room is being renovated", "The remaining ordered chairs will arrive after the training", "Participants requested a different room"],
+        answer: 2,
+        explanation: "C. The remaining ordered chairs will arrive after the training. Training diễn ra ngày 18/10 theo thông báo, trong khi 10 ghế đặt mua còn lại đến 19/10 theo email cập nhật. Ghế mượn ngày 17/10 lấp khoảng trống đó. Các lý do A, B và D không được tài liệu hỗ trợ.",
+      },
+    ],
+    review: "Với câu 1 và 5, hãy chỉ ra ít nhất hai bằng chứng ở hai văn bản khác nhau: lịch cần ghế và lịch giao mới. Với câu 2, kiểm tra thêm hạn xác nhận phương án ghế mượn. Sau đó thử trả lời lại mà không nhìn lựa chọn để xem bạn thực sự nối được ba tài liệu hay chỉ nhận ra một con số quen mắt.",
+    related: [
+      { href: "/toeic/part-7", label: "Tổng quan TOEIC Part 7", description: "Ôn các dạng câu hỏi và cách định vị bằng chứng." },
+      { href: "/toeic/part-7/doc-hieu-hai-doan-van", label: "Đọc hiểu hai văn bản", description: "Bắt đầu với tình huống hai email ngắn hơn." },
+      { href: "/blog/meo-lam-toeic-part-7-doc-hieu-nhieu-van-ban", label: "Chiến lược đọc nhiều văn bản", description: "Xem quy trình đọc và sửa lỗi cho câu hỏi liên văn bản." },
     ],
   },
 } satisfies Record<string, ReadingLongTailGuide>;

@@ -12,7 +12,7 @@ export async function ReadingLongTailPage({ guide }: { guide: ReadingLongTailGui
   return <main className="min-h-screen bg-[#f7f6f1] text-slate-900">
     <PublicHeader locale={locale} signedIn={Boolean(user)} />
     <article className="mx-auto max-w-5xl px-5 pb-16 pt-10 sm:px-8 sm:pt-16" lang="vi">
-      <BreadcrumbTrail items={[{ name: "Trang chủ", path: "/" }, { name: "TOEIC", path: "/toeic" }, { name: `Part ${guide.part}`, path: `/toeic/part-${guide.part}` }, { name: guide.part === 6 ? "Điền câu vào đoạn" : "Hai đoạn văn", path: guide.path }]} />
+      <BreadcrumbTrail items={[{ name: "Trang chủ", path: "/" }, { name: "TOEIC", path: "/toeic" }, { name: `Part ${guide.part}`, path: `/toeic/part-${guide.part}` }, { name: guide.breadcrumbLabel, path: guide.path }]} />
       <header className="mt-8 border-b border-slate-300 pb-10">
         <p className="text-sm font-bold uppercase tracking-[.16em] text-teal-800">TOEIC Reading · Part {guide.part}</p>
         <h1 className="mt-4 max-w-4xl text-4xl font-black leading-tight sm:text-6xl">{guide.title}</h1>
