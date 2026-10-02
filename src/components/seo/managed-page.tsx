@@ -33,7 +33,7 @@ export async function ManagedPage({ slug }: { slug: string }) {
   const readingSample = slug === "seo-part6"
     ? { href: "/toeic/part-6/dien-cau-vao-doan-van", label: "Làm bài điền câu Part 6" }
     : slug === "seo-part7"
-      ? { href: "/toeic/part-7/doc-hieu-hai-doan-van", label: "Làm bài đọc hai đoạn Part 7" }
+      ? { href: "/toeic/part-7/doc-hieu-mot-doan-van", label: "Làm bài đọc một văn bản Part 7" }
       : { href: "/toeic/part-5/practice", label: "Luyện Part 5 miễn phí" };
   const crumbs = [{ name: "Trang chủ", path: "/" },
     ...(path === "/toeic" ? [] : [{ name: "TOEIC", path: "/toeic" }]),
@@ -48,7 +48,7 @@ export async function ManagedPage({ slug }: { slug: string }) {
       <Markdown content={post.content} />
       <nav aria-label="Luyện tập tiếp" className="mt-10 flex flex-wrap gap-5 border-t border-slate-300 pt-6 font-bold text-teal-800">
         {slug === "seo-part6" ? <><Link href="/toeic/part-6/dien-cau-vao-doan-van">Điền câu vào đoạn Part 6</Link><Link href="/toeic/part-7">Học tiếp Part 7</Link></>
-          : slug === "seo-part7" ? <><Link href="/toeic/part-7/doc-hieu-hai-doan-van">Đọc hai đoạn văn Part 7</Link><Link href="/toeic/part-6">Ôn lại Part 6</Link></>
+          : slug === "seo-part7" ? <><Link href="/toeic/part-7/doc-hieu-mot-doan-van">Đọc một văn bản Part 7</Link><Link href="/toeic/part-7/doc-hieu-hai-doan-van">Đọc hai văn bản Part 7</Link><Link href="/toeic/part-6">Ôn lại Part 6</Link></>
             : <><Link href="/toeic/part-5">Chọn chủ điểm Part 5</Link><Link href="/challenge/part-5">Bắt đầu Challenge</Link></>}
         <Link href="/blog">Thư viện hướng dẫn</Link>
       </nav>

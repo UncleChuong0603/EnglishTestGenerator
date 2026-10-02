@@ -10,6 +10,8 @@ import { relatedGrammarLessons } from "@/lib/blog/grammar-learning-path";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getPreferences } from "@/lib/i18n/get-translations";
 import { getSiteUrl } from "@/lib/seo/site-url";
+import { articleStructuredData } from "@/lib/seo/article-structured-data";
+import { serializeStructuredData } from "@/lib/seo/structured-data";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -59,13 +61,20 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   const related = grammarRelated.length ? grammarRelated.slice(0, 2) : posts.filter(item => item.slug !== post.slug && item.category === post.category).slice(0, 2);
   const base = getSiteUrl();
   const url = new URL(post.canonicalPath || `/blog/${post.slug}`, base).toString();
-  const jsonLd = { "@context":"https://schema.org", "@graph": [
-    { "@type":"BlogPosting", headline: post.title, description: post.seoDescription || post.excerpt, datePublished: post.publishedAt?.toISOString(), dateModified: post.updatedAt.toISOString(), url, image: image ? new URL(image, base).toString() : undefined, author: !post.authorName || /^(TOEICGym|TOEICGym Editorial)$/.test(post.authorName) ? { "@type": "Organization", name: "TOEICGym" } : { "@type": "Person", name: post.authorName }, publisher: { "@type": "Organization", name: "TOEICGym" } },
-    { "@type": "BreadcrumbList", itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Kiến thức TOEIC", item: new URL("/blog", base).toString() },
-      ...(post.category === "GRAMMAR" ? [{ "@type": "ListItem", position: 2, name: "Ngữ pháp tiếng Anh", item: new URL("/blog/ngu-phap", base).toString() }] : []),
-      { "@type": "ListItem", position: post.category === "GRAMMAR" ? 3 : 2, name: post.title, item: url },
-    ] },
-  ] };
-  return <main className="min-h-screen bg-white text-slate-900"><PublicHeader locale={prefs.interfaceLanguage} signedIn={Boolean(user)} /><script dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} type="application/ld+json" /><ArticleView coverUrl={image} locale={prefs.interfaceLanguage} post={post} related={related} signedIn={Boolean(user)} /><PublicFooter locale={prefs.interfaceLanguage} /></main>;
+  const jsonLd = articleStructuredData({
+    base,
+    url,
+    title: post.title,
+    description: post.seoDescription || post.excerpt,
+    publishedAt: post.publishedAt,
+    updatedAt: post.updatedAt,
+    image: image ? new URL(image, base).toString() : null,
+    authorName: post.authorName,
+    breadcrumbs: [
+      { name: "Kiến thức TOEIC", url: new URL("/blog", base).toString() },
+      ...(post.category === "GRAMMAR" ? [{ name: "Ngữ pháp tiếng Anh", url: new URL("/blog/ngu-phap", base).toString() }] : []),
+      { name: post.title, url },
+    ],
+  });
+  return <main className="min-h-screen bg-white text-slate-900"><PublicHeader locale={prefs.interfaceLanguage} signedIn={Boolean(user)} /><script dangerouslySetInnerHTML={{ __html: serializeStructuredData(jsonLd) }} type="application/ld+json" /><ArticleView coverUrl={image} locale={prefs.interfaceLanguage} post={post} related={related} signedIn={Boolean(user)} /><PublicFooter locale={prefs.interfaceLanguage} /></main>;
 }

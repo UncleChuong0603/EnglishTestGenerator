@@ -8,10 +8,15 @@ export const dynamic = "force-dynamic";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = getSiteUrl();
   const staticPaths = STATIC_PUBLIC_PATHS;
-  const listeningRevisionPaths = new Set(["/toeic/part-1", "/toeic/part-2", "/toeic/part-4"]);
+  const staticPageRevisions = new Map<string, Date>([
+    ["/toeic/part-1", new Date("2026-10-02T00:00:00.000Z")],
+    ["/toeic/part-2", new Date("2026-10-02T00:00:00.000Z")],
+    ["/toeic/part-4", new Date("2026-10-02T00:00:00.000Z")],
+    ["/toeic/part-7/doc-hieu-mot-doan-van", new Date("2026-10-02T00:00:00.000Z")],
+  ]);
   const staticPages: MetadataRoute.Sitemap = staticPaths.map((path) => ({
     url: path === "/" ? base : `${base}${path}`,
-    ...(listeningRevisionPaths.has(path) ? { lastModified: new Date("2026-10-02T00:00:00.000Z") } : {}),
+    ...(staticPageRevisions.has(path) ? { lastModified: staticPageRevisions.get(path) } : {}),
   }));
   const posts = await publishedSitemapRows();
 

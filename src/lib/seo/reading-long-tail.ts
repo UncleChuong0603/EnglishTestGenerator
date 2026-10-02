@@ -66,6 +66,65 @@ export const readingLongTailGuides = {
       { href: "/try#quick-practice", label: "Thử bài Reading dài hơn", description: "Chuyển từ một câu mẫu sang nhóm câu hỏi theo Part." },
     ],
   },
+  singlePassage: {
+    path: "/toeic/part-7/doc-hieu-mot-doan-van",
+    part: 7,
+    breadcrumbLabel: "Một văn bản",
+    title: "TOEIC Part 7 một đoạn văn: bài tập email có đáp án",
+    description: "Luyện TOEIC Part 7 dạng một đoạn văn bằng email tự biên soạn. Làm 4 câu về mục đích, chi tiết, hành động và từ vựng, rồi xem bằng chứng cho từng đáp án.",
+    intro: "Dạng một văn bản là nơi phù hợp để tập thói quen trả lời bằng bằng chứng trước khi chuyển sang bài đọc đôi hoặc ba. Bài mẫu dưới đây giúp bạn nhận diện mục đích email, định vị một chi tiết, làm theo hướng dẫn và hiểu từ trong đúng ngữ cảnh.",
+    sections: [
+      {
+        title: "Nhìn cấu trúc tài liệu trước khi đọc từng câu",
+        paragraphs: ["Với email hoặc thông báo ngắn, hãy đọc dòng chủ đề, câu mở đầu và câu kết trước. Ba vị trí này thường cho biết vì sao tài liệu được viết, thay đổi nào đang xảy ra và người đọc cần làm gì. Sau đó phân loại câu hỏi: mục đích cần nhìn toàn tài liệu; chi tiết và hành động cần định vị đúng câu; từ vựng cần đọc cả câu chứa từ đó."],
+        steps: ["Đọc tiêu đề và xác định loại văn bản.", "Xem câu hỏi đang hỏi mục đích, chi tiết, hành động hay nghĩa trong ngữ cảnh.", "Tìm câu chứa bằng chứng rồi diễn đạt lại bằng lời của bạn.", "Chọn phương án khớp toàn bộ ý và mốc thời gian, không chỉ trùng một từ."],
+      },
+      {
+        title: "Giữ đúng đối tượng và địa điểm",
+        paragraphs: ["Một tài liệu có thể nhắc đến khách, nhân viên và người giao hàng cùng lúc. Trong bài mẫu, khách đến quầy tạm thời ở Room 105, còn việc giao hàng vẫn diễn ra tại loading dock. Hai địa điểm đều đúng nhưng phục vụ hai nhóm khác nhau. Khi sửa bài, hãy gạch cả danh từ chỉ người và hành động đi cùng địa điểm."],
+      },
+    ],
+    documents: [{
+      label: "Email nội bộ · bài mẫu tự biên soạn",
+      paragraphs: [
+        "To: All Staff | Subject: Temporary Reception Desk",
+        "Beginning Monday, November 4, the main lobby floor will be replaced. During the work, the reception desk will operate from Room 105, across from the cafeteria. Visitors should enter through the east entrance and go directly to Room 105. If the east entrance is locked, they should call extension 204 for assistance. Deliveries will continue to be accepted at the loading dock. Regular lobby reception will resume on Monday, November 11.",
+      ],
+    }],
+    questions: [
+      {
+        prompt: "What is the purpose of the email?",
+        options: ["To announce temporary reception arrangements", "To invite staff to a cafeteria event", "To request bids for floor replacement", "To change the company delivery schedule"],
+        answer: 0,
+        explanation: "A. To announce temporary reception arrangements. Email giải thích quầy lễ tân chuyển sang Room 105 trong lúc thay sàn sảnh chính và hướng dẫn khách đi vào đâu. B, C và D không phải mục đích của email; lịch nhận hàng vẫn tiếp tục như cũ.",
+      },
+      {
+        prompt: "Where should visitors go during the lobby work?",
+        options: ["The loading dock", "Room 105", "The main lobby", "The cafeteria"],
+        answer: 1,
+        explanation: "B. Room 105. Email nói reception desk will operate from Room 105 và visitors should go directly there. Cafeteria chỉ là mốc đối diện; loading dock dành cho deliveries; main lobby đang được thay sàn.",
+      },
+      {
+        prompt: "What should visitors do if the east entrance is locked?",
+        options: ["Return on November 11", "Wait at the loading dock", "Call extension 204", "Contact the cafeteria"],
+        answer: 2,
+        explanation: "C. Call extension 204. Câu hướng dẫn nêu trực tiếp: ‘If the east entrance is locked, they should call extension 204 for assistance.’ Các lựa chọn còn lại không phải hành động được yêu cầu.",
+      },
+      {
+        prompt: "The word “resume” is closest in meaning to",
+        options: ["move", "stop", "begin again", "remain hidden"],
+        answer: 2,
+        explanation: "C. begin again. ‘Regular lobby reception will resume on Monday, November 11’ nghĩa là hoạt động lễ tân tại sảnh chính sẽ bắt đầu lại sau giai đoạn tạm chuyển. Move mô tả việc đổi chỗ; stop và remain hidden trái với ý khôi phục hoạt động.",
+      },
+    ],
+    review: "Với câu 1, hãy tóm tắt toàn email trong một câu. Với câu 2 và 3, chỉ đúng câu chứa địa điểm hoặc hành động. Với câu 4, thay resume bằng begin again rồi đọc lại câu để kiểm tra nghĩa. Nếu chọn sai, ghi mình đã nhầm đối tượng, địa điểm, hành động hay nghĩa trong ngữ cảnh trước khi làm bài hai văn bản.",
+    related: [
+      { href: "/toeic/part-7", label: "Tổng quan TOEIC Part 7", description: "Ôn các dạng câu hỏi và cách định vị bằng chứng." },
+      { href: "/toeic/part-7/doc-hieu-hai-doan-van", label: "Đọc hiểu hai văn bản", description: "Tiếp tục bằng bài cần đối chiếu hai email." },
+      { href: "/toeic/part-7/doc-hieu-ba-van-ban", label: "Đọc hiểu ba văn bản", description: "Luyện nối lịch, số lượng và email cập nhật." },
+      { href: "/blog/quan-ly-thoi-gian-toeic-reading-75-phut", label: "Chia thời gian Reading", description: "Tạo mốc thời gian để giữ đủ phút cho Part 7." },
+    ],
+  },
   doublePassage: {
     path: "/toeic/part-7/doc-hieu-hai-doan-van",
     part: 7,
@@ -108,6 +167,7 @@ export const readingLongTailGuides = {
     review: "Xem lại từng câu và chỉ ra email nào chứa bằng chứng. Câu về hóa đơn và lý do chấp nhận giao đợt phải dựa vào phản hồi của khách hàng; câu về số lượng có thể đối chiếu cả hai email. Nếu bạn chọn sai, ghi rõ mình đã nhầm tổng số lượng, đợt giao hay thời điểm mở phòng.",
     related: [
       { href: "/toeic/part-7", label: "Tổng quan TOEIC Part 7", description: "Ôn kỹ thuật định vị thông tin và nhận ra cách diễn đạt lại." },
+      { href: "/toeic/part-7/doc-hieu-mot-doan-van", label: "Bài đọc một văn bản Part 7", description: "Luyện từng dạng câu hỏi trên một email trước khi đối chiếu hai nguồn." },
       { href: "/toeic/part-7/doc-hieu-ba-van-ban", label: "Bài đọc ba văn bản Part 7", description: "Nối lịch sự kiện với hai email để giải câu hỏi liên văn bản." },
       { href: "/blog/meo-lam-toeic-part-7-doc-hieu-nhieu-van-ban", label: "Chiến lược đọc nhiều văn bản", description: "Mở rộng sang câu hỏi cần nối hai hoặc ba tài liệu." },
       { href: "/toeic/part-6/dien-cau-vao-doan-van", label: "Điền câu vào đoạn Part 6", description: "Luyện mạch ý trong một email trước khi đối chiếu nhiều tài liệu." },
@@ -193,6 +253,7 @@ export const readingLongTailGuides = {
     review: "Với câu 1 và 5, hãy chỉ ra ít nhất hai bằng chứng ở hai văn bản khác nhau: lịch cần ghế và lịch giao mới. Với câu 2, kiểm tra thêm hạn xác nhận phương án ghế mượn. Sau đó thử trả lời lại mà không nhìn lựa chọn để xem bạn thực sự nối được ba tài liệu hay chỉ nhận ra một con số quen mắt.",
     related: [
       { href: "/toeic/part-7", label: "Tổng quan TOEIC Part 7", description: "Ôn các dạng câu hỏi và cách định vị bằng chứng." },
+      { href: "/toeic/part-7/doc-hieu-mot-doan-van", label: "Đọc hiểu một văn bản", description: "Ôn cách tìm mục đích, chi tiết và nghĩa trong một email." },
       { href: "/toeic/part-7/doc-hieu-hai-doan-van", label: "Đọc hiểu hai văn bản", description: "Bắt đầu với tình huống hai email ngắn hơn." },
       { href: "/blog/meo-lam-toeic-part-7-doc-hieu-nhieu-van-ban", label: "Chiến lược đọc nhiều văn bản", description: "Xem quy trình đọc và sửa lỗi cho câu hỏi liên văn bản." },
     ],

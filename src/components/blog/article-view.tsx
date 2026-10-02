@@ -7,6 +7,8 @@ import { readingMinutes } from "@/lib/blog/service";
 import { MiniPractice } from "@/components/seo/mini-practice";
 import { practiceForSlug } from "@/lib/seo/mini-practice";
 import { ReadingTimePlanner } from "@/components/seo/reading-time-planner";
+import { isToeicGymAuthor } from "@/lib/seo/article-author";
+import { articleDateLabels } from "@/lib/seo/article-dates";
 
 type Article = { slug?: string; title: string; excerpt: string; content: string; category: string; publishedAt: Date | null; updatedAt: Date; authorName?:string|null; coverAlt?:string|null; tags: { name: string; slug: string }[] };
 type Related = { id: string; slug: string; title: string; excerpt: string; category: string; content: string; publishedAt: Date | null };
@@ -14,6 +16,8 @@ type Related = { id: string; slug: string; title: string; excerpt: string; categ
 export function ArticleView({ post, locale, coverUrl, preview = false, signedIn = false, related = [] }: { post: Article; locale: "vi" | "en"; coverUrl: string | null; preview?: boolean; signedIn?: boolean; related?: Related[] }) {
   const category = CATEGORY_LABELS[post.category as PostCategory]?.[locale] ?? post.category;
   const questions = practiceForSlug(post.slug ?? "");
+  const authorName = post.authorName || "TOEIC GYM";
+  const dateLabels = articleDateLabels(post.publishedAt, post.updatedAt, locale);
   return <>
     <article className="mx-auto max-w-3xl px-5 pb-12 pt-9 sm:px-6 sm:pb-16 sm:pt-12" lang="vi">
       {preview && <p className="mb-6 rounded-xl bg-amber-100 p-4 text-center font-black text-amber-900">Bản xem trước — không công khai, không lập chỉ mục</p>}
@@ -21,9 +25,9 @@ export function ArticleView({ post, locale, coverUrl, preview = false, signedIn 
         <nav aria-label={locale === "vi" ? "Đường dẫn" : "Breadcrumb"} className="text-sm"><Link className="font-semibold text-teal-800 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-teal-700" href="/blog">← {locale === "vi" ? "Kiến thức TOEIC" : "TOEIC Guides"}</Link><span className="mx-2 text-slate-400">/</span>{post.category === "GRAMMAR" ? <><Link className="font-semibold text-teal-800 underline-offset-4 hover:underline" href="/blog/ngu-phap">{category}</Link><span className="mx-2 text-slate-400">/</span><span className="text-slate-600">{post.title}</span></> : <span className="text-slate-600">{category}</span>}</nav>
         <p className="mt-8 text-sm font-black uppercase tracking-wider text-teal-800">{category}</p>
         <h1 className="mt-3 break-words text-3xl font-black leading-tight tracking-tight text-slate-950 sm:text-5xl">{post.title}</h1>
-        <p className="mt-3 text-sm text-slate-500">{locale==="vi"?"Tác giả":"By"}: {post.authorName||"TOEICGym"}</p>
+        <p className="mt-3 text-sm text-slate-500">{locale === "vi" ? "Tác giả" : "By"}: {isToeicGymAuthor(post.authorName) ? <Link className="font-semibold text-teal-800 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700" href="/ve-toeic-gym">{authorName}</Link> : authorName}</p>
         <p className="mt-5 text-lg leading-8 text-slate-600 sm:text-xl">{post.excerpt}</p>
-        <div className="mt-5 flex flex-wrap gap-x-2 gap-y-1 text-sm text-slate-500">{post.publishedAt ? <time dateTime={post.publishedAt.toISOString()}>{post.publishedAt.toLocaleDateString(locale === "vi" ? "vi-VN" : "en-US")}</time> : <span>{locale === "vi" ? "Bản nháp" : "Draft"}</span>}<span aria-hidden="true">·</span><span>{readingMinutes(post.content)} {locale === "vi" ? "phút đọc" : "min read"}</span></div>
+        <div className="mt-5 flex flex-wrap gap-x-2 gap-y-1 text-sm text-slate-500">{post.publishedAt && dateLabels.published ? <time dateTime={post.publishedAt.toISOString()}>{dateLabels.published}</time> : <span>{locale === "vi" ? "Bản nháp" : "Draft"}</span>}{dateLabels.updated && <><span aria-hidden="true">·</span><time dateTime={post.updatedAt.toISOString()}>{dateLabels.updated}</time></>}<span aria-hidden="true">·</span><span>{readingMinutes(post.content)} {locale === "vi" ? "phút đọc" : "min read"}</span></div>
       </header>
       {coverUrl && <Image alt={post.coverAlt||""} className="mt-8 aspect-[16/9] max-h-[32rem] w-full rounded-2xl object-cover" height={675} priority src={coverUrl} unoptimized width={1200} />}
       {questions.length > 0 && <MiniPractice questions={questions} locale={locale} />}
