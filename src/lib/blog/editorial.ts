@@ -55,12 +55,19 @@ export const EDITORIAL_POSTS: EditorialPost[] = [
   SCORE_ROADMAP_POST,
   post({
     id: "editorial-listening", category: "LISTENING", slug: "cach-luyen-nghe-toeic-part-3-4",
+    revisedAt: new Date("2026-10-02T00:00:00.000Z"),
     title: "Cách luyện nghe TOEIC Part 3 và 4 không cần nghe từng từ",
     excerpt: "Kỹ thuật đọc trước câu hỏi, dự đoán bối cảnh và bắt cụm thông tin giúp bạn theo kịp hội thoại dài.",
     seoTitle: "Cách luyện nghe TOEIC Part 3, 4 hiệu quả", seoDescription: "Hướng dẫn luyện nghe TOEIC Part 3 và 4: đọc trước câu hỏi, bắt từ khóa, nhận diện paraphrase và sửa lỗi bằng transcript.", canonicalPath: "/blog/cach-luyen-nghe-toeic-part-3-4", coverAlt: "Tai nghe và dạng sóng minh họa luyện nghe TOEIC Part 3 và 4", socialTitle: "Nghe Part 3–4 mà không cần hiểu từng từ", socialDescription: "Một quy trình nghe chủ động, dễ áp dụng trong mỗi buổi luyện.", authorName: "TOEICGym Editorial", targetTopic: "cách luyện nghe TOEIC Part 3 4", searchIntent: "informational", tags: [tag("TOEIC Listening", "toeic-listening"), tag("Part 3", "part-3"), tag("Part 4", "part-4")],
     content: `## Vì sao cố nghe từng từ lại làm bạn chậm hơn?
 
 Part 3 và Part 4 kiểm tra khả năng theo dõi mục đích giao tiếp, chi tiết và hành động tiếp theo. Nếu cố dịch từng từ sang tiếng Việt, bạn dễ mắc kẹt ở một câu và bỏ lỡ phần còn lại. Mục tiêu tốt hơn là nhận ra **khung thông tin** của đoạn nghe.
+
+## Part 3 và Part 4 TOEIC khác nhau ở đâu?
+
+**Part 3** dùng hội thoại giữa nhiều người, nên bạn cần theo dõi ai nói, vấn đề được nêu và hành động tiếp theo của từng người. **Part 4** là bài nói của một người, thường là thông báo hoặc hướng dẫn; hãy xác định loại bài nói, mục đích, mốc thời gian và việc người nghe cần làm. Cả hai dạng thường đi theo nhóm câu, nhưng cách ghi chú khác nhau: Part 3 ưu tiên người nói và lượt lời, Part 4 ưu tiên bố cục thông báo.
+
+Bạn có thể [nghe hội thoại Part 3 có transcript và ba câu hỏi](/toeic/part-3), sau đó thử [bài nói Part 4 có audio và lời giải](/toeic/part-4). Hai bài mẫu dùng nội dung tự biên soạn và mở không cần tài khoản.
 
 ## Quy trình 4 bước cho mỗi nhóm câu
 
@@ -400,6 +407,18 @@ export const CORRECTED_EXERCISE_SLUGS = [
 for (const article of EDITORIAL_POSTS) {
   if (CORRECTED_EXERCISE_SLUGS.includes(article.slug)) {
     article.updatedAt = new Date("2026-09-26T18:00:00.000Z");
+    article.contentOrigin = "AI_ASSISTED";
+  }
+}
+
+const SEARCH_SIGNAL_EXPANSIONS = new Set([
+  "hien-tai-hoan-thanh-va-qua-khu-don",
+  "cau-tuong-thuat-tieng-anh-said-told-asked",
+  "used-to-be-used-to-get-used-to",
+]);
+for (const article of EDITORIAL_POSTS) {
+  if (SEARCH_SIGNAL_EXPANSIONS.has(article.slug)) {
+    article.updatedAt = new Date("2026-10-02T00:00:00.000Z");
     article.contentOrigin = "AI_ASSISTED";
   }
 }

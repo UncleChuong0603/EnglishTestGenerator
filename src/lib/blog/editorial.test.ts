@@ -47,6 +47,16 @@ describe("editorial TOEIC library", () => {
     }
   });
 
+  it("answers the observed grammar and Listening searches on their existing canonical pages", () => {
+    expect(getEditorialPost("sua-de-mau-ets-toeic-2025-reading-part-5-6-7")?.content).toContain("Có PDF ETS TOEIC 2025 chính thức không?");
+    expect(getEditorialPost("hien-tai-hoan-thanh-va-qua-khu-don")?.content).toContain("Yesterday dùng since hay for?");
+    expect(getEditorialPost("cau-tuong-thuat-tieng-anh-said-told-asked")?.content).toContain("Said và told khác nhau thế nào?");
+    expect(getEditorialPost("used-to-be-used-to-get-used-to")?.content).toContain("Bảng chọn nhanh used to");
+    const listening = getEditorialPost("cach-luyen-nghe-toeic-part-3-4");
+    expect(listening?.content).toContain("Part 3 và Part 4 TOEIC khác nhau ở đâu?");
+    expect(listening?.content).toContain("/toeic/part-4");
+  });
+
   it("keeps editorial learning links and illustrations resolvable", () => {
     const slugs = new Set([...EDITORIAL_POSTS.map(post => post.slug), "ngu-phap"]);
     for (const post of EDITORIAL_POSTS) {

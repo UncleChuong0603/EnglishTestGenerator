@@ -216,6 +216,12 @@ Nếu có hai hành động đều đã hoàn tất theo trình tự, dùng quá
 
 *Since* chỉ điểm bắt đầu (*since Monday, since 2022*); *for* chỉ độ dài (*for three days*). Khi trạng thái kéo dài đến hiện tại, dùng hiện tại hoàn thành: *She has worked here since 2022*. Khi giai đoạn đã kết thúc, dùng quá khứ đơn: *She worked here from 2019 to 2022*.
 
+## Yesterday dùng since hay for?
+
+Nếu **yesterday** chỉ một thời điểm quá khứ đã kết thúc, thường không dùng riêng *since* hoặc *for*: *I sent the invoice yesterday* dùng quá khứ đơn. Dùng **since yesterday** khi một trạng thái bắt đầu hôm qua và vẫn tiếp tục đến hiện tại: *The website has been unavailable since yesterday*. Dùng **for + khoảng thời gian** khi muốn nói độ dài: *The website has been unavailable for one day*.
+
+Tóm lại: *yesterday* trả lời “khi nào?”, *since yesterday* trả lời “bắt đầu từ khi nào?”, còn *for one day* trả lời “trong bao lâu?”. Trước khi chọn, hãy xác định sự việc đã khép lại hay còn nối tới hiện tại.
+
 ## Các lỗi thường gặp
 
 - Không dùng *has sent yesterday* khi *yesterday* chỉ thời điểm quá khứ đã khép lại; nói *sent yesterday*.

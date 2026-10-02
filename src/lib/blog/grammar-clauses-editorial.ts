@@ -109,6 +109,15 @@ Lời trực tiếp: *The manager said, “I will call you tomorrow.”* Nếu k
 
 **Say** thường không cần nêu người nghe trực tiếp: *She said that the report was ready*. **Tell** thường cần người nghe: *She told us that the report was ready*. **Ask** dùng cho câu hỏi hoặc yêu cầu: *She asked whether the report was ready*; *She asked us to send it*.
 
+## Said và told khác nhau thế nào?
+
+- Kể lại nội dung, không nêu người nghe: **said (that) + mệnh đề** — *Mai said that the meeting was canceled.*
+- Nêu rõ người nhận thông tin: **told + người + (that) + mệnh đề** — *Mai told us that the meeting was canceled.*
+- Kể lại câu hỏi: **asked + người + if/whether/từ hỏi** — *Mai asked us whether the meeting was canceled.*
+- Kể lại yêu cầu: **told/asked + người + to + V** — *Mai asked us to check the schedule.*
+
+Không viết *said me*; dùng *said to me* hoặc tự nhiên hơn là *told me*. Không viết *told that...* nếu thiếu người nghe. Quyết định đầu tiên là câu gốc đang cung cấp thông tin, đặt câu hỏi hay đưa ra yêu cầu.
+
 ## Lùi thì khi phù hợp với thời điểm kể
 
 Khi động từ tường thuật ở quá khứ, hiện tại đơn thường lùi thành quá khứ đơn (*is → was*), *will → would*, *can → could*. Ví dụ: *“The office is closed.”* → *He said the office was closed*. Tuy nhiên, nếu thông tin vẫn đúng và người nói muốn nhấn mạnh hiện tại, việc giữ hiện tại có thể hợp: *The guide said the office is open on Sundays*. Hãy kiểm tra mốc thời gian và ý định thay vì học thuộc một bảng chuyển thì bất biến.

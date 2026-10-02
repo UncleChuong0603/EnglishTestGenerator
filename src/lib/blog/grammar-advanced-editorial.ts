@@ -95,6 +95,14 @@ Trong *By the time the meeting began, the staff had prepared the room*, việc c
 
 Trong hai cấu trúc sau, *to* là giới từ, nên sau nó dùng **V-ing** nếu theo sau bằng động từ. Trong *used to work*, *to* mở động từ nguyên mẫu. Đây là lý do học từng cụm có nghĩa hữu ích hơn việc nhìn thấy *to* rồi tự động chọn một dạng động từ. Bài [V-ing và to-infinitive](/blog/ving-va-to-infinitive-toeic) phân tích thêm vai trò của *to*.
 
+## Bảng chọn nhanh used to, be used to và get used to
+
+- **Used to + V:** từng làm, nay thường không còn — *We used to print every invoice.*
+- **Be used to + danh từ/V-ing:** đã quen với — *We are used to using digital invoices.*
+- **Get used to + danh từ/V-ing:** dần quen với — *We are getting used to the new system.*
+
+Muốn phân biệt **be used to** và **get used to**, hãy hỏi trạng thái đã ổn định hay vẫn đang thích nghi. *She is used to the schedule* nghĩa là cô ấy đã quen; *She is getting used to the schedule* nghĩa là quá trình làm quen vẫn diễn ra.
+
 ## Phủ định và câu hỏi
 
 Với thói quen quá khứ, có thể nói *I didn't use to work weekends* và *Did you use to work weekends?* Sau *did*, dùng dạng *use* không có *-d*. Với trạng thái đã quen, phủ định bằng *be*: *She isn't used to the new system*. Đừng viết *She doesn't used to the system* nếu muốn nói chưa quen.
