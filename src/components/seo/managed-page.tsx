@@ -11,6 +11,7 @@ import { Markdown } from "@/components/blog/markdown";
 import { BreadcrumbTrail } from "./breadcrumb-trail";
 import { MiniPractice } from "./mini-practice";
 import { getCurrentUser } from "@/lib/auth/session";
+import { ToeicFormatTable } from "./toeic-format-table";
 
 export async function managedMetadata(slug: string): Promise<Metadata> {
   const destination = await getPostRedirect(slug);
@@ -44,6 +45,7 @@ export async function ManagedPage({ slug }: { slug: string }) {
     <article lang="vi" className="mx-auto max-w-4xl px-5 py-10 sm:px-8 sm:py-16">
       <BreadcrumbTrail items={crumbs} />
       <header className="mt-7"><h1 className="text-4xl font-black leading-tight sm:text-5xl">{post.title}</h1><p className="mt-5 text-lg leading-8 text-slate-700">{post.excerpt}</p></header>
+      {slug === "seo-toeic" && <ToeicFormatTable />}
       {questions.length ? <MiniPractice questions={questions} /> : <Link className="mt-6 inline-flex min-h-12 items-center rounded-lg bg-teal-800 px-5 font-bold text-white" href={readingSample.href}>{readingSample.label}</Link>}
       <Markdown content={post.content} />
       <nav aria-label="Luyện tập tiếp" className="mt-10 flex flex-wrap gap-5 border-t border-slate-300 pt-6 font-bold text-teal-800">
