@@ -59,11 +59,16 @@ describe("Task 40 question reporting architecture", () => {
     expect(adminDetail).toContain("ORIGINAL_STILL_PUBLISHED");
   });
 
-  it("keeps learner reports and automatic duplicate review on separate working routes", () => {
+  it("keeps learner reports and authorized duplicate review in the canonical reports route", () => {
     expect(adminQueue).toContain("listQuestionReports");
+    expect(adminQueue).toContain('initialQuery.type === "DUPLICATE"');
+    expect(adminQueue).toContain("QuestionIssueReportsQueue({ searchParams: Promise.resolve(initialQuery) })");
     expect(similarityQueue).toContain("listQuestionIssueReports");
     expect(similarityQueue).toContain('action={queuePath}');
-    expect(similarityQueue).not.toContain('redirect(`/admin/content/reports');
+    expect(similarityQueue).toContain('requireAdmin("CONTENT_READ")');
+    expect(similarityQueue.indexOf('requireAdmin("CONTENT_READ")')).toBeLessThan(similarityQueue.indexOf("await syncDuplicateQuestionReports"));
+    expect(similarityQueue).toContain('new URLSearchParams({ type: "DUPLICATE"');
+    expect(similarityQueue).toContain('redirect(`/admin/content/reports?${params.toString()}`)');
     expect(similarityActions).toContain('requireAdmin("CONTENT_MANAGE")');
     expect(similarityActions).toContain("updateQuestionIssueReportStatus");
     expect(similarityActions).toContain('revalidatePath(queuePath)');
