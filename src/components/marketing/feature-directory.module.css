@@ -1,0 +1,13 @@
+.directory { display: grid; gap: 2.5rem; }
+.group h3 { margin: 0 0 1rem; font-size: 1.25rem; font-weight: 800; line-height: 1.5; }
+.group ul { margin: 0; padding: 0; border-top: 1px solid var(--line); list-style: none; }
+.feature { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) minmax(10rem, .65fr); gap: 1.5rem; align-items: center; border-bottom: 1px solid var(--line); padding: 1.4rem .75rem; transition: background .2s ease; }
+.feature:hover { background: #e9eee5; }
+.feature:focus-visible { outline: 3px solid var(--green); outline-offset: 3px; }
+.name h4 { margin: 0; color: var(--ink); font-size: 1.05rem; font-weight: 800; line-height: 1.5; }
+.access { display: block; margin-top: .4rem; color: #45584d; font-size: .8rem; line-height: 1.6; }
+.feature p { margin: 0; color: #45584d; font-size: 1rem; line-height: 1.7; }
+.action { display: flex; align-items: center; justify-content: space-between; gap: .75rem; color: var(--green); font-size: .9rem; font-weight: 800; line-height: 1.6; text-decoration: underline; text-underline-offset: .25rem; }
+@media (max-width: 800px) { .feature { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); } .action { grid-column: 2; justify-content: flex-start; } }
+@media (max-width: 550px) { .feature { grid-template-columns: minmax(0, 1fr); gap: .8rem; padding: 1.4rem .25rem; } .action { grid-column: auto; min-height: 2.75rem; } }
+@media (prefers-reduced-motion: reduce) { .feature { transition: none; } }

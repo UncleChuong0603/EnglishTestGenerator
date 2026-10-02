@@ -1,0 +1,79 @@
+{
+  "scope": "Actual MiniPractice and Markdown components, SSR and hydration in an isolated harness; application database unavailable.",
+  "results": [
+    {
+      "locale": "vi",
+      "width": 375,
+      "hydrated": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "locale": "vi",
+      "width": 768,
+      "hydrated": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "locale": "vi",
+      "width": 1024,
+      "hydrated": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "locale": "vi",
+      "width": 1440,
+      "hydrated": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "locale": "vi",
+      "javascript": false,
+      "allSixAnswers": true
+    },
+    {
+      "locale": "en",
+      "width": 375,
+      "hydrated": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "width": 768,
+      "hydrated": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "width": 1024,
+      "hydrated": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "width": 1440,
+      "hydrated": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "locale": "en",
+      "javascript": false,
+      "allSixAnswers": true
+    }
+  ]
+}

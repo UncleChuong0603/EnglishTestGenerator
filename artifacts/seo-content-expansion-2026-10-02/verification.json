@@ -1,0 +1,233 @@
+{
+  "scope": "Actual ArticleView, MiniPractice, ReadingTimePlanner and Markdown, SSR and hydration with application CSS; readingMinutes isolated from database; public header/footer and CMS overrides excluded.",
+  "results": [
+    {
+      "slug": "cau-bi-dong-toeic-part-5",
+      "locale": "vi",
+      "width": 375,
+      "overflow": false,
+      "keyboard": true,
+      "interaction": true
+    },
+    {
+      "slug": "cau-bi-dong-toeic-part-5",
+      "locale": "vi",
+      "width": 768,
+      "overflow": false,
+      "keyboard": true,
+      "interaction": true
+    },
+    {
+      "slug": "cau-bi-dong-toeic-part-5",
+      "locale": "vi",
+      "width": 1024,
+      "overflow": false,
+      "keyboard": true,
+      "interaction": true
+    },
+    {
+      "slug": "cau-bi-dong-toeic-part-5",
+      "locale": "vi",
+      "width": 1440,
+      "overflow": false,
+      "keyboard": true,
+      "interaction": true
+    },
+    {
+      "slug": "cau-bi-dong-toeic-part-5",
+      "locale": "en",
+      "width": 375,
+      "overflow": false,
+      "keyboard": true,
+      "interaction": true
+    },
+    {
+      "slug": "cau-bi-dong-toeic-part-5",
+      "locale": "en",
+      "width": 768,
+      "overflow": false,
+      "keyboard": true,
+      "interaction": true
+    },
+    {
+      "slug": "cau-bi-dong-toeic-part-5",
+      "locale": "en",
+      "width": 1024,
+      "overflow": false,
+      "keyboard": true,
+      "interaction": true
+    },
+    {
+      "slug": "cau-bi-dong-toeic-part-5",
+      "locale": "en",
+      "width": 1440,
+      "overflow": false,
+      "keyboard": true,
+      "interaction": true
+    },
+    {
+      "slug": "ving-va-to-infinitive-toeic",
+      "locale": "vi",
+      "width": 375,
+      "overflow": false,
+      "keyboard": true,
+      "interaction": true
+    },
+    {
+      "slug": "ving-va-to-infinitive-toeic",
+      "locale": "vi",
+      "width": 768,
+      "overflow": false,
+      "keyboard": true,
+      "interaction": true
+    },
+    {
+      "slug": "ving-va-to-infinitive-toeic",
+      "locale": "vi",
+      "width": 1024,
+      "overflow": false,
+      "keyboard": true,
+      "interaction": true
+    },
+    {
+      "slug": "ving-va-to-infinitive-toeic",
+      "locale": "vi",
+      "width": 1440,
+      "overflow": false,
+      "keyboard": true,
+      "interaction": true
+    },
+    {
+      "slug": "ving-va-to-infinitive-toeic",
+      "locale": "en",
+      "width": 375,
+      "overflow": false,
+      "keyboard": true,
+      "interaction": true
+    },
+    {
+      "slug": "ving-va-to-infinitive-toeic",
+      "locale": "en",
+      "width": 768,
+      "overflow": false,
+      "keyboard": true,
+      "interaction": true
+    },
+    {
+      "slug": "ving-va-to-infinitive-toeic",
+      "locale": "en",
+      "width": 1024,
+      "overflow": false,
+      "keyboard": true,
+      "interaction": true
+    },
+    {
+      "slug": "ving-va-to-infinitive-toeic",
+      "locale": "en",
+      "width": 1440,
+      "overflow": false,
+      "keyboard": true,
+      "interaction": true
+    },
+    {
+      "slug": "quan-ly-thoi-gian-toeic-reading-75-phut",
+      "locale": "vi",
+      "width": 375,
+      "overflow": false,
+      "keyboard": true,
+      "interaction": true
+    },
+    {
+      "slug": "quan-ly-thoi-gian-toeic-reading-75-phut",
+      "locale": "vi",
+      "width": 768,
+      "overflow": false,
+      "keyboard": true,
+      "interaction": true
+    },
+    {
+      "slug": "quan-ly-thoi-gian-toeic-reading-75-phut",
+      "locale": "vi",
+      "width": 1024,
+      "overflow": false,
+      "keyboard": true,
+      "interaction": true
+    },
+    {
+      "slug": "quan-ly-thoi-gian-toeic-reading-75-phut",
+      "locale": "vi",
+      "width": 1440,
+      "overflow": false,
+      "keyboard": true,
+      "interaction": true
+    },
+    {
+      "slug": "quan-ly-thoi-gian-toeic-reading-75-phut",
+      "locale": "en",
+      "width": 375,
+      "overflow": false,
+      "keyboard": true,
+      "interaction": true
+    },
+    {
+      "slug": "quan-ly-thoi-gian-toeic-reading-75-phut",
+      "locale": "en",
+      "width": 768,
+      "overflow": false,
+      "keyboard": true,
+      "interaction": true
+    },
+    {
+      "slug": "quan-ly-thoi-gian-toeic-reading-75-phut",
+      "locale": "en",
+      "width": 1024,
+      "overflow": false,
+      "keyboard": true,
+      "interaction": true
+    },
+    {
+      "slug": "quan-ly-thoi-gian-toeic-reading-75-phut",
+      "locale": "en",
+      "width": 1440,
+      "overflow": false,
+      "keyboard": true,
+      "interaction": true
+    },
+    {
+      "slug": "cau-bi-dong-toeic-part-5",
+      "locale": "vi",
+      "javascript": false,
+      "contentAccessible": true
+    },
+    {
+      "slug": "cau-bi-dong-toeic-part-5",
+      "locale": "en",
+      "javascript": false,
+      "contentAccessible": true
+    },
+    {
+      "slug": "ving-va-to-infinitive-toeic",
+      "locale": "vi",
+      "javascript": false,
+      "contentAccessible": true
+    },
+    {
+      "slug": "ving-va-to-infinitive-toeic",
+      "locale": "en",
+      "javascript": false,
+      "contentAccessible": true
+    },
+    {
+      "slug": "quan-ly-thoi-gian-toeic-reading-75-phut",
+      "locale": "vi",
+      "javascript": false,
+      "contentAccessible": true
+    },
+    {
+      "slug": "quan-ly-thoi-gian-toeic-reading-75-phut",
+      "locale": "en",
+      "javascript": false,
+      "contentAccessible": true
+    }
+  ]
+}

@@ -1,0 +1,197 @@
+{
+  "passed": true,
+  "records": [
+    {
+      "locale": "vi",
+      "route": "/",
+      "width": 375,
+      "screenshot": "home-vi-375.png",
+      "overflow": false,
+      "keyboardFocus": {
+        "tag": "BUTTON",
+        "outline": "solid",
+        "width": "3px"
+      }
+    },
+    {
+      "locale": "vi",
+      "route": "/",
+      "width": 768,
+      "screenshot": "home-vi-768.png",
+      "overflow": false,
+      "keyboardFocus": {
+        "tag": "BUTTON",
+        "outline": "solid",
+        "width": "3px"
+      }
+    },
+    {
+      "locale": "vi",
+      "route": "/",
+      "width": 1024,
+      "screenshot": "home-vi-1024.png",
+      "overflow": false,
+      "keyboardFocus": {
+        "tag": "BUTTON",
+        "outline": "solid",
+        "width": "3px"
+      }
+    },
+    {
+      "locale": "vi",
+      "route": "/",
+      "width": 1440,
+      "screenshot": "home-vi-1440.png",
+      "overflow": false,
+      "keyboardFocus": {
+        "tag": "BUTTON",
+        "outline": "solid",
+        "width": "3px"
+      }
+    },
+    {
+      "locale": "vi",
+      "route": "/ve-toeic-gym",
+      "width": 375,
+      "screenshot": "about-vi-375.png",
+      "overflow": false,
+      "keyboardFocus": {
+        "tag": "A",
+        "outline": "solid",
+        "width": "3px"
+      }
+    },
+    {
+      "locale": "vi",
+      "route": "/ve-toeic-gym",
+      "width": 768,
+      "screenshot": "about-vi-768.png",
+      "overflow": false,
+      "keyboardFocus": {
+        "tag": "A",
+        "outline": "solid",
+        "width": "3px"
+      }
+    },
+    {
+      "locale": "vi",
+      "route": "/ve-toeic-gym",
+      "width": 1024,
+      "screenshot": "about-vi-1024.png",
+      "overflow": false,
+      "keyboardFocus": {
+        "tag": "A",
+        "outline": "solid",
+        "width": "3px"
+      }
+    },
+    {
+      "locale": "vi",
+      "route": "/ve-toeic-gym",
+      "width": 1440,
+      "screenshot": "about-vi-1440.png",
+      "overflow": false,
+      "keyboardFocus": {
+        "tag": "A",
+        "outline": "solid",
+        "width": "3px"
+      }
+    },
+    {
+      "locale": "en",
+      "route": "/",
+      "width": 375,
+      "screenshot": "home-en-375.png",
+      "overflow": false,
+      "keyboardFocus": {
+        "tag": "BUTTON",
+        "outline": "solid",
+        "width": "3px"
+      }
+    },
+    {
+      "locale": "en",
+      "route": "/",
+      "width": 768,
+      "screenshot": "home-en-768.png",
+      "overflow": false,
+      "keyboardFocus": {
+        "tag": "BUTTON",
+        "outline": "solid",
+        "width": "3px"
+      }
+    },
+    {
+      "locale": "en",
+      "route": "/",
+      "width": 1024,
+      "screenshot": "home-en-1024.png",
+      "overflow": false,
+      "keyboardFocus": {
+        "tag": "BUTTON",
+        "outline": "solid",
+        "width": "3px"
+      }
+    },
+    {
+      "locale": "en",
+      "route": "/",
+      "width": 1440,
+      "screenshot": "home-en-1440.png",
+      "overflow": false,
+      "keyboardFocus": {
+        "tag": "BUTTON",
+        "outline": "solid",
+        "width": "3px"
+      }
+    },
+    {
+      "locale": "en",
+      "route": "/ve-toeic-gym",
+      "width": 375,
+      "screenshot": "about-en-375.png",
+      "overflow": false,
+      "keyboardFocus": {
+        "tag": "A",
+        "outline": "solid",
+        "width": "3px"
+      }
+    },
+    {
+      "locale": "en",
+      "route": "/ve-toeic-gym",
+      "width": 768,
+      "screenshot": "about-en-768.png",
+      "overflow": false,
+      "keyboardFocus": {
+        "tag": "A",
+        "outline": "solid",
+        "width": "3px"
+      }
+    },
+    {
+      "locale": "en",
+      "route": "/ve-toeic-gym",
+      "width": 1024,
+      "screenshot": "about-en-1024.png",
+      "overflow": false,
+      "keyboardFocus": {
+        "tag": "A",
+        "outline": "solid",
+        "width": "3px"
+      }
+    },
+    {
+      "locale": "en",
+      "route": "/ve-toeic-gym",
+      "width": 1440,
+      "screenshot": "about-en-1440.png",
+      "overflow": false,
+      "keyboardFocus": {
+        "tag": "A",
+        "outline": "solid",
+        "width": "3px"
+      }
+    }
+  ]
+}

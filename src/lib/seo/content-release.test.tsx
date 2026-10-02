@@ -42,7 +42,30 @@ describe("autonomous SEO release", () => {
       expect(q.explanation.toLowerCase()).toContain(q.options[q.answer].toLowerCase());
     }
     const html = renderToStaticMarkup(<MiniPractice questions={practiceForSlug("seo-part5-practice")} />);
+    expect(practiceForSlug("seo-part5-practice").map(q => q.id)).toEqual(["form-1", "tense-1", "agreement-1", "preposition-1", "conjunction-1", "relative-1", "vocab-1"]);
     expect(html.match(/<fieldset/g)).toHaveLength(7);
     expect(html.toLowerCase()).toContain("không cần đăng nhập");
+  });
+  it("serves every answer and distractor explanation in native disclosures before interaction", () => {
+    for (const questions of Object.values(MINI_PRACTICE)) {
+      const html = renderToStaticMarkup(<MiniPractice questions={questions} />);
+      const disclosures = [...html.matchAll(/<details\b[^>]*>([\s\S]*?)<\/details>/g)];
+      expect(disclosures).toHaveLength(questions.length);
+      for (const [index, q] of questions.entries()) {
+        expect(disclosures[index][1]).toContain(renderToStaticMarkup(<p>{q.explanation}</p>));
+        for (const [option, reason] of q.distractors.entries()) {
+          if (option !== q.answer) expect(disclosures[index][1]).toContain(renderToStaticMarkup(<li>{String.fromCharCode(65 + option)}: {reason}</li>));
+        }
+      }
+      expect(html).not.toMatch(/<details[^>]*\bopen(?:[ =>])/);
+    }
+  });
+  it("localizes practice controls while identifying the English questions and Vietnamese explanations", () => {
+    const html = renderToStaticMarkup(<MiniPractice questions={practiceForSlug("menh-de-quan-he-toeic")} locale="en" />);
+    expect(html).toContain("Try 6 questions with explanations");
+    expect(html).toContain("Check answers");
+    expect(html).toContain("Answer and explanation for question 6");
+    expect(html).toContain('<legend lang="en"');
+    expect(html).toContain('<div lang="vi"');
   });
 });

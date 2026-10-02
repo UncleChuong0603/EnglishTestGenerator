@@ -19,9 +19,10 @@ export function PublicHeader({ locale, signedIn = false, showPrimary = true }: {
     <div className="mx-auto flex min-h-[76px] max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
       <Link className="inline-flex shrink-0 items-center gap-2 text-lg font-black tracking-tight text-[#183e2b]" href="/" aria-label="TOEIC GYM home"><Image src="/brand/toeic-gym-mark.png" alt="" width={36} height={36} /><span>TOEIC<span className="font-semibold"> GYM</span></span></Link>
       <nav className="hidden items-center gap-1 xl:flex" aria-label="Public navigation">
-        <Link className={navLink} href="/#how-it-works">{locale === "vi" ? "Cách học" : "How it works"}</Link>
+        <Link className={navLink} href="/#features">{locale === "vi" ? "Tính năng miễn phí" : "Free features"}</Link>
         <Link className={navLink} href="/toeic">{locale === "vi" ? "Luyện TOEIC" : "TOEIC practice"}</Link>
-        <Link className={navLink} href="/toeic/listening">{locale === "vi" ? "Luyện nghe" : "Listening"}</Link>
+        <Link className={navLink} href="/listening-lessons">{locale === "vi" ? "Nghe transcript" : "Audio & transcript"}</Link>
+        <Link className={navLink} href="/ranking">{locale === "vi" ? "Xếp hạng" : "Rankings"}</Link>
         <Link className={navLink} href="/blog">Blog</Link>
       </nav>
       <div className="hidden items-center gap-2 xl:flex">
@@ -32,11 +33,13 @@ export function PublicHeader({ locale, signedIn = false, showPrimary = true }: {
       <details className="group relative xl:hidden">
         <summary className="flex min-h-11 min-w-11 cursor-pointer list-none items-center justify-center rounded-md border border-[#cbd7cb] text-xl" aria-label={locale === "vi" ? "Mở menu" : "Open menu"}>☰</summary>
         <nav className="absolute right-0 z-50 mt-2 w-[min(20rem,calc(100vw-2rem))] border border-[#cbd7cb] bg-[#f7f6f1] p-3 shadow-lg" aria-label="Public mobile navigation">
-          <Link className={mobileLink} href="/#how-it-works">{locale === "vi" ? "Cách học" : "How it works"}</Link>
+          <Link className={mobileLink} href="/#features">{locale === "vi" ? "Tất cả tính năng miễn phí" : "All free features"}</Link>
           <Link className={mobileLink} href={signedIn ? "/practice" : "/try"}>{locale === "vi" ? "Bài luyện ngắn" : "Short practice"}</Link>
           <Link className={mobileLink} href="/diagnostic">{locale === "vi" ? "Đánh giá đầu vào" : "Diagnostic"}</Link>
           <Link className={mobileLink} href="/toeic">{locale === "vi" ? "Luyện TOEIC theo Part" : "Practice by Part"}</Link>
-          <Link className={mobileLink} href="/toeic/listening">{locale === "vi" ? "Luyện nghe" : "Listening"}</Link>
+          <Link className={mobileLink} href="/listening-lessons">{locale === "vi" ? "Nghe theo transcript" : "Listen with a transcript"}</Link>
+          <Link className={mobileLink} href="/ranking">{locale === "vi" ? "Bảng xếp hạng tuần" : "Weekly leaderboard"}</Link>
+          <Link className={mobileLink} href="/ve-toeic-gym">{locale === "vi" ? "Về TOEIC GYM" : "About TOEIC GYM"}</Link>
           <Link className={mobileLink} href="/blog">Blog</Link>
           <Link className={mobileLink} href={accountHref}>{signedIn ? t.nav.dashboard : t.nav.signIn}</Link>
           <div className="px-2 py-3"><LanguageSwitcher locale={locale} /></div>

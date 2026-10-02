@@ -5,7 +5,7 @@ import { BreadcrumbTrail } from "@/components/seo/breadcrumb-trail";
 import { ListeningSampleQuiz } from "@/components/seo/listening-sample-quiz";
 import { getCurrentUser } from "@/lib/auth/session";
 import type { ListeningGuide } from "@/lib/seo/listening-guides";
-import { listeningSamples } from "@/lib/seo/listening-samples";
+import { samplesForListeningPart } from "@/lib/seo/listening-samples";
 
 export async function ListeningGuidePage({ guide }: { guide: ListeningGuide }) {
   const user = await getCurrentUser();
@@ -24,14 +24,14 @@ export async function ListeningGuidePage({ guide }: { guide: ListeningGuide }) {
       <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_17rem]">
         <div className="space-y-9 leading-8 text-slate-700">
           {guide.sections.slice(0, 2).map(section => <section key={section.heading}><h2 className="text-2xl font-black text-slate-900">{section.heading}</h2><p className="mt-4">{section.body}</p></section>)}
-          <ListeningSampleQuiz sample={listeningSamples[guide.part]} />
-          <section><h2 className="text-2xl font-black text-slate-900">{guide.sections[2].heading}</h2><p className="mt-4">{guide.sections[2].body}</p></section>
+          {samplesForListeningPart(guide.part).map(sample => <ListeningSampleQuiz key={sample.id} sample={sample} />)}
+          {guide.sections.slice(2).map(section => <section key={section.heading}><h2 className="text-2xl font-black text-slate-900">{section.heading}</h2><p className="mt-4">{section.body}</p></section>)}
           <section className="rounded-xl bg-teal-50 p-6"><h2 className="text-xl font-black text-teal-950">Dấu hiệu cần nhớ trong bài mẫu</h2><p className="mt-3">{guide.review}</p></section>
         </div>
-        <aside className="h-fit rounded-2xl bg-[#e7eee8] p-6 lg:sticky lg:top-6"><h2 className="text-lg font-black">Luyện tiếp</h2><ul className="mt-4 space-y-4">{related.map(part => <li key={part}><Link className="font-bold text-teal-900 underline" href={`/toeic/part-${part}`}>Listening Part {part}</Link></li>)}<li><Link className="font-bold text-teal-900 underline" href="/toeic/listening">Lộ trình luyện nghe</Link></li><li><Link className="font-bold text-teal-900 underline" href="/blog/cach-luyen-nghe-toeic-part-3-4">Cách nghe lại và sửa lỗi</Link></li></ul></aside>
+        <aside className="h-fit rounded-2xl bg-[#e7eee8] p-6 lg:sticky lg:top-6"><h2 className="text-lg font-black">Luyện tiếp</h2><ul className="mt-4 space-y-4">{related.map(part => <li key={part}><Link className="font-bold text-teal-900 underline" href={`/toeic/part-${part}`}>Listening Part {part}</Link></li>)}<li><Link className="font-bold text-teal-900 underline" href="/toeic/listening">Lộ trình luyện nghe</Link></li>{guide.part === 2 && <li><Link className="font-bold text-teal-900 underline" href="/blog/meo-lam-toeic-part-2-hoi-dap">Phương pháp nghe hỏi đáp Part 2</Link></li>}<li><Link className="font-bold text-teal-900 underline" href="/blog/cach-luyen-nghe-toeic-part-3-4">Cách nghe lại và sửa lỗi</Link></li></ul></aside>
       </div>
       <section className="mt-14 rounded-2xl bg-slate-900 p-7 text-white sm:p-10"><h2 className="text-2xl font-black">Thử bài Listening dài hơn</h2><p className="mt-3 max-w-2xl leading-7 text-slate-200">Bài thử miễn phí hiện gồm nhóm câu Part 3. Sau bài mẫu này, hãy kiểm tra khả năng theo dõi hội thoại và xem kết quả theo Part.</p><Link className="mt-6 inline-flex min-h-12 items-center rounded-lg bg-teal-300 px-6 font-bold text-slate-950" href="/try#quick-practice">Làm bài thử Listening <span className="ml-3" aria-hidden="true">→</span></Link></section>
-      <p className="mt-8 text-sm text-slate-600">Ảnh (Part 1), audio, câu hỏi và lời giải mẫu do TOEIC GYM tạo riêng. TOEIC GYM không liên kết với ETS; kết quả bài mẫu không phải điểm TOEIC chính thức.</p>
+      <p className="mt-8 text-sm text-slate-600">Ảnh (Part 1), câu hỏi và lời giải mẫu do TOEIC GYM tạo riêng; audio sử dụng giọng tổng hợp cho mục đích luyện tập. Đối chiếu cấu trúc với <a className="underline" href="https://www.ets.org/toeic/test-takers/prepare.html">tài liệu luyện thi chính thức của ETS</a>. TOEIC GYM không liên kết với ETS; kết quả bài mẫu không phải điểm TOEIC chính thức.</p>
     </article><PublicFooter locale="vi" />
   </main>;
 }

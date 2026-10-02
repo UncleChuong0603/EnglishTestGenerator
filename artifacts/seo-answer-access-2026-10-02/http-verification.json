@@ -1,0 +1,15 @@
+{
+  "scope": "Local production standalone build; anonymous requests do not access the placeholder database.",
+  "pdf": {
+    "status": 200,
+    "contentType": "application/pdf",
+    "canonical": "<https://toeicgym.net/toeic/tu-vung>; rel=\"canonical\""
+  },
+  "about": {
+    "status": 200,
+    "title": "Về TOEIC GYM: phương pháp luyện và nguồn nội dung",
+    "canonical": "https://toeicgym.net/ve-toeic-gym",
+    "brandCount": 1,
+    "h1Count": 1
+  }
+}

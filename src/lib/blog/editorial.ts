@@ -104,8 +104,9 @@ Sau khi chọn đáp án, gạch dưới cụm trong transcript tạo ra suy lu�
   post({
     id: "editorial-reading", category: "READING", slug: "quan-ly-thoi-gian-toeic-reading-75-phut",
     title: "Cách chia 75 phút TOEIC Reading để không bỏ dở Part 7",
-    excerpt: "Khung thời gian thực tế cho Part 5, 6, 7 cùng chiến thuật xử lý khi bạn bắt đầu chậm hơn dự kiến.",
-    seoTitle: "Cách chia thời gian TOEIC Reading 75 phút", seoDescription: "Cách quản lý 75 phút TOEIC Reading cho Part 5, 6, 7, kèm mốc kiểm tra và chiến thuật tránh bỏ trắng Part 7.", canonicalPath: "/blog/quan-ly-thoi-gian-toeic-reading-75-phut", coverAlt: "Đồng hồ 75 phút và ba phần của bài TOEIC Reading", socialTitle: "Chia 75 phút Reading để không bỏ Part 7", socialDescription: "Khung thời gian và mốc kiểm soát dễ nhớ cho ngày thi.", authorName: "TOEICGym Editorial", targetTopic: "chia thời gian TOEIC Reading 75 phút", searchIntent: "informational", tags: [tag("TOEIC Reading", "toeic-reading"), tag("Part 7", "part-7")],
+    excerpt: "Tự tính thời gian cho Part 5, 6, 7 trong 75 phút Reading; thử khung luyện, ghi mốc thực tế và sửa nguyên nhân làm chậm.",
+    revisedAt: new Date("2026-10-02T00:00:00.000Z"), contentOrigin: "AI_ASSISTED",
+    seoTitle: "Chia 75 phút TOEIC Reading: công cụ tính và cách luyện", seoDescription: "Tự chia 75 phút TOEIC Reading bằng công cụ miễn phí: tính phút Part 7, mốc chuyển Part 5–6 và thời gian rà đáp án; kèm cách sửa lỗi làm chậm.", canonicalPath: "/blog/quan-ly-thoi-gian-toeic-reading-75-phut", coverAlt: "Đồng hồ 75 phút và ba phần của bài TOEIC Reading", socialTitle: "Tự chia 75 phút TOEIC Reading", socialDescription: "Tính mốc theo kế hoạch của bạn, thử trên câu mới và điều chỉnh sau khi sửa bài.", authorName: "TOEICGym Editorial", targetTopic: "chia thời gian TOEIC Reading 75 phút", searchIntent: "informational", tags: [tag("TOEIC Reading", "toeic-reading"), tag("Part 7", "part-7")],
     content: `## Mục tiêu không phải làm Part 5 thật nhanh bằng mọi giá
 
 Reading có 100 câu trong 75 phút. Nhiều người dành quá lâu cho các câu ngữ pháp khó rồi phải đoán hàng loạt ở Part 7. Một khung để thử là: Part 5 trong 12 phút, Part 6 trong 10 phút, Part 7 trong 50 phút và 3 phút cuối để rà đáp án. Nếu bạn tô đáp án ngay sau mỗi câu, có thể chuyển bớt thời gian kiểm tra cho Part 7.
@@ -119,9 +120,17 @@ Reading có 100 câu trong 75 phút. Nhiều người dành quá lâu cho các c
 
 Khung này cần được điều chỉnh theo năng lực. Nếu bạn mạnh Part 5, có thể tiết kiệm vài phút; nếu thường sai vì đọc vội, đừng ép xuống một mốc không thực tế.
 
+## Tự tính thời gian còn lại cho Part 7
+
+Công cụ đầu bài giữ tổng ở **75 phút**: nhập phút Part 5, Part 6 và rà đáp án; Part 7 nhận phần còn lại. Công thức là **Part 7 = 75 − Part 5 − Part 6 − rà đáp án**. Ví dụ 10 phút Part 5, 8 phút Part 6 và 3 phút rà đáp án để lại **54 phút Part 7**. Chuyển sang Part 6 khi đồng hồ còn 65 phút, sang Part 7 khi còn 57 phút và rà đáp án khi còn 3 phút.
+
+Phút dành cho một chặng khác với số phút còn trên đồng hồ lúc hết chặng. Với khung mặc định, Part 7 có 50 phút nhưng bắt đầu khi đồng hồ còn 53 phút vì còn 3 phút rà đáp án ở cuối. Nếu tắt JavaScript, bạn vẫn đọc được bảng mặc định và dùng công thức để tự tính khung khác.
+
+Chọn số gần với thời gian bạn đã đo trên một lượt luyện chưa làm trước đó. Mốc còn 25 phút để chuyển vào nhóm nhiều tài liệu là điểm tự kiểm tra của khung minh họa, không phải quy định bắt buộc. Khi năng lực hoặc cách làm thay đổi, điều chỉnh khung thay vì cố giữ mọi mốc bằng mọi giá.
+
 ## Quy tắc 30 giây cho câu mắc kẹt
 
-Với Part 5, nếu sau khoảng 30 giây bạn vẫn chưa xác định được câu đang kiểm tra gì, hãy loại đáp án rõ ràng sai, đánh dấu và chuyển tiếp. Một câu khó có cùng giá trị điểm với câu dễ.
+Với Part 5, nếu sau khoảng 30 giây bạn vẫn chưa xác định được câu đang kiểm tra gì, hãy loại đáp án rõ ràng sai, đánh dấu và chuyển tiếp. Đây là một giới hạn để thử khi luyện, không phải quy tắc chấm điểm; mắc kẹt ở một câu có thể lấy mất thời gian của nhiều câu còn lại.
 
 Ở Part 7, đọc câu hỏi trước đoạn văn để biết cần tìm thông tin nào. Với câu hỏi ý chính, đọc tiêu đề, câu mở đầu và mục đích của tài liệu. Với câu hỏi chi tiết, xác định tên riêng, ngày, số hoặc từ khóa rồi quét đúng vùng văn bản.
 
@@ -136,6 +145,16 @@ Các câu suy luận nên làm sau câu chi tiết. Khi đã hiểu nhân vật,
 Mỗi tuần, làm ít nhất hai phiên có bấm giờ nhưng không nhất thiết làm đủ 100 câu. Một phiên có thể là 30 câu Part 5 trong 12 phút; phiên khác là một cụm Part 7 trong 20 phút. Sau khi chấm, ghi lại số câu đúng và số câu phải đoán vì hết giờ.
 
 Bạn chỉ nên rút thời gian khi độ chính xác không giảm mạnh. Quản lý thời gian tốt là hoàn thành nhiều câu **có chất lượng**, không phải lướt qua toàn bộ đề.
+
+## Review buổi bấm giờ bằng ba số đo
+
+Ghi **số đúng trên câu mới**, **số câu đoán vì hết giờ** và **mốc thực tế khi đổi Part**. Sau đó thử phân loại từng lỗi: chưa biết cấu trúc/từ vựng, đọc lại nhiều lần nhưng không tìm đúng vùng, hay đã biết cách làm nhưng bị dồn giờ. Ba nhóm cần cách sửa khác nhau.
+
+- Nếu chậm vì ngữ pháp Part 5, chọn một nhóm lỗi cụ thể như [bị động](/blog/cau-bi-dong-toeic-part-5) hoặc [V-ing/to V](/blog/ving-va-to-infinitive-toeic), làm sáu câu và nói lại tín hiệu của từng đáp án. Đừng chỉ cố bấm nhanh hơn.
+- Nếu sai Part 6 vì bỏ ngữ cảnh, thử [bài điền câu vào email](/toeic/part-6/dien-cau-vao-doan-van), ghi từ quy chiếu và quan hệ giữa các câu trước khi bấm giờ lại.
+- Nếu Part 7 chậm vì nối sai tài liệu, làm [bài hai đoạn](/toeic/part-7/doc-hieu-hai-doan-van) trước, rồi [bài ba văn bản](/toeic/part-7/doc-hieu-ba-van-ban). Ghi rõ mỗi câu cần một hay nhiều nguồn.
+
+Chỉ so hai lượt có độ dài và dạng bài gần nhau. Làm lại đúng các câu đã thuộc đáp án có thể nhanh hơn mà không cho biết bạn xử lý bài mới tốt hơn. Dùng [checklist tuần học](/toeic/checklist-hoc-tuan) để ghi khung đã thử và việc cần sửa ở lượt kế tiếp.
 
 ## Minh họa một cách chia 75 phút
 
@@ -367,7 +386,7 @@ export { grammarImageForSlug };
 // Only these materially expanded pages receive a new modification date.
 for (const article of EDITORIAL_POSTS) {
   if (MINI_PRACTICE[article.slug]) {
-    article.updatedAt = new Date(article.slug === "lien-tu-va-tu-noi-toeic" || article.slug === "tu-vung-toeic-theo-chu-de-cong-so" ? "2026-10-01T14:00:00.000Z" : "2026-09-26T18:00:00.000Z");
+    article.updatedAt = new Date(["menh-de-quan-he-toeic", "cau-bi-dong-toeic-part-5", "ving-va-to-infinitive-toeic"].includes(article.slug) ? "2026-10-02T00:00:00.000Z" : article.slug === "lien-tu-va-tu-noi-toeic" || article.slug === "tu-vung-toeic-theo-chu-de-cong-so" ? "2026-10-01T14:00:00.000Z" : "2026-09-26T18:00:00.000Z");
     article.contentOrigin = "AI_ASSISTED";
     article.content += "\n\n## Từ lỗi sai đến bài luyện tiếp\n\nSau khi thử các câu đầu bài, ghi lại tín hiệu đã bỏ qua và lý do đáp án bạn chọn sai. Đọc [cách review lỗi sai TOEIC](/blog/cach-review-loi-sai-toeic), rồi chuyển sang [bài Part 5 hỗn hợp](/toeic/part-5/practice) để kiểm tra khi không biết trước dạng câu.";
   }

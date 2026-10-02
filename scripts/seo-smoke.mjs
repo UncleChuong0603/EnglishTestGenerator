@@ -6,6 +6,12 @@ const breadcrumbPaths = new Set(["/toeic", "/luyen-thi-toeic-online", "/toeic/li
 const failures = [];
 breadcrumbPaths.add("/toeic/checklist-hoc-tuan");
 const warnings = [];
+const practiceQuestionCounts = new Map([
+  ["/blog/menh-de-quan-he-toeic", 6],
+  ["/blog/cau-bi-dong-toeic-part-5", 6],
+  ["/blog/ving-va-to-infinitive-toeic", 6],
+  ["/toeic/part-5/practice", 7],
+]);
 
 function decodeXml(value) {
   return value.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"');
@@ -83,6 +89,8 @@ try {
     "/toeic/part-5/word-form", "/toeic/part-5/thi-dong-tu",
     "/toeic/part-6", "/toeic/part-6/dien-cau-vao-doan-van", "/toeic/part-7", "/toeic/part-7/doc-hieu-hai-doan-van", "/toeic/part-7/doc-hieu-ba-van-ban", "/toeic/flashcards-tu-vung-cong-so", "/toeic/tu-vung", "/ve-toeic-gym", "/blog", "/blog/ngu-phap",
     "/blog/cach-review-loi-sai-toeic", "/blog/chien-luoc-tang-diem-toeic-450-den-700",
+    "/blog/menh-de-quan-he-toeic",
+    "/blog/cau-bi-dong-toeic-part-5", "/blog/ving-va-to-infinitive-toeic", "/blog/quan-ly-thoi-gian-toeic-reading-75-phut",
     "/challenge/part-5",
   ];
   for (const path of samplePaths) {
@@ -127,6 +135,19 @@ try {
         if ((title.match(/TOEIC\s*GYM/gi) ?? []).length > 1) failures.push(`${url}: repeated brand in title`);
         const pathname = new URL(url).pathname;
         const schemas = structuredData(html);
+        if (practiceQuestionCounts.has(pathname)) {
+          const expectedQuestions = practiceQuestionCounts.get(pathname);
+          if ((html.match(/<fieldset\b/g) ?? []).length !== expectedQuestions) failures.push(`${url}: expected ${expectedQuestions} server-rendered practice questions`);
+          if ((html.match(/<details\b/g) ?? []).length < expectedQuestions) failures.push(`${url}: missing server-rendered answer disclosures`);
+          if (!html.includes("Đáp án") || (pathname === "/blog/menh-de-quan-he-toeic" && !html.includes("Which"))) failures.push(`${url}: missing practice explanations in HTML`);
+        }
+        if (pathname === "/blog/quan-ly-thoi-gian-toeic-reading-75-phut" && (!html.includes('id="chia-thoi-gian"') || !html.includes("Part 7 còn 50 phút"))) failures.push(`${url}: missing server-rendered Reading time planner`);
+        if (["/toeic/part-1", "/toeic/part-2", "/toeic/part-4"].includes(pathname)) {
+          const count = pathname === "/toeic/part-2" ? 4 : pathname === "/toeic/part-4" ? 3 : 1;
+          if ((html.match(/<fieldset\b/g) ?? []).length !== count) failures.push(`${url}: expected ${count} server-rendered Listening questions`);
+          if ((html.match(/<details\b/g) ?? []).length < count + (pathname === "/toeic/part-2" ? 4 : 1)) failures.push(`${url}: missing Listening explanations or transcripts in HTML`);
+          if (!html.includes("Đáp án:")) failures.push(`${url}: missing Listening answers before interaction`);
+        }
         if (pathname === "/" && !schemas.some((schema) => schema["@type"] === "WebSite" && schema.name === "TOEIC GYM" && schema.url === canonical)) failures.push(`${url}: missing WebSite site-name data`);
         if (pathname === "/" && !schemas.some((schema) => schema["@type"] === "Organization" && schema["@id"] === `${origin}#organization`)) failures.push(`${url}: missing Organization identity data`);
         if (pathname === "/toeic/flashcards-tu-vung-cong-so" && !schemas.some((schema) => schema["@type"] === "Quiz" && schema.hasPart?.length === 8)) failures.push(`${url}: missing eight-card Quiz data`);
@@ -154,6 +175,9 @@ try {
     ["/seo/toeic-part-1-office-folders.webp", "image/webp"],
     ["/seo/toeic-part-1-sample.mp3", "audio/mpeg"],
     ["/seo/toeic-part-2-sample.mp3", "audio/mpeg"],
+    ["/seo/toeic-part-2-undecided.mp3", "audio/mpeg"],
+    ["/seo/toeic-part-2-ask-colleague.mp3", "audio/mpeg"],
+    ["/seo/toeic-part-2-unavailable.mp3", "audio/mpeg"],
     ["/seo/toeic-part-4-sample.mp3", "audio/mpeg"],
     ["/seo/toeic-100-tu-vung.pdf", "application/pdf"],
   ]) {
@@ -161,6 +185,7 @@ try {
       const asset = await fetch(new URL(path, origin), { method: "HEAD", signal: AbortSignal.timeout(20000) });
       if (!asset.ok) failures.push(`${path}: HTTP ${asset.status}`);
       if (!(asset.headers.get("content-type") ?? "").startsWith(contentType)) failures.push(`${path}: unexpected content type`);
+      if (path === "/seo/toeic-100-tu-vung.pdf" && asset.headers.get("link") !== `<${origin}/toeic/tu-vung>; rel="canonical"`) failures.push(`${path}: missing canonical HTTP header to vocabulary collection`);
     } catch (error) {
       failures.push(`${path}: ${error instanceof Error ? error.message : String(error)}`);
     }

@@ -1,0 +1,47 @@
+{
+  "scope": "Actual local Next production standalone build, anonymous Googlebot HTML and HEAD audio requests; placeholder database never accessed by these routes. No production deployment.",
+  "results": [
+    {
+      "part": 1,
+      "status": 200,
+      "title": "Luyện nghe TOEIC Part 1: mô tả tranh có audio và lời giải | TOEIC GYM",
+      "canonical": "https://toeicgym.net/toeic/part-1",
+      "questionCount": 1,
+      "explanationCount": 1
+    },
+    {
+      "part": 2,
+      "status": 200,
+      "title": "Luyện nghe TOEIC Part 2: hỏi đáp có audio và lời giải | TOEIC GYM",
+      "canonical": "https://toeicgym.net/toeic/part-2",
+      "questionCount": 4,
+      "explanationCount": 4
+    },
+    {
+      "part": 4,
+      "status": 200,
+      "title": "Luyện nghe TOEIC Part 4: bài nói ngắn có transcript | TOEIC GYM",
+      "canonical": "https://toeicgym.net/toeic/part-4",
+      "questionCount": 3,
+      "explanationCount": 3
+    },
+    {
+      "file": "undecided",
+      "status": 200,
+      "type": "audio/mpeg",
+      "length": 153504
+    },
+    {
+      "file": "ask-colleague",
+      "status": 200,
+      "type": "audio/mpeg",
+      "length": 150624
+    },
+    {
+      "file": "unavailable",
+      "status": 200,
+      "type": "audio/mpeg",
+      "length": 150048
+    }
+  ]
+}

@@ -31,9 +31,9 @@ export const MORE_GRAMMAR_POSTS: EditorialPost[] = [
   post({
     slug: "cau-bi-dong-toeic-part-5",
     title: "Câu bị động TOEIC Part 5: nhận ra người làm và vật chịu tác động",
-    excerpt: "Cách chọn dạng bị động theo chủ ngữ và mốc thời gian, phân biệt be + V3 với các đáp án chủ động trong Part 5.",
-    seoTitle: "Câu bị động TOEIC Part 5: công thức, dấu hiệu và bài tập",
-    seoDescription: "Học câu bị động TOEIC Part 5 qua chủ ngữ, thì và cấu trúc be + V3. Có ví dụ công sở, bẫy thường gặp và bài tự kiểm tra có giải thích.",
+    excerpt: "Phân biệt chủ động và bị động theo người thực hiện, thì và trợ động từ. Làm 6 câu Part 5 miễn phí, xem lời giải từng lựa chọn.",
+    seoTitle: "Câu bị động TOEIC Part 5: 6 bài tập có đáp án và công thức",
+    seoDescription: "Luyện 6 câu bị động TOEIC Part 5 miễn phí: be + V3, modal, tiếp diễn và hoàn thành; có giải thích từng đáp án và cách tránh bẫy chủ động.",
     coverAlt: "Hướng dẫn nhận biết câu bị động trong bài TOEIC Part 5",
     targetTopic: "câu bị động TOEIC Part 5",
     content: `## Câu bị động trong TOEIC Part 5 là gì?
@@ -42,6 +42,8 @@ Khi chủ ngữ **nhận** hành động thay vì thực hiện hành động, c
 
 Part 5 thường đưa ra nhiều dạng của cùng một động từ. Muốn chọn đúng, hãy hỏi lần lượt: **chủ ngữ làm hay chịu hành động, hành động xảy ra khi nào, và câu đã có trợ động từ chưa?** Nếu bạn còn lẫn mốc thời gian, đọc thêm [thì và dạng động từ TOEIC](/blog/thi-va-dang-dong-tu-toeic).
 
+Sáu câu luyện ở đầu bài kiểm tra modal, quá khứ đơn, quá khứ hoàn thành, tiếp diễn, tương lai và một câu chủ động để tránh đoán rằng câu nào trong bài cũng cần bị động. Chọn trước khi mở lời giải; với câu sai, ghi riêng lỗi **thể**, **thì** hoặc **hòa hợp**. Câu hỏi do TOEIC GYM tự biên soạn, không phải đề ETS.
+
 ## Công thức cần dùng
 
 - **Hiện tại đơn:** am/is/are + V3. *Invoices are sent every Friday.*
@@ -49,6 +51,8 @@ Part 5 thường đưa ra nhiều dạng của cùng một động từ. Muốn 
 - **Hiện tại hoàn thành:** has/have been + V3. *The policy has been revised.*
 - **Tương lai với will:** will be + V3. *The results will be announced tomorrow.*
 - **Sau động từ khuyết thiếu:** modal + be + V3. *The form must be signed.*
+- **Hiện tại tiếp diễn:** am/is/are being + V3. *The loading dock is being repaired right now.*
+- **Quá khứ hoàn thành:** had been + V3. *The loading dock had been repaired before the inspection began.*
 
 *V3* là quá khứ phân từ. Với động từ đều, dạng này thường có đuôi *-ed*; với động từ bất quy tắc, cần nhớ riêng như *send → sent* và *write → written*. Giữ nguyên thì và đổi thể: *sent* trong *was sent* là quá khứ phân từ, còn *sent* đứng một mình có thể là động từ quá khứ.
 
@@ -59,6 +63,24 @@ Part 5 thường đưa ra nhiều dạng của cùng một động từ. Muốn 
 **Đáp án B.** *Schedule* là thứ được gửi, và *tomorrow* đặt hành động ở tương lai. Vì vậy cần *will be sent*. A và D biến lịch trình thành người gửi; C thiếu trợ động từ phù hợp với tương lai. Ví dụ này do TOEICGym tự biên soạn.
 
 Đừng chọn bị động chỉ vì câu có *by*: *The report was prepared by the analyst* có *by* chỉ người thực hiện, nhưng nhiều câu bị động không nêu người thực hiện: *The report was prepared yesterday*.
+
+## Being khác been ở đâu?
+
+*The lobby is being painted today* diễn tả việc đang diễn ra; **being** nằm trong cấu trúc tiếp diễn bị động. *The lobby has been painted* cho biết việc sơn đã hoàn tất với kết quả liên quan đến hiện tại; **been** là phân từ của be sau has. Đọc cả chuỗi trợ động từ: không viết *has being painted* hay *is been painted*.
+
+Nếu câu đã cho *will*, chỗ trống có thể chỉ cần *be delivered*, không phải toàn bộ *will be delivered*. Kiểm tra phần có sẵn để tránh lặp trợ động từ. [British Council trình bày cách tạo bị động theo các thì](https://learnenglish.britishcouncil.org/free-resources/grammar/b1-b2/passives); các câu công sở trong bài này được viết riêng cho TOEIC GYM.
+
+## Ba bẫy khiến công thức đúng vẫn sai
+
+- **Thấy by là chọn bị động:** *The courier will arrive by noon* có by chỉ hạn thời gian, không phải người thực hiện. Arrive là động từ nội động trong nghĩa này; không viết *will be arrived*. Học cách phân biệt tân ngữ ở [cấu trúc câu S–V–O](/blog/cau-truc-cau-tieng-anh-co-ban).
+- **Chỉ nhìn danh từ chỉ vật:** *The machine prints labels* là chủ động dù machine là vật. Chủ ngữ thực hiện chức năng in; labels là tân ngữ. Cần xét vai trò thực tế, không chỉ người/vật.
+- **Chọn đúng be + V3 nhưng bỏ qua thời gian:** *The invoices were sent yesterday* khác *The invoices are sent every Friday*. Thể bị động không quyết định thì; mốc thời gian và ngữ cảnh vẫn quan trọng.
+
+## Mang cách đọc bị động sang Part 6
+
+*The old loading dock is closed. It is being repaired this week. Deliveries will use the side entrance.* **Is being repaired** giải thích vì sao hiện phải đổi cửa giao hàng. Nếu câu trước nói việc sửa đã hoàn tất, cần xét cấu trúc hoàn thành hoặc quá khứ theo cả đoạn; đừng chọn riêng từ *week*.
+
+Thử [bài điền câu vào đoạn Part 6](/toeic/part-6/dien-cau-vao-doan-van) để kiểm tra quan hệ giữa sự kiện và hướng dẫn. Với cụm như *documents sent yesterday* chưa có động từ chính, học thêm [mệnh đề rút gọn V-ing/V3](/blog/menh-de-rut-gon-phan-tu-ving-v3); đừng nhầm cụm bổ nghĩa với một câu bị động đầy đủ.
 
 ## Ba bước xử lý khi làm bài
 
@@ -126,14 +148,16 @@ Với *this* hoặc *that*, đối tượng tham chiếu có thể là cả mộ
   post({
     slug: "ving-va-to-infinitive-toeic",
     title: "V-ing và to-infinitive TOEIC: chọn dạng động từ sau từ đứng trước",
-    excerpt: "Cách nhận diện V-ing sau giới từ, to + V sau một số động từ và các cấu trúc dễ nhầm trong TOEIC Part 5.",
-    seoTitle: "V-ing và to-infinitive TOEIC: quy tắc, bẫy và bài tập",
-    seoDescription: "Học V-ing và to-infinitive trong TOEIC Part 5: sau giới từ, sau động từ và trong cụm cố định. Có ví dụ công sở, lỗi thường gặp và bài tập có đáp án.",
+    excerpt: "Nhận diện V-ing, to + V và động từ nguyên mẫu bằng từ đứng trước. Luyện 6 câu Part 5 có lời giải, phân biệt to giới từ và to nguyên mẫu.",
+    seoTitle: "V-ing và to V TOEIC: 6 bài tập có đáp án, quy tắc và bẫy",
+    seoDescription: "Làm 6 câu V-ing và to-infinitive TOEIC miễn phí; giải thích từng lựa chọn, look forward to, avoid, remind và in order to trong ngữ cảnh công việc.",
     coverAlt: "Sơ đồ chọn V-ing hoặc to-infinitive trong câu TOEIC",
     targetTopic: "V-ing và to-infinitive TOEIC",
     content: `## Nhìn từ đứng trước chỗ trống trước khi chia động từ
 
 Nếu đáp án gồm *prepare, preparing, to prepare, prepared*, câu có thể kiểm tra **dạng động từ theo sau một từ hoặc một cấu trúc**. Hãy đọc tối thiểu cụm ngay trước chỗ trống. *To* không phải lúc nào cũng báo hiệu *to + động từ nguyên mẫu*: trong *look forward to meeting you*, *to* là giới từ và sau nó là V-ing.
+
+Sáu câu đầu bài cho bạn thử agree to V, remind + người + to V, before V-ing, look forward to V-ing, avoid V-ing và in order to V. Chọn đáp án trước khi mở lời giải từng câu; ghi lại **cả cụm điều khiển**, không chỉ từ đúng. Đây là bài luyện tự biên soạn, không phải đề ETS.
 
 ## Khi nào dùng V-ing?
 
@@ -146,6 +170,22 @@ Một số động từ thường đi với V-ing như *avoid, consider, finish,
 Sau các động từ như *plan, decide, hope, agree*, thường dùng **to + V**: *They plan to expand the office*. Với mẫu *ask/tell/encourage + người + to + V*: *The supervisor asked employees to attend the meeting*. *In order to* cũng diễn tả mục đích: *The company updated the website in order to improve access*.
 
 Lưu ý sự khác biệt giữa *used to + V* (từng làm) và *be used to + V-ing* (quen với việc làm): *She used to commute by train*; *She is used to commuting by train*. Từ *to* giống nhau nhưng vai trò khác nhau.
+
+## So sánh các cặp dễ nhầm bằng một tình huống
+
+- *We agreed to update the checklist* dùng **agree to V**. *We are committed to updating the checklist* dùng **committed to + V-ing** vì to là giới từ. Cả hai đều có thể nói về việc tương lai; không chọn dạng chỉ bằng mốc thời gian.
+- *Remember to attach the invoice before sending the email* nhắc làm việc còn cần làm. *I remember attaching the invoice* nói ký ức về việc đã làm. Dạng động từ thay đổi ý, không phải hai cách viết tùy ý thay nhau.
+- *The technician stopped printing labels* là ngừng in. *The technician stopped to replace the paper roll* là dừng một hoạt động để thay cuộn giấy. Hãy đọc mục đích hoặc hoạt động bị dừng trước khi chọn.
+
+[British Council giải thích các mẫu động từ theo sau bởi V-ing và to-infinitive](https://learnenglish.britishcouncil.org/free-resources/grammar/a1-a2/verbs-followed-ing-or-infinitive). Khi một động từ có nhiều mẫu, kiểm tra nghĩa đang dùng; không suy rằng mọi V-ing chỉ hiện tại hoặc mọi to V chỉ tương lai.
+
+## Sau modal và let/make: đừng thêm to theo thói quen
+
+*Staff must wear safety glasses* dùng nguyên mẫu sau must, không phải *must to wear* hay *must wearing*. *The supervisor let the team leave early* theo let + người + nguyên mẫu. Nhưng *The team was made to wait* dùng to-infinitive trong cấu trúc bị động của make. Nếu câu có was/were + V3, xem thêm [câu bị động Part 5](/blog/cau-bi-dong-toeic-part-5) trước khi áp mẫu chủ động.
+
+## Cách chữa một câu sai để không học thuộc đáp án
+
+Ghi ba cột trong sổ: cụm trước chỗ trống, dạng đúng, câu mới do bạn tự viết. Ví dụ *look forward to → V-ing → We look forward to receiving the updated agenda*. Sau vài ngày, che cột dạng đúng và tự hoàn thành câu mới. Khi câu có *has been working*, đó là cấu trúc thì; khi có *interested in working*, working là bổ ngữ sau giới từ. Dùng [hướng dẫn giới từ](/blog/gioi-tu-toeic-trong-cong-viec) và [thì động từ](/blog/thi-va-dang-dong-tu-toeic) để phân biệt.
 
 ## Ví dụ kiểu TOEIC Part 5
 

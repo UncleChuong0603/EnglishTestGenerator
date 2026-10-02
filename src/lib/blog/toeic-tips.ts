@@ -78,6 +78,7 @@ Khi đã biết kiểm tra bằng chứng trong ảnh, hãy áp dụng cùng ngu
   }),
   tip({
     id: "tip-part-2", slug: "meo-lam-toeic-part-2-hoi-dap", category: "LISTENING",
+    revisedAt: new Date("2026-10-02T00:00:00.000Z"),
     title: "Mẹo làm TOEIC Part 2: bắt ý định câu hỏi, không săn từ trùng",
     excerpt: "Cách nhận diện câu hỏi, phản hồi gián tiếp và quy trình sửa lỗi khi nghe Part 2 chỉ một lượt.",
     seoTitle: "Mẹo làm TOEIC Part 2 hỏi đáp và ví dụ",
@@ -86,7 +87,9 @@ Khi đã biết kiểm tra bằng chứng trong ảnh, hãy áp dụng cùng ngu
     coverAlt: "Người học đeo tai nghe luyện phản hồi câu hỏi trong TOEIC Listening Part 2",
     editorialCover: "/blog/meo-toeic-part-2.webp", targetTopic: "mẹo làm TOEIC Part 2",
     tags: [{ name: "TOEIC Listening", slug: "toeic-listening" }, { name: "Part 2", slug: "part-2" }],
-    content: `## Nghe đầu câu để biết người nói muốn gì
+    content: `Thử [4 câu Part 2 có audio, transcript và lời giải](/toeic/part-2#bai-nghe-mau) trước khi đọc phương pháp. Bài luyện gồm phản hồi trực tiếp, thông tin chưa chốt, chuyển sang người biết và từ chối bằng lý do; các câu do TOEIC GYM tự biên soạn.
+
+## Nghe đầu câu để biết người nói muốn gì
 
 Part 2 là hỏi đáp ngắn. Trong lần nghe duy nhất, ưu tiên nhận ra câu đang hỏi **ai, khi nào, ở đâu, vì sao, chọn phương án nào** hay đang đề nghị một việc. Từ để hỏi thường giúp định hướng, nhưng đừng dừng ở đó: câu hỏi Yes/No có thể được trả lời bằng lý do hoặc một hành động thay vì “Yes” hay “No”.
 

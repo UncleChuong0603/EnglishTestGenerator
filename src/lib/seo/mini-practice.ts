@@ -15,6 +15,34 @@ function question(id: string, text: string, options: MiniQuestion["options"], an
 
 // Written for this release; independent of ETS/IIG material and the learner question bank.
 export const MINI_PRACTICE: Record<string, MiniQuestion[]> = {
+  "cau-bi-dong-toeic-part-5": [
+    question("passive-1", "The access cards _____ by the security officer before the visitors arrived yesterday.", ["had checked", "had been checked", "have been checking", "will check"], 1,
+      "Had been checked diễn tả thẻ được kiểm tra trước một sự kiện quá khứ khác: the visitors arrived yesterday.", ["Had checked là chủ động; thẻ không tự kiểm tra thứ khác.", "Đúng: quá khứ hoàn thành bị động.", "Have been checking là chủ động hiện tại hoàn thành tiếp diễn, sai cả thể và mốc quá khứ.", "Will check là chủ động tương lai, không khớp yesterday."]),
+    question("passive-2", "All expense claims must _____ by a department manager before payment.", ["approve", "approved", "be approved", "approving"], 2,
+      "Must be approved là modal + be + V3: các yêu cầu hoàn phí phải được quản lý phê duyệt.", ["Approve làm claims thành người phê duyệt; câu cần bị động.", "Approved thiếu be sau must.", "Đúng: must be approved.", "Approving không theo trực tiếp must trong cấu trúc này."]),
+    question("passive-3", "The damaged monitors _____ by the repair team last Thursday.", ["were replaced", "was replaced", "have replaced", "are replacing"], 0,
+      "Were replaced là bị động quá khứ đơn, hòa hợp với monitors số nhiều và last Thursday.", ["Đúng: monitors were replaced.", "Was không hòa hợp với monitors số nhiều.", "Have replaced là chủ động; monitors không tự thay thiết bị khác.", "Are replacing là chủ động hiện tại tiếp diễn, không khớp nghĩa và last Thursday."]),
+    question("passive-4", "Please use the side entrance; the main staircase _____ by contractors right now.", ["renovates", "renovated", "has renovating", "is being renovated"], 3,
+      "Is being renovated diễn tả cầu thang đang được sửa ngay lúc này: hiện tại tiếp diễn bị động.", ["Renovates là chủ động; staircase không thực hiện việc sửa.", "Renovated thiếu trợ động từ bị động trong câu này.", "Has renovating sai cấu trúc; has không nối trực tiếp với renovating ở đây.", "Đúng: is being renovated."]),
+    question("passive-5", "The replacement printer will _____ to the branch tomorrow morning.", ["deliver", "be delivered", "delivering", "been delivered"], 1,
+      "Be delivered kết hợp với will thành will be delivered: máy in sẽ được giao vào sáng mai.", ["Deliver là chủ động; máy in là vật được giao.", "Đúng: will be delivered.", "Delivering không đi trực tiếp sau will.", "Been delivered không đi trực tiếp sau will; phải là be delivered."]),
+    question("passive-6", "The maintenance crew _____ the backup generator every Monday.", ["is inspected", "was inspected", "inspects", "be inspected"], 2,
+      "Inspects là chủ động hiện tại đơn: maintenance crew thực hiện kiểm tra generator theo lịch every Monday.", ["Is inspected làm crew thành đối tượng được kiểm tra và không nối được tân ngữ generator như ở đây.", "Was inspected sai cấu trúc với tân ngữ generator, đồng thời không diễn tả lịch hiện tại.", "Đúng: crew inspects the generator.", "Be inspected chưa chia thì và không phù hợp với tân ngữ generator."]),
+  ],
+  "ving-va-to-infinitive-toeic": [
+    question("verb-pattern-1", "The purchasing team agreed _____ the supplier's revised delivery terms.", ["accepting", "accepted", "accept", "to accept"], 3,
+      "To accept theo mẫu agree to do something: nhóm mua hàng đồng ý chấp nhận điều khoản mới.", ["Accepting không theo trực tiếp agreed trong mẫu này.", "Accepted không làm động từ thứ hai sau agreed ở đây.", "Accept thiếu to sau agreed.", "Đúng: agreed to accept."]),
+    question("verb-pattern-2", "The supervisor reminded the technicians _____ their tools before leaving the site.", ["to collect", "collecting", "collected", "collect"], 0,
+      "To collect theo mẫu remind + người + to V: nhắc các kỹ thuật viên thu dọn dụng cụ.", ["Đúng: reminded the technicians to collect.", "Collecting không theo mẫu remind + người đang dùng ở đây.", "Collected không tạo được cấu trúc sau reminded the technicians.", "Collect thiếu to trong mẫu remind + người + to V."]),
+    question("verb-pattern-3", "Before _____ the equipment, read the safety instructions carefully.", ["operate", "to operate", "operating", "operated"], 2,
+      "Operating là V-ing sau giới từ before; chủ thể ngầm của operating cũng là người được yêu cầu đọc hướng dẫn.", ["Operate không theo trực tiếp giới từ before trong cụm này.", "To operate không theo before ở đây.", "Đúng: before operating.", "Operated không diễn tả người đọc chủ động vận hành thiết bị trong cụm này."]),
+    question("verb-pattern-4", "We look forward to _____ your design proposal at next week's review.", ["discuss", "discussing", "to discuss", "discussed"], 1,
+      "Discussing theo look forward to + V-ing; to là giới từ dù buổi thảo luận diễn ra tuần tới.", ["Discuss không theo giới từ to trong look forward to.", "Đúng: look forward to discussing.", "To discuss tạo thêm to và dùng sai dạng sau giới từ.", "Discussed không tạo được cụm chỉ hành động sau look forward to ở đây."]),
+    question("verb-pattern-5", "To prevent duplicate orders, please avoid _____ the request more than once.", ["submitting", "to submit", "submit", "submitted"], 0,
+      "Submitting theo mẫu avoid + V-ing: tránh gửi yêu cầu nhiều lần.", ["Đúng: avoid submitting.", "To submit không theo avoid trong mẫu này.", "Submit là nguyên mẫu thiếu cấu trúc sau avoid.", "Submitted không làm danh động từ sau avoid."]),
+    question("verb-pattern-6", "The courier paused at reception in order _____ the package tracking number before continuing upstairs.", ["checking", "checked", "to check", "check"], 2,
+      "To check hoàn tất mẫu in order to + V, diễn tả mục đích dừng lại để kiểm tra mã kiện hàng.", ["Checking không hoàn tất mẫu in order to + V.", "Checked không theo in order để diễn tả mục đích.", "Đúng: in order to check.", "Check thiếu to sau in order."]),
+  ],
   "loai-tu-trong-toeic-part-5": [
     question("form-1", "The design team explained the changes _____ during the briefing.", ["clear", "clearly", "clarity", "clarify"], 1,
       "Clearly bổ nghĩa cho động từ explained: nhóm thiết kế giải thích một cách rõ ràng.", ["Clear là tính từ, không bổ nghĩa cho explained ở vị trí này.", "Đúng: trạng từ chỉ cách giải thích.", "Clarity là danh từ; câu không thiếu tân ngữ.", "Clarify là động từ nguyên mẫu, không nối trực tiếp sau the changes."]),
@@ -68,6 +96,12 @@ export const MINI_PRACTICE: Record<string, MiniQuestion[]> = {
       "Mệnh đề organized the workshop thiếu chủ ngữ chỉ người, nên dùng who.", ["Đúng: who làm chủ ngữ của organized.", "Whose cần danh từ sau nó.", "Where chỉ nơi chốn, không làm chủ ngữ.", "Whom làm tân ngữ, không làm chủ ngữ của organized."]),
     question("relative-3", "The office _____ we held the interview is on the second floor.", ["whose", "where", "who", "whom"], 1,
       "We held the interview đã có chủ ngữ và tân ngữ; where bổ sung địa điểm tổ chức.", ["Whose không bổ nghĩa cho we.", "Đúng: where tương đương in which.", "Who chỉ người.", "Whom chỉ người làm tân ngữ."]),
+    question("relative-4", "The training room, _____ was renovated last month, now has adjustable desks.", ["where", "whose", "that", "which"], 3,
+      "Which làm chủ ngữ của was renovated và thay cho the training room trong mệnh đề bổ sung có dấu phẩy.", ["Where chỉ địa điểm, không làm chủ ngữ của was renovated.", "Whose cần danh từ theo sau để chỉ sở hữu.", "That không mở mệnh đề quan hệ không xác định có dấu phẩy.", "Đúng: which làm chủ ngữ thay cho vật."]),
+    question("relative-5", "The specialist to _____ we sent the technical drawings will visit on Tuesday.", ["who", "whom", "whose", "that"], 1,
+      "Whom là tân ngữ chỉ người sau giới từ to được đặt trước từ quan hệ: to whom we sent the technical drawings.", ["Who không dùng sau giới từ to đặt trước từ quan hệ trong cấu trúc trang trọng này.", "Đúng: to whom.", "Whose diễn tả sở hữu, không làm tân ngữ của to ở đây.", "That không đứng ngay sau giới từ đưa lên trước mệnh đề quan hệ."]),
+    question("relative-6", "The storage facility _____ the company leased last year is near the airport.", ["which", "where", "whose", "who"], 0,
+      "Which làm tân ngữ của leased: the company leased the storage facility. Dù facility là địa điểm, câu thiếu vật được thuê nên không chọn where.", ["Đúng: which thay cho tân ngữ của leased.", "Where chỉ nơi diễn ra hành động, không điền được tân ngữ còn thiếu của leased.", "Whose cần danh từ theo sau, không phải the company leased trong câu này.", "Who chỉ người, không thay cho storage facility."]),
   ],
   "tu-vung-toeic-theo-chu-de-cong-so": [
     question("vocab-1", "Please keep the receipt so that you can request _____ for your travel expenses.", ["attendance", "reimbursement", "recruitment", "maintenance"], 1,
@@ -88,6 +122,11 @@ export const MINI_PRACTICE: Record<string, MiniQuestion[]> = {
 export function practiceForSlug(slug: string): MiniQuestion[] {
   if (slug === "seo-word-form") return MINI_PRACTICE["loai-tu-trong-toeic-part-5"];
   if (slug === "seo-tenses") return MINI_PRACTICE["thi-va-dang-dong-tu-toeic"];
-  if (slug === "seo-part5-practice") return Object.values(MINI_PRACTICE).map(items => items[0]);
+  // This published seven-question sample has a fixed syllabus. Adding a topic
+  // exercise must not silently change its question count or advertised scope.
+  if (slug === "seo-part5-practice") return [
+    "loai-tu-trong-toeic-part-5", "thi-va-dang-dong-tu-toeic", "hoa-hop-chu-ngu-dong-tu-toeic",
+    "gioi-tu-toeic-trong-cong-viec", "lien-tu-va-tu-noi-toeic", "menh-de-quan-he-toeic", "tu-vung-toeic-theo-chu-de-cong-so",
+  ].map(topic => MINI_PRACTICE[topic][0]);
   return MINI_PRACTICE[slug] ?? [];
 }

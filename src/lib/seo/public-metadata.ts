@@ -17,10 +17,11 @@ export function publicPageMetadata({
   socialTitle,
   socialDescription,
 }: PublicPageMetadata): Metadata {
-  const shareTitle = socialTitle ?? `${title} | TOEIC GYM`;
+  const titleIncludesBrand = /\bTOEIC\s*GYM\b/i.test(title);
+  const shareTitle = socialTitle ?? (titleIncludesBrand ? title : `${title} | TOEIC GYM`);
   const shareDescription = socialDescription ?? description;
   return {
-    title,
+    title: titleIncludesBrand ? { absolute: title } : title,
     description,
     alternates: { canonical },
     openGraph: {

@@ -1,0 +1,371 @@
+{
+  "scope": "Actual ListeningSampleQuiz SSR/hydration with application CSS, vi/en controls; full Vietnamese ListeningGuidePage SSR including header/footer. Authentication and unrelated server actions isolated. Image endpoints serve original assets without Next image optimization.",
+  "results": [
+    {
+      "part": 1,
+      "locale": "vi",
+      "width": 375,
+      "scope": "hydrated samples",
+      "audio": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "part": 1,
+      "locale": "vi",
+      "width": 768,
+      "scope": "hydrated samples",
+      "audio": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "part": 1,
+      "locale": "vi",
+      "width": 1024,
+      "scope": "hydrated samples",
+      "audio": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "part": 1,
+      "locale": "vi",
+      "width": 1440,
+      "scope": "hydrated samples",
+      "audio": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "part": 1,
+      "locale": "en",
+      "width": 375,
+      "scope": "hydrated samples",
+      "audio": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "part": 1,
+      "locale": "en",
+      "width": 768,
+      "scope": "hydrated samples",
+      "audio": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "part": 1,
+      "locale": "en",
+      "width": 1024,
+      "scope": "hydrated samples",
+      "audio": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "part": 1,
+      "locale": "en",
+      "width": 1440,
+      "scope": "hydrated samples",
+      "audio": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "part": 2,
+      "locale": "vi",
+      "width": 375,
+      "scope": "hydrated samples",
+      "audio": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "part": 2,
+      "locale": "vi",
+      "width": 768,
+      "scope": "hydrated samples",
+      "audio": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "part": 2,
+      "locale": "vi",
+      "width": 1024,
+      "scope": "hydrated samples",
+      "audio": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "part": 2,
+      "locale": "vi",
+      "width": 1440,
+      "scope": "hydrated samples",
+      "audio": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "part": 2,
+      "locale": "en",
+      "width": 375,
+      "scope": "hydrated samples",
+      "audio": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "part": 2,
+      "locale": "en",
+      "width": 768,
+      "scope": "hydrated samples",
+      "audio": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "part": 2,
+      "locale": "en",
+      "width": 1024,
+      "scope": "hydrated samples",
+      "audio": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "part": 2,
+      "locale": "en",
+      "width": 1440,
+      "scope": "hydrated samples",
+      "audio": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "part": 4,
+      "locale": "vi",
+      "width": 375,
+      "scope": "hydrated samples",
+      "audio": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "part": 4,
+      "locale": "vi",
+      "width": 768,
+      "scope": "hydrated samples",
+      "audio": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "part": 4,
+      "locale": "vi",
+      "width": 1024,
+      "scope": "hydrated samples",
+      "audio": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "part": 4,
+      "locale": "vi",
+      "width": 1440,
+      "scope": "hydrated samples",
+      "audio": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "part": 4,
+      "locale": "en",
+      "width": 375,
+      "scope": "hydrated samples",
+      "audio": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "part": 4,
+      "locale": "en",
+      "width": 768,
+      "scope": "hydrated samples",
+      "audio": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "part": 4,
+      "locale": "en",
+      "width": 1024,
+      "scope": "hydrated samples",
+      "audio": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "part": 4,
+      "locale": "en",
+      "width": 1440,
+      "scope": "hydrated samples",
+      "audio": true,
+      "keyboard": true,
+      "scoring": true,
+      "overflow": false
+    },
+    {
+      "part": 1,
+      "locale": "vi",
+      "javascript": false,
+      "scope": "samples",
+      "answersAndTranscripts": true
+    },
+    {
+      "part": 1,
+      "locale": "en",
+      "javascript": false,
+      "scope": "samples",
+      "answersAndTranscripts": true
+    },
+    {
+      "part": 2,
+      "locale": "vi",
+      "javascript": false,
+      "scope": "samples",
+      "answersAndTranscripts": true
+    },
+    {
+      "part": 2,
+      "locale": "en",
+      "javascript": false,
+      "scope": "samples",
+      "answersAndTranscripts": true
+    },
+    {
+      "part": 4,
+      "locale": "vi",
+      "javascript": false,
+      "scope": "samples",
+      "answersAndTranscripts": true
+    },
+    {
+      "part": 4,
+      "locale": "en",
+      "javascript": false,
+      "scope": "samples",
+      "answersAndTranscripts": true
+    },
+    {
+      "part": 1,
+      "width": 375,
+      "locale": "vi",
+      "scope": "full guide including header and footer",
+      "overflow": false
+    },
+    {
+      "part": 1,
+      "width": 768,
+      "locale": "vi",
+      "scope": "full guide including header and footer",
+      "overflow": false
+    },
+    {
+      "part": 1,
+      "width": 1024,
+      "locale": "vi",
+      "scope": "full guide including header and footer",
+      "overflow": false
+    },
+    {
+      "part": 1,
+      "width": 1440,
+      "locale": "vi",
+      "scope": "full guide including header and footer",
+      "overflow": false
+    },
+    {
+      "part": 2,
+      "width": 375,
+      "locale": "vi",
+      "scope": "full guide including header and footer",
+      "overflow": false
+    },
+    {
+      "part": 2,
+      "width": 768,
+      "locale": "vi",
+      "scope": "full guide including header and footer",
+      "overflow": false
+    },
+    {
+      "part": 2,
+      "width": 1024,
+      "locale": "vi",
+      "scope": "full guide including header and footer",
+      "overflow": false
+    },
+    {
+      "part": 2,
+      "width": 1440,
+      "locale": "vi",
+      "scope": "full guide including header and footer",
+      "overflow": false
+    },
+    {
+      "part": 4,
+      "width": 375,
+      "locale": "vi",
+      "scope": "full guide including header and footer",
+      "overflow": false
+    },
+    {
+      "part": 4,
+      "width": 768,
+      "locale": "vi",
+      "scope": "full guide including header and footer",
+      "overflow": false
+    },
+    {
+      "part": 4,
+      "width": 1024,
+      "locale": "vi",
+      "scope": "full guide including header and footer",
+      "overflow": false
+    },
+    {
+      "part": 4,
+      "width": 1440,
+      "locale": "vi",
+      "scope": "full guide including header and footer",
+      "overflow": false
+    }
+  ]
+}

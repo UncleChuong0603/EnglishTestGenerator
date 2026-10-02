@@ -1,0 +1,41 @@
+{
+  "scope": "Focused follow-up after aligning Part 2 question and explanation numbers; actual components and application CSS. Full vi guide and en sample controls.",
+  "results": [
+    {
+      "part": 2,
+      "locale": "vi",
+      "width": 375,
+      "scope": "full guide",
+      "continuousNumbering": true,
+      "keyboard": true,
+      "overflow": false
+    },
+    {
+      "part": 2,
+      "locale": "vi",
+      "width": 1440,
+      "scope": "full guide",
+      "continuousNumbering": true,
+      "keyboard": true,
+      "overflow": false
+    },
+    {
+      "part": 2,
+      "locale": "en",
+      "width": 375,
+      "scope": "hydrated controls",
+      "continuousNumbering": true,
+      "keyboard": true,
+      "overflow": false
+    },
+    {
+      "part": 2,
+      "locale": "en",
+      "width": 1440,
+      "scope": "hydrated controls",
+      "continuousNumbering": true,
+      "keyboard": true,
+      "overflow": false
+    }
+  ]
+}

@@ -165,12 +165,18 @@ Trong tiếng Anh, danh từ tập hợp như *team* có thể đi với cách c
   grammarPost({
     slug: GRAMMAR_SLUGS[3],
     title: "Mệnh đề quan hệ TOEIC: chọn who, which, whose hay where?",
-    excerpt: "Hiểu vai trò của từ quan hệ trong câu để chọn đúng who, which, whose, where và tránh mẹo chỉ nhìn danh từ đứng trước.",
-    seoTitle: "Mệnh đề quan hệ TOEIC: who, which, whose, where",
-    seoDescription: "Giải thích mệnh đề quan hệ TOEIC bằng vai trò chủ ngữ, tân ngữ, sở hữu và nơi chốn; có câu Part 5 mẫu và bài tập giải thích.",
+    excerpt: "Chọn who, whom, which, whose, that hay where theo phần còn thiếu trong câu. Làm sáu câu Part 5 miễn phí với lời giải từng lựa chọn.",
+    seoTitle: "Mệnh đề quan hệ TOEIC: cách dùng và 6 bài tập có đáp án",
+    seoDescription: "Phân biệt who, whom, which, whose, that và where trong TOEIC; luyện 6 câu Part 5 miễn phí, có giải thích đáp án, dấu phẩy và bẫy chỉ địa điểm.",
     coverAlt: "Hai tờ ghi chú công sở được nối với nhau minh họa mệnh đề quan hệ",
     targetTopic: "mệnh đề quan hệ TOEIC",
-    content: `## Mệnh đề quan hệ giúp thêm thông tin về danh từ
+    content: `## Chọn từ quan hệ bằng phần còn thiếu trong câu
+
+**Who/which** có thể thay chủ ngữ hoặc tân ngữ; **whom** là dạng tân ngữ chỉ người; **whose + danh từ** diễn tả sở hữu; **where** bổ sung nơi diễn ra hành động. **That** thay who/which trong nhiều mệnh đề xác định, nhưng không dùng sau dấu phẩy của mệnh đề không xác định hoặc ngay sau giới từ đặt trước từ quan hệ. Đọc cả phần sau chỗ trống để biết vai trò cần điền.
+
+Sáu câu luyện ở đầu bài bao gồm chủ ngữ, sở hữu, nơi chốn, dấu phẩy, giới từ + whom và bẫy danh từ địa điểm. Chọn đáp án trước khi mở lời giải từng câu; bạn có thể đọc lời giải ngay cả khi không bật JavaScript. Đây là câu tự biên soạn cho TOEIC GYM, không phải đề thi ETS.
+
+## Mệnh đề quan hệ giúp thêm thông tin về danh từ
 
 Thay vì viết hai câu “The employee called. The employee handles invoices”, ta ghép: *The employee **who handles invoices** called.* Mệnh đề bắt đầu bằng *who* cho biết nhân viên nào. Trong TOEIC, đây là cách người viết làm câu email hoặc thông báo gọn hơn; ở Part 5, bạn thường cần chọn đúng từ nối.
 
@@ -190,6 +196,31 @@ Thay vì viết hai câu “The employee called. The employee handles invoices�
 Sau chỗ trống là động từ *repaired*; mệnh đề đang thiếu **chủ ngữ** chỉ người. **A. who** đúng. *Whose* cần theo sau bằng danh từ, ví dụ *whose team repaired the printer*. Câu này do TOEICGym tự viết.
 
 So sánh: *The technician **whom** we contacted...* có *we* làm chủ ngữ, còn chỗ trống là tân ngữ; trong văn phong thường, *who/that* cũng được dùng cho tân ngữ của mệnh đề xác định. Đừng áp một công thức cho mọi câu.
+
+## Bẫy địa điểm: where khác which như thế nào?
+
+- *The warehouse **where we store spare parts** is outside the city.* Trong phần sau, we là chủ ngữ, store là động từ, spare parts là tân ngữ; where bổ sung ý **tại nhà kho đó**.
+- *The warehouse **which we rented** is outside the city.* We rented còn thiếu thứ được thuê; which thay cho warehouse và làm **tân ngữ**. Dùng where sẽ không lấp được chỗ thiếu này.
+
+Thử khôi phục câu gốc: *We store spare parts in the warehouse* có giới từ in chỉ địa điểm; *We rented the warehouse* có warehouse là tân ngữ trực tiếp. Cách kiểm tra này đáng tin hơn mẹo “thấy danh từ địa điểm thì chọn where”.
+
+## Dấu phẩy quyết định khi nào dùng that
+
+*The printer **that is next to reception** needs paper* dùng mệnh đề xác định để cho biết máy in nào. Có thể thay that bằng which ở đây. *The reception printer, **which was installed yesterday**, needs paper* dùng dấu phẩy để thêm thông tin về một máy in đã xác định; không thay which bằng that trong mệnh đề bổ sung này.
+
+Không tự thêm dấu phẩy chỉ vì câu dài. Xác định thông tin đó dùng để nhận diện danh từ hay chỉ bổ sung trước khi xét lựa chọn.
+
+## Giới từ + whom và cách lược bỏ từ quan hệ
+
+*The supplier **to whom we sent the order** confirmed delivery* dùng whom sau giới từ to ở đầu mệnh đề. Nếu đưa giới từ về cuối, có thể viết *the supplier **who we sent the order to*** trong cách diễn đạt ít trang trọng hơn. That không đứng trực tiếp sau to trong cấu trúc to whom.
+
+Trong mệnh đề xác định, có thể bỏ từ quan hệ **làm tân ngữ**: *the report **which we submitted*** → *the report **we submitted***. Không bỏ từ quan hệ **làm chủ ngữ** theo cách đó: *the analyst **who submitted the report*** không thể trở thành *the analyst submitted the report* nếu vẫn muốn giữ cả cụm làm chủ ngữ cho một động từ khác. [British Council giải thích chức năng và việc lược bỏ từ quan hệ](https://learnenglish.britishcouncil.org/free-resources/grammar/b1-b2/relative-clauses-defining-relative-clauses).
+
+## Áp dụng vào Part 6 và Part 7
+
+Trong thông báo *Employees **whose badges have expired** must contact reception*, whose badges have expired xác định **nhóm nhân viên cần liên hệ**; thông báo không yêu cầu mọi nhân viên làm như vậy. Trong Part 6, dùng quan hệ giữa các câu để tìm danh từ được nhắc lại. Trong Part 7, đánh dấu mệnh đề để tránh bỏ qua điều kiện áp dụng cho một nhóm người.
+
+Nếu đã chọn được từ quan hệ nhưng khó theo mạch đoạn, thử [bài điền câu Part 6](/toeic/part-6/dien-cau-vao-doan-van). Với câu dài cần nối thông tin giữa các tài liệu, xem [bài đọc hai đoạn Part 7](/toeic/part-7/doc-hieu-hai-doan-van). Khi rút gọn mệnh đề, học riêng [phân từ V-ing và V3](/blog/menh-de-rut-gon-phan-tu-ving-v3) thay vì chỉ xóa who/which.
 
 ## Tự kiểm tra
 

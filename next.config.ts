@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { getSiteUrl } from "./src/lib/seo/site-url";
 
 const securityHeaders = [
   { key: "Content-Security-Policy", value: "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; media-src 'self' blob:; connect-src 'self' https://accounts.google.com https://oauth2.googleapis.com; upgrade-insecure-requests" },
@@ -53,6 +54,8 @@ const nextConfig: NextConfig = {
       { source: "/(.*)", headers: securityHeaders },
       // The downloadable worksheet is a copy of the indexed HTML resource.
       { source: "/seo/toeic-checklist-hoc-tuan.pdf", headers: [{ key: "X-Robots-Tag", value: "noindex" }] },
+      // Consolidate the printable vocabulary copy with its complete HTML collection.
+      { source: "/seo/toeic-100-tu-vung.pdf", headers: [{ key: "Link", value: `<${getSiteUrl()}/toeic/tu-vung>; rel="canonical"` }] },
       ...noindexPaths.map((source) => ({ source, headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] })),
     ];
   },
