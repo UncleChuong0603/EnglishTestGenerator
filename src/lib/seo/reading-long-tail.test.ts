@@ -30,4 +30,16 @@ describe("Reading long-tail guides", () => {
     expect(readingLongTailGuides.doublePassage.related.some((link) => link.href === single.path)).toBe(true);
     expect(readingLongTailGuides.triplePassage.related.some((link) => link.href === single.path)).toBe(true);
   });
+
+  it("publishes a distinct paraphrase exercise with contextual evidence", () => {
+    const guide = readingLongTailGuides.paraphrase;
+    expect(guide.path).toBe("/toeic/part-7/paraphrase-tu-dong-nghia");
+    expect(guide.documents).toHaveLength(3);
+    expect(guide.questions).toHaveLength(6);
+    expect(guide.questions.filter(question => question.prompt.includes("closest in meaning"))).toHaveLength(2);
+    expect(guide.related.some(link => link.href === readingLongTailGuides.singlePassage.path)).toBe(true);
+    expect(readingLongTailGuides.singlePassage.related.some(link => link.href === guide.path)).toBe(true);
+    expect(readingLongTailGuides.doublePassage.related.some(link => link.href === guide.path)).toBe(true);
+    expect(readingLongTailGuides.triplePassage.related.some(link => link.href === guide.path)).toBe(true);
+  });
 });

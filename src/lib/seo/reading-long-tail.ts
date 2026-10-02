@@ -1,3 +1,5 @@
+import { readingParaphraseGuide } from "./reading-paraphrase-guide";
+
 export type ReadingSampleQuestion = {
   prompt: string;
   options: readonly [string, string, string, string];
@@ -21,6 +23,7 @@ export type ReadingLongTailGuide = {
 
 // Original practice passages and questions written for TOEIC GYM, independent of ETS material.
 export const readingLongTailGuides = {
+  paraphrase: readingParaphraseGuide,
   sentenceInsertion: {
     path: "/toeic/part-6/dien-cau-vao-doan-van",
     part: 6,
@@ -120,6 +123,7 @@ export const readingLongTailGuides = {
     review: "Với câu 1, hãy tóm tắt toàn email trong một câu. Với câu 2 và 3, chỉ đúng câu chứa địa điểm hoặc hành động. Với câu 4, thay resume bằng begin again rồi đọc lại câu để kiểm tra nghĩa. Nếu chọn sai, ghi mình đã nhầm đối tượng, địa điểm, hành động hay nghĩa trong ngữ cảnh trước khi làm bài hai văn bản.",
     related: [
       { href: "/toeic/part-7", label: "Tổng quan TOEIC Part 7", description: "Ôn các dạng câu hỏi và cách định vị bằng chứng." },
+      { href: "/toeic/part-7/paraphrase-tu-dong-nghia", label: "Paraphrase và từ đồng nghĩa Part 7", description: "Luyện sáu câu về cách diễn đạt lại và nghĩa trong ngữ cảnh." },
       { href: "/toeic/part-7/doc-hieu-hai-doan-van", label: "Đọc hiểu hai văn bản", description: "Tiếp tục bằng bài cần đối chiếu hai email." },
       { href: "/toeic/part-7/doc-hieu-ba-van-ban", label: "Đọc hiểu ba văn bản", description: "Luyện nối lịch, số lượng và email cập nhật." },
       { href: "/blog/quan-ly-thoi-gian-toeic-reading-75-phut", label: "Chia thời gian Reading", description: "Tạo mốc thời gian để giữ đủ phút cho Part 7." },
@@ -167,6 +171,7 @@ export const readingLongTailGuides = {
     review: "Xem lại từng câu và chỉ ra email nào chứa bằng chứng. Câu về hóa đơn và lý do chấp nhận giao đợt phải dựa vào phản hồi của khách hàng; câu về số lượng có thể đối chiếu cả hai email. Nếu bạn chọn sai, ghi rõ mình đã nhầm tổng số lượng, đợt giao hay thời điểm mở phòng.",
     related: [
       { href: "/toeic/part-7", label: "Tổng quan TOEIC Part 7", description: "Ôn kỹ thuật định vị thông tin và nhận ra cách diễn đạt lại." },
+      { href: "/toeic/part-7/paraphrase-tu-dong-nghia", label: "Bài tập paraphrase Part 7", description: "Tách riêng kỹ năng nhận diện từ đồng nghĩa và cách đổi cấu trúc." },
       { href: "/toeic/part-7/doc-hieu-mot-doan-van", label: "Bài đọc một văn bản Part 7", description: "Luyện từng dạng câu hỏi trên một email trước khi đối chiếu hai nguồn." },
       { href: "/toeic/part-7/doc-hieu-ba-van-ban", label: "Bài đọc ba văn bản Part 7", description: "Nối lịch sự kiện với hai email để giải câu hỏi liên văn bản." },
       { href: "/blog/meo-lam-toeic-part-7-doc-hieu-nhieu-van-ban", label: "Chiến lược đọc nhiều văn bản", description: "Mở rộng sang câu hỏi cần nối hai hoặc ba tài liệu." },
@@ -253,6 +258,7 @@ export const readingLongTailGuides = {
     review: "Với câu 1 và 5, hãy chỉ ra ít nhất hai bằng chứng ở hai văn bản khác nhau: lịch cần ghế và lịch giao mới. Với câu 2, kiểm tra thêm hạn xác nhận phương án ghế mượn. Sau đó thử trả lời lại mà không nhìn lựa chọn để xem bạn thực sự nối được ba tài liệu hay chỉ nhận ra một con số quen mắt.",
     related: [
       { href: "/toeic/part-7", label: "Tổng quan TOEIC Part 7", description: "Ôn các dạng câu hỏi và cách định vị bằng chứng." },
+      { href: "/toeic/part-7/paraphrase-tu-dong-nghia", label: "Bài tập paraphrase Part 7", description: "Ôn cách xác nhận một đáp án diễn đạt lại đúng toàn bộ ý." },
       { href: "/toeic/part-7/doc-hieu-mot-doan-van", label: "Đọc hiểu một văn bản", description: "Ôn cách tìm mục đích, chi tiết và nghĩa trong một email." },
       { href: "/toeic/part-7/doc-hieu-hai-doan-van", label: "Đọc hiểu hai văn bản", description: "Bắt đầu với tình huống hai email ngắn hơn." },
       { href: "/blog/meo-lam-toeic-part-7-doc-hieu-nhieu-van-ban", label: "Chiến lược đọc nhiều văn bản", description: "Xem quy trình đọc và sửa lỗi cho câu hỏi liên văn bản." },

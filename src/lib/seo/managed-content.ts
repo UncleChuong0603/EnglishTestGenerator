@@ -8,7 +8,7 @@ const readingReleaseAt = new Date("2026-10-01T09:00:00.000Z");
 
 function document(slug: string, title: string, excerpt: string, content: string, intent = "LEARN"): EditorialPost {
   const updatedAt = slug === "seo-part5" || slug === "seo-toeic" ? new Date("2026-10-02T00:00:00.000Z") : slug === "seo-online" ? listeningReleaseAt
-    : slug === "seo-part6" || slug === "seo-part7" ? readingReleaseAt : revisedAt;
+    : slug === "seo-part7" ? new Date("2026-10-02T00:00:00.000Z") : slug === "seo-part6" ? readingReleaseAt : revisedAt;
   const category = slug === "seo-toeic" || slug === "seo-online" ? "TOEIC_STRATEGY"
     : slug === "seo-part6" || slug === "seo-part7" ? "READING" : "GRAMMAR";
   return { id: slug, slug, title, excerpt, content, status: "PUBLISHED", category,
