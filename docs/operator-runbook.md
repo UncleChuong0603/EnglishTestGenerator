@@ -46,6 +46,10 @@ Trong checkout Dokploy, chạy `scripts/task36b-safe-status.mjs` bằng Node c�
 
 Không chạy hoặc chia sẻ `ps ... args`, `docker inspect .Config.Env`, `docker compose config`, nội dung `.env`, full Dokploy deployment command/log, hay chuỗi base64. Các đầu ra này có thể tái tạo toàn bộ môi trường production, kể cả khi được gọi là “encoded”. Nếu cần điều tra lỗi deploy, chỉ báo trạng thái và loại lỗi đã lọc; không dán log thô vào ticket/chat.
 
+Task 42B bổ sung `scripts/task42b-production-audit.mjs`, chạy bằng Node trong container Dokploy tại checkout của dự án như script Task 36B. Script chỉ xuất tên credential, revision, trạng thái/exit code/restart count và boolean đối chiếu toàn bộ journal với hash SQL trong DB. Truy vấn schema chạy trong transaction `READ ONLY`; không sửa migration ledger hoặc dữ liệu learner. Lỗi subprocess cũng bị chặn, không xuất stderr có thể chứa credential. Không dùng revision checkout làm bằng chứng duy nhất cho image: đối chiếu deployment thành công và image đang chạy hoặc build/recreate từ checkout đã xác minh.
+
+Khi cần xem environment, chỉ xuất **tên biến** đã cho phép; không xuất giá trị, độ dài, prefix, suffix, hash credential hoặc bản base64. Với log deploy/runtime, thu thập riêng trên VPS và báo số lượng/loại lỗi đã lọc. Không chuyển log thô vào chat hoặc Git. Scan cây Git hiện tại và history riêng; cây hiện tại sạch không đồng nghĩa history sạch. Nếu scan phát hiện exposure, chỉ báo đường dẫn và tên credential, rồi rotate/revoke tại provider. Giữ bằng chứng trong thư mục riêng trên VPS với quyền `0700`, file `0600`; không commit artifact chứa môi trường.
+
 ## Chẩn đoán lỗi tải image trên Dokploy
 
 Khi rotate `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY`, BuildKit secret không tự làm mất hiệu lực cache. Build lại app với `--no-cache` qua Compose của dự án và xác minh key trong server-reference manifest khớp cấu hình authoritative **chỉ bằng boolean**. Không in manifest hoặc key. Chỉ recreate app sau khi build thành công.

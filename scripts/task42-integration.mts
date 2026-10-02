@@ -22,7 +22,6 @@ if (process.env.TASK42_QA_PRE_MIGRATED) {
   writeFileSync(`${migrationsFolder}/meta/_journal.json`, JSON.stringify(journal));
   for (const entry of journal.entries) {
     copyFileSync(`drizzle/${entry.tag}.sql`, `${migrationsFolder}/${entry.tag}.sql`);
-    copyFileSync(`drizzle/meta/${entry.tag}_snapshot.json`, `${migrationsFolder}/meta/${entry.tag}_snapshot.json`);
   }
 }
 await migrate(db, { migrationsFolder });
