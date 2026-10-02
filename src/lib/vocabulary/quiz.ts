@@ -29,10 +29,7 @@ function shuffle<T>(items: T[], random: RandomSource) {
   return items;
 }
 
-/**
- * Builds one meaning question from the vocabulary pool.
- * Distractors are sampled with replacement so repeated wrong meanings are valid.
- */
+/** Builds one question with four distinct meanings from the vocabulary pool. */
 export function createVocabularyQuizQuestion(
   entries: readonly VocabularyEntry[],
   locale: InterfaceLanguage,
@@ -45,15 +42,19 @@ export function createVocabularyQuizQuestion(
   const candidates = excludedKey && usable.some((entry) => entry.key !== excludedKey) ? usable.filter((entry) => entry.key !== excludedKey) : usable;
   const entry = candidates[randomIndex(candidates.length, random)];
   const correctMeaning = locale === "vi" ? entry.meaningVi.trim() : entry.meaningEn.trim();
-  const distractors = usable.filter((item) => item.key !== entry.key && normalizedMeaning(locale === "vi" ? item.meaningVi : item.meaningEn) !== normalizedMeaning(correctMeaning));
-  if (!distractors.length) return null;
+  const uniqueDistractors = new Map<string, string>();
+  for (const item of usable) {
+    const meaning = (locale === "vi" ? item.meaningVi : item.meaningEn).trim();
+    const normalized = normalizedMeaning(meaning);
+    if (item.key !== entry.key && normalized !== normalizedMeaning(correctMeaning) && !uniqueDistractors.has(normalized)) uniqueDistractors.set(normalized, meaning);
+  }
+  if (uniqueDistractors.size < 3) return null;
+
+  const distractors = shuffle([...uniqueDistractors.values()], random).slice(0, 3);
 
   const options = shuffle([
     { id: "correct", text: correctMeaning },
-    ...Array.from({ length: 3 }, (_, index) => {
-      const distractor = distractors[randomIndex(distractors.length, random)];
-      return { id: `wrong-${index}`, text: (locale === "vi" ? distractor.meaningVi : distractor.meaningEn).trim() };
-    }),
+    ...distractors.map((text, index) => ({ id: `wrong-${index}`, text })),
   ], random);
 
   return { entryKey: entry.key, term: entry.term, correctOptionId: "correct", options };
