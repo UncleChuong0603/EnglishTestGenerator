@@ -28,7 +28,6 @@ Trong tab Environment của Compose, nhập các tên sau (không commit giá tr
 
 ```dotenv
 APP_URL=https://toeicgym.net
-DATABASE_URL=postgresql://toeicgym_app:PASSWORD_URL_ENCODED@postgres:5432/toeicgym
 SESSION_SECRET=RANDOM_AT_LEAST_32_CHARACTERS
 POSTGRES_DB=toeicgym
 POSTGRES_ADMIN_USER=toeicgym_admin
@@ -50,10 +49,11 @@ LOCAL_MEDIA_ROOT=/var/lib/toeicgym/media
 MEDIA_SIGNING_SECRET=<random secret, at least 32 characters>
 ```
 
-`POSTGRES_ADMIN_*` chỉ bootstrap/backup; app và migration dùng `DATABASE_URL`
-với `APP_DATABASE_*`. Hai username và hai password phải khác nhau. Nếu password
-có ký tự đặc biệt, phần password trong `DATABASE_URL` phải percent-encode; giá
-trị `APP_DATABASE_PASSWORD` vẫn là password nguyên bản. Không đổi các biến
+`POSTGRES_ADMIN_*` chỉ bootstrap/backup. Compose tự tạo `DATABASE_URL` nội bộ
+từ `POSTGRES_DB` và `APP_DATABASE_*`, với hostname cố định `postgres`; không
+khai báo `DATABASE_URL` trong Dokploy. Hai username và hai password phải khác
+nhau. `APP_DATABASE_USER` và `APP_DATABASE_PASSWORD` chỉ dùng ký tự URI-safe
+(`A-Z`, `a-z`, `0-9`, `.`, `_`, `~`, `-`) để Compose tạo URL không mơ hồ. Không đổi các biến
 bootstrap trên một volume đã khởi tạo rồi kỳ vọng entrypoint tự rotate role.
 
 Tạo secret bằng password manager. Riêng Server Actions key phải là base64 của

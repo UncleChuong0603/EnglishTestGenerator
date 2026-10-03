@@ -671,6 +671,25 @@ export const mistakeReasonClassifications = pgTable("mistake_reason_classificati
   check("mistake_reason_evidence_check", sql`${table.evidenceSource} in ('USER_SELECTED','SYSTEM_INFERRED','SYSTEM_SUGGESTED')`),
 ]);
 
+// A remediation session remains a normal mastery_review session. This table
+// only records why it was created and which real lesson preceded the drill.
+export const remediationSessionContexts = pgTable("remediation_session_contexts", {
+  sessionId: uuid("session_id").primaryKey().references(() => practiceSessions.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  sourceSessionId: uuid("source_session_id").notNull().references(() => practiceSessions.id, { onDelete: "cascade" }),
+  sourceQuestionId: uuid("source_question_id").notNull().references(() => questions.id, { onDelete: "restrict" }),
+  reasonCode: text("reason_code").notNull(),
+  lessonKind: text("lesson_kind").notNull(),
+  lessonRef: text("lesson_ref"),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+}, (table) => [
+  index("remediation_context_user_question_idx").on(table.userId, table.sourceQuestionId, table.createdAt),
+  index("remediation_context_source_session_idx").on(table.sourceSessionId),
+  check("remediation_context_reason_check", sql`${table.reasonCode} in ('VOCAB_UNKNOWN','GRAMMAR_RULE','PARAPHRASE_MISSED','DISTRACTOR_TRAP','MISHEARD_WORD','LOST_CONTEXT','INFERENCE_ERROR','TIME_PRESSURE','CARELESS','OTHER','UNKNOWN')`),
+  check("remediation_context_lesson_kind_check", sql`${table.lessonKind} in ('GRAMMAR_ARTICLE','LISTENING_LESSON','QUESTION_EXPLANATION')`),
+  check("remediation_context_lesson_ref_check", sql`(${table.lessonKind} = 'QUESTION_EXPLANATION' and ${table.lessonRef} is null) or (${table.lessonKind} <> 'QUESTION_EXPLANATION' and ${table.lessonRef} is not null)`),
+]);
+
 /**
  * In-progress answers are deliberately separate from scored attempts. This lets
  * native clients resume safely without calculating or exposing correctness.

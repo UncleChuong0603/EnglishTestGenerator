@@ -10,7 +10,11 @@ x-logging: &default-logging
 # Do not put payment-provider secrets here because migrate/db-tools
 # do not need access to them.
 x-app-environment: &app-environment
-  DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+  # Always use this Compose project's private PostgreSQL service. Building the
+  # URL here prevents a local/QA DATABASE_URL left in Dokploy from taking down
+  # production. Preflight restricts the interpolated credentials to URI-safe
+  # characters so the raw role password remains unambiguous.
+  DATABASE_URL: postgresql://${APP_DATABASE_USER:?APP_DATABASE_USER is required}:${APP_DATABASE_PASSWORD:?APP_DATABASE_PASSWORD is required}@postgres:5432/${POSTGRES_DB:?POSTGRES_DB is required}
   SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET is required}
   APP_URL: ${APP_URL:?APP_URL is required}
   # Optional: local email/password authentication remains available without Google.
@@ -68,6 +72,12 @@ services:
           fail "POSTGRES_ADMIN_PASSWORD must contain at least 24 characters"
         [ "$${#APP_DATABASE_PASSWORD}" -ge 24 ] || \
           fail "APP_DATABASE_PASSWORD must contain at least 24 characters"
+        case "$${APP_DATABASE_USER}" in
+          *[!A-Za-z0-9._~-]*) fail "APP_DATABASE_USER must contain only URI-safe characters" ;;
+        esac
+        case "$${APP_DATABASE_PASSWORD}" in
+          *[!A-Za-z0-9._~-]*) fail "APP_DATABASE_PASSWORD must contain only URI-safe characters" ;;
+        esac
 
         decoded_key="$$(mktemp)"
         trap 'rm -f "$$decoded_key"' EXIT
