@@ -4,9 +4,9 @@ import { db } from "@/db";
 import { authRateLimits } from "@/db/schema";
 import { hashToken } from "./crypto";
 
-export type RateLimitAction = "signup" | "login" | "forgot_password" | "reset_password" | "verify_email" | "activate_account" | "resend_verification" | "google_oauth" | "guest_practice" | "product_analytics" | "support_feedback" | "account_export" | "account_delete" | "api_practice_start" | "api_practice_answer" | "api_practice_submit";
+export type RateLimitAction = "signup" | "login" | "forgot_password" | "reset_password" | "verify_email" | "activate_account" | "resend_verification" | "google_oauth" | "guest_practice" | "product_analytics" | "support_feedback" | "account_export" | "account_delete" | "avatar_update" | "api_practice_start" | "api_practice_answer" | "api_practice_submit";
 const limits: Record<RateLimitAction, { attempts: number; windowMs: number }> = {
-  account_export: { attempts: 5, windowMs: 3_600_000 }, account_delete: { attempts: 5, windowMs: 3_600_000 },
+  account_export: { attempts: 5, windowMs: 3_600_000 }, account_delete: { attempts: 5, windowMs: 3_600_000 }, avatar_update: { attempts: 20, windowMs: 3_600_000 },
   signup: { attempts: 5, windowMs: 3_600_000 }, login: { attempts: 10, windowMs: 900_000 }, forgot_password: { attempts: 5, windowMs: 3_600_000 }, reset_password: { attempts: 8, windowMs: 3_600_000 }, verify_email: { attempts: 12, windowMs: 900_000 }, activate_account: { attempts: 6, windowMs: 3_600_000 }, resend_verification: { attempts: 5, windowMs: 3_600_000 }, google_oauth: { attempts: 20, windowMs: 900_000 }, guest_practice: { attempts: 20, windowMs: 900_000 }, product_analytics: { attempts: 60, windowMs: 900_000 }, support_feedback: { attempts: 5, windowMs: 3_600_000 },
   api_practice_start: { attempts: 60, windowMs: 3_600_000 }, api_practice_answer: { attempts: 600, windowMs: 3_600_000 }, api_practice_submit: { attempts: 120, windowMs: 3_600_000 },
 };

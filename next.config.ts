@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 import { getSiteUrl } from "./src/lib/seo/site-url";
 
 const securityHeaders = [
-  { key: "Content-Security-Policy", value: "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; media-src 'self' blob:; connect-src 'self' https://accounts.google.com https://oauth2.googleapis.com; upgrade-insecure-requests" },
+  { key: "Content-Security-Policy", value: "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; font-src 'self' data:; media-src 'self' blob:; connect-src 'self' https://accounts.google.com https://oauth2.googleapis.com; upgrade-insecure-requests" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
@@ -60,7 +60,10 @@ const nextConfig: NextConfig = {
     ];
   },
   async redirects() {
-    return [{ source: "/admin/content/posts/:path*", destination: "/admin/posts/:path*", permanent: true }];
+    return [
+      { source: "/blog/ngu-phap", destination: "/ngu-phap", permanent: true },
+      { source: "/admin/content/posts/:path*", destination: "/admin/posts/:path*", permanent: true },
+    ];
   },
   // Avoid treating an unrelated lockfile higher in the user profile as the
   // application root.

@@ -1,0 +1,310 @@
+[
+  {
+    "locale": "vi",
+    "viewport": {
+      "name": "375",
+      "width": 375,
+      "height": 812
+    },
+    "status": 200,
+    "metrics": {
+      "lang": "vi",
+      "title": "Ngữ pháp TOEIC A–Z",
+      "horizontalOverflow": 0,
+      "coverageCards": 4,
+      "lessons": 41,
+      "visibleHeaderGrammarLink": true,
+      "headerGrammarTargetHeight": 45,
+      "mobileMenuExpected": true,
+      "canonical": "https://toeicgym.net/ngu-phap",
+      "localeExpected": "vi"
+    },
+    "mobileMenu": {
+      "visible": true,
+      "height": 45
+    },
+    "focus": {
+      "tag": "A",
+      "text": "TOEIC GYM",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px"
+    },
+    "consoleErrors": []
+  },
+  {
+    "locale": "vi",
+    "viewport": {
+      "name": "768",
+      "width": 768,
+      "height": 1024
+    },
+    "status": 200,
+    "metrics": {
+      "lang": "vi",
+      "title": "Ngữ pháp TOEIC A–Z",
+      "horizontalOverflow": 0,
+      "coverageCards": 4,
+      "lessons": 41,
+      "visibleHeaderGrammarLink": true,
+      "headerGrammarTargetHeight": 45,
+      "mobileMenuExpected": true,
+      "canonical": "https://toeicgym.net/ngu-phap",
+      "localeExpected": "vi"
+    },
+    "mobileMenu": {
+      "visible": true,
+      "height": 45
+    },
+    "focus": {
+      "tag": "A",
+      "text": "TOEIC GYM",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px"
+    },
+    "consoleErrors": []
+  },
+  {
+    "locale": "vi",
+    "viewport": {
+      "name": "1024",
+      "width": 1024,
+      "height": 900
+    },
+    "status": 200,
+    "metrics": {
+      "lang": "vi",
+      "title": "Ngữ pháp TOEIC A–Z",
+      "horizontalOverflow": 0,
+      "coverageCards": 4,
+      "lessons": 41,
+      "visibleHeaderGrammarLink": true,
+      "headerGrammarTargetHeight": 45,
+      "mobileMenuExpected": true,
+      "canonical": "https://toeicgym.net/ngu-phap",
+      "localeExpected": "vi"
+    },
+    "mobileMenu": {
+      "visible": true,
+      "height": 45
+    },
+    "focus": {
+      "tag": "A",
+      "text": "TOEIC GYM",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px"
+    },
+    "consoleErrors": []
+  },
+  {
+    "locale": "vi",
+    "viewport": {
+      "name": "1280",
+      "width": 1280,
+      "height": 900
+    },
+    "status": 200,
+    "metrics": {
+      "lang": "vi",
+      "title": "Ngữ pháp TOEIC A–Z",
+      "horizontalOverflow": 0,
+      "coverageCards": 4,
+      "lessons": 41,
+      "visibleHeaderGrammarLink": true,
+      "headerGrammarTargetHeight": 44,
+      "mobileMenuExpected": false,
+      "canonical": "https://toeicgym.net/ngu-phap",
+      "localeExpected": "vi"
+    },
+    "mobileMenu": null,
+    "focus": {
+      "tag": "A",
+      "text": "Bỏ qua điều hướng",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px"
+    },
+    "consoleErrors": []
+  },
+  {
+    "locale": "vi",
+    "viewport": {
+      "name": "1440",
+      "width": 1440,
+      "height": 1000
+    },
+    "status": 200,
+    "metrics": {
+      "lang": "vi",
+      "title": "Ngữ pháp TOEIC A–Z",
+      "horizontalOverflow": 0,
+      "coverageCards": 4,
+      "lessons": 41,
+      "visibleHeaderGrammarLink": true,
+      "headerGrammarTargetHeight": 44,
+      "mobileMenuExpected": false,
+      "canonical": "https://toeicgym.net/ngu-phap",
+      "localeExpected": "vi"
+    },
+    "mobileMenu": null,
+    "focus": {
+      "tag": "A",
+      "text": "Bỏ qua điều hướng",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px"
+    },
+    "consoleErrors": []
+  },
+  {
+    "locale": "en",
+    "viewport": {
+      "name": "375",
+      "width": 375,
+      "height": 812
+    },
+    "status": 200,
+    "metrics": {
+      "lang": "en",
+      "title": "TOEIC Grammar A–Z",
+      "horizontalOverflow": 0,
+      "coverageCards": 4,
+      "lessons": 41,
+      "visibleHeaderGrammarLink": true,
+      "headerGrammarTargetHeight": 45,
+      "mobileMenuExpected": true,
+      "canonical": "https://toeicgym.net/ngu-phap",
+      "localeExpected": "en"
+    },
+    "mobileMenu": {
+      "visible": true,
+      "height": 45
+    },
+    "focus": {
+      "tag": "A",
+      "text": "TOEIC GYM",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px"
+    },
+    "consoleErrors": []
+  },
+  {
+    "locale": "en",
+    "viewport": {
+      "name": "768",
+      "width": 768,
+      "height": 1024
+    },
+    "status": 200,
+    "metrics": {
+      "lang": "en",
+      "title": "TOEIC Grammar A–Z",
+      "horizontalOverflow": 0,
+      "coverageCards": 4,
+      "lessons": 41,
+      "visibleHeaderGrammarLink": true,
+      "headerGrammarTargetHeight": 45,
+      "mobileMenuExpected": true,
+      "canonical": "https://toeicgym.net/ngu-phap",
+      "localeExpected": "en"
+    },
+    "mobileMenu": {
+      "visible": true,
+      "height": 45
+    },
+    "focus": {
+      "tag": "A",
+      "text": "TOEIC GYM",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px"
+    },
+    "consoleErrors": []
+  },
+  {
+    "locale": "en",
+    "viewport": {
+      "name": "1024",
+      "width": 1024,
+      "height": 900
+    },
+    "status": 200,
+    "metrics": {
+      "lang": "en",
+      "title": "TOEIC Grammar A–Z",
+      "horizontalOverflow": 0,
+      "coverageCards": 4,
+      "lessons": 41,
+      "visibleHeaderGrammarLink": true,
+      "headerGrammarTargetHeight": 45,
+      "mobileMenuExpected": true,
+      "canonical": "https://toeicgym.net/ngu-phap",
+      "localeExpected": "en"
+    },
+    "mobileMenu": {
+      "visible": true,
+      "height": 45
+    },
+    "focus": {
+      "tag": "A",
+      "text": "TOEIC GYM",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px"
+    },
+    "consoleErrors": []
+  },
+  {
+    "locale": "en",
+    "viewport": {
+      "name": "1280",
+      "width": 1280,
+      "height": 900
+    },
+    "status": 200,
+    "metrics": {
+      "lang": "en",
+      "title": "TOEIC Grammar A–Z",
+      "horizontalOverflow": 0,
+      "coverageCards": 4,
+      "lessons": 41,
+      "visibleHeaderGrammarLink": true,
+      "headerGrammarTargetHeight": 44,
+      "mobileMenuExpected": false,
+      "canonical": "https://toeicgym.net/ngu-phap",
+      "localeExpected": "en"
+    },
+    "mobileMenu": null,
+    "focus": {
+      "tag": "A",
+      "text": "Skip to content",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px"
+    },
+    "consoleErrors": []
+  },
+  {
+    "locale": "en",
+    "viewport": {
+      "name": "1440",
+      "width": 1440,
+      "height": 1000
+    },
+    "status": 200,
+    "metrics": {
+      "lang": "en",
+      "title": "TOEIC Grammar A–Z",
+      "horizontalOverflow": 0,
+      "coverageCards": 4,
+      "lessons": 41,
+      "visibleHeaderGrammarLink": true,
+      "headerGrammarTargetHeight": 44,
+      "mobileMenuExpected": false,
+      "canonical": "https://toeicgym.net/ngu-phap",
+      "localeExpected": "en"
+    },
+    "mobileMenu": null,
+    "focus": {
+      "tag": "A",
+      "text": "Skip to content",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px"
+    },
+    "consoleErrors": []
+  }
+]

@@ -12,6 +12,7 @@ const icons = {
   words: "M3 5h8a3 3 0 0 1 3 3v12a3 3 0 0 0-3-3H3z M21 5h-4a3 3 0 0 0-3 3v12a3 3 0 0 1 3-3h4z",
   diagnose: "m12 2 1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z M19 17v4m-2-2h4",
   community: "M16 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6 M16 5a3 3 0 0 1 0 6m2 3a4 4 0 0 1 4 4v2",
+  grammar: "M5 4h14v16H5z M8 8h8 M8 12h5 M8 16h7",
 } as const;
 
 function Icon({ name }: { name: keyof typeof icons }) {
@@ -24,6 +25,7 @@ export function HomeSidebar({ locale, signedIn }: { locale: InterfaceLanguage; s
   const links = [
     { href: "/", icon: "home", label: vi ? "Trang chủ" : "Home" },
     { href: "/toeic", icon: "learn", label: vi ? "Cấu trúc TOEIC" : "TOEIC format" },
+    { href: "/ngu-phap", icon: "grammar", label: vi ? "Ngữ pháp A–Z" : "Grammar A–Z" },
     { href: signedIn ? "/practice" : "/try", icon: "bank", label: vi ? "Kho đề thi" : "Question bank" },
     { href: "/listening-lessons", icon: "skills", label: vi ? "Luyện kỹ năng" : "Skills practice" },
     { href: "/vocabulary", icon: "words", label: vi ? "Kho từ vựng" : "Vocabulary" },

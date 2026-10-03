@@ -5,6 +5,7 @@ export type VocabularyEntry = { key: string; term: string; meaningVi: string; me
 // The complete catalog supports saved study cards and lookup by key.
 export const vocabularyCatalog: VocabularyEntry[] = vocabularyStudyTopics.flatMap((topic) => topic.entries);
 const vocabularyByKeyMap = new Map(vocabularyCatalog.map((entry) => [entry.key, entry]));
+const foundationalVocabularyByKeyMap = new Map(vocabularyCatalog.slice(0, 100).map((entry) => [entry.key, entry]));
 // Practice suggestions use the 1,000 terms selected from TOEIC topics and the practice bank.
 const practiceCatalog = vocabularyCatalog.slice(0, 1000);
 
@@ -22,6 +23,11 @@ export function matchingVocabulary(text: string, limit = 2): VocabularyEntry[] {
 }
 
 export function vocabularyByKey(key: string) { return vocabularyByKeyMap.get(key); }
+
+// These entries are manually curated for TOEIC contexts. Later catalog groups
+// provide broad coverage, but some of their dictionary senses are intentionally
+// treated as fallbacks rather than authoritative translations.
+export function foundationalVocabularyByKey(key: string) { return foundationalVocabularyByKeyMap.get(key); }
 
 export function vocabularySuggestions(questionText: string, correctAnswer: string, passages: readonly string[] = [], limit = 2) {
   const answerMatches = matchingVocabulary(correctAnswer, practiceCatalog.length);

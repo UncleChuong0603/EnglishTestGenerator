@@ -5,6 +5,7 @@ import { MORE_GRAMMAR_POSTS } from "./grammar-more-editorial";
 import { GRAMMAR_FOUNDATION_POSTS } from "./grammar-foundations-editorial";
 import { GRAMMAR_CLAUSE_POSTS } from "./grammar-clauses-editorial";
 import { GRAMMAR_ADVANCED_POSTS } from "./grammar-advanced-editorial";
+import { GRAMMAR_COMPLETE_POSTS } from "./grammar-complete-editorial";
 import { ETS_2025_REVIEW_POST } from "./ets-2025-review";
 import { PART5_REVIEW_GUIDE } from "./part5-review-guide";
 import { SCORE_ROADMAP_POST } from "./score-roadmap-editorial";
@@ -209,7 +210,7 @@ Kiểm tra danh từ sau chỗ trống: **fewer orders** vì *orders* đếm đ�
 
 ## Đọc sâu từng chủ điểm
 
-Nếu cần học từ nền tảng trước khi luyện Part 5, mở [lộ trình ngữ pháp tiếng Anh từ cơ bản đến TOEIC](/blog/ngu-phap). Phần dưới đây là bảy nhóm ưu tiên khi thời gian ôn Part 5 có hạn.
+Nếu cần học từ nền tảng trước khi luyện Part 5, mở [Ngữ pháp TOEIC A–Z từ cơ bản đến Part 1–7](/ngu-phap). Phần dưới đây là bảy nhóm ưu tiên khi thời gian ôn Part 5 có hạn.
 
 - [Loại từ: tìm đáp án bằng vị trí trong câu](/blog/loai-tu-trong-toeic-part-5)
 - [Thì và dạng động từ: đọc mốc thời gian](/blog/thi-va-dang-dong-tu-toeic)
@@ -386,6 +387,7 @@ Khi mất tập trung, dừng vài giây, thở chậm và quay lại từ câu 
   ...GRAMMAR_FOUNDATION_POSTS,
   ...GRAMMAR_CLAUSE_POSTS,
   ...GRAMMAR_ADVANCED_POSTS,
+  ...GRAMMAR_COMPLETE_POSTS,
 ];
 
 export { grammarImageForSlug };

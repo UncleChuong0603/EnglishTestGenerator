@@ -2,7 +2,7 @@
 // Usage: node scripts/seo-smoke.mjs [https://toeicgym.net]
 const origin = new URL(process.argv[2] ?? "https://toeicgym.net").origin;
 const privatePaths = ["/demo-test", "/practice", "/continue-learning", "/billing", "/admin", "/api/health", "/auth/callback"];
-const breadcrumbPaths = new Set(["/toeic", "/luyen-thi-toeic-online", "/toeic/listening", "/toeic/part-1", "/toeic/part-2", "/toeic/part-3", "/toeic/part-4", "/thi-thu-toeic-online", "/toeic/part-5", "/toeic/part-5/word-form", "/toeic/part-5/thi-dong-tu", "/toeic/part-5/practice", "/toeic/part-6", "/toeic/part-6/dien-cau-vao-doan-van", "/toeic/part-6/dien-tu-va-cum-tu", "/toeic/part-7", "/toeic/part-7/cau-hoi-suy-luan", "/toeic/part-7/paraphrase-tu-dong-nghia", "/toeic/part-7/doc-hieu-mot-doan-van", "/toeic/part-7/doc-hieu-hai-doan-van", "/toeic/part-7/doc-hieu-ba-van-ban", "/toeic/flashcards-tu-vung-cong-so", "/toeic/tu-vung", "/toeic/thang-diem", "/ve-toeic-gym"]);
+const breadcrumbPaths = new Set(["/toeic", "/luyen-thi-toeic-online", "/toeic/listening", "/toeic/part-1", "/toeic/part-2", "/toeic/part-3", "/toeic/part-4", "/thi-thu-toeic-online", "/toeic/part-5", "/toeic/part-5/word-form", "/toeic/part-5/thi-dong-tu", "/toeic/part-5/practice", "/toeic/part-6", "/toeic/part-6/dien-cau-vao-doan-van", "/toeic/part-6/dien-tu-va-cum-tu", "/toeic/part-7", "/toeic/part-7/cau-hoi-suy-luan", "/toeic/part-7/paraphrase-tu-dong-nghia", "/toeic/part-7/doc-hieu-mot-doan-van", "/toeic/part-7/doc-hieu-hai-doan-van", "/toeic/part-7/doc-hieu-ba-van-ban", "/toeic/flashcards-tu-vung-cong-so", "/toeic/tu-vung", "/toeic/thang-diem", "/ve-toeic-gym", "/ngu-phap"]);
 const failures = [];
 breadcrumbPaths.add("/toeic/checklist-hoc-tuan");
 const warnings = [];
@@ -91,7 +91,7 @@ try {
   const samplePaths = [
     "/", "/toeic", "/toeic/listening", "/toeic/part-1", "/toeic/part-2", "/toeic/part-3", "/toeic/part-4", "/thi-thu-toeic-online", "/toeic/part-5", "/toeic/part-5/practice",
     "/toeic/part-5/word-form", "/toeic/part-5/thi-dong-tu",
-    "/toeic/part-6", "/toeic/part-6/dien-cau-vao-doan-van", "/toeic/part-6/dien-tu-va-cum-tu", "/toeic/part-7", "/toeic/part-7/cau-hoi-suy-luan", "/toeic/part-7/paraphrase-tu-dong-nghia", "/toeic/part-7/doc-hieu-mot-doan-van", "/toeic/part-7/doc-hieu-hai-doan-van", "/toeic/part-7/doc-hieu-ba-van-ban", "/toeic/flashcards-tu-vung-cong-so", "/toeic/tu-vung", "/toeic/thang-diem", "/ve-toeic-gym", "/blog", "/blog/ngu-phap",
+    "/toeic/part-6", "/toeic/part-6/dien-cau-vao-doan-van", "/toeic/part-6/dien-tu-va-cum-tu", "/toeic/part-7", "/toeic/part-7/cau-hoi-suy-luan", "/toeic/part-7/paraphrase-tu-dong-nghia", "/toeic/part-7/doc-hieu-mot-doan-van", "/toeic/part-7/doc-hieu-hai-doan-van", "/toeic/part-7/doc-hieu-ba-van-ban", "/toeic/flashcards-tu-vung-cong-so", "/toeic/tu-vung", "/toeic/thang-diem", "/ve-toeic-gym", "/blog", "/ngu-phap",
     "/blog/cach-review-loi-sai-toeic", "/blog/chien-luoc-tang-diem-toeic-450-den-700",
     "/blog/menh-de-quan-he-toeic",
     "/blog/cau-bi-dong-toeic-part-5", "/blog/ving-va-to-infinitive-toeic", "/blog/quan-ly-thoi-gian-toeic-reading-75-phut",
@@ -158,8 +158,8 @@ try {
         if (pathname === "/toeic/tu-vung" && !schemas.some((schema) => schema["@type"] === "CollectionPage" && schema.mainEntity?.["@type"] === "ItemList" && schema.mainEntity.numberOfItems === 100)) failures.push(`${url}: missing 100-term vocabulary collection data`);
         if (breadcrumbPaths.has(pathname) && !schemas.some((schema) => schema["@type"] === "BreadcrumbList" && schema.itemListElement?.at(-1)?.item === url)) failures.push(`${url}: missing matching BreadcrumbList data`);
         if (/^\/toeic\/part-[67]\/(?:dien-|doc-hieu-|paraphrase-|cau-hoi-)/.test(pathname) && !schemas.some((schema) => schema["@type"] === "Article" && schema.mainEntityOfPage === url && schema.author?.name === "TOEIC GYM Editorial")) failures.push(`${url}: missing matching Reading Article data`);
-        if (pathname === "/blog/ngu-phap") {
-          if (!schemas.some((schema) => schema["@type"] === "CollectionPage" && schema.url === url && schema.mainEntity?.["@type"] === "ItemList")) failures.push(`${url}: missing grammar CollectionPage and ItemList data`);
+        if (pathname === "/ngu-phap") {
+          if (!schemas.some((schema) => schema["@type"] === "CollectionPage" && schema.url === url && schema.mainEntity?.["@type"] === "ItemList" && schema.mainEntity.numberOfItems >= 40)) failures.push(`${url}: missing complete grammar CollectionPage and ItemList data`);
         } else if (pathname.startsWith("/blog/") && !schemas.some((schema) => schema["@type"] === "BlogPosting" && schema.url === url)) failures.push(`${url}: missing matching BlogPosting data`);
       } catch (error) {
         failures.push(`${url}: ${error instanceof Error ? error.message : String(error)}`);
@@ -174,6 +174,15 @@ try {
     } catch (error) {
       failures.push(`${path}: ${error instanceof Error ? error.message : String(error)}`);
     }
+  }
+
+  try {
+    const { response } = await request("/blog/ngu-phap", { redirect: "manual" });
+    if (response.status !== 308 || response.headers.get("location") !== "/ngu-phap") {
+      failures.push(`/blog/ngu-phap: expected permanent redirect to /ngu-phap`);
+    }
+  } catch (error) {
+    failures.push(`/blog/ngu-phap redirect: ${error instanceof Error ? error.message : String(error)}`);
   }
 
   for (const [path, contentType] of [

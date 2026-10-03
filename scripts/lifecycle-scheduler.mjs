@@ -18,7 +18,8 @@ async function loop() {
   await new Promise(resolve => setTimeout(resolve, delay));
   try {
     const response = await fetch(url, { method: "POST", headers: { Authorization: `Bearer ${secret}` }, signal: AbortSignal.timeout(10 * 60_000) });
-    console.info(`Lifecycle job HTTP ${response.status}`);
+    const body = await response.json().catch(() => null);
+    console.info("Lifecycle job completed", { status: response.status, sent: Number(body?.sent ?? 0), suppressed: Number(body?.suppressed ?? 0), failed: Number(body?.failed ?? 0) });
   } catch (error) {
     console.error("Lifecycle job request failed", { type: error instanceof Error ? error.name : "unknown" });
   }

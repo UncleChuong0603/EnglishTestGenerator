@@ -11,6 +11,7 @@ export function PublicFooter({ locale }: { locale: InterfaceLanguage }) {
   const practiceLinks = [
     ["/try", vi ? "Bài luyện miễn phí" : "Free practice"],
     ["/toeic", vi ? "Hướng dẫn Part 1–7" : "Parts 1–7 guides"],
+    ["/ngu-phap", vi ? "Ngữ pháp TOEIC A–Z" : "TOEIC Grammar A–Z"],
     ["/listening-lessons", vi ? "Nghe theo transcript" : "Audio with transcripts"],
     ["/vocabulary", vi ? "Từ vựng & flashcards" : "Vocabulary & flashcards"],
     ["/blog", vi ? "Kiến thức TOEIC" : "TOEIC articles"],

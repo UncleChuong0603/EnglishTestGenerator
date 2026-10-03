@@ -34,7 +34,7 @@ export function AccountDataPanel({ email, locale }: { email: string; locale: Int
     : state.error === "rate_limited"
       ? (vi ? "Bạn đã thử nhiều lần. Vui lòng đợi một giờ rồi thử lại." : "Too many attempts. Please wait one hour and try again.")
     : state.error === "private_data_handoff_required"
-      ? (vi ? "Tài khoản có tệp riêng tư cần được xử lý trước. Hãy liên hệ hỗ trợ để xóa toàn bộ dữ liệu." : "This account has private files that need handling first. Contact support to erase all data.")
+      ? (vi ? "Hãy xóa ảnh đại diện trong mục Hồ sơ rồi thử lại. Nếu vẫn gặp lỗi, hãy liên hệ hỗ trợ để xóa toàn bộ dữ liệu." : "Remove your profile photo in Profile, then try again. If the issue remains, contact support to erase all data.")
     : state.error === "admin_handoff_required"
       ? (vi ? "Tài khoản quản trị cần được bàn giao quyền trước khi xóa. Hãy liên hệ quản trị viên khác." : "An administrator must hand off access before deleting this account.")
       : state.error === "invalid"

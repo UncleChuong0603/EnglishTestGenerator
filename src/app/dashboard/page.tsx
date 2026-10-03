@@ -326,6 +326,15 @@ export default async function DashboardPage() {
 
         <RoadToTarget section="plan" goal={goal} weekly={weeklyPlan} locale={locale} premium={usage.effectivePlan === "PREMIUM"} previewEligible={freeLimitReached && Boolean(goal?.targetScore && goal?.dailyStudyMinutes && goal?.studyDaysPerWeek && dashboardResult?.recommendation?.reasonCode === "SUPPORTED_WEAKNESS")} />
         <WeeklyReviewCard review={weeklyReview} weekly={weeklyPlan} locale={locale} premium={usage.effectivePlan === "PREMIUM"} />
+        {!profile.learning_email_enabled && (dashboardResult?.completedLearningSessions ?? 0) > 0 ? (
+          <aside className="mt-5 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 sm:flex-row sm:items-center sm:justify-between" aria-labelledby="learning-email-prompt-heading">
+            <div className="max-w-2xl">
+              <h2 className="font-black" id="learning-email-prompt-heading">{locale === "vi" ? "Nhận tổng kết học tập qua email" : "Get your learning review by email"}</h2>
+              <p className="mt-1 text-sm leading-6 text-slate-600">{locale === "vi" ? "Tự chọn bật báo cáo tuần và lời nhắc quay lại học. Tối đa một email trong 24 giờ và có thể tắt bất kỳ lúc nào." : "Opt in to weekly reports and return reminders. At most one email in 24 hours, and you can turn them off anytime."}</p>
+            </div>
+            <Link className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl border border-teal-700 px-4 py-2 font-bold text-teal-800 hover:bg-teal-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700" href="/settings?section=email">{locale === "vi" ? "Chọn email muốn nhận" : "Choose email preferences"}</Link>
+          </aside>
+        ) : null}
         {trialEligibility.eligible && freeLimitReached ? <TrialCta locale={locale} /> : null}
 
         {showContextPrompt ? <LearnerContextPrompt locale={locale} /> : null}

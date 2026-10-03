@@ -5,6 +5,7 @@ import { fullMockRuns, learnerGoals, lifecycleEmails, practiceSessions, profiles
 import { createToken, hashToken } from "@/lib/auth/crypto";
 import { getUsageStatus } from "@/lib/entitlements/service";
 import { productWeekWindow } from "@/lib/weekly-plan/policy";
+import { getWeeklyReview } from "@/lib/weekly-review/service";
 import { getServerEnv } from "@/lib/env";
 import { EmailDeliveryError, sendEngagementEmail } from "./mailer";
 import { lifecycleCandidates, lifecycleMessage, type LifecycleCandidate } from "./lifecycle-policy";
@@ -79,7 +80,7 @@ export async function runLifecycleEmails(now = new Date(), limit = 100) {
   await updateReturnedToLearning();
   // Old verified accounts are considered only if they explicitly enabled learning mail.
   for (let offset = 0; ; offset += limit) {
-    const accounts = await db.select({ id: users.id, email: users.email, createdAt: users.createdAt })
+    const accounts = await db.select({ id: users.id, email: users.email, createdAt: users.createdAt, locale: profiles.interfaceLanguage })
       .from(users).innerJoin(profiles, eq(profiles.id, users.id))
       .where(and(eq(users.status, "active"), isNotNull(users.emailVerifiedAt), eq(profiles.learningEmailEnabled, true), lt(users.createdAt, new Date(now.getTime() - DAY))))
       .orderBy(users.createdAt, users.id).limit(limit).offset(offset);
@@ -94,11 +95,16 @@ export async function runLifecycleEmails(now = new Date(), limit = 100) {
       result.suppressed++;
       continue;
     }
-    const [goal] = await db.select({ target: learnerGoals.targetScore }).from(learnerGoals).where(eq(learnerGoals.userId, account.id)).limit(1);
+    const [[goal], weeklyReview] = await Promise.all([
+      db.select({ target: learnerGoals.targetScore }).from(learnerGoals).where(eq(learnerGoals.userId, account.id)).limit(1),
+      candidate.type === "weekly_review" ? getWeeklyReview(account.id, now).catch(() => null) : Promise.resolve(null),
+    ]);
     const reservation = await claim(account.id, candidate, now);
     if (!("id" in reservation)) { result.suppressed++; continue; }
     const message = lifecycleMessage(candidate.type, env.APP_URL, `${env.APP_URL}/unsubscribe?token=${encodeURIComponent(reservation.rawToken)}`,
-      { sessions: facts.previousWeekSessions, hasGoal: Boolean(goal?.target) });
+      { locale: account.locale === "en" ? "en" : "vi", sessions: weeklyReview?.completedSessions ?? facts.previousWeekSessions,
+        learningDays: weeklyReview?.learningDays, answered: weeklyReview?.answered, accuracy: weeklyReview?.accuracy,
+        focusPart: weeklyReview?.weakness?.part, hasGoal: Boolean(goal?.target) });
     try {
       const [currentPreference] = await db.select({ enabled: profiles.learningEmailEnabled }).from(profiles).where(eq(profiles.id, account.id)).limit(1);
       if (!currentPreference?.enabled) {
@@ -151,6 +157,15 @@ export async function unsubscribeLearningEmail(rawToken: string) {
 }
 
 export async function lifecycleOperations() {
-  return db.select({ type: lifecycleEmails.type, status: lifecycleEmails.status, count: sql<number>`count(*)::int`, returned: sql<number>`count(*) filter (where ${lifecycleEmails.returnedAt} is not null)::int` })
-    .from(lifecycleEmails).groupBy(lifecycleEmails.type, lifecycleEmails.status);
+  const [rows, [audience]] = await Promise.all([
+    db.select({ type: lifecycleEmails.type, status: lifecycleEmails.status, count: sql<number>`count(*)::int`, returned: sql<number>`count(*) filter (where ${lifecycleEmails.returnedAt} is not null)::int` })
+      .from(lifecycleEmails).groupBy(lifecycleEmails.type, lifecycleEmails.status),
+    db.select({
+      eligible: sql<number>`count(*) filter (where ${users.status} = 'active' and ${users.emailVerifiedAt} is not null)::int`,
+      optedIn: sql<number>`count(*) filter (where ${users.status} = 'active' and ${users.emailVerifiedAt} is not null and ${profiles.learningEmailEnabled})::int`,
+      sent7d: sql<number>`(select count(*)::int from lifecycle_emails where type in ('weekly_review', 'inactive_3d', 'day1_return', 'signup_no_learning') and status = 'sent' and sent_at >= now() - interval '7 days')`,
+      lastSentAt: sql<Date | null>`(select max(sent_at) from lifecycle_emails where type in ('weekly_review', 'inactive_3d', 'day1_return', 'signup_no_learning') and status = 'sent')`,
+    }).from(users).innerJoin(profiles, eq(profiles.id, users.id)),
+  ]);
+  return { rows, audience: audience ?? { eligible: 0, optedIn: 0, sent7d: 0, lastSentAt: null } };
 }

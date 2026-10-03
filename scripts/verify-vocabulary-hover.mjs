@@ -9,7 +9,7 @@ import path from "node:path";
 const bundle = await build({
   stdin: { contents: `import React from 'react'; import {createRoot} from 'react-dom/client'; import {HoverWords} from './src/components/vocabulary/hover-words'; import {QuestionBlock} from './src/components/practice/question-block';
     const q={id:'q',number:1,part:5,text:'Please pay the invoice.',options:[{id:'a',key:'A',text:'invoice'},{id:'b',key:'B',text:'shipment'}]};
-    createRoot(document.getElementById('root')).render(<main className="p-6"><div id="practice"><QuestionBlock vocabulary locale="en" question={q} onChoose={()=>{}} /></div><div id="mock"><QuestionBlock locale="en" question={q} onChoose={()=>{}} /></div><p className="mt-5" id="transcript"><HoverWords locale="en" part={3} text="The shipment arrived." /></p></main>);`, loader: "tsx", resolveDir: process.cwd() },
+    createRoot(document.getElementById('root')).render(<main className="p-6"><div id="practice"><QuestionBlock vocabulary locale="en" question={q} onChoose={()=>{}} /></div><div id="mock"><QuestionBlock locale="en" question={q} onChoose={()=>{}} /></div><p className="mt-5" id="transcript"><HoverWords locale="en" part={3} text="The shipment arrived." /></p><p className="mt-5" id="transcript-vi"><HoverWords locale="vi" part={3} text="It made a big impression during her first week." /></p></main>);`, loader: "tsx", resolveDir: process.cwd() },
   bundle: true, write: false, format: "iife", jsx: "automatic", define: { "process.env.NODE_ENV": '"production"', "process.env": "{}" },
 });
 const cssFile = path.resolve("src/app/globals.css");
@@ -23,8 +23,9 @@ try {
     const url = new URL(route.request().url());
     if (url.pathname.startsWith("/api/vocabulary/lookup/")) {
       lookups++;
-      const term = url.pathname.split("/").at(-1);
-      await route.fulfill({ json: { term, phonetic: "/test/", audioUrl: null, partOfSpeech: "noun", meaningEn: "A bill for goods.", meaningVi: "Hóa đơn", example: "Please pay the invoice." } }); return;
+      const term = decodeURIComponent(url.pathname.split("/").at(-1));
+      const contextual = url.searchParams.has("context");
+      await route.fulfill({ json: { term, phonetic: "/test/", audioUrl: null, partOfSpeech: "noun", meaningEn: contextual ? "A period of seven days." : "A bill for goods.", meaningVi: contextual ? "Tuần" : "Hóa đơn", contextVi: contextual ? "Nó đã gây ấn tượng lớn trong tuần đầu tiên của cô ấy." : undefined, example: contextual ? "It made a big impression during her first week." : "Please pay the invoice." } }); return;
     }
     if (url.pathname === "/api/vocabulary/save") {
       saves++; expect(route.request().postDataJSON().part).toBe(5);
@@ -57,6 +58,15 @@ try {
   await expect(dialog).toHaveCount(1);
   await expect(dialog.getByRole("heading", { name: "shipment" })).toBeVisible();
   await page.mouse.click(2, 2); await expect(dialog).toHaveCount(0);
+  for (const width of [375, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 800 });
+    await page.locator("#transcript-vi [role=button]", { hasText: /^week$/ }).click();
+    await expect(dialog.getByText("Nghĩa trong câu")).toBeVisible();
+    const responsiveBounds = await dialog.boundingBox();
+    expect(responsiveBounds.x).toBeGreaterThanOrEqual(0); expect(responsiveBounds.x + responsiveBounds.width).toBeLessThanOrEqual(width);
+    if (process.env.VISUAL_REVIEW) await page.screenshot({ path: `.tmp/vocabulary-hover-${width}.png`, fullPage: true });
+    await dialog.getByRole("button", { name: "Đóng thẻ" }).click();
+  }
   expect(errors).toEqual([]);
-  console.log("PASS: desktop hover/save, keyboard/Escape, caching, mobile bounds, one card, outside dismissal, mock exclusion.");
+  console.log("PASS: desktop hover/save, keyboard/Escape, caching, 375/768/1024/1440 bounds, Vietnamese context, one card, outside dismissal, mock exclusion.");
 } finally { await browser.close(); }

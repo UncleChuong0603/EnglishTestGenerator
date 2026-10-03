@@ -2,7 +2,13 @@ import "server-only";
 import nodemailer from "nodemailer";
 import { getServerEnv } from "@/lib/env";
 
-type AuthEmail = { to: string; subject: string; text: string };
+type AuthEmail = {
+  to: string;
+  subject: string;
+  text: string;
+  html?: string;
+  headers?: Record<string, string>;
+};
 export class EmailDeliveryError extends Error {
   constructor(message: string, readonly retrySafe: boolean) { super(message); }
 }

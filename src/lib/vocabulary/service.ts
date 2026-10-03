@@ -12,7 +12,7 @@ import type { DictionaryCard } from "./dictionary-types";
 export async function saveDictionaryVocabulary(userId: string, input: string, context: string, toeicPart: number) {
   const word = normalizeDictionaryWord(input);
   if (!word || !Number.isInteger(toeicPart) || toeicPart < 1 || toeicPart > 7) return false;
-  const card = await lookupDictionaryWord(word);
+  const card = await lookupDictionaryWord(word, context);
   if (!card) return false;
   const entryKey = card.term;
   await db.insert(userVocabulary).values({ userId, entryKey, dictionaryCard: card, contextSentence: context.slice(0, 500) || card.example || card.term, toeicPart }).onConflictDoUpdate({ target: [userVocabulary.userId, userVocabulary.entryKey], set: { dictionaryCard: card } });

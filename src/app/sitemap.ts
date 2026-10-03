@@ -9,6 +9,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = getSiteUrl();
   const staticPaths = STATIC_PUBLIC_PATHS;
   const staticPageRevisions = new Map<string, Date>([
+    ["/ngu-phap", new Date("2026-10-02T06:00:00.000Z")],
     ["/toeic/part-1", new Date("2026-10-02T00:00:00.000Z")],
     ["/toeic/part-2", new Date("2026-10-02T00:00:00.000Z")],
     ["/toeic/part-4", new Date("2026-10-02T00:00:00.000Z")],

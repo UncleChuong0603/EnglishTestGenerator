@@ -71,8 +71,9 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
     image: image ? new URL(image, base).toString() : null,
     authorName: post.authorName,
     breadcrumbs: [
-      { name: "Kiến thức TOEIC", url: new URL("/blog", base).toString() },
-      ...(post.category === "GRAMMAR" ? [{ name: "Ngữ pháp tiếng Anh", url: new URL("/blog/ngu-phap", base).toString() }] : []),
+      ...(post.category === "GRAMMAR"
+        ? [{ name: "Ngữ pháp TOEIC A–Z", url: new URL("/ngu-phap", base).toString() }]
+        : [{ name: "Kiến thức TOEIC", url: new URL("/blog", base).toString() }]),
       { name: post.title, url },
     ],
   });
