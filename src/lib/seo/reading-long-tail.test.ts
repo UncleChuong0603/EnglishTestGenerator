@@ -42,4 +42,15 @@ describe("Reading long-tail guides", () => {
     expect(readingLongTailGuides.doublePassage.related.some(link => link.href === guide.path)).toBe(true);
     expect(readingLongTailGuides.triplePassage.related.some(link => link.href === guide.path)).toBe(true);
   });
+
+  it("separates Part 6 word and phrase completion from sentence insertion", () => {
+    const words = readingLongTailGuides.wordPhraseCompletion;
+    const sentences = readingLongTailGuides.sentenceInsertion;
+    expect(words.path).toBe("/toeic/part-6/dien-tu-va-cum-tu");
+    expect(words.documents).toHaveLength(3);
+    expect(words.questions).toHaveLength(9);
+    expect(words.questions.map(question => question.prompt)).toEqual(["[1]", "[2]", "[3]", "[4]", "[5]", "[6]", "[7]", "[8]", "[9]"]);
+    expect(words.related.some(link => link.href === sentences.path)).toBe(true);
+    expect(sentences.related.some(link => link.href === words.path)).toBe(true);
+  });
 });

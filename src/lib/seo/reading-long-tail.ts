@@ -1,4 +1,5 @@
 import { readingParaphraseGuide } from "./reading-paraphrase-guide";
+import { readingPart6WordsGuide } from "./reading-part6-words-guide";
 
 export type ReadingSampleQuestion = {
   prompt: string;
@@ -24,6 +25,7 @@ export type ReadingLongTailGuide = {
 // Original practice passages and questions written for TOEIC GYM, independent of ETS material.
 export const readingLongTailGuides = {
   paraphrase: readingParaphraseGuide,
+  wordPhraseCompletion: readingPart6WordsGuide,
   sentenceInsertion: {
     path: "/toeic/part-6/dien-cau-vao-doan-van",
     part: 6,
@@ -65,6 +67,7 @@ export const readingLongTailGuides = {
     review: "Sau khi chọn đáp án, đọc liền đoạn từ câu nêu lý do đến câu ghi lịch mới. Nếu hai câu nối được với nhau mà không cần suy đoán thêm, bạn đã tìm đúng vai trò của câu điền. Với câu sai, ghi lại vì sao phương án mình chọn không nối được hai phía chỗ trống.",
     related: [
       { href: "/toeic/part-6", label: "Tổng quan TOEIC Part 6", description: "Ôn cách xử lý từ loại, từ nối và mạch ý trong cả đoạn." },
+      { href: "/toeic/part-6/dien-tu-va-cum-tu", label: "Điền từ và cụm từ Part 6", description: "Luyện chín câu về cấu trúc trong câu và quan hệ ý giữa các câu." },
       { href: "/toeic/part-7/doc-hieu-hai-doan-van", label: "Đọc hiểu hai đoạn văn Part 7", description: "Luyện đối chiếu bằng chứng giữa hai tài liệu." },
       { href: "/try#quick-practice", label: "Thử bài Reading dài hơn", description: "Chuyển từ một câu mẫu sang nhóm câu hỏi theo Part." },
     ],
