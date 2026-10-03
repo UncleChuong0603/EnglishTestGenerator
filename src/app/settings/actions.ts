@@ -8,6 +8,7 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { getCurrentSession, revokeAllUserSessions } from "@/lib/auth/session";
 import { isExplanationLanguage, isInterfaceLanguage, LANGUAGE_COOKIE } from "@/lib/i18n/config";
 export type PreferenceActionState = { ok: boolean; error?: "invalid" | "save_failed" };
+export type LearningEmailActionState = { ok: boolean; enabled?: boolean; error?: "invalid" | "save_failed" };
 export async function savePreferences(_state: PreferenceActionState, formData: FormData): Promise<PreferenceActionState> {
   const interfaceLanguage = formData.get("interfaceLanguage"); const explanationLanguage = formData.get("explanationLanguage");
   if (!isInterfaceLanguage(interfaceLanguage) || !isExplanationLanguage(explanationLanguage)) return { ok: false, error: "invalid" };
@@ -21,12 +22,20 @@ export async function setInterfaceLanguage(formData: FormData) {
   const user = await getCurrentUser(); if (user) await db.update(profiles).set({ interfaceLanguage: language, updatedAt: new Date() }).where(eq(profiles.id, user.id)); revalidatePath("/", "layout");
 }
 export async function saveRankingVisibility(formData: FormData) { const visibility=String(formData.get("visibility")??""); if(!["PUBLIC","ANONYMOUS","HIDDEN"].includes(visibility)) return; const user=await getCurrentUser();if(!user)return;await db.update(profiles).set({rankingVisibility:visibility,updatedAt:new Date()}).where(eq(profiles.id,user.id));revalidatePath("/settings");revalidatePath("/ranking"); }
-export async function saveLearningEmailPreference(formData: FormData) {
+export async function saveLearningEmailPreference(_state: LearningEmailActionState, formData: FormData): Promise<LearningEmailActionState> {
   const value = formData.get("learningEmailEnabled");
-  if (value !== "true" && value !== "false") return;
-  const user = await getCurrentUser(); if (!user) return;
-  await db.update(profiles).set({ learningEmailEnabled: value === "true", updatedAt: new Date() }).where(eq(profiles.id, user.id));
-  revalidatePath("/settings");
+  if (value !== "true" && value !== "false") return { ok: false, error: "invalid" };
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, error: "save_failed" };
+  const enabled = value === "true";
+  try {
+    await db.update(profiles).set({ learningEmailEnabled: enabled, updatedAt: new Date() }).where(eq(profiles.id, user.id));
+    revalidatePath("/settings");
+    revalidatePath("/dashboard");
+    return { ok: true, enabled };
+  } catch {
+    return { ok: false, error: "save_failed" };
+  }
 }
 export async function saveDisplayName(formData: FormData) {
   const name = formData.get("displayName");

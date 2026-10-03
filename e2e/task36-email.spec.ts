@@ -9,16 +9,16 @@ const pool = new pg.Pool({ connectionString: url.href });
 const hash = (token: string) => createHmac("sha256", process.env.SESSION_SECRET!).update(token).digest("hex");
 const users: string[] = [];
 
-async function fixture(browser: Browser, premium = false, admin = false) {
+async function fixture(browser: Browser, premium = false, admin = false, locale: "vi" | "en" = "vi", width = 390) {
   const email = `task36-${randomBytes(8).toString("hex")}@qa.invalid`;
   const { rows: [user] } = await pool.query("insert into users(email,email_normalized,status,email_verified_at) values($1,$1,'active',now()) returning id", [email]);
   users.push(user.id);
-  await pool.query("insert into profiles(id,interface_language) values($1,'vi')", [user.id]);
+  await pool.query("insert into profiles(id,interface_language) values($1,$2)", [user.id, locale]);
   if (premium) await pool.query("insert into user_plan_memberships(user_id,plan_key,source,starts_at) values($1,'PREMIUM','MANUAL',now())", [user.id]);
   if (admin) await pool.query("insert into user_roles(user_id,role) values($1,'ADMIN')", [user.id]);
   const token = randomBytes(32).toString("base64url");
   await pool.query("insert into user_sessions(user_id,session_token_hash,expires_at) values($1,$2,now()+interval '1 hour')", [user.id, hash(token)]);
-  const context = await browser.newContext({ bypassCSP: true, viewport: { width: 390, height: 844 } });
+  const context = await browser.newContext({ bypassCSP: true, viewport: { width, height: 900 } });
   await context.addCookies([{ name: "etg_session", value: token, domain: "127.0.0.1", path: "/", httpOnly: true, sameSite: "Lax" }]);
   return { id: user.id as string, context, page: await context.newPage() };
 }
@@ -68,10 +68,30 @@ test("admin lifecycle summary and learner authorization", async ({ browser }) =>
     await f.page.goto("/admin/email");
     await expect(f.page.getByRole("heading", { name: "Email học tập", exact: true })).toBeVisible();
     await expect(f.page.locator("tbody tr")).toHaveCount(4);
-    for (const name of ["Đã gửi", "Bỏ qua", "Lỗi", "Quay lại học"]) await expect(f.page.getByRole("columnheader", { name, exact: true })).toBeVisible();
+    for (const name of ["Đã gửi", "Bỏ qua", "Lỗi", "Quay lại học"]) await expect(f.page.getByRole("button", { name: `Sort by ${name}`, exact: true })).toBeVisible();
     await learner.page.goto("/admin/email");
     await expect(learner.page.getByRole("heading", { name: "Email học tập", exact: true })).toHaveCount(0);
   } finally { await f.context.close(); await learner.context.close(); }
+});
+
+test("email settings are responsive and localized at product breakpoints", async ({ browser }) => {
+  const contexts = [];
+  try {
+    for (const [width, locale] of [[375, "vi"], [768, "en"], [1024, "vi"], [1440, "en"]] as const) {
+      const f = await fixture(browser, false, false, locale, width);
+      contexts.push(f.context);
+      await f.page.goto("/settings?section=email");
+      await expect(f.page.getByRole("heading", { name: locale === "vi" ? "Email học tập" : "Learning email", exact: true })).toBeVisible();
+      await expect(f.page.getByRole("button", { name: locale === "vi" ? "Lưu lựa chọn" : "Save choice", exact: true })).toBeVisible();
+      await expect(f.page.locator('input[name="learningEmailEnabled"]')).toHaveCount(2);
+      expect(await f.page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
+      await f.page.locator('input[name="learningEmailEnabled"][value="true"]').focus();
+      await expect(f.page.locator('input[name="learningEmailEnabled"][value="true"]')).toBeFocused();
+      await f.page.screenshot({ path: test.info().outputPath(`email-settings-${locale}-${width}.png`), fullPage: true });
+    }
+  } finally {
+    await Promise.all(contexts.map(context => context.close()));
+  }
 });
 
 test.afterAll(async () => {

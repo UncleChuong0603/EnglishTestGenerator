@@ -27,10 +27,22 @@ describe("lifecycle policy", () => {
     expect(types({ ...base, previousWeekSessions: 2 }, new Date("2026-09-28T00:59:59.000Z"))).toEqual(["signup_no_learning"]);
   });
   it("uses factual short Vietnamese copy with unsubscribe and no claim about scores", () => {
-    const message = lifecycleMessage("weekly_review", "https://toeicgym.net", "https://toeicgym.net/unsubscribe?token=opaque", { sessions: 2 });
+    const message = lifecycleMessage("weekly_review", "https://toeicgym.net", "https://toeicgym.net/unsubscribe?token=opaque", { sessions: 2, learningDays: 2, answered: 40, accuracy: 75, focusPart: 5 });
     expect(message.text).toContain("2 buổi học");
+    expect(message.text).toContain("40 câu đã trả lời");
+    expect(message.text).toContain("độ chính xác 75%");
+    expect(message.text).toContain("Part 5");
     expect(message.text).toContain("/dashboard#weekly-review");
     expect(message.text).toContain("/unsubscribe?token=opaque");
     expect(message.text).not.toMatch(/điểm TOEIC|streak|sắp mất/i);
+    expect(message.html).toContain("background:#245a43");
+    expect(message.headers?.["List-Unsubscribe"]).toContain("/unsubscribe?token=opaque");
+  });
+  it("uses the learner interface language", () => {
+    const message = lifecycleMessage("inactive_3d", "https://toeicgym.net", "https://toeicgym.net/unsubscribe?token=opaque", { locale: "en" });
+    expect(message.subject).toBe("Continue practicing when you're ready");
+    expect(message.text).toContain("Continue practicing");
+    expect(message.text).toContain("Unsubscribe");
+    expect(message.text).not.toContain("Hủy đăng ký");
   });
 });
