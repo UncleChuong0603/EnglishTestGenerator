@@ -6,6 +6,8 @@ export const readingPart6WordsGuide = {
   breadcrumbLabel: "Điền từ và cụm từ",
   title: "TOEIC Part 6 điền từ và cụm từ: 9 câu có đáp án",
   description: "Luyện TOEIC Part 6 điền từ và cụm từ qua 3 văn bản, 9 câu tự biên soạn. Phân biệt từ loại, thì, bị động, giới từ, từ nối và nghĩa theo ngữ cảnh.",
+  publishedAt: "2026-10-04T00:00:00+07:00",
+  updatedAt: "2026-10-04T00:00:00+07:00",
   intro: "Một chỗ trống Part 6 có thể kiểm tra cấu trúc ngay trong câu hoặc yêu cầu bạn đọc các câu xung quanh để hiểu mạch ý. Bài luyện này tách riêng chín câu từ và cụm từ để bạn biết lúc nào chỉ cần nhìn cấu trúc, lúc nào phải đọc cả đoạn. Mỗi đáp án đều có lý do chọn và lý do loại phương án gây nhiễu.",
   sections: [
     {

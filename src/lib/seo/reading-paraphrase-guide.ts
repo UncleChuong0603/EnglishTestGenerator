@@ -6,6 +6,8 @@ export const readingParaphraseGuide = {
   breadcrumbLabel: "Paraphrase và từ đồng nghĩa",
   title: "Paraphrase TOEIC Part 7: từ đồng nghĩa và bài tập có đáp án",
   description: "Luyện nhận diện paraphrase và từ đồng nghĩa trong TOEIC Part 7 qua 6 câu tự biên soạn. Học cách đọc đúng ngữ cảnh, tránh bẫy lặp từ và xem bằng chứng.",
+  publishedAt: "2026-10-02T00:00:00+07:00",
+  updatedAt: "2026-10-04T00:00:00+07:00",
   intro: "Trong Part 7, câu hỏi và đáp án thường diễn đạt lại thông tin trong tài liệu thay vì lặp nguyên văn. Bài học này giúp bạn nhận ra ba kiểu chuyển đổi thường gặp: thay từ bằng cụm tương đương, đổi cấu trúc câu và nối nguyên nhân với kết quả. Sáu câu bên dưới đều có bằng chứng và lời giải đọc được ngay trên trang.",
   sections: [
     {
@@ -89,6 +91,7 @@ export const readingParaphraseGuide = {
   review: "Với mỗi câu, ghi cặp diễn đạt tương đương thành hai vế, chẳng hạn “reimburse parking fees ↔ repay the parking cost.” Sau đó đánh dấu phần nghĩa quyết định: ai được hoàn tiền, khi nào và với điều kiện gì. Nếu chọn nhầm phương án lặp từ trong tài liệu, hãy chỉ ra chi tiết nào của phương án đó đã đổi chủ thể, thời gian hoặc kết quả. Cuối cùng, tự viết một câu paraphrase mới cho một bằng chứng mà không nhìn bốn lựa chọn.",
   related: [
     { href: "/toeic/part-7", label: "Tổng quan TOEIC Part 7", description: "Đặt kỹ năng paraphrase vào quy trình tìm bằng chứng cho từng dạng câu hỏi." },
+    { href: "/toeic/part-7/cau-hoi-suy-luan", label: "Câu hỏi suy luận Part 7", description: "Dùng paraphrase để nối bằng chứng và loại kết luận vượt quá nội dung bài." },
     { href: "/toeic/part-7/doc-hieu-mot-doan-van", label: "Bài đọc một văn bản", description: "Áp dụng nghĩa theo ngữ cảnh trong một email hoàn chỉnh có bốn câu hỏi." },
     { href: "/toeic/part-7/doc-hieu-hai-doan-van", label: "Bài đọc hai văn bản", description: "Nhận ra cách thông tin được nhắc lại và cập nhật giữa hai email." },
     { href: "/blog/quan-ly-thoi-gian-toeic-reading-75-phut", label: "Chia thời gian TOEIC Reading", description: "Kết hợp kỹ năng định vị và paraphrase trong một kế hoạch 75 phút." },

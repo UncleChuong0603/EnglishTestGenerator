@@ -6,10 +6,27 @@ import { ReadingSampleQuiz } from "@/components/seo/reading-sample-quiz";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getCookieLanguage } from "@/lib/i18n/get-translations";
 import type { ReadingLongTailGuide } from "@/lib/seo/reading-long-tail";
+import { readingGuideStructuredData } from "@/lib/seo/reading-guide-structured-data";
+import { serializeStructuredData } from "@/lib/seo/structured-data";
+
+const ETS_PREPARATION_URL = "https://www.ets.org/toeic/test-takers/prepare.html";
+
+function formatVietnameseDate(value: string) {
+  return new Intl.DateTimeFormat("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    timeZone: "Asia/Ho_Chi_Minh",
+  }).format(new Date(value));
+}
 
 export async function ReadingLongTailPage({ guide }: { guide: ReadingLongTailGuide }) {
   const [user, locale] = await Promise.all([getCurrentUser(), getCookieLanguage()]);
   return <main className="min-h-screen bg-[#f7f6f1] text-slate-900">
+    <script
+      dangerouslySetInnerHTML={{ __html: serializeStructuredData(readingGuideStructuredData(guide)) }}
+      type="application/ld+json"
+    />
     <PublicHeader locale={locale} signedIn={Boolean(user)} />
     <article className="mx-auto max-w-5xl px-5 pb-16 pt-10 sm:px-8 sm:pt-16" lang="vi">
       <BreadcrumbTrail items={[{ name: "Trang chủ", path: "/" }, { name: "TOEIC", path: "/toeic" }, { name: `Part ${guide.part}`, path: `/toeic/part-${guide.part}` }, { name: guide.breadcrumbLabel, path: guide.path }]} />
@@ -17,6 +34,11 @@ export async function ReadingLongTailPage({ guide }: { guide: ReadingLongTailGui
         <p className="text-sm font-bold uppercase tracking-[.16em] text-teal-800">TOEIC Reading · Part {guide.part}</p>
         <h1 className="mt-4 max-w-4xl text-4xl font-black leading-tight sm:text-6xl">{guide.title}</h1>
         <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-700">{guide.intro}</p>
+        <p className="mt-5 text-sm leading-6 text-slate-600">
+          Biên soạn bởi <Link className="font-bold text-teal-900 underline" href="/ve-toeic-gym">TOEIC GYM Editorial</Link>
+          <span aria-hidden="true"> · </span>
+          Cập nhật <time dateTime={guide.updatedAt}>{formatVietnameseDate(guide.updatedAt)}</time>
+        </p>
         <Link className="mt-7 inline-flex min-h-12 items-center rounded-lg bg-teal-800 px-6 font-bold text-white focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-teal-800" href="#bai-tap-mau">Làm bài tập mẫu <span aria-hidden="true" className="ml-3">↓</span></Link>
       </header>
       <div className="grid gap-12 pt-10 lg:grid-cols-[minmax(0,1fr)_17rem]">
@@ -48,7 +70,10 @@ export async function ReadingLongTailPage({ guide }: { guide: ReadingLongTailGui
         <p className="mt-3 max-w-2xl leading-7 text-slate-200">Bài mẫu giúp bạn tập một thao tác đọc. Khi đã giải thích được đáp án bằng câu trong tài liệu, hãy thử một nhóm câu Reading và xem lại lỗi sai.</p>
         <Link className="mt-6 inline-flex min-h-12 items-center rounded-lg bg-teal-300 px-6 font-bold text-slate-950 focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-teal-300" href="/try#quick-practice">Thử bài Reading miễn phí →</Link>
       </section>
-      <p className="mt-8 text-xs text-slate-600">Tài liệu và câu hỏi mẫu do TOEIC GYM tự biên soạn. TOEIC GYM không liên kết với ETS; bài mẫu không dự đoán điểm thi chính thức.</p>
+      <div className="mt-8 space-y-2 text-xs leading-5 text-slate-600">
+        <p>Tài liệu và câu hỏi mẫu do TOEIC GYM tự biên soạn. TOEIC GYM không liên kết với ETS; bài mẫu không dự đoán điểm thi chính thức.</p>
+        <p>Nguồn tham chiếu định dạng: <a className="font-semibold text-teal-900 underline" href={ETS_PREPARATION_URL} rel="noreferrer" target="_blank">ETS TOEIC Test Preparation Materials</a>.</p>
+      </div>
     </article>
     <PublicFooter locale={locale} />
   </main>;

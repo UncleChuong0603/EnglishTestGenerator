@@ -43,6 +43,18 @@ describe("Reading long-tail guides", () => {
     expect(readingLongTailGuides.triplePassage.related.some(link => link.href === guide.path)).toBe(true);
   });
 
+  it("publishes a distinct inference exercise with bounded evidence", () => {
+    const guide = readingLongTailGuides.inference;
+    expect(guide.path).toBe("/toeic/part-7/cau-hoi-suy-luan");
+    expect(guide.documents).toHaveLength(3);
+    expect(guide.questions).toHaveLength(6);
+    expect(guide.questions.filter(question => /inferred|most likely|suggest/i.test(question.prompt))).toHaveLength(6);
+    expect(guide.related.some(link => link.href === readingLongTailGuides.paraphrase.path)).toBe(true);
+    expect(readingLongTailGuides.singlePassage.related.some(link => link.href === guide.path)).toBe(true);
+    expect(readingLongTailGuides.doublePassage.related.some(link => link.href === guide.path)).toBe(true);
+    expect(readingLongTailGuides.triplePassage.related.some(link => link.href === guide.path)).toBe(true);
+  });
+
   it("separates Part 6 word and phrase completion from sentence insertion", () => {
     const words = readingLongTailGuides.wordPhraseCompletion;
     const sentences = readingLongTailGuides.sentenceInsertion;

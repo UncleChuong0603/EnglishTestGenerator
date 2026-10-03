@@ -1,4 +1,5 @@
 import { readingParaphraseGuide } from "./reading-paraphrase-guide";
+import { readingInferenceGuide } from "./reading-inference-guide";
 import { readingPart6WordsGuide } from "./reading-part6-words-guide";
 
 export type ReadingSampleQuestion = {
@@ -14,6 +15,8 @@ export type ReadingLongTailGuide = {
   breadcrumbLabel: string;
   title: string;
   description: string;
+  publishedAt: string;
+  updatedAt: string;
   intro: string;
   sections: readonly { title: string; paragraphs: readonly string[]; steps?: readonly string[] }[];
   documents: readonly { label: string; paragraphs: readonly string[] }[];
@@ -25,6 +28,7 @@ export type ReadingLongTailGuide = {
 // Original practice passages and questions written for TOEIC GYM, independent of ETS material.
 export const readingLongTailGuides = {
   paraphrase: readingParaphraseGuide,
+  inference: readingInferenceGuide,
   wordPhraseCompletion: readingPart6WordsGuide,
   sentenceInsertion: {
     path: "/toeic/part-6/dien-cau-vao-doan-van",
@@ -32,6 +36,8 @@ export const readingLongTailGuides = {
     breadcrumbLabel: "Điền câu vào đoạn",
     title: "TOEIC Part 6 điền câu vào đoạn văn: cách chọn và bài tập có đáp án",
     description: "Học cách xử lý câu điền vào đoạn văn TOEIC Part 6 bằng dấu hiệu trước và sau chỗ trống. Làm bài email tự biên soạn, xem đáp án và lời giải miễn phí.",
+    publishedAt: "2026-09-30T00:00:00+07:00",
+    updatedAt: "2026-10-04T00:00:00+07:00",
     intro: "Dạng điền cả câu trong Part 6 yêu cầu bạn theo dõi mạch ý của đoạn, không chỉ kiểm tra ngữ pháp của một câu. Bài mẫu dưới đây cho bạn một cách đọc có thể áp dụng ngay: xác định vấn đề, tìm quan hệ nguyên nhân – kết quả, rồi kiểm tra câu sau chỗ trống.",
     sections: [
       {
@@ -78,6 +84,8 @@ export const readingLongTailGuides = {
     breadcrumbLabel: "Một văn bản",
     title: "TOEIC Part 7 một đoạn văn: bài tập email có đáp án",
     description: "Luyện TOEIC Part 7 dạng một đoạn văn bằng email tự biên soạn. Làm 4 câu về mục đích, chi tiết, hành động và từ vựng, rồi xem bằng chứng cho từng đáp án.",
+    publishedAt: "2026-10-01T00:00:00+07:00",
+    updatedAt: "2026-10-04T00:00:00+07:00",
     intro: "Dạng một văn bản là nơi phù hợp để tập thói quen trả lời bằng bằng chứng trước khi chuyển sang bài đọc đôi hoặc ba. Bài mẫu dưới đây giúp bạn nhận diện mục đích email, định vị một chi tiết, làm theo hướng dẫn và hiểu từ trong đúng ngữ cảnh.",
     sections: [
       {
@@ -127,6 +135,7 @@ export const readingLongTailGuides = {
     related: [
       { href: "/toeic/part-7", label: "Tổng quan TOEIC Part 7", description: "Ôn các dạng câu hỏi và cách định vị bằng chứng." },
       { href: "/toeic/part-7/paraphrase-tu-dong-nghia", label: "Paraphrase và từ đồng nghĩa Part 7", description: "Luyện sáu câu về cách diễn đạt lại và nghĩa trong ngữ cảnh." },
+      { href: "/toeic/part-7/cau-hoi-suy-luan", label: "Câu hỏi suy luận Part 7", description: "Luyện chọn kết luận chắc chắn từ hai hoặc nhiều chi tiết trong tài liệu." },
       { href: "/toeic/part-7/doc-hieu-hai-doan-van", label: "Đọc hiểu hai văn bản", description: "Tiếp tục bằng bài cần đối chiếu hai email." },
       { href: "/toeic/part-7/doc-hieu-ba-van-ban", label: "Đọc hiểu ba văn bản", description: "Luyện nối lịch, số lượng và email cập nhật." },
       { href: "/blog/quan-ly-thoi-gian-toeic-reading-75-phut", label: "Chia thời gian Reading", description: "Tạo mốc thời gian để giữ đủ phút cho Part 7." },
@@ -138,6 +147,8 @@ export const readingLongTailGuides = {
     breadcrumbLabel: "Hai văn bản",
     title: "TOEIC Part 7 đọc hiểu hai đoạn văn: bài tập đối chiếu có lời giải",
     description: "Luyện TOEIC Part 7 dạng hai đoạn văn với email đặt hàng và phản hồi tự biên soạn. Trả lời 3 câu, xem bằng chứng ở từng tài liệu và cách tránh bẫy mốc thời gian.",
+    publishedAt: "2026-10-01T00:00:00+07:00",
+    updatedAt: "2026-10-04T00:00:00+07:00",
     intro: "Ở dạng hai tài liệu, một câu hỏi có thể cần thông tin từ cả email ban đầu lẫn phản hồi. Bài mẫu này luyện cách ghép số lượng, ngày giao và hành động tiếp theo. Bạn có thể làm ngay trên trang rồi xem câu nào trong tài liệu chứng minh đáp án.",
     sections: [
       {
@@ -175,6 +186,7 @@ export const readingLongTailGuides = {
     related: [
       { href: "/toeic/part-7", label: "Tổng quan TOEIC Part 7", description: "Ôn kỹ thuật định vị thông tin và nhận ra cách diễn đạt lại." },
       { href: "/toeic/part-7/paraphrase-tu-dong-nghia", label: "Bài tập paraphrase Part 7", description: "Tách riêng kỹ năng nhận diện từ đồng nghĩa và cách đổi cấu trúc." },
+      { href: "/toeic/part-7/cau-hoi-suy-luan", label: "Câu hỏi suy luận Part 7", description: "Ghép các chi tiết để chọn kết luận được tài liệu hỗ trợ đầy đủ." },
       { href: "/toeic/part-7/doc-hieu-mot-doan-van", label: "Bài đọc một văn bản Part 7", description: "Luyện từng dạng câu hỏi trên một email trước khi đối chiếu hai nguồn." },
       { href: "/toeic/part-7/doc-hieu-ba-van-ban", label: "Bài đọc ba văn bản Part 7", description: "Nối lịch sự kiện với hai email để giải câu hỏi liên văn bản." },
       { href: "/blog/meo-lam-toeic-part-7-doc-hieu-nhieu-van-ban", label: "Chiến lược đọc nhiều văn bản", description: "Mở rộng sang câu hỏi cần nối hai hoặc ba tài liệu." },
@@ -187,6 +199,8 @@ export const readingLongTailGuides = {
     breadcrumbLabel: "Ba văn bản",
     title: "TOEIC Part 7 ba văn bản: bài tập triple passage có lời giải",
     description: "Luyện TOEIC Part 7 dạng ba văn bản bằng thông báo và hai email tự biên soạn. Làm 5 câu, đối chiếu lịch, số lượng và phương án xử lý giao hàng chậm.",
+    publishedAt: "2026-10-02T00:00:00+07:00",
+    updatedAt: "2026-10-04T00:00:00+07:00",
     intro: "Với ba văn bản, đáp án có thể nằm ở chỗ giao nhau giữa lịch sự kiện, yêu cầu đặt hàng và email cập nhật. Bài tập này cho bạn thực hành tìm tài liệu chứa dữ kiện đầu tiên, rồi kiểm tra xem tài liệu sau có thay đổi kế hoạch đó hay không.",
     sections: [
       {
@@ -262,6 +276,7 @@ export const readingLongTailGuides = {
     related: [
       { href: "/toeic/part-7", label: "Tổng quan TOEIC Part 7", description: "Ôn các dạng câu hỏi và cách định vị bằng chứng." },
       { href: "/toeic/part-7/paraphrase-tu-dong-nghia", label: "Bài tập paraphrase Part 7", description: "Ôn cách xác nhận một đáp án diễn đạt lại đúng toàn bộ ý." },
+      { href: "/toeic/part-7/cau-hoi-suy-luan", label: "Câu hỏi suy luận Part 7", description: "Luyện giới hạn kết luận khi phải nối nhiều chi tiết và mốc thời gian." },
       { href: "/toeic/part-7/doc-hieu-mot-doan-van", label: "Đọc hiểu một văn bản", description: "Ôn cách tìm mục đích, chi tiết và nghĩa trong một email." },
       { href: "/toeic/part-7/doc-hieu-hai-doan-van", label: "Đọc hiểu hai văn bản", description: "Bắt đầu với tình huống hai email ngắn hơn." },
       { href: "/blog/meo-lam-toeic-part-7-doc-hieu-nhieu-van-ban", label: "Chiến lược đọc nhiều văn bản", description: "Xem quy trình đọc và sửa lỗi cho câu hỏi liên văn bản." },
