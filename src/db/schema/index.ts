@@ -655,6 +655,40 @@ export const attemptAnswers = pgTable("attempt_answers", {
   id: uuid("id").primaryKey().defaultRandom(), sessionId: uuid("session_id").notNull().references(() => practiceSessions.id, { onDelete: "cascade" }), userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }), questionId: uuid("question_id").notNull().references(() => questions.id, { onDelete: "restrict" }), responseType: text("response_type").notNull().default("MULTIPLE_CHOICE"), selectedOptionId: uuid("selected_option_id").references(() => questionOptions.id, { onDelete: "restrict" }), isCorrect: boolean("is_correct").notNull(), responseTimeMs: integer("response_time_ms"), answeredAt: timestamp("answered_at", { withTimezone: true, mode: "date" }), createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
 }, (table) => [unique("attempt_answers_session_question_unique").on(table.sessionId, table.questionId), index("attempt_answers_user_session_idx").on(table.userId, table.sessionId), index("attempt_answers_user_question_session_idx").on(table.userId, table.questionId, table.sessionId), check("attempt_answers_response_type_check", sql`${table.responseType} = 'MULTIPLE_CHOICE'`)]);
 
+/**
+ * In-progress answers are deliberately separate from scored attempts. This lets
+ * native clients resume safely without calculating or exposing correctness.
+ */
+export const practiceAnswerDrafts = pgTable("practice_answer_drafts", {
+  sessionId: uuid("session_id").notNull().references(() => practiceSessions.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  questionId: uuid("question_id").notNull().references(() => questions.id, { onDelete: "restrict" }),
+  selectedOptionId: uuid("selected_option_id").notNull().references(() => questionOptions.id, { onDelete: "restrict" }),
+  responseTimeMs: integer("response_time_ms"),
+  ...timestamps,
+}, (table) => [
+  primaryKey({ columns: [table.sessionId, table.questionId] }),
+  index("practice_answer_drafts_user_session_idx").on(table.userId, table.sessionId),
+  check("practice_answer_drafts_response_time_check", sql`${table.responseTimeMs} is null or ${table.responseTimeMs} between 0 and 86400000`),
+]);
+
+/** Durable replay records for mutating API v1 requests. */
+export const apiIdempotencyKeys = pgTable("api_idempotency_keys", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  operation: text("operation").notNull(),
+  keyHash: text("key_hash").notNull(),
+  requestHash: text("request_hash").notNull(),
+  responseStatus: smallint("response_status").notNull(),
+  responseBody: jsonb("response_body").$type<Record<string, unknown>>().notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true, mode: "date" }).notNull(),
+  ...timestamps,
+}, (table) => [
+  unique("api_idempotency_keys_scope_unique").on(table.userId, table.operation, table.keyHash),
+  index("api_idempotency_keys_expiry_idx").on(table.expiresAt),
+  check("api_idempotency_keys_status_check", sql`${table.responseStatus} between 200 and 299`),
+]);
+
 export const questionReports = pgTable("question_reports", {
   id: uuid("id").primaryKey().defaultRandom(),
   questionId: uuid("question_id").notNull().references(() => questions.id, { onDelete: "restrict" }),

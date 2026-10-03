@@ -33,6 +33,7 @@
     "task22:verify:postgres:cleanup": "docker compose -f docker-compose.test.yml down --remove-orphans",
     "test:integration:task27": "node --conditions=react-server --import tsx scripts/task27-integration.mts",
     "test:integration:task40": "node --import tsx scripts/task40-integration.mts",
+    "test:integration:task44": "node --conditions=react-server --import tsx scripts/task44-api-integration.mts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",

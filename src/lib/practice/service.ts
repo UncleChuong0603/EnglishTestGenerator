@@ -10,6 +10,7 @@ import {
   createReadingPracticeSession,
   createRecommendedListeningPracticeSession,
   createRecommendedReadingPracticeSession,
+  type PracticeTransaction,
 } from "./selector";
 import type { PracticeConfig, ReadingPracticeMode } from "./types";
 
@@ -20,7 +21,7 @@ export type PracticeStartCommand =
   | { kind: "MASTERY_REVIEW"; part?: number; smart?: boolean; size?: number }
   | { kind: "WEEKLY_FOCUS" };
 
-async function startTodaysWorkout(userId: string) {
+async function startTodaysWorkout(userId: string, transaction?: PracticeTransaction) {
   const [recommendation, goal, usage] = await Promise.all([
     loadRecommendedWorkout(userId),
     getLearnerGoal(userId),
@@ -31,35 +32,44 @@ async function startTodaysWorkout(userId: string) {
 
   if (recommendation.skillArea === "LISTENING" && isListeningPart(recommendation.part)) {
     const count = recommendation.part >= 3 ? safeSize.groupCount! : safeSize.questionCount;
-    return createRecommendedListeningPracticeSession(userId, {
+    const target = {
       part: recommendation.part,
       skill: recommendation.primarySkill ?? undefined,
       subSkill: recommendation.primarySubskill ?? undefined,
       count,
-    });
+    };
+    return transaction
+      ? createRecommendedListeningPracticeSession(userId, target, transaction)
+      : createRecommendedListeningPracticeSession(userId, target);
   }
 
   if (recommendation.skillArea === "READING") {
     const part = recommendation.part && recommendation.part >= 5 ? recommendation.part as 5 | 6 | 7 : null;
     if (part) {
-      return createRecommendedReadingPracticeSession(userId, {
+      const target = {
         part,
         skill: recommendation.primarySkill ?? undefined,
         subSkill: recommendation.primarySubskill ?? undefined,
         questionCount: safeSize.questionCount,
-      });
+      };
+      return transaction
+        ? createRecommendedReadingPracticeSession(userId, target, "recommended", transaction)
+        : createRecommendedReadingPracticeSession(userId, target);
     }
-    return createReadingPracticeSession(userId, {
+    const config: PracticeConfig = {
       mode: "mixed_reading",
       targetQuestionCount: 10,
       source: "recommended",
-    });
+    };
+    return transaction
+      ? createReadingPracticeSession(userId, config, false, transaction)
+      : createReadingPracticeSession(userId, config);
   }
 
   throw new Error("NO_PUBLISHED_CONTENT");
 }
 
-async function startWeeklyFocus(userId: string) {
+async function startWeeklyFocus(userId: string, transaction?: PracticeTransaction) {
   const [recommendation, goal, usage] = await Promise.all([
     loadRecommendedWorkout(userId),
     getLearnerGoal(userId),
@@ -72,29 +82,38 @@ async function startWeeklyFocus(userId: string) {
   }
   const workload = getDailyWorkload({ goal, plan: usage.effectivePlan, workoutUsage: usage.entitlements.TODAYS_WORKOUT });
   const size = getGroupSafeWorkoutSize(part, workload.targetQuestions);
-  return createRecommendedReadingPracticeSession(userId, {
+  const target = {
     part: part as 5 | 6 | 7,
     skill: recommendation.primarySkill ?? undefined,
     subSkill: recommendation.primarySubskill ?? undefined,
     questionCount: size.questionCount,
-  }, "target_weakness");
+  };
+  return transaction
+    ? createRecommendedReadingPracticeSession(userId, target, "target_weakness", transaction)
+    : createRecommendedReadingPracticeSession(userId, target, "target_weakness");
 }
 
 /** Canonical start boundary used by web actions now and /api/v1 in Task 43. */
-export async function startPractice(userId: string, command: PracticeStartCommand) {
+export async function startPractice(userId: string, command: PracticeStartCommand, transaction?: PracticeTransaction) {
   switch (command.kind) {
     case "TODAYS_WORKOUT":
-      return startTodaysWorkout(userId);
+      return startTodaysWorkout(userId, transaction);
     case "CUSTOM_READING":
-      return createReadingPracticeSession(userId, command.config);
+      return transaction
+        ? createReadingPracticeSession(userId, command.config, false, transaction)
+        : createReadingPracticeSession(userId, command.config);
     case "CUSTOM_LISTENING": {
       const target = command.questionCount ?? (command.part === 1 ? 5 : command.part === 2 ? 10 : 3);
-      return createListeningPracticeSession(userId, command.part, target);
+      return transaction
+        ? createListeningPracticeSession(userId, command.part, target, transaction)
+        : createListeningPracticeSession(userId, command.part, target);
     }
     case "MASTERY_REVIEW":
-      return createMasteryReviewSession(userId, command.part, { smart: command.smart, size: command.size });
+      return transaction
+        ? createMasteryReviewSession(userId, command.part, { smart: command.smart, size: command.size }, transaction)
+        : createMasteryReviewSession(userId, command.part, { smart: command.smart, size: command.size });
     case "WEEKLY_FOCUS":
-      return startWeeklyFocus(userId);
+      return startWeeklyFocus(userId, transaction);
   }
 }
 

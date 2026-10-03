@@ -1,0 +1,12 @@
+import { describe, expect, it } from "vitest";
+import { dashboardAction, resultAccuracy, selectAnswer, shouldClearSession, shouldRetryNetwork, workoutBlocked } from "./model";
+
+const dashboard = { progress: { answered: 0, correct: 0, accuracy: null }, completedQuestionsToday: 0, completedLearningSessions: 0, unresolvedMistakes: 0, recommendation: null, resumablePractice: null, goal: null, dailyGoal: { completedQuestions: 0, targetQuestions: 10, remainingQuestions: 10, percent: 0, complete: false }, lifecycle: "NEW" as const };
+const entitlements = { effectivePlan: "FREE" as const, premiumExpiresAt: null, membershipStatus: "FREE" as const, isTrial: false, capabilities: {}, usage: { TODAYS_WORKOUT: { type: "LIMITED" as const, used: 1, limit: 1, remaining: 0, resetAt: "2026-10-03T17:00:00.000Z" }, MANUAL_PRACTICE: { type: "UNLIMITED" as const, used: 0, resetAt: null }, MASTERY_REVIEW: { type: "UNLIMITED" as const, used: 0, resetAt: null }, FULL_MOCK: { type: "UNLIMITED" as const, used: 0, resetAt: null } } };
+
+describe("mobile view model", () => {
+  it("maps dashboard next actions without recomputing recommendations", () => { expect(dashboardAction(dashboard)).toEqual({ kind: "START" }); expect(dashboardAction({ ...dashboard, resumablePractice: { id: "session", part: 5, questionCount: 10 } })).toEqual({ kind: "RESUME", sessionId: "session" }); });
+  it("blocks a consumed quota but still permits resuming", () => { expect(workoutBlocked(entitlements, dashboard)).toBe(true); expect(workoutBlocked(entitlements, { ...dashboard, resumablePractice: { id: "session", part: 5, questionCount: 10 } })).toBe(false); });
+  it("updates only the selected answer", () => { const session = { id: "s", status: "in_progress" as const, source: "custom", skillArea: "READING" as const, part: 5, questionCount: 1, groups: [], questions: [{ id: "q", number: 1, part: 5, text: "Q", skill: "grammar", subSkill: "verbs", passageSetId: null, selectedOptionId: null, options: [{ id: "a", key: "A", text: "A" }, { id: "b", key: "B", text: "B" }] }] }; expect(selectAnswer(session, "q", "b").questions[0].selectedOptionId).toBe("b"); });
+  it("maps result, 401 and retry states", () => { expect(resultAccuracy({ id: "s", status: "submitted", scoreCorrect: 7, scoreTotal: 10, submittedAt: "2026-10-02T00:00:00.000Z", results: [] })).toBe(70); expect(shouldClearSession("UNAUTHENTICATED")).toBe(true); expect(shouldRetryNetwork("TIMEOUT")).toBe(true); expect(shouldRetryNetwork("FORBIDDEN")).toBe(false); });
+});

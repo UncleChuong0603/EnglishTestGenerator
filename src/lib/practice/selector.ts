@@ -19,6 +19,15 @@ const EMPTY_HISTORY: ContentHistory = { seenQuestionIds: new Set(), recentQuesti
 const keepOrder = () => 0.999;
 export type { QuestionBankPool } from "./pool";
 
+export type PracticeTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+function inPracticeTransaction<T>(
+  transaction: PracticeTransaction | undefined,
+  execute: (tx: PracticeTransaction) => Promise<T>,
+): Promise<T> {
+  return transaction ? execute(transaction) : db.transaction(execute);
+}
+
 function selectedPool(requestedPool: QuestionBankPool): QuestionBankPool {
   return resolveQuestionBankPool(requestedPool, process.env.PRACTICE_POOL_ISOLATED === "true");
 }
@@ -116,10 +125,10 @@ export async function selectListeningPractice(part: 1 | 2 | 3 | 4, target = 10, 
   return selectedIds.flatMap((id) => candidates.filter((q) => q.passageSetId === id).sort((a, b) => a.questionOrder - b.questionOrder));
 }
 
-export async function createListeningPracticeSession(userId: string, part: 1 | 2 | 3 | 4, target = 10) {
+export async function createListeningPracticeSession(userId: string, part: 1 | 2 | 3 | 4, target = 10, transaction?: PracticeTransaction) {
   const selected = await selectListeningPractice(part, target);
   const sessionId = randomUUID(); const now = new Date();
-  return db.transaction(async (tx) => {
+  return inPracticeTransaction(transaction, async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${userId}:practice`}, 0))`);
     await tx.update(practiceSessions).set({ status: "abandoned" }).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), ne(practiceSessions.practiceType, "demo_test"), ne(practiceSessions.source, "diagnostic")));
     await consumeUsage(tx, { userId, entitlement: "MANUAL_PRACTICE", sourceType: "PRACTICE_SESSION", sourceId: sessionId, now });
@@ -129,10 +138,10 @@ export async function createListeningPracticeSession(userId: string, part: 1 | 2
   });
 }
 
-export async function createRecommendedListeningPracticeSession(userId: string, target: { part: 1 | 2 | 3 | 4; skill?: string; subSkill?: string; count: number }) {
+export async function createRecommendedListeningPracticeSession(userId: string, target: { part: 1 | 2 | 3 | 4; skill?: string; subSkill?: string; count: number }, transaction?: PracticeTransaction) {
   const selected = await selectListeningPractice(target.part, target.count, { userId, skill: target.skill, subSkill: target.subSkill });
   const sessionId = randomUUID(); const now = new Date();
-  return db.transaction(async (tx) => {
+  return inPracticeTransaction(transaction, async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${userId}:practice`}, 0))`);
     const [existing] = await tx.select({ id: practiceSessions.id }).from(practiceSessions).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), eq(practiceSessions.source, "recommended"))).limit(1); if (existing) return existing.id;
     await tx.update(practiceSessions).set({ status: "abandoned" }).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), ne(practiceSessions.practiceType, "demo_test"), ne(practiceSessions.source, "diagnostic")));
@@ -196,11 +205,11 @@ async function persistReadingSelection(userId: string, config: PracticeConfig, s
 export async function createPreferUnseenReadingSession(userId: string, config: PracticeConfig) {
   return persistReadingSelection(userId, config, await selectPreferUnseenReading(userId, config), "prefer_unseen");
 }
-export async function createReadingPracticeSession(userId: string, config: PracticeConfig, requireExactCount = false) {
+export async function createReadingPracticeSession(userId: string, config: PracticeConfig, requireExactCount = false, transaction?: PracticeTransaction) {
   const selection = await selectReadingPractice(config); const part = partForMode(config.mode);
   if (requireExactCount && selection.actualQuestionCount !== config.targetQuestionCount) throw new Error("NOT_ENOUGH_QUESTIONS");
   const sessionId = randomUUID(); const now = new Date();
-  return db.transaction(async (tx) => {
+  return inPracticeTransaction(transaction, async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${userId}:practice`}, 0))`);
     const entitlement = config.source === "recommended" ? "TODAYS_WORKOUT" : "MANUAL_PRACTICE";
     if (entitlement === "TODAYS_WORKOUT") { const [existing] = await tx.select({ id: practiceSessions.id }).from(practiceSessions).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), eq(practiceSessions.source, "recommended"))).limit(1); if (existing) return existing.id; }
@@ -239,7 +248,7 @@ export async function createGuestListeningPracticeSession(guestOwnerHash: string
 }
 
 /** Recommended-only 60/20/20 selector. Whole passage units are never split. */
-export async function createRecommendedReadingPracticeSession(userId: string, target: { part: ReadingPart; skill?: string; subSkill?: string; questionCount: number }, sessionSource: "recommended" | "target_weakness" = "recommended") {
+export async function createRecommendedReadingPracticeSession(userId: string, target: { part: ReadingPart; skill?: string; subSkill?: string; questionCount: number }, sessionSource: "recommended" | "target_weakness" = "recommended", transaction?: PracticeTransaction) {
   const primaryPools = [await loadUnits(target.part, target.skill, target.subSkill), await loadUnits(target.part, target.skill), await loadUnits(target.part)];
   const otherParts = ([5, 6, 7] as ReadingPart[]).filter((part) => part !== target.part);
   const allOtherUnits = sessionSource === "target_weakness" ? primaryPools[2] : (await Promise.all(otherParts.map((part) => loadUnits(part)))).flat();
@@ -258,7 +267,7 @@ export async function createRecommendedReadingPracticeSession(userId: string, ta
   if (!units.length) units = selectClosestUnits(rankSelectionUnits(allOtherUnits, history), target.questionCount, keepOrder);
   const questionIds = flattenUniqueQuestionIds(units); if (!questionIds.length) throw new Error("NO_PUBLISHED_CONTENT");
   const sessionId = randomUUID(); const now = new Date();
-  return db.transaction(async (tx) => {
+  return inPracticeTransaction(transaction, async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${userId}:practice`}, 0))`);
     if (sessionSource === "recommended") { const [existing] = await tx.select({ id: practiceSessions.id }).from(practiceSessions).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), eq(practiceSessions.source, "recommended"))).limit(1); if (existing) return existing.id; }
     await tx.update(practiceSessions).set({ status: "abandoned" }).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), ne(practiceSessions.practiceType, "demo_test"), ne(practiceSessions.source, "diagnostic")));
@@ -270,7 +279,7 @@ export async function createRecommendedReadingPracticeSession(userId: string, ta
   });
 }
 /** Creates a server-authoritative, single-Part review session; grouped content is expanded atomically. */
-export async function createMasteryReviewSession(userId: string, requestedPart?: number, options?: { smart?: boolean; size?: number }) {
+export async function createMasteryReviewSession(userId: string, requestedPart?: number, options?: { smart?: boolean; size?: number }, transaction?: PracticeTransaction) {
   if (options?.smart && !(await getEffectiveCapabilities(userId)).canUseSmartMistakeReview) throw new Error("PREMIUM_REQUIRED");
   const candidates = options?.smart ? await getSmartReviewCandidates(userId, requestedPart) : await getReviewCandidates(userId, requestedPart);
   if (!candidates.length) throw new Error("NO_MISTAKES");
@@ -288,7 +297,7 @@ export async function createMasteryReviewSession(userId: string, requestedPart?:
   if (!expanded.length) throw new Error("NO_REVIEWABLE_MISTAKES");
   const skillArea = samePart[0].skillArea as "LISTENING" | "READING";
   const sessionId = randomUUID(); const now = new Date();
-  return db.transaction(async (tx) => {
+  return inPracticeTransaction(transaction, async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${userId}:practice`}, 0))`);
     const [existing] = await tx.select({ id: practiceSessions.id }).from(practiceSessions).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), eq(practiceSessions.source, "mastery_review"))).limit(1); if (existing) return existing.id;
     await tx.update(practiceSessions).set({ status: "abandoned" }).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), ne(practiceSessions.practiceType, "demo_test"), ne(practiceSessions.source, "diagnostic")));

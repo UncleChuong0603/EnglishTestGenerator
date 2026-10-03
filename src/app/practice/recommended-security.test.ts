@@ -11,7 +11,7 @@ describe("recommended workout application boundary", () => {
     expect(actions).toContain("export async function startRecommendedPractice()");
     expect(actions).toMatch(/startRecommendedPractice\(\)[\s\S]*getCurrentUser\(\)/);
     expect(actions).toContain('startPractice(user.id, { kind: "TODAYS_WORKOUT" })');
-    expect(practiceService).toMatch(/startTodaysWorkout\(userId: string\)[\s\S]*loadRecommendedWorkout\(userId\)/);
+    expect(practiceService).toMatch(/startTodaysWorkout\(userId: string(?:, transaction\?: PracticeTransaction)?\)[\s\S]*loadRecommendedWorkout\(userId\)/);
   });
 
   it("passes only the server-calculated Listening target into eligible selection", () => {

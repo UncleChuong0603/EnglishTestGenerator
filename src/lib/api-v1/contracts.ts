@@ -39,6 +39,21 @@ export const paginationMetaSchema = z.strictObject({
   hasMore: z.boolean(),
 });
 
+export const loginRequestSchema = z.strictObject({
+  email: z.email().max(320),
+  password: z.string().min(1).max(1024),
+});
+
+export const loginResponseSchema = z.strictObject({
+  data: z.strictObject({
+    token: z.string().min(32).max(256),
+    expiresAt: isoDateTimeSchema,
+  }),
+});
+
+export const logoutRequestSchema = z.strictObject({});
+export const logoutResponseSchema = z.strictObject({ data: z.strictObject({ revoked: z.literal(true) }) });
+
 export const meResponseSchema = z.strictObject({
   data: z.strictObject({
     id: uuidSchema,
@@ -59,7 +74,7 @@ export const meResponseSchema = z.strictObject({
 const accuracySummarySchema = z.strictObject({
   answered: z.number().int().nonnegative(),
   correct: z.number().int().nonnegative(),
-  accuracy: z.number().min(0).max(100),
+  accuracy: z.number().min(0).max(100).nullable(),
 });
 
 export const dashboardResponseSchema = z.strictObject({
@@ -76,6 +91,20 @@ export const dashboardResponseSchema = z.strictObject({
       reasonCode: z.string(),
     }).nullable(),
     resumablePractice: z.strictObject({ id: uuidSchema, part: toeicPartSchema.nullable(), questionCount: z.number().int().positive() }).nullable(),
+    goal: z.strictObject({
+      targetScore: z.number().int().min(10).max(990).nullable(),
+      examDate: z.iso.date().nullable(),
+      dailyStudyMinutes: z.number().int().positive().nullable(),
+      studyDaysPerWeek: z.number().int().min(1).max(7).nullable(),
+    }).nullable(),
+    dailyGoal: z.strictObject({
+      completedQuestions: z.number().int().nonnegative(),
+      targetQuestions: z.number().int().positive(),
+      remainingQuestions: z.number().int().nonnegative(),
+      percent: z.number().int().min(0).max(100),
+      complete: z.boolean(),
+    }),
+    lifecycle: z.enum(["NEW", "DIAGNOSED", "ACTIVE", "RESUMABLE", "DAILY_GOAL_COMPLETE"]),
   }),
 });
 
@@ -133,6 +162,7 @@ export const practiceQuestionSchema = z.strictObject({
   skill: z.string(),
   subSkill: z.string(),
   passageSetId: uuidSchema.nullable(),
+  selectedOptionId: uuidSchema.nullable(),
   options: z.array(z.strictObject({ id: uuidSchema, key: z.string().min(1).max(8), text: z.string() })).min(2).max(4),
   media: z.array(z.strictObject({ id: uuidSchema, kind: z.enum(["AUDIO", "IMAGE"]), url: z.url(), alt: z.string() })).optional(),
 });
@@ -179,6 +209,10 @@ export const submitPracticeResponseSchema = z.strictObject({
     submittedAt: isoDateTimeSchema,
     results: z.array(z.strictObject({
       questionId: uuidSchema,
+      number: z.number().int().positive(),
+      part: toeicPartSchema,
+      text: z.string(),
+      options: z.array(z.strictObject({ id: uuidSchema, key: z.string().min(1).max(8), text: z.string() })).min(2).max(4),
       selectedOptionId: uuidSchema.nullable(),
       correctOptionId: uuidSchema,
       isCorrect: z.boolean(),
@@ -244,12 +278,16 @@ export const entitlementsResponseSchema = z.strictObject({
   data: z.strictObject({
     effectivePlan: z.enum(["FREE", "PREMIUM"]),
     premiumExpiresAt: isoDateTimeSchema.nullable(),
+    membershipStatus: z.enum(["ACTIVE", "EXPIRED", "FREE"]),
+    isTrial: z.boolean(),
     capabilities: z.record(z.string(), z.union([z.boolean(), z.number(), z.string()])),
     usage: z.record(z.enum(["TODAYS_WORKOUT", "MANUAL_PRACTICE", "MASTERY_REVIEW", "FULL_MOCK"]), usageSchema),
   }),
 });
 
 export const apiV1Contracts = {
+  login: { method: "POST", path: "/api/v1/auth/login", auth: "anonymous", request: loginRequestSchema, response: loginResponseSchema },
+  logout: { method: "POST", path: "/api/v1/auth/logout", auth: "session", request: logoutRequestSchema, response: logoutResponseSchema },
   me: { method: "GET", path: "/api/v1/me", auth: "session", response: meResponseSchema },
   dashboard: { method: "GET", path: "/api/v1/dashboard", auth: "session", response: dashboardResponseSchema },
   plan: { method: "GET", path: "/api/v1/plan", auth: "session", response: planResponseSchema },
@@ -264,5 +302,15 @@ export const apiV1Contracts = {
 } as const;
 
 export type ApiErrorResponse = z.infer<typeof apiErrorResponseSchema>;
+export type LoginResponse = z.infer<typeof loginResponseSchema>;
+export type MeResponse = z.infer<typeof meResponseSchema>;
+export type DashboardResponse = z.infer<typeof dashboardResponseSchema>;
+export type PlanResponse = z.infer<typeof planResponseSchema>;
 export type CreatePracticeRequest = z.infer<typeof createPracticeRequestSchema>;
 export type PracticeSessionContract = z.infer<typeof practiceSessionSchema>;
+export type CreatePracticeResponse = z.infer<typeof createPracticeResponseSchema>;
+export type GetPracticeResponse = z.infer<typeof getPracticeResponseSchema>;
+export type AnswerPracticeRequest = z.infer<typeof answerPracticeRequestSchema>;
+export type SubmitPracticeResponse = z.infer<typeof submitPracticeResponseSchema>;
+export type ProgressResponse = z.infer<typeof progressResponseSchema>;
+export type EntitlementsResponse = z.infer<typeof entitlementsResponseSchema>;

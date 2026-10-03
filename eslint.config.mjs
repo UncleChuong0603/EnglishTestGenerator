@@ -13,6 +13,10 @@ export default defineConfig([
     ".agents/**",
     ".npm-cache/**",
     ".debug-*.cjs",
+    "artifacts/**",
+    // Expo is an independent project with its own SDK-aware lint command.
+    "mobile/**",
+    "scripts/*-temp.cjs",
     "node_modules/**",
     "coverage/**",
   ]),

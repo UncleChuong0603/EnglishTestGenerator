@@ -11,6 +11,8 @@ import {
 describe("mobile API v1 contracts", () => {
   it("defines every Task 42 endpoint under the versioned prefix", () => {
     expect(Object.values(apiV1Contracts).map((contract) => contract.path)).toEqual([
+      "/api/v1/auth/login",
+      "/api/v1/auth/logout",
       "/api/v1/me",
       "/api/v1/dashboard",
       "/api/v1/plan",
@@ -50,6 +52,7 @@ describe("mobile API v1 contracts", () => {
           skill: "grammar",
           subSkill: "verbs",
           passageSetId: null,
+          selectedOptionId: null,
           options: [
             { id: "00000000-0000-4000-8000-000000000003", key: "A", text: "A" },
             { id: "00000000-0000-4000-8000-000000000004", key: "B", text: "B" },

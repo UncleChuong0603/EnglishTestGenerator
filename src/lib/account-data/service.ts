@@ -37,6 +37,7 @@ import {
   users,
   weeklyPlanSnapshots,
   attemptAnswers,
+  apiIdempotencyKeys,
 } from "@/db/schema";
 import { normalizeEmail } from "@/lib/auth/crypto";
 
@@ -286,6 +287,7 @@ export async function deleteAccount(userId: string, confirmationEmail: string, n
     await tx.delete(passwordResetTokens).where(eq(passwordResetTokens.userId, userId));
     await tx.delete(accountActivationTokens).where(eq(accountActivationTokens.userId, userId));
     await tx.delete(userSessions).where(eq(userSessions.userId, userId));
+    await tx.delete(apiIdempotencyKeys).where(eq(apiIdempotencyKeys.userId, userId));
     await tx.update(userRoles).set({ createdBy: null }).where(eq(userRoles.createdBy, userId));
     await tx.update(userRoles).set({ revokedBy: null }).where(eq(userRoles.revokedBy, userId));
     await tx.delete(userRoles).where(eq(userRoles.userId, userId));
