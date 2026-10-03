@@ -1,10 +1,13 @@
 import { z } from "zod";
+import { MISTAKE_REASON_CODES, MISTAKE_REASON_EVIDENCE } from "../mistake-reasons/catalog";
 
 export const apiVersion = "v1" as const;
 export const uuidSchema = z.uuid();
 export const isoDateTimeSchema = z.iso.datetime({ offset: true });
 export const localeSchema = z.enum(["en", "vi"]);
 export const toeicPartSchema = z.number().int().min(1).max(7);
+export const mistakeReasonCodeContractSchema = z.enum(MISTAKE_REASON_CODES);
+export const mistakeReasonEvidenceContractSchema = z.enum(MISTAKE_REASON_EVIDENCE);
 
 export const apiErrorCodeSchema = z.enum([
   "BAD_REQUEST",
@@ -218,6 +221,11 @@ export const submitPracticeResponseSchema = z.strictObject({
       isCorrect: z.boolean(),
       explanationEn: z.string().nullable(),
       explanationVi: z.string().nullable(),
+      mistakeReason: z.strictObject({
+        selected: mistakeReasonCodeContractSchema.nullable(),
+        evidenceSource: mistakeReasonEvidenceContractSchema.nullable(),
+        choices: z.array(z.strictObject({ code: mistakeReasonCodeContractSchema, label: z.strictObject({ vi: z.string(), en: z.string() }), suggested: z.boolean() })),
+      }).optional(),
     })),
   }),
 });
@@ -226,6 +234,14 @@ export const submitPracticeResponseSchema = z.strictObject({
 // submit. Handlers must enforce the parent mock/diagnostic/challenge gates too.
 export const getPracticeResponseSchema = z.strictObject({
   data: z.union([practiceSessionSchema, submitPracticeResponseSchema.shape.data]),
+});
+
+export const saveMistakeReasonRequestSchema = z.strictObject({
+  questionId: uuidSchema,
+  reasonCode: mistakeReasonCodeContractSchema.exclude(["UNKNOWN"]),
+});
+export const saveMistakeReasonResponseSchema = z.strictObject({
+  data: z.strictObject({ questionId: uuidSchema, reasonCode: mistakeReasonCodeContractSchema, evidenceSource: z.literal("USER_SELECTED") }),
 });
 
 export const mistakesResponseSchema = z.strictObject({
@@ -239,6 +255,7 @@ export const mistakesResponseSchema = z.strictObject({
     wrongCount: z.number().int().positive(),
     lastMissedAt: isoDateTimeSchema,
     available: z.boolean(),
+    reasonCode: mistakeReasonCodeContractSchema.nullable(),
   })),
   pagination: paginationMetaSchema,
 });
@@ -295,6 +312,7 @@ export const apiV1Contracts = {
   getPractice: { method: "GET", path: "/api/v1/practice/:id", auth: "session+ownership", response: getPracticeResponseSchema },
   answerPractice: { method: "POST", path: "/api/v1/practice/:id/answer", auth: "session+ownership", request: answerPracticeRequestSchema, response: answerPracticeResponseSchema, idempotency: "required" },
   submitPractice: { method: "POST", path: "/api/v1/practice/:id/submit", auth: "session+ownership", request: submitPracticeRequestSchema, response: submitPracticeResponseSchema, idempotency: "required" },
+  saveMistakeReason: { method: "POST", path: "/api/v1/practice/:id/reason", auth: "session+ownership", request: saveMistakeReasonRequestSchema, response: saveMistakeReasonResponseSchema },
   mistakes: { method: "GET", path: "/api/v1/mistakes", auth: "session", query: paginationRequestSchema, response: mistakesResponseSchema },
   vocabulary: { method: "GET", path: "/api/v1/vocabulary", auth: "session", query: paginationRequestSchema, response: vocabularyResponseSchema },
   progress: { method: "GET", path: "/api/v1/progress", auth: "session", response: progressResponseSchema },
@@ -312,5 +330,7 @@ export type CreatePracticeResponse = z.infer<typeof createPracticeResponseSchema
 export type GetPracticeResponse = z.infer<typeof getPracticeResponseSchema>;
 export type AnswerPracticeRequest = z.infer<typeof answerPracticeRequestSchema>;
 export type SubmitPracticeResponse = z.infer<typeof submitPracticeResponseSchema>;
+export type SaveMistakeReasonRequest = z.infer<typeof saveMistakeReasonRequestSchema>;
+export type SaveMistakeReasonResponse = z.infer<typeof saveMistakeReasonResponseSchema>;
 export type ProgressResponse = z.infer<typeof progressResponseSchema>;
 export type EntitlementsResponse = z.infer<typeof entitlementsResponseSchema>;

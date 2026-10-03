@@ -1,7 +1,7 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { api, MobileApiError } from "@/api/client";
 import type { PracticeResult } from "@/api/types";
 import { useAuth } from "@/auth/auth-context";
@@ -14,6 +14,8 @@ export default function ResultScreen() {
   const vi = auth.me?.profile.interfaceLanguage !== "en";
   const [result, setResult] = useState<PracticeResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [savingReason, setSavingReason] = useState<string | null>(null);
+  const [reasonError, setReasonError] = useState<string | null>(null);
   const load = useCallback(async () => {
     if (!auth.token || !id) return;
     setError(null);
@@ -43,6 +45,17 @@ export default function ResultScreen() {
     if (explanationLanguage === "en") return item.explanationEn ?? item.explanationVi;
     if (explanationLanguage === "vi") return item.explanationVi ?? item.explanationEn;
     return [item.explanationVi, item.explanationEn].filter((value, index, all) => value && all.indexOf(value) === index).join("\n\n");
+  };
+  const saveReason = async (questionId: string, reasonCode: NonNullable<PracticeResult["results"][number]["mistakeReason"]>["choices"][number]["code"]) => {
+    if (!auth.token || !id) return;
+    if (reasonCode === "UNKNOWN") return;
+    setSavingReason(questionId); setReasonError(null);
+    try {
+      await api.saveMistakeReason(auth.token, id, { questionId, reasonCode });
+      setResult((current) => current ? { ...current, results: current.results.map((item) => item.questionId === questionId && item.mistakeReason ? { ...item, mistakeReason: { ...item.mistakeReason, selected: reasonCode, evidenceSource: "USER_SELECTED" } } : item) } : current);
+    } catch (cause) {
+      setReasonError(cause instanceof Error ? cause.message : (vi ? "Chưa thể lưu lý do." : "Could not save the reason."));
+    } finally { setSavingReason(null); }
   };
 
   return (
@@ -75,9 +88,27 @@ export default function ResultScreen() {
             );
           })}
           <Text style={styles.explanation}>{explanation(item) || (vi ? "Chưa có giải thích cho câu này." : "No explanation is available for this question.")}</Text>
+          {!item.isCorrect && item.mistakeReason ? <View style={styles.reasonSection}>
+            <Text style={styles.reasonTitle}>{vi ? "Bạn nghĩ mình sai vì đâu?" : "Why do you think you missed this?"}</Text>
+            <Muted>{vi ? "Không bắt buộc. Chọn một lý do hoặc bỏ qua." : "Optional. Choose a reason or skip it."}</Muted>
+            <View style={styles.reasonChoices}>
+              {item.mistakeReason.choices.map((choice) => {
+                const selected = item.mistakeReason?.selected === choice.code;
+                return <Pressable
+                  accessibilityRole="button"
+                  accessibilityState={{ selected, busy: savingReason === item.questionId }}
+                  disabled={savingReason === item.questionId}
+                  key={choice.code}
+                  onPress={() => void saveReason(item.questionId, choice.code)}
+                  style={({ pressed }) => [styles.reasonChoice, selected && styles.reasonChoiceSelected, pressed && styles.reasonChoicePressed]}
+                ><Text style={[styles.reasonChoiceText, selected && styles.reasonChoiceTextSelected]}>{choice.label[vi ? "vi" : "en"]}{choice.suggested ? (vi ? " · gợi ý" : " · suggested") : ""}</Text></Pressable>;
+              })}
+            </View>
+            {savingReason === item.questionId ? <Muted>{vi ? "Đang lưu…" : "Saving…"}</Muted> : null}
+          </View> : null}
         </Card>
       ))}
-      {error ? <ErrorBanner message={error} /> : null}
+      {error ? <ErrorBanner message={error} /> : reasonError ? <ErrorBanner message={reasonError} /> : null}
       <PrimaryButton label={vi ? "Về trang chủ" : "Back to home"} onPress={() => router.replace("/(tabs)")} />
     </Screen>
   );
@@ -94,4 +125,12 @@ const styles = StyleSheet.create({
   correct: { color: colors.success, fontWeight: "700" },
   chosen: { color: colors.danger, fontWeight: "700" },
   explanation: { color: colors.muted, fontSize: 16, lineHeight: 25, marginTop: space.sm },
+  reasonSection: { borderTopWidth: 1, borderTopColor: colors.rule, gap: space.sm, marginTop: space.md, paddingTop: space.md },
+  reasonTitle: { color: colors.ink, fontSize: 17, fontWeight: "800" },
+  reasonChoices: { flexDirection: "row", flexWrap: "wrap", gap: space.sm },
+  reasonChoice: { minHeight: 48, justifyContent: "center", borderWidth: 1, borderColor: colors.rule, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: colors.surface },
+  reasonChoiceSelected: { borderColor: colors.forest, backgroundColor: colors.forest },
+  reasonChoicePressed: { opacity: 0.72 },
+  reasonChoiceText: { color: colors.ink, fontSize: 15, fontWeight: "700" },
+  reasonChoiceTextSelected: { color: colors.paper },
 });

@@ -655,6 +655,22 @@ export const attemptAnswers = pgTable("attempt_answers", {
   id: uuid("id").primaryKey().defaultRandom(), sessionId: uuid("session_id").notNull().references(() => practiceSessions.id, { onDelete: "cascade" }), userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }), questionId: uuid("question_id").notNull().references(() => questions.id, { onDelete: "restrict" }), responseType: text("response_type").notNull().default("MULTIPLE_CHOICE"), selectedOptionId: uuid("selected_option_id").references(() => questionOptions.id, { onDelete: "restrict" }), isCorrect: boolean("is_correct").notNull(), responseTimeMs: integer("response_time_ms"), answeredAt: timestamp("answered_at", { withTimezone: true, mode: "date" }), createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
 }, (table) => [unique("attempt_answers_session_question_unique").on(table.sessionId, table.questionId), index("attempt_answers_user_session_idx").on(table.userId, table.sessionId), index("attempt_answers_user_question_session_idx").on(table.userId, table.questionId, table.sessionId), check("attempt_answers_response_type_check", sql`${table.responseType} = 'MULTIPLE_CHOICE'`)]);
 
+export const mistakeReasonClassifications = pgTable("mistake_reason_classifications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  sessionId: uuid("session_id").notNull().references(() => practiceSessions.id, { onDelete: "cascade" }),
+  questionId: uuid("question_id").notNull().references(() => questions.id, { onDelete: "restrict" }),
+  reasonCode: text("reason_code").notNull(),
+  evidenceSource: text("evidence_source").notNull(),
+  ...timestamps,
+}, (table) => [
+  unique("mistake_reason_user_attempt_unique").on(table.userId, table.sessionId, table.questionId),
+  index("mistake_reason_user_created_idx").on(table.userId, table.createdAt),
+  index("mistake_reason_user_code_idx").on(table.userId, table.reasonCode),
+  check("mistake_reason_code_check", sql`${table.reasonCode} in ('VOCAB_UNKNOWN','GRAMMAR_RULE','PARAPHRASE_MISSED','DISTRACTOR_TRAP','MISHEARD_WORD','LOST_CONTEXT','INFERENCE_ERROR','TIME_PRESSURE','CARELESS','OTHER','UNKNOWN')`),
+  check("mistake_reason_evidence_check", sql`${table.evidenceSource} in ('USER_SELECTED','SYSTEM_INFERRED','SYSTEM_SUGGESTED')`),
+]);
+
 /**
  * In-progress answers are deliberately separate from scored attempts. This lets
  * native clients resume safely without calculating or exposing correctness.

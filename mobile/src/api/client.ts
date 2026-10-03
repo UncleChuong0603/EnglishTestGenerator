@@ -1,4 +1,4 @@
-import type { CreatePracticeRequest, CreatePracticeResponse, DashboardResponse, EntitlementsResponse, GetPracticeResponse, LoginResponse, MeResponse, PlanResponse, ProgressResponse, SubmitPracticeResponse } from "./types";
+import type { CreatePracticeRequest, CreatePracticeResponse, DashboardResponse, EntitlementsResponse, GetPracticeResponse, LoginResponse, MeResponse, PlanResponse, ProgressResponse, SaveMistakeReasonRequest, SaveMistakeReasonResponse, SubmitPracticeResponse } from "./types";
 
 const productionBaseUrl = "https://toeicgym.net/api/v1";
 const configuredBaseUrl = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, "");
@@ -32,4 +32,5 @@ export const api = {
   login: (email: string, password: string) => request<LoginResponse>("/auth/login", { method: "POST", body: { email, password } }),
   logout: (token: string) => request<{ data: { revoked: true } }>("/auth/logout", { token, method: "POST", body: {} }), me: (token: string) => request<MeResponse>("/me", { token }), dashboard: (token: string) => request<DashboardResponse>("/dashboard", { token }), plan: (token: string) => request<PlanResponse>("/plan", { token }), entitlements: (token: string) => request<EntitlementsResponse>("/entitlements", { token }), progress: (token: string) => request<ProgressResponse>("/progress", { token }),
   startPractice: (token: string, body: CreatePracticeRequest) => request<CreatePracticeResponse>("/practice", { token, method: "POST", body, idempotent: true, retry: true }), practice: (token: string, id: string) => request<GetPracticeResponse>(`/practice/${id}`, { token }), answer: (token: string, id: string, body: { questionId: string; selectedOptionId: string; responseTimeMs?: number }) => request<{ data: { accepted: true } }>(`/practice/${id}/answer`, { token, method: "POST", body, idempotent: true, retry: true }), submit: (token: string, id: string) => request<SubmitPracticeResponse>(`/practice/${id}/submit`, { token, method: "POST", body: {}, idempotent: true, retry: true }),
+  saveMistakeReason: (token: string, id: string, body: SaveMistakeReasonRequest) => request<SaveMistakeReasonResponse>(`/practice/${id}/reason`, { token, method: "POST", body, retry: true }),
 };

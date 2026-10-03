@@ -17,8 +17,10 @@ import type { ReactNode } from "react";
 import { QuestionReportControl } from "@/components/practice/question-report-control";
 import type { QuestionReportFormState } from "@/lib/question-reports/catalog";
 import { RemediationCard } from "@/components/practice/remediation-card";
+import { MistakeReasonControl } from "@/components/practice/mistake-reason-control";
+import type { MistakeReasonFormState } from "@/app/practice/mistake-reason-actions";
 
-export function ListeningResult({ result, locale, recommendation, reviewOutcome, premiumPreview, reportAction, remediationAction, savedVocabularyKeys, signedIn, navigation }: {
+export function ListeningResult({ result, locale, recommendation, reviewOutcome, premiumPreview, reportAction, remediationAction, mistakeReasonAction, savedVocabularyKeys, signedIn, navigation }: {
   result: PracticeResult;
   locale: InterfaceLanguage;
   recommendation: WorkoutRecommendation | null;
@@ -26,6 +28,7 @@ export function ListeningResult({ result, locale, recommendation, reviewOutcome,
   premiumPreview?: PremiumPreviewData | null;
   reportAction: (previous: QuestionReportFormState, formData: FormData) => Promise<QuestionReportFormState>;
   remediationAction: (formData: FormData) => void | Promise<void>;
+  mistakeReasonAction: (previous: MistakeReasonFormState, formData: FormData) => Promise<MistakeReasonFormState>;
   savedVocabularyKeys: string[];
   signedIn: boolean;
   navigation?: ReactNode;
@@ -50,7 +53,7 @@ export function ListeningResult({ result, locale, recommendation, reviewOutcome,
         {audio ? <div className="mt-4"><ListeningAudioPlayer assetId={audio.id} initialUrl={audio.url} labels={t.listening.audio} questionId={question.id} sessionId={result.id}/></div> : null}
         <dl className="mt-5 grid gap-3 sm:grid-cols-2"><div className="rounded-xl bg-slate-50 p-4"><dt className="text-sm text-slate-600">{t.results.yourAnswer}</dt><dd className="font-bold">{selected ? `${selected.key}. ${selected.text}` : t.results.unanswered}</dd></div><div className="rounded-xl bg-emerald-50 p-4"><dt className="text-sm text-emerald-700">{t.results.correctAnswer}</dt><dd className="font-bold">{correct ? `${correct.key}. ${correct.text}` : t.common.unavailable}</dd></div></dl>
         {question.transcript && correct ? <TranscriptReview correctAnswer={correct.text} labels={{ show: t.listening.checkTranscript, keywords: t.listening.answerKeywords, noExactMatch: t.listening.noExactKeywordMatch }} locale={locale} part={question.part} transcript={question.transcript} /> : null}
-        <section className="mt-5"><h2 className="font-black">{!question.isCorrect && locale === "vi" ? "Vì sao đáp án này đúng" : !question.isCorrect ? "Why this answer is correct" : t.results.explanation}</h2><p className="mt-2 leading-7">{question.explanationVi ?? question.explanationEn}</p>{!question.isCorrect ? <RemediationCard action={remediationAction} locale={locale} question={question} sessionId={result.id} /> : null}</section>
+        <section className="mt-5"><h2 className="font-black">{!question.isCorrect && locale === "vi" ? "Vì sao đáp án này đúng" : !question.isCorrect ? "Why this answer is correct" : t.results.explanation}</h2><p className="mt-2 leading-7">{question.explanationVi ?? question.explanationEn}</p>{!question.isCorrect && question.mistakeReason ? <MistakeReasonControl action={mistakeReasonAction} locale={locale} question={question} sessionId={result.id} /> : null}{!question.isCorrect ? <RemediationCard action={remediationAction} locale={locale} question={question} sessionId={result.id} /> : null}</section>
         <ResultVocabularySuggestions entries={vocabularySuggestions(question.text, correct?.text ?? "", [question.transcript ?? ""])} locale={locale} questionId={question.id} savedKeys={savedVocabularyKeys} sessionId={result.id} signedIn={signedIn} />
         <QuestionReportControl action={reportAction} locale={locale} questionId={question.id} sessionId={result.id} />
       </article>;

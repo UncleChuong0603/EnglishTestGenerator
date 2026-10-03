@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { startFocusedRemediation, startReadingPractice } from "@/app/practice/actions";
+import { saveMistakeReasonAction } from "@/app/practice/mistake-reason-actions";
 import { PerformanceList } from "@/components/analytics/performance-list";
 import { LearnerNav } from "@/components/learner-nav";
 import { PassageDocuments } from "@/components/practice/passage-documents";
@@ -72,6 +73,7 @@ export default async function PracticeResultsPage({
           premiumPreview={preview}
           reportAction={submitQuestionReportAction}
           remediationAction={startFocusedRemediation}
+          mistakeReasonAction={saveMistakeReasonAction}
           recommendation={recommendation}
           result={result}
           reviewOutcome={reviewOutcome}
@@ -360,6 +362,7 @@ export default async function PracticeResultsPage({
                     question={question}
                     reportAction={submitQuestionReportAction}
                     remediationAction={startFocusedRemediation}
+                    mistakeReasonAction={user ? saveMistakeReasonAction : undefined}
                     sessionId={result.id}
                   /><ResultVocabularySuggestions entries={vocabulary} locale={locale} questionId={question.id} savedKeys={savedKeys} sessionId={result.id} signedIn={Boolean(user)} /></div>;
                 })}

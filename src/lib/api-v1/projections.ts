@@ -8,6 +8,7 @@ import { getDashboardData } from "@/lib/dashboard/service";
 import { getEffectiveCapabilities, getMembershipState, getUsageStatus } from "@/lib/entitlements/service";
 import { getLearnerGoal } from "@/lib/goals/service";
 import { getMistakeBank } from "@/lib/mastery/queries";
+import { getLatestReasonsForQuestions } from "@/lib/mistake-reasons/service";
 import { getPracticeResult, getPracticeSession } from "@/lib/practice/queries";
 import { getToeicProgress } from "@/lib/progress/queries";
 import type { ProgressCounts } from "@/lib/progress/types";
@@ -132,12 +133,13 @@ export async function mistakesProjection(userId: string, cursor: string | undefi
   const scope = `mistakes:${userId}:UNRESOLVED`;
   const after = decodeCursor(cursor, scope);
   const rows = await getMistakeBank(userId, "UNRESOLVED");
+  const latestReasons = await getLatestReasonsForQuestions(userId, rows.map((row) => row.questionId));
   const keyed = rows.map((row) => ({ row, key: `${row.lastMissedAt.toISOString()}:${row.questionId}` }));
   const start = after ? Math.max(0, keyed.findIndex((item) => item.key === after) + 1) : 0;
   if (after && start === 0) throw new ApiV1Error(400, "VALIDATION_FAILED", "The pagination cursor is stale.");
   const page = keyed.slice(start, start + limit);
   return {
-    data: page.map(({ row }) => ({ questionId: row.questionId, status: row.status, skillArea: row.skillArea, part: row.part, skill: row.skill, subSkill: row.subSkill, wrongCount: row.wrongCount, lastMissedAt: row.lastMissedAt.toISOString(), available: row.available })),
+    data: page.map(({ row }) => ({ questionId: row.questionId, status: row.status, skillArea: row.skillArea, part: row.part, skill: row.skill, subSkill: row.subSkill, wrongCount: row.wrongCount, lastMissedAt: row.lastMissedAt.toISOString(), available: row.available, reasonCode: latestReasons.get(row.questionId) ?? null })),
     pagination: { hasMore: start + page.length < keyed.length, nextCursor: start + page.length < keyed.length && page.length ? encodeCursor({ scope, key: page.at(-1)!.key }) : null },
   };
 }
@@ -172,7 +174,7 @@ export async function practiceProjection(userId: string, sessionId: string) {
       scoreCorrect: result.scoreCorrect,
       scoreTotal: result.scoreTotal,
       submittedAt: result.submittedAt,
-      results: result.questions.map((question) => ({ questionId: question.id, number: question.number, part: question.part, text: question.text, options: question.options, selectedOptionId: question.selectedOptionId, correctOptionId: question.correctOptionId, isCorrect: question.isCorrect, explanationEn: question.explanationEn, explanationVi: question.explanationVi })),
+      results: result.questions.map((question) => ({ questionId: question.id, number: question.number, part: question.part, text: question.text, options: question.options, selectedOptionId: question.selectedOptionId, correctOptionId: question.correctOptionId, isCorrect: question.isCorrect, explanationEn: question.explanationEn, explanationVi: question.explanationVi, ...(question.mistakeReason ? { mistakeReason: question.mistakeReason } : {}) })),
     } };
   }
   const drafts = await db.select({ questionId: practiceAnswerDrafts.questionId, selectedOptionId: practiceAnswerDrafts.selectedOptionId }).from(practiceAnswerDrafts)

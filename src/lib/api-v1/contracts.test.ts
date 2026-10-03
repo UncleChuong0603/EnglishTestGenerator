@@ -5,6 +5,7 @@ import {
   apiV1Contracts,
   createPracticeRequestSchema,
   getPracticeResponseSchema,
+  saveMistakeReasonRequestSchema,
   type CreatePracticeRequest,
 } from "./contracts";
 
@@ -20,6 +21,7 @@ describe("mobile API v1 contracts", () => {
       "/api/v1/practice/:id",
       "/api/v1/practice/:id/answer",
       "/api/v1/practice/:id/submit",
+      "/api/v1/practice/:id/reason",
       "/api/v1/mistakes",
       "/api/v1/vocabulary",
       "/api/v1/progress",
@@ -74,5 +76,12 @@ describe("mobile API v1 contracts", () => {
     expect(createPracticeRequestSchema.safeParse({ kind: "CUSTOM", skillArea: "READING", part: 5, questionCount: 3 }).success).toBe(false);
     expect(createPracticeRequestSchema.safeParse({ kind: "CUSTOM", skillArea: "LISTENING", part: 3, questionCount: 10 }).success).toBe(false);
     expect(createPracticeRequestSchema.safeParse({ kind: "CUSTOM", skillArea: "LISTENING", part: 3, questionCount: 9 }).success).toBe(true);
+  });
+
+  it("accepts only canonical learner-selectable mistake reasons", () => {
+    const questionId = "00000000-0000-4000-8000-000000000002";
+    expect(saveMistakeReasonRequestSchema.safeParse({ questionId, reasonCode: "VOCAB_UNKNOWN" }).success).toBe(true);
+    expect(saveMistakeReasonRequestSchema.safeParse({ questionId, reasonCode: "UNKNOWN" }).success).toBe(false);
+    expect(saveMistakeReasonRequestSchema.safeParse({ questionId, reasonCode: "LOW_CONFIDENCE" }).success).toBe(false);
   });
 });

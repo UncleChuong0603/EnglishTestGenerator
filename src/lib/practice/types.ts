@@ -7,6 +7,7 @@ export type PracticeOption = {
 export type { ReadingPart } from "@/lib/toeic/domain";
 import type { ListeningPart, ReadingPart } from "@/lib/toeic/domain";
 import type { RemediationStage } from "@/lib/remediation/policy";
+import type { MistakeReasonCode, MistakeReasonEvidence } from "@/lib/mistake-reasons/catalog";
 export type ReadingPracticeMode = "part_5" | "part_6" | "part_7" | "mixed_reading";
 export type ListeningPracticeMode = "listening_part_1" | "listening_part_2" | "listening_part_3" | "listening_part_4";
 export type PracticeMode = ReadingPracticeMode | ListeningPracticeMode;
@@ -71,6 +72,11 @@ export type ReviewQuestion = PracticeQuestion & {
   isCorrect: boolean;
   explanationEn: string | null;
   explanationVi: string | null;
+  mistakeReason?: {
+    selected: MistakeReasonCode | null;
+    evidenceSource: MistakeReasonEvidence | null;
+    choices: Array<{ code: MistakeReasonCode; label: { vi: string; en: string }; suggested: boolean }>;
+  };
   transcript?: string;
   remediation?: {
     stage: RemediationStage;

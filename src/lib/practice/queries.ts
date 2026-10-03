@@ -8,6 +8,8 @@ import { toLearnerPracticeQuestion } from "./learner-dto";
 import { challengePhase } from "@/lib/challenges/policy";
 import { readingAssignmentSetId, validReadingAssignment } from "./reading-assignment";
 import { remediationStage } from "@/lib/remediation/policy";
+import { getSessionMistakeReasons, mistakeReasonChoices } from "@/lib/mistake-reasons/service";
+import type { MistakeReasonEvidence } from "@/lib/mistake-reasons/catalog";
 
 export type PracticeOwner = { userId: string; guestOwnerHash?: never } | { userId?: never; guestOwnerHash: string };
 function ownerCondition(owner: PracticeOwner) { return "userId" in owner ? eq(practiceSessions.userId, owner.userId!) : and(eq(practiceSessions.guestOwnerHash, owner.guestOwnerHash), gt(practiceSessions.expiresAt, new Date())); }
@@ -76,10 +78,11 @@ export async function getPracticeResult(sessionId: string, owner: PracticeOwner)
   if (session.rankedChallengeRunId) { const parent=(await db.select({status:rankedChallengeRuns.status,challenge:rankedChallenges}).from(rankedChallengeRuns).innerJoin(rankedChallenges,eq(rankedChallenges.id,rankedChallengeRuns.challengeId)).where(eq(rankedChallengeRuns.id,session.rankedChallengeRunId)).limit(1))[0];if(!parent||parent.status!=="COMPLETED"||challengePhase(parent.challenge)!=="CLOSED")return null; }
   if (session.status !== "submitted" || session.scoreCorrect === null || session.scoreTotal === null || !session.submittedAt) return null;
   const listening = session.skillArea === "LISTENING"; const content = await getSafeSessionContent(session.id, listening); const ids = content.questions.map((q) => q.id);
-  const [answers, solutions, assignments] = await Promise.all([
+  const [answers, solutions, assignments, reasonMap] = await Promise.all([
     db.select().from(attemptAnswers).where(eq(attemptAnswers.sessionId, session.id)),
     db.select().from(questionSolutions).where(inArray(questionSolutions.questionId, ids)),
     db.select({ questionId: practiceSessionQuestions.questionId, masteryTargetQuestionId: practiceSessionQuestions.masteryTargetQuestionId }).from(practiceSessionQuestions).where(eq(practiceSessionQuestions.sessionId, session.id)),
+    "userId" in owner && owner.userId ? getSessionMistakeReasons(owner.userId, session.id) : new Map(),
   ]);
   const targetByQuestion = new Map(assignments.map((assignment) => [assignment.questionId, assignment.masteryTargetQuestionId]));
   const masteryIds = [...new Set(ids.map((id) => targetByQuestion.get(id) ?? id))];
@@ -92,7 +95,30 @@ export async function getPracticeResult(sessionId: string, owner: PracticeOwner)
   const transcriptMap = new Map<string, string>();
   for (const row of transcriptRows) if (row.questionGroupId) transcriptMap.set(row.questionGroupId, row.content);
   const fullOptions = listening ? await db.select().from(questionOptions).where(inArray(questionOptions.questionId, ids)).orderBy(asc(questionOptions.displayOrder)) : [];
-  const reviewQuestions = content.questions.map((q) => { const a = answerMap.get(q.id); const s = solutionMap.get(q.id); if (!a || !s) throw new Error("INCOMPLETE_PRACTICE_RESULT"); const masteryTargetQuestionId = targetByQuestion.get(q.id); const mastery = masteryMap.get(masteryTargetQuestionId ?? q.id); const hasExplanation = Boolean(s.explanationEn?.trim() || s.explanationVi?.trim()); return { ...q, options: listening ? fullOptions.filter((o) => o.questionId === q.id).map((o) => ({ id: o.id, key: o.optionKey, text: o.optionText })) : q.options, selectedOptionId: a.selectedOptionId, correctOptionId: s.correctOptionId, isCorrect: a.isCorrect, explanationEn: s.explanationEn, explanationVi: s.explanationVi, ...(mastery && hasExplanation ? { remediation: { stage: remediationStage(mastery.status as "UNRESOLVED" | "MASTERED", mastery.reviewSuccessStreak), reviewSuccessStreak: mastery.reviewSuccessStreak, reviewAttemptCount: mastery.reviewAttemptCount, focusedEvidence: Boolean(masteryTargetQuestionId) } } : {}), ...(listening ? { transcript: q.passageSetId ? transcriptMap.get(q.passageSetId) ?? "" : "" } : {}) }; });
+  const reviewQuestions = content.questions.map((q) => {
+    const a = answerMap.get(q.id); const s = solutionMap.get(q.id);
+    if (!a || !s) throw new Error("INCOMPLETE_PRACTICE_RESULT");
+    const masteryTargetQuestionId = targetByQuestion.get(q.id);
+    const mastery = masteryMap.get(masteryTargetQuestionId ?? q.id);
+    const hasExplanation = Boolean(s.explanationEn?.trim() || s.explanationVi?.trim());
+    const reason = reasonMap.get(q.id);
+    return {
+      ...q,
+      options: listening ? fullOptions.filter((o) => o.questionId === q.id).map((o) => ({ id: o.id, key: o.optionKey, text: o.optionText })) : q.options,
+      selectedOptionId: a.selectedOptionId,
+      correctOptionId: s.correctOptionId,
+      isCorrect: a.isCorrect,
+      explanationEn: s.explanationEn,
+      explanationVi: s.explanationVi,
+      ...(!a.isCorrect && "userId" in owner && owner.userId ? { mistakeReason: {
+        selected: reason?.code ?? null,
+        evidenceSource: (reason?.evidenceSource as MistakeReasonEvidence | undefined) ?? null,
+        choices: mistakeReasonChoices(q).map((choice) => ({ code: choice.code, label: choice.label, suggested: choice.suggested })),
+      } } : {}),
+      ...(mastery && hasExplanation ? { remediation: { stage: remediationStage(mastery.status as "UNRESOLVED" | "MASTERED", mastery.reviewSuccessStreak), reviewSuccessStreak: mastery.reviewSuccessStreak, reviewAttemptCount: mastery.reviewAttemptCount, focusedEvidence: Boolean(masteryTargetQuestionId) } } : {}),
+      ...(listening ? { transcript: q.passageSetId ? transcriptMap.get(q.passageSetId) ?? "" : "" } : {}),
+    };
+  });
   const map = new Map(reviewQuestions.map((q) => [q.id, q]));
   return { id: session.id, mode: session.practiceType as PracticeResult["mode"], skillArea: listening ? "LISTENING" : "READING", source: session.source as PracticeResult["source"], requestedSkill: session.requestedSkill, requestedSubSkill: session.requestedSubSkill, requestedQuestionCount: session.requestedQuestionCount, scoreCorrect: session.scoreCorrect, scoreTotal: session.scoreTotal, submittedAt: session.submittedAt.toISOString(), questions: reviewQuestions, groups: content.groups.map((group) => ({ ...group, questions: group.questions.map((q) => map.get(q.id)!) })) };
 }

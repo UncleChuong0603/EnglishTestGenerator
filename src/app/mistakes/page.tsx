@@ -21,6 +21,9 @@ import {
 } from "@/components/premium/premium-preview";
 import { getPremiumPreview } from "@/lib/premium/preview";
 import { remediationStage, type RemediationStage } from "@/lib/remediation/policy";
+import { getLatestReasonsForQuestions, getMistakeReasonPattern } from "@/lib/mistake-reasons/service";
+import { mistakeReasonDefinition } from "@/lib/mistake-reasons/catalog";
+import { MIN_CLASSIFIED_REASON_SAMPLE } from "@/lib/mistake-reasons/analytics";
 
 export default async function MistakesPage({
   searchParams,
@@ -57,6 +60,10 @@ export default async function MistakesPage({
       : "priority";
   const repeated = premium && query.filter === "repeated";
   const rows = await getMistakeBank(user.id, status, { part, skillArea: area });
+  const [latestReasons, reasonPattern] = await Promise.all([
+    getLatestReasonsForQuestions(user.id, rows.map((row) => row.questionId)),
+    getMistakeReasonPattern(user.id),
+  ]);
   const skills = [...new Set(rows.map((row) => row.skill))].sort((a, b) => a.localeCompare(b));
   const skill = typeof query.skill === "string" && skills.includes(query.skill) ? query.skill : undefined;
   const stagedRows = rows.filter((row) => remediationStage(row.status, row.reviewSuccessStreak) === view && (!skill || row.skill === skill));
@@ -242,6 +249,14 @@ export default async function MistakesPage({
             </p>
           </section>
         ) : null}
+        {reasonPattern.sampleSize > 0 ? <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-5" aria-labelledby="reason-pattern-heading">
+          <h2 className="text-lg font-black" id="reason-pattern-heading">{vi ? "Mẫu lý do sai" : "Mistake reason pattern"}</h2>
+          {reasonPattern.sufficient && reasonPattern.top ? <p className="mt-2 leading-7 text-slate-700">
+            {vi ? "Trong các lỗi đã phân loại, lý do xuất hiện nhiều nhất là " : "Among classified mistakes, the most frequent reason is "}
+            <strong>{mistakeReasonDefinition(reasonPattern.top.code).label[preferences.interfaceLanguage]}</strong>
+            {vi ? ` (${reasonPattern.top.count}/${reasonPattern.sampleSize}).` : ` (${reasonPattern.top.count}/${reasonPattern.sampleSize}).`}
+          </p> : <p className="mt-2 leading-7 text-slate-600">{vi ? `Bạn đã phân loại ${reasonPattern.sampleSize}/${MIN_CLASSIFIED_REASON_SAMPLE} lỗi tối thiểu. Cần thêm dữ liệu trước khi nêu mẫu nổi bật.` : `You classified ${reasonPattern.sampleSize}/${MIN_CLASSIFIED_REASON_SAMPLE} minimum mistakes. More evidence is needed before showing a pattern.`}</p>}
+        </section> : null}
         {counts.unresolved > 0 ? (
           <section className="mt-6 rounded-2xl border border-teal-200 bg-teal-50 p-5">
             <h2 className="text-lg font-black">
@@ -462,6 +477,7 @@ export default async function MistakesPage({
                 <p className="text-sm text-slate-600">
                   {taxonomyLabel(item.subSkill, preferences.interfaceLanguage)}
                 </p>
+                {latestReasons.get(item.questionId) ? <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700">{vi ? "Lý do gần nhất" : "Latest reason"}: {mistakeReasonDefinition(latestReasons.get(item.questionId)!).label[preferences.interfaceLanguage]}</p> : null}
                 {premium ? (
                   <p className="mt-3 text-sm text-slate-700">
                     {vi
