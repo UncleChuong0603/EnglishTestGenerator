@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { useFocusEffect, router } from "expo-router";
+import { useFocusEffect, router, type Href } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 import { api, MobileApiError } from "@/api/client";
 import type { DashboardResponse, EntitlementsResponse, PlanResponse } from "@/api/types";
@@ -112,6 +112,10 @@ export default function Home() {
           </Card>
           <Card>
             <Text style={styles.cardTitle}>{vi ? "Đường tới mục tiêu" : "Road to target"}</Text>
+            <View style={styles.streakRow}>
+              <View><Text style={styles.streakValue}>{d.streak.currentDays}</Text><Muted>{vi ? "chuỗi ngày hiện tại" : "current streak"}</Muted></View>
+              <View><Text style={styles.streakValue}>{d.streak.bestDays}</Text><Muted>{vi ? "chuỗi ngày tốt nhất" : "best streak"}</Muted></View>
+            </View>
             {d.goal?.targetScore
               ? <Text style={styles.metric}>{d.goal.targetScore}</Text>
               : <Muted>{vi ? "Chưa đặt mục tiêu điểm. Bạn có thể đặt trên web trong Cài đặt." : "No target yet. Set one on the web in Settings."}</Muted>}
@@ -130,6 +134,12 @@ export default function Home() {
                 </View>
               </View>
             )) : <Muted>{vi ? "Kế hoạch sẽ xuất hiện khi có hoạt động phù hợp." : "Your plan will appear when an activity is available."}</Muted>}
+          </Card>
+          <Card>
+            <Text style={styles.cardTitle}>{vi ? "Ôn tập thông minh" : "Smart review"}</Text>
+            <Muted>{vi ? "Tiếp tục với câu sai chưa thành thạo hoặc các từ đến hạn hôm nay." : "Continue with unmastered mistakes or vocabulary due today."}</Muted>
+            <PrimaryButton label={vi ? "Mở Câu sai cần ôn" : "Open Mistake Bank"} onPress={() => router.push("/mistakes" as Href)} />
+            <PrimaryButton label={vi ? "Ôn từ vựng" : "Review vocabulary"} onPress={() => router.push("/vocabulary" as Href)} />
           </Card>
         </>
       ) : null}
@@ -150,4 +160,6 @@ const styles = StyleSheet.create({
   planRow: { flexDirection: "row", alignItems: "center", gap: 12, borderTopColor: colors.rule, borderTopWidth: 1, paddingTop: 12 },
   slot: { width: 32, height: 32, textAlign: "center", textAlignVertical: "center", borderRadius: 16, backgroundColor: colors.paper, color: colors.forest, fontWeight: "800" },
   planTitle: { color: colors.ink, fontSize: 16, fontWeight: "700" },
+  streakRow: { flexDirection: "row", gap: space.xl, borderBottomWidth: 1, borderBottomColor: colors.rule, paddingBottom: space.sm },
+  streakValue: { color: colors.forest, fontSize: 28, fontWeight: "800" },
 });

@@ -46,6 +46,7 @@ export default function ProgressTab() {
               <Card key={label}>
                 <Text style={styles.label}>{label}</Text>
                 <Text style={styles.metric}>{value.accuracy === null ? "—" : `${value.accuracy}%`}</Text>
+                <View accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: value.accuracy ?? 0 }} style={styles.track}><View style={[styles.fill, { width: `${value.accuracy ?? 0}%` }]} /></View>
                 <Muted>{vi ? `${value.correct}/${value.answered} câu đúng` : `${value.correct}/${value.answered} correct`}</Muted>
               </Card>
             ))}
@@ -54,7 +55,7 @@ export default function ProgressTab() {
             <Text style={styles.label}>{vi ? "Theo Part" : "By part"}</Text>
             {data.parts.length ? data.parts.map((item) => (
               <View key={item.part} style={styles.row}>
-                <Text style={styles.part}>Part {item.part}</Text>
+                <View style={styles.partLabel}><Text style={styles.part}>Part {item.part}</Text><View accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: item.summary.accuracy ?? 0 }} style={styles.track}><View style={[styles.fill, { width: `${item.summary.accuracy ?? 0}%` }]} /></View></View>
                 <Text style={styles.value}>{item.summary.accuracy === null ? "—" : `${item.summary.accuracy}%`} · {vi ? `${item.summary.answered} câu` : `${item.summary.answered} answered`}</Text>
               </View>
             )) : <Muted>{vi ? "Chưa có dữ liệu. Hãy hoàn thành bài luyện đầu tiên." : "No data yet. Complete your first practice."}</Muted>}
@@ -72,4 +73,7 @@ const styles = StyleSheet.create({
   row: { minHeight: 48, flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderTopWidth: 1, borderTopColor: colors.rule, gap: 12 },
   part: { color: colors.ink, fontWeight: "700" },
   value: { color: colors.muted, flexShrink: 1, textAlign: "right" },
+  partLabel: { flex: 1, gap: 6 },
+  track: { height: 8, borderRadius: 99, backgroundColor: colors.rule, overflow: "hidden" },
+  fill: { height: "100%", backgroundColor: colors.forest },
 });

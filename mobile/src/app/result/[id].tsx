@@ -101,6 +101,7 @@ export default function ResultScreen() {
             );
           })}
           <Text style={styles.explanation}>{explanation(item) || (vi ? "Chưa có giải thích cho câu này." : "No explanation is available for this question.")}</Text>
+          {item.transcript ? <View style={styles.transcript}><Text style={styles.transcriptTitle}>{vi ? "Transcript sau khi nộp bài" : "Post-submit transcript"}</Text><Text style={styles.transcriptText}>{item.transcript}</Text></View> : null}
           {!item.isCorrect && item.mistakeReason ? <View style={styles.reasonSection}>
             <Text style={styles.reasonTitle}>{vi ? "Bạn nghĩ mình sai vì đâu?" : "Why do you think you missed this?"}</Text>
             <Muted>{vi ? "Không bắt buộc. Chọn một lý do hoặc bỏ qua." : "Optional. Choose a reason or skip it."}</Muted>
@@ -143,6 +144,9 @@ const styles = StyleSheet.create({
   correct: { color: colors.success, fontWeight: "700" },
   chosen: { color: colors.danger, fontWeight: "700" },
   explanation: { color: colors.muted, fontSize: 16, lineHeight: 25, marginTop: space.sm },
+  transcript: { borderTopWidth: 1, borderTopColor: colors.rule, marginTop: space.sm, paddingTop: space.md, gap: space.sm },
+  transcriptTitle: { color: colors.ink, fontSize: 16, fontWeight: "800" },
+  transcriptText: { color: colors.muted, fontSize: 16, lineHeight: 25 },
   reasonSection: { borderTopWidth: 1, borderTopColor: colors.rule, gap: space.sm, marginTop: space.md, paddingTop: space.md },
   reasonTitle: { color: colors.ink, fontSize: 17, fontWeight: "800" },
   reasonChoices: { flexDirection: "row", flexWrap: "wrap", gap: space.sm },

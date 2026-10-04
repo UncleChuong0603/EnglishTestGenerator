@@ -16,6 +16,9 @@ function Navigation() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="practice/[id]" options={{ title: vi ? "Luyện tập" : "Practice", headerBackTitle: vi ? "Trang chủ" : "Home" }} />
         <Stack.Screen name="result/[id]" options={{ title: vi ? "Kết quả" : "Result", headerBackVisible: false }} />
+        <Stack.Screen name="mistakes" options={{ title: vi ? "Câu sai cần ôn" : "Mistake Bank" }} />
+        <Stack.Screen name="vocabulary" options={{ title: vi ? "Từ vựng" : "Vocabulary" }} />
+        <Stack.Screen name="account-data" options={{ title: vi ? "Tài khoản & dữ liệu" : "Account & data" }} />
       </Stack>
     </>
   );

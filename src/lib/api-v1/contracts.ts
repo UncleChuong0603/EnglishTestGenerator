@@ -107,6 +107,7 @@ export const dashboardResponseSchema = z.strictObject({
       percent: z.number().int().min(0).max(100),
       complete: z.boolean(),
     }),
+    streak: z.strictObject({ currentDays: z.number().int().nonnegative(), bestDays: z.number().int().nonnegative() }),
     lifecycle: z.enum(["NEW", "DIAGNOSED", "ACTIVE", "RESUMABLE", "DAILY_GOAL_COMPLETE"]),
   }),
 });
@@ -234,6 +235,7 @@ export const submitPracticeResponseSchema = z.strictObject({
       isCorrect: z.boolean(),
       explanationEn: z.string().nullable(),
       explanationVi: z.string().nullable(),
+      transcript: z.string().optional(),
       mistakeReason: z.strictObject({
         selected: mistakeReasonCodeContractSchema.nullable(),
         evidenceSource: mistakeReasonEvidenceContractSchema.nullable(),
@@ -256,6 +258,12 @@ export const saveMistakeReasonRequestSchema = z.strictObject({
 export const saveMistakeReasonResponseSchema = z.strictObject({
   data: z.strictObject({ questionId: uuidSchema, reasonCode: mistakeReasonCodeContractSchema, evidenceSource: z.literal("USER_SELECTED") }),
 });
+
+export const updatePreferencesRequestSchema = z.strictObject({
+  interfaceLanguage: localeSchema,
+  explanationLanguage: z.enum(["en", "vi", "both"]),
+});
+export const updatePreferencesResponseSchema = meResponseSchema;
 
 export const mistakesResponseSchema = z.strictObject({
   data: z.array(z.strictObject({
@@ -288,6 +296,8 @@ export const vocabularyResponseSchema = z.strictObject({
   })),
   pagination: paginationMetaSchema,
 });
+export const reviewVocabularyRequestSchema = z.strictObject({ remembered: z.boolean() });
+export const reviewVocabularyResponseSchema = z.strictObject({ data: z.strictObject({ reviewed: z.literal(true) }) });
 
 export const progressResponseSchema = z.strictObject({
   data: z.strictObject({
@@ -319,6 +329,7 @@ export const apiV1Contracts = {
   login: { method: "POST", path: "/api/v1/auth/login", auth: "anonymous", request: loginRequestSchema, response: loginResponseSchema },
   logout: { method: "POST", path: "/api/v1/auth/logout", auth: "session", request: logoutRequestSchema, response: logoutResponseSchema },
   me: { method: "GET", path: "/api/v1/me", auth: "session", response: meResponseSchema },
+  updatePreferences: { method: "POST", path: "/api/v1/me/preferences", auth: "session", request: updatePreferencesRequestSchema, response: updatePreferencesResponseSchema },
   dashboard: { method: "GET", path: "/api/v1/dashboard", auth: "session", response: dashboardResponseSchema },
   plan: { method: "GET", path: "/api/v1/plan", auth: "session", response: planResponseSchema },
   createPractice: { method: "POST", path: "/api/v1/practice", auth: "session", request: createPracticeRequestSchema, response: createPracticeResponseSchema, idempotency: "required" },
@@ -329,6 +340,7 @@ export const apiV1Contracts = {
   startRemediation: { method: "POST", path: "/api/v1/practice/:id/remediation", auth: "session+ownership", request: startRemediationRequestSchema, response: startRemediationResponseSchema },
   mistakes: { method: "GET", path: "/api/v1/mistakes", auth: "session", query: paginationRequestSchema, response: mistakesResponseSchema },
   vocabulary: { method: "GET", path: "/api/v1/vocabulary", auth: "session", query: paginationRequestSchema, response: vocabularyResponseSchema },
+  reviewVocabulary: { method: "POST", path: "/api/v1/vocabulary/:id/review", auth: "session+ownership", request: reviewVocabularyRequestSchema, response: reviewVocabularyResponseSchema },
   progress: { method: "GET", path: "/api/v1/progress", auth: "session", response: progressResponseSchema },
   entitlements: { method: "GET", path: "/api/v1/entitlements", auth: "session", response: entitlementsResponseSchema },
 } as const;
@@ -336,6 +348,8 @@ export const apiV1Contracts = {
 export type ApiErrorResponse = z.infer<typeof apiErrorResponseSchema>;
 export type LoginResponse = z.infer<typeof loginResponseSchema>;
 export type MeResponse = z.infer<typeof meResponseSchema>;
+export type UpdatePreferencesRequest = z.infer<typeof updatePreferencesRequestSchema>;
+export type UpdatePreferencesResponse = z.infer<typeof updatePreferencesResponseSchema>;
 export type DashboardResponse = z.infer<typeof dashboardResponseSchema>;
 export type PlanResponse = z.infer<typeof planResponseSchema>;
 export type CreatePracticeRequest = z.infer<typeof createPracticeRequestSchema>;
@@ -348,5 +362,9 @@ export type SaveMistakeReasonRequest = z.infer<typeof saveMistakeReasonRequestSc
 export type SaveMistakeReasonResponse = z.infer<typeof saveMistakeReasonResponseSchema>;
 export type StartRemediationRequest = z.infer<typeof startRemediationRequestSchema>;
 export type StartRemediationResponse = z.infer<typeof startRemediationResponseSchema>;
+export type MistakesResponse = z.infer<typeof mistakesResponseSchema>;
+export type VocabularyResponse = z.infer<typeof vocabularyResponseSchema>;
+export type ReviewVocabularyRequest = z.infer<typeof reviewVocabularyRequestSchema>;
+export type ReviewVocabularyResponse = z.infer<typeof reviewVocabularyResponseSchema>;
 export type ProgressResponse = z.infer<typeof progressResponseSchema>;
 export type EntitlementsResponse = z.infer<typeof entitlementsResponseSchema>;

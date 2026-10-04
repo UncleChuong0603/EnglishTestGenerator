@@ -5,7 +5,10 @@ import {
   apiV1Contracts,
   createPracticeRequestSchema,
   getPracticeResponseSchema,
+  reviewVocabularyRequestSchema,
   saveMistakeReasonRequestSchema,
+  submitPracticeResponseSchema,
+  updatePreferencesRequestSchema,
   type CreatePracticeRequest,
 } from "./contracts";
 
@@ -15,6 +18,7 @@ describe("mobile API v1 contracts", () => {
       "/api/v1/auth/login",
       "/api/v1/auth/logout",
       "/api/v1/me",
+      "/api/v1/me/preferences",
       "/api/v1/dashboard",
       "/api/v1/plan",
       "/api/v1/practice",
@@ -25,6 +29,7 @@ describe("mobile API v1 contracts", () => {
       "/api/v1/practice/:id/remediation",
       "/api/v1/mistakes",
       "/api/v1/vocabulary",
+      "/api/v1/vocabulary/:id/review",
       "/api/v1/progress",
       "/api/v1/entitlements",
     ]);
@@ -84,5 +89,21 @@ describe("mobile API v1 contracts", () => {
     expect(saveMistakeReasonRequestSchema.safeParse({ questionId, reasonCode: "VOCAB_UNKNOWN" }).success).toBe(true);
     expect(saveMistakeReasonRequestSchema.safeParse({ questionId, reasonCode: "UNKNOWN" }).success).toBe(false);
     expect(saveMistakeReasonRequestSchema.safeParse({ questionId, reasonCode: "LOW_CONFIDENCE" }).success).toBe(false);
+  });
+
+  it("validates native preference and vocabulary review mutations", () => {
+    expect(updatePreferencesRequestSchema.safeParse({ interfaceLanguage: "vi", explanationLanguage: "both" }).success).toBe(true);
+    expect(updatePreferencesRequestSchema.safeParse({ interfaceLanguage: "fr", explanationLanguage: "both" }).success).toBe(false);
+    expect(reviewVocabularyRequestSchema.safeParse({ remembered: true }).success).toBe(true);
+    expect(reviewVocabularyRequestSchema.safeParse({ remembered: "yes" }).success).toBe(false);
+  });
+
+  it("allows transcripts only in submitted result payloads", () => {
+    const questionId = "00000000-0000-4000-8000-000000000002";
+    const optionA = "00000000-0000-4000-8000-000000000003";
+    const optionB = "00000000-0000-4000-8000-000000000004";
+    const question = { questionId, number: 1, part: 2, text: "", options: [{ id: optionA, key: "A", text: "A" }, { id: optionB, key: "B", text: "B" }], selectedOptionId: optionA, correctOptionId: optionB, isCorrect: false, explanationEn: "Explanation", explanationVi: "Giải thích", transcript: "The submitted transcript." };
+    expect(submitPracticeResponseSchema.safeParse({ data: { id: "00000000-0000-4000-8000-000000000001", status: "submitted", scoreCorrect: 0, scoreTotal: 1, submittedAt: "2026-10-04T00:00:00.000Z", results: [question] } }).success).toBe(true);
+    expect(getPracticeResponseSchema.safeParse({ data: { id: "00000000-0000-4000-8000-000000000001", status: "in_progress", source: "custom", skillArea: "LISTENING", part: 2, questionCount: 1, groups: [], questions: [{ id: questionId, number: 1, part: 2, text: "", skill: "listening", subSkill: "detail", passageSetId: null, selectedOptionId: null, options: question.options, transcript: question.transcript }] } }).success).toBe(false);
   });
 });

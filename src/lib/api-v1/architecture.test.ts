@@ -5,7 +5,7 @@ const route = (name: string) => readFileSync(`src/app/api/v1/${name}/route.ts`, 
 
 describe("Task 43 API architecture", () => {
   it("authenticates protected handlers from bearer sessions", () => {
-    for (const name of ["me", "dashboard", "plan", "entitlements", "progress", "mistakes", "vocabulary", "practice"]) expect(route(name)).toContain("requireApiActor");
+    for (const name of ["me", "me/preferences", "dashboard", "plan", "entitlements", "progress", "mistakes", "vocabulary", "vocabulary/[id]/review", "practice"]) expect(route(name)).toContain("requireApiActor");
   });
   it("requires durable idempotency on every practice mutation", () => {
     expect(route("practice")).toContain("idempotent(");
@@ -28,5 +28,9 @@ describe("Task 43 API architecture", () => {
     expect(apiPractice).toContain("startPractice(userId");
     expect(apiPractice).toContain(", transaction)");
     expect(selector).toContain("transaction ? execute(transaction) : db.transaction(execute)");
+  });
+  it("keeps mobile preferences and SRS review on shared services", () => {
+    expect(route("me/preferences")).toContain("updateLearnerPreferences(actor.user.id, body)");
+    expect(route("vocabulary/[id]/review")).toContain("reviewVocabulary(actor.user.id, id.data, body.remembered)");
   });
 });

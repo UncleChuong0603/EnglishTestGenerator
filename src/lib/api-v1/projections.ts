@@ -15,6 +15,7 @@ import type { ProgressCounts } from "@/lib/progress/types";
 import { getActiveTrial } from "@/lib/premium/trial";
 import { getVocabularyCards } from "@/lib/vocabulary/service";
 import { getWeeklyPlan } from "@/lib/weekly-plan/service";
+import { getGamificationSummary } from "@/lib/gamification/queries";
 import { dailyGoalProgress, getDailyWorkload, getDashboardLifecycle } from "@/lib/workout/policy";
 import { ApiV1Error } from "./errors";
 
@@ -46,7 +47,7 @@ export async function meProjection(userId: string) {
 }
 
 export async function dashboardProjection(userId: string) {
-  const [dashboard, goal, usage] = await Promise.all([getDashboardData(userId), getLearnerGoal(userId), getUsageStatus(userId)]);
+  const [dashboard, goal, usage, gamification] = await Promise.all([getDashboardData(userId), getLearnerGoal(userId), getUsageStatus(userId), getGamificationSummary(userId)]);
   const workload = getDailyWorkload({ goal, plan: usage.effectivePlan, workoutUsage: usage.entitlements.TODAYS_WORKOUT });
   const dailyGoal = dailyGoalProgress(dashboard.completedQuestionsToday, workload.targetQuestions);
   return { data: {
@@ -64,6 +65,7 @@ export async function dashboardProjection(userId: string) {
     resumablePractice: dashboard.resumablePractice ? { id: dashboard.resumablePractice.id, part: dashboard.resumablePractice.part, questionCount: dashboard.resumablePractice.questionCount } : null,
     goal: goal ? { targetScore: goal.targetScore, examDate: goal.examDate, dailyStudyMinutes: goal.dailyStudyMinutes, studyDaysPerWeek: goal.studyDaysPerWeek } : null,
     dailyGoal,
+    streak: { currentDays: gamification.currentStreak, bestDays: gamification.bestStreak },
     lifecycle: getDashboardLifecycle({ recommendDiagnostic: dashboard.recommendDiagnostic, hasResumablePractice: Boolean(dashboard.resumablePractice), dailyGoalComplete: dailyGoal.complete, completedLearningSessions: dashboard.completedLearningSessions }),
   } };
 }
@@ -174,7 +176,7 @@ export async function practiceProjection(userId: string, sessionId: string) {
       scoreCorrect: result.scoreCorrect,
       scoreTotal: result.scoreTotal,
       submittedAt: result.submittedAt,
-      results: result.questions.map((question) => ({ questionId: question.id, number: question.number, part: question.part, text: question.text, options: question.options, selectedOptionId: question.selectedOptionId, correctOptionId: question.correctOptionId, isCorrect: question.isCorrect, explanationEn: question.explanationEn, explanationVi: question.explanationVi, ...(question.mistakeReason ? { mistakeReason: question.mistakeReason } : {}) })),
+      results: result.questions.map((question) => ({ questionId: question.id, number: question.number, part: question.part, text: question.text, options: question.options, selectedOptionId: question.selectedOptionId, correctOptionId: question.correctOptionId, isCorrect: question.isCorrect, explanationEn: question.explanationEn, explanationVi: question.explanationVi, ...(question.transcript ? { transcript: question.transcript } : {}), ...(question.mistakeReason ? { mistakeReason: question.mistakeReason } : {}) })),
     } };
   }
   const drafts = await db.select({ questionId: practiceAnswerDrafts.questionId, selectedOptionId: practiceAnswerDrafts.selectedOptionId }).from(practiceAnswerDrafts)
