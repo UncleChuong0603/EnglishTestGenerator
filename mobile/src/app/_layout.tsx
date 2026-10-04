@@ -23,7 +23,7 @@ function Navigation() {
   useEffect(() => {
     void setAudioModeAsync({
       playsInSilentMode: true,
-      shouldPlayInBackground: true,
+      shouldPlayInBackground: false,
       interruptionMode: "doNotMix",
     });
   }, []);
@@ -54,6 +54,7 @@ function Navigation() {
       >
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="sign-in" options={{ headerShown: false }} />
+        <Stack.Screen name="account-deleted" options={{ headerShown: false }} />
         <Stack.Protected guard={Boolean(auth.token)}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen

@@ -171,29 +171,37 @@ const en = {
   legal: {
     beta: "Beta notice",
     back: "Back to home",
-    updated: "Last updated: September 13, 2026",
+    updated: "Last updated: October 4, 2026",
     privacyTitle: "Privacy",
-    privacyIntro: "This beta privacy notice explains the basic information used to operate TOEIC GYM. It is not a substitute for legal review before a commercial launch.",
+    privacyIntro: "This notice describes the data used by the current TOEIC GYM web and mobile services. It documents product behavior and still requires professional legal review before commercial launch.",
     privacySections: [
       {
-        title: "Information we use",
-        body: "We use account information provided through Google sign-in, profile details you submit, language preferences, practice answers, session results, and progress derived from those results.",
+        title: "Account and device data",
+        body: "We use your email address, optional profile name and avatar, language and ranking preferences, password credential or linked Google sign-in method, and security/session records. The mobile app stores an opaque session token in device secure storage. If you opt in to reminders, we also store an Expo push token, device platform, notification preferences and delivery status.",
       },
       {
-        title: "Why we use it",
-        body: "This information supports authentication, saves learning progress, grades submitted sessions, and provides performance-based recommendations.",
+        title: "Learning and support data",
+        body: "We store goals and learning context, assigned questions, answers, response times, practice and test history, mistake reasons, vocabulary reviews, progress, streaks and recommendations. We also store support requests, question reports and email-delivery status when those features are used. Dictation submissions are evaluated for the session but the learner's raw typed dictation text is not retained in learning history.",
       },
       {
-        title: "Service providers and analytics",
-        body: "Authentication and application data are stored in our PostgreSQL database. The current codebase does not include a separate product analytics or advertising tracker.",
+        title: "Why we use data",
+        body: "We use this data to authenticate accounts, protect the service, save and grade learning activity, synchronize web and mobile progress, provide evidence-based recommendations, send reminders you choose, answer support requests, and verify plan or purchase entitlements. We do not sell personal data or use an advertising or cross-app tracking SDK. First-party product events may record routes, actions and session identifiers so we can operate and improve the service.",
       },
       {
-        title: "Your choices",
-        body: "You can change language preferences and sign out at any time. Account deletion and formal data-request workflows need to be defined before commercial launch.",
+        title: "Processors and external services",
+        body: "Application data is stored in TOEIC GYM's PostgreSQL service. Depending on the feature you use, data is sent to Google for Google sign-in, the configured email provider for account and learning email, Expo for opted-in push delivery, PayOS for web payments, or Apple and Google for native purchase verification. These providers process only the fields needed for that feature under their own terms and privacy practices.",
       },
       {
-        title: "Beta limitations",
-        body: "This is a private beta. Features and data practices may change, and this notice should receive professional legal review before public commercial use.",
+        title: "Retention and deletion",
+        body: "Account and learning data is kept while the account remains active. Sessions and one-time authentication records have server expiry times; cached listening media remains in the app's private cache for at most 24 hours, and signing out clears the local token, vocabulary cache, notification-device reference and audio cache. Account deletion removes profile, learning, notification and authentication data and anonymizes first-party analytics. Payment-backed membership, order and store-purchase facts remain under a disabled pseudonymous account reference for accounting and audit needs; direct identifiers and checkout links are removed. External delivery logs and backups follow their operators' separate deletion and expiry procedures.",
+      },
+      {
+        title: "Your controls",
+        body: "You can change language, ranking and notification preferences, sign out, export a machine-readable copy of your data, or permanently delete your account from Account & data on web or mobile. Deletion invalidates every session. If you cannot access your account, use the Support page. Export and deletion requests are authenticated and rate-limited.",
+      },
+      {
+        title: "Security and review status",
+        body: "Traffic to the production API uses HTTPS, mobile session tokens use device secure storage, and sensitive server credentials are not included in exports. No service can promise absolute security. This beta notice records the implemented behavior as of the date above; legal review, backup-expiry approval and external-provider retention review remain required before store submission.",
       },
     ],
     termsTitle: "Terms of use",
@@ -397,29 +405,37 @@ const vi: MarketingTranslations = {
   legal: {
     beta: "Thông báo bản beta",
     back: "Về trang chủ",
-    updated: "Cập nhật lần cuối: 13/09/2026",
+    updated: "Cập nhật lần cuối: 04/10/2026",
     privacyTitle: "Quyền riêng tư",
-    privacyIntro: "Thông báo này giải thích những thông tin cơ bản được dùng để vận hành bản beta TOEIC GYM. Nội dung cần được rà soát pháp lý trước khi ra mắt thương mại.",
+    privacyIntro: "Thông báo này mô tả dữ liệu được dịch vụ web và mobile TOEIC GYM hiện tại sử dụng. Nội dung ghi nhận hành vi thực tế của sản phẩm và vẫn cần được chuyên gia pháp lý rà soát trước khi ra mắt thương mại.",
     privacySections: [
       {
-        title: "Thông tin chúng tôi sử dụng",
-        body: "Chúng tôi sử dụng thông tin tài khoản từ đăng nhập Google, hồ sơ bạn cung cấp, tùy chọn ngôn ngữ, câu trả lời, kết quả và tiến độ được tính từ những kết quả đó.",
+        title: "Dữ liệu tài khoản và thiết bị",
+        body: "Chúng tôi sử dụng địa chỉ email, tên và ảnh đại diện tùy chọn, tùy chọn ngôn ngữ và hiển thị xếp hạng, thông tin đăng nhập bằng mật khẩu hoặc Google đã liên kết, cùng hồ sơ bảo mật/phiên đăng nhập. Ứng dụng mobile lưu token phiên dạng opaque trong vùng lưu trữ bảo mật của thiết bị. Nếu bạn chủ động bật nhắc học, chúng tôi còn lưu Expo push token, nền tảng thiết bị, tùy chọn thông báo và trạng thái gửi.",
       },
       {
-        title: "Mục đích sử dụng",
-        body: "Thông tin này phục vụ xác thực, lưu tiến độ, chấm bài đã nộp và cung cấp đề xuất dựa trên kết quả.",
+        title: "Dữ liệu học tập và hỗ trợ",
+        body: "Chúng tôi lưu mục tiêu và bối cảnh học, câu hỏi được giao, câu trả lời, thời gian phản hồi, lịch sử luyện tập và thi thử, lý do sai, lượt ôn từ vựng, tiến độ, chuỗi ngày học và đề xuất. Khi bạn dùng tính năng liên quan, chúng tôi cũng lưu yêu cầu hỗ trợ, báo cáo câu hỏi và trạng thái gửi email. Câu trả lời gõ trong bài Dictation được đánh giá trong phiên nhưng nội dung gõ thô của người học không được giữ trong lịch sử học tập.",
       },
       {
-        title: "Nhà cung cấp dịch vụ và phân tích",
-        body: "Xác thực và dữ liệu ứng dụng được lưu trong PostgreSQL của chúng tôi. Mã nguồn hiện tại không có công cụ phân tích sản phẩm hay quảng cáo riêng.",
+        title: "Mục đích sử dụng dữ liệu",
+        body: "Dữ liệu được dùng để xác thực tài khoản, bảo vệ dịch vụ, lưu và chấm hoạt động học, đồng bộ tiến độ web/mobile, đưa ra đề xuất dựa trên bằng chứng, gửi lời nhắc bạn đã chọn, xử lý hỗ trợ và xác minh quyền lợi gói/mua hàng. Chúng tôi không bán dữ liệu cá nhân và không dùng SDK quảng cáo hoặc theo dõi chéo ứng dụng. Sự kiện sản phẩm nội bộ có thể ghi lại route, thao tác và mã phiên để vận hành và cải thiện dịch vụ.",
       },
       {
-        title: "Lựa chọn của bạn",
-        body: "Bạn có thể đổi tùy chọn ngôn ngữ và đăng xuất bất cứ lúc nào. Quy trình xóa tài khoản và yêu cầu dữ liệu cần được xác định trước khi ra mắt thương mại.",
+        title: "Đơn vị xử lý và dịch vụ bên ngoài",
+        body: "Dữ liệu ứng dụng được lưu trong dịch vụ PostgreSQL của TOEIC GYM. Tùy tính năng bạn dùng, dữ liệu được gửi đến Google để đăng nhập Google, nhà cung cấp email đã cấu hình để gửi email tài khoản/học tập, Expo để gửi push đã được bạn bật, PayOS cho thanh toán web, hoặc Apple và Google để xác minh mua hàng native. Các đơn vị này chỉ nhận trường dữ liệu cần cho tính năng tương ứng và xử lý theo điều khoản, chính sách riêng của họ.",
       },
       {
-        title: "Giới hạn beta",
-        body: "Đây là bản beta riêng tư. Tính năng và cách xử lý dữ liệu có thể thay đổi; thông báo này cần được chuyên gia pháp lý xem xét trước khi sử dụng thương mại.",
+        title: "Lưu giữ và xóa dữ liệu",
+        body: "Dữ liệu tài khoản và học tập được giữ khi tài khoản còn hoạt động. Phiên và hồ sơ xác thực dùng một lần có thời điểm hết hạn trên máy chủ; media nghe được cache riêng trong app tối đa 24 giờ, và đăng xuất sẽ xóa token cục bộ, cache từ vựng, mã thiết bị thông báo và cache audio. Xóa tài khoản sẽ xóa hồ sơ, dữ liệu học, thông báo và xác thực, đồng thời ẩn danh phân tích nội bộ. Thông tin gói có thanh toán, đơn hàng và giao dịch store vẫn được giữ dưới mã tài khoản đã vô hiệu hóa và ẩn danh hóa để phục vụ kế toán/kiểm toán; định danh trực tiếp và liên kết thanh toán bị xóa. Log gửi bên ngoài và bản sao lưu tuân theo quy trình xóa, hết hạn riêng của đơn vị vận hành.",
+      },
+      {
+        title: "Quyền kiểm soát của bạn",
+        body: "Bạn có thể đổi ngôn ngữ, hiển thị xếp hạng và tùy chọn thông báo, đăng xuất, xuất bản sao dữ liệu dạng máy đọc được hoặc xóa vĩnh viễn tài khoản trong mục Tài khoản & dữ liệu trên web hoặc mobile. Xóa tài khoản làm mất hiệu lực mọi phiên đăng nhập. Nếu không truy cập được tài khoản, hãy dùng trang Hỗ trợ. Yêu cầu xuất và xóa đều cần xác thực và có giới hạn tần suất.",
+      },
+      {
+        title: "Bảo mật và trạng thái rà soát",
+        body: "API production truyền dữ liệu qua HTTPS, token phiên mobile dùng vùng lưu trữ bảo mật của thiết bị, và thông tin bí mật phía máy chủ không nằm trong bản xuất. Không dịch vụ nào có thể cam kết an toàn tuyệt đối. Thông báo beta này ghi nhận hành vi đã triển khai tại ngày nêu trên; việc rà soát pháp lý, phê duyệt thời hạn bản sao lưu và rà soát lưu giữ của nhà cung cấp ngoài vẫn bắt buộc trước khi gửi store.",
       },
     ],
     termsTitle: "Điều khoản sử dụng",

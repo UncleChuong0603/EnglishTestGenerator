@@ -1,7 +1,10 @@
 import type {
+  AccountDataExportResponse,
   CreatePracticeRequest,
   CreatePracticeResponse,
   DashboardResponse,
+  DeleteAccountRequest,
+  DeleteAccountResponse,
   DictationAttemptRequest,
   DictationAttemptResponse,
   DictationCatalogResponse,
@@ -166,6 +169,14 @@ export const api = {
       body: {},
     }),
   me: (token: string) => request<MeResponse>("/me", { token }),
+  exportAccountData: (token: string) =>
+    request<AccountDataExportResponse>("/account/data-export", { token }),
+  deleteAccount: (token: string, body: DeleteAccountRequest) =>
+    request<DeleteAccountResponse>("/account/delete", {
+      token,
+      method: "POST",
+      body,
+    }),
   updatePreferences: (token: string, body: UpdatePreferencesRequest) =>
     request<UpdatePreferencesResponse>("/me/preferences", {
       token,

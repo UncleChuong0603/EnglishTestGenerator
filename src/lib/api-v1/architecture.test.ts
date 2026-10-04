@@ -5,7 +5,7 @@ const route = (name: string) => readFileSync(`src/app/api/v1/${name}/route.ts`, 
 
 describe("Task 43 API architecture", () => {
   it("authenticates protected handlers from bearer sessions", () => {
-    for (const name of ["me", "me/preferences", "notifications/preferences", "notifications/devices", "notifications/devices/[id]", "media/[id]", "dashboard", "plan", "entitlements", "progress", "mistakes", "vocabulary", "vocabulary/[id]/review", "practice"]) expect(route(name)).toContain("requireApiActor");
+    for (const name of ["me", "account/data-export", "account/delete", "me/preferences", "notifications/preferences", "notifications/devices", "notifications/devices/[id]", "media/[id]", "dashboard", "plan", "entitlements", "progress", "mistakes", "vocabulary", "vocabulary/[id]/review", "practice"]) expect(route(name)).toContain("requireApiActor");
   });
   it("requires durable idempotency on every practice mutation", () => {
     expect(route("practice")).toContain("idempotent(");
@@ -41,5 +41,13 @@ describe("Task 43 API architecture", () => {
     expect(media).toContain("eq(practiceSessions.userId, actor.user.id)");
     expect(media).toContain('eq(practiceSessions.status, "in_progress")');
     expect(readFileSync("mobile/src/app/_layout.tsx", "utf8")).toContain("<Stack.Protected guard={Boolean(auth.token)}>");
+  });
+  it("keeps native export and deletion on the existing account-data boundary", () => {
+    expect(route("account/data-export")).toContain("exportLearningData(actor.user.id)");
+    expect(route("account/delete")).toContain("deleteAccount(");
+    expect(route("account/delete")).toContain("actor.user.id");
+    expect(route("account/delete")).toContain("body.confirmationEmail");
+    expect(route("account/data-export")).toContain('enforceRateLimit("account_export"');
+    expect(route("account/delete")).toContain('enforceRateLimit("account_delete"');
   });
 });

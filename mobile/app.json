@@ -8,12 +8,18 @@
     "scheme": "toeicgym",
     "userInterfaceStyle": "light",
     "ios": {
-      "icon": "./assets/images/icon.png"
+      "icon": "./assets/images/icon.png",
+      "bundleIdentifier": "net.toeicgym.app",
+      "buildNumber": "1",
+      "supportsTablet": false
     },
     "android": {
+      "package": "net.toeicgym.app",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#031E3F",
-        "foregroundImage": "./assets/images/android-icon-foreground.png"
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false
     },
@@ -44,11 +50,12 @@
         {
           "microphonePermission": false,
           "recordAudioAndroid": false,
-          "enableBackgroundPlayback": true,
+          "enableBackgroundPlayback": false,
           "enableBackgroundRecording": false
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,

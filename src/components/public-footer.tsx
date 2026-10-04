@@ -34,6 +34,7 @@ export function PublicFooter({ locale }: { locale: InterfaceLanguage }) {
         <a className={footerLink} href="https://www.facebook.com/profile.php?id=61594521208737" target="_blank" rel="noopener noreferrer">{vi ? "Trang Facebook" : "Facebook Page"}</a>
         <a className={footerLink} href="https://www.facebook.com/groups/1632623558419538" target="_blank" rel="noopener noreferrer">{vi ? "Nhóm Facebook" : "Facebook Group"}</a>
         <Link className={footerLink} href="/privacy">{t.footer.privacy}</Link>
+        <Link className={footerLink} href="/delete-account">{vi ? "Xóa tài khoản" : "Delete account"}</Link>
         <Link className={footerLink} href="/terms">{t.footer.terms}</Link>
       </div></div>
     </div>

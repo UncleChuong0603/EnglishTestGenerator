@@ -4,6 +4,7 @@ import {
   apiErrorResponseSchema,
   apiV1Contracts,
   createPracticeRequestSchema,
+  deleteAccountRequestSchema,
   getPracticeResponseSchema,
   registerPushDeviceRequestSchema,
   reviewVocabularyRequestSchema,
@@ -19,6 +20,8 @@ describe("mobile API v1 contracts", () => {
       "/api/v1/auth/login",
       "/api/v1/auth/logout",
       "/api/v1/me",
+      "/api/v1/account/data-export",
+      "/api/v1/account/delete",
       "/api/v1/me/preferences",
       "/api/v1/notifications/preferences",
       "/api/v1/notifications/preferences",
@@ -115,6 +118,12 @@ describe("mobile API v1 contracts", () => {
     expect(registerPushDeviceRequestSchema.safeParse({ expoPushToken: "ExponentPushToken[abcdefghijklmnopqrstuvwxyz]", platform: "android" }).success).toBe(true);
     expect(registerPushDeviceRequestSchema.safeParse({ expoPushToken: "not-a-token", platform: "android" }).success).toBe(false);
     expect(registerPushDeviceRequestSchema.safeParse({ expoPushToken: "ExponentPushToken[abcdefghijklmnopqrstuvwxyz]", platform: "web" }).success).toBe(false);
+  });
+
+  it("requires explicit acknowledgement and the account email for native deletion", () => {
+    expect(deleteAccountRequestSchema.safeParse({ confirmationEmail: "owner@example.com", acknowledge: true }).success).toBe(true);
+    expect(deleteAccountRequestSchema.safeParse({ confirmationEmail: "owner@example.com", acknowledge: false }).success).toBe(false);
+    expect(deleteAccountRequestSchema.safeParse({ confirmationEmail: "owner@example.com", acknowledge: true, userId: "victim" }).success).toBe(false);
   });
 
   it("allows transcripts only in submitted result payloads", () => {

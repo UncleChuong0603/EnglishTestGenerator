@@ -68,7 +68,7 @@ export default function SettingsTab() {
       </Card>
       <Card>
         <Text style={styles.title}>{vi ? "Tài khoản & dữ liệu" : "Account & data"}</Text>
-        <Muted>{vi ? "Bạn có thể xuất hoặc xóa dữ liệu trong trang bảo mật trên web. Xóa tài khoản sẽ vô hiệu hóa ngay phiên mobile này." : "Export or delete your data on the secure web page. Deleting the account immediately invalidates this mobile session."}</Muted>
+        <Muted>{vi ? "Xuất bản sao dữ liệu hoặc xóa vĩnh viễn tài khoản ngay trong ứng dụng." : "Export a copy of your data or permanently delete your account in the app."}</Muted>
         <PrimaryButton label={vi ? "Mở Tài khoản & dữ liệu" : "Open Account & data"} onPress={() => router.push("/account-data" as Href)} />
       </Card>
       <Card>

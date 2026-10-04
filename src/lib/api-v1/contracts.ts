@@ -81,6 +81,30 @@ export const meResponseSchema = z.strictObject({
   }),
 });
 
+export const accountDataExportResponseSchema = z.strictObject({
+  data: z.looseObject({
+    format: z.literal("toeicgym-learning-data"),
+    version: z.string().min(1),
+    exportedAt: isoDateTimeSchema,
+    account: z.looseObject({
+      id: uuidSchema,
+      email: z.email(),
+    }),
+  }),
+});
+
+export const deleteAccountRequestSchema = z.strictObject({
+  confirmationEmail: z.email().max(320),
+  acknowledge: z.literal(true),
+});
+
+export const deleteAccountResponseSchema = z.strictObject({
+  data: z.strictObject({
+    deleted: z.literal(true),
+    deletedAt: isoDateTimeSchema,
+  }),
+});
+
 const accuracySummarySchema = z.strictObject({
   answered: z.number().int().nonnegative(),
   correct: z.number().int().nonnegative(),
@@ -701,6 +725,19 @@ export const apiV1Contracts = {
     auth: "session",
     response: meResponseSchema,
   },
+  accountDataExport: {
+    method: "GET",
+    path: "/api/v1/account/data-export",
+    auth: "session",
+    response: accountDataExportResponseSchema,
+  },
+  deleteAccount: {
+    method: "POST",
+    path: "/api/v1/account/delete",
+    auth: "session",
+    request: deleteAccountRequestSchema,
+    response: deleteAccountResponseSchema,
+  },
   updatePreferences: {
     method: "POST",
     path: "/api/v1/me/preferences",
@@ -881,6 +918,13 @@ export const apiV1Contracts = {
 export type ApiErrorResponse = z.infer<typeof apiErrorResponseSchema>;
 export type LoginResponse = z.infer<typeof loginResponseSchema>;
 export type MeResponse = z.infer<typeof meResponseSchema>;
+export type AccountDataExportResponse = z.infer<
+  typeof accountDataExportResponseSchema
+>;
+export type DeleteAccountRequest = z.infer<typeof deleteAccountRequestSchema>;
+export type DeleteAccountResponse = z.infer<
+  typeof deleteAccountResponseSchema
+>;
 export type UpdatePreferencesRequest = z.infer<
   typeof updatePreferencesRequestSchema
 >;

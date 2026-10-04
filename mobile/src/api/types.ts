@@ -1,7 +1,10 @@
 import type {
+  AccountDataExportResponse,
   CreatePracticeRequest,
   CreatePracticeResponse,
   DashboardResponse,
+  DeleteAccountRequest,
+  DeleteAccountResponse,
   DictationAttemptRequest,
   DictationAttemptResponse,
   DictationCatalogResponse,
@@ -36,9 +39,12 @@ import type {
   VocabularyResponse,
 } from "../../../src/lib/api-v1/contracts";
 export type {
+  AccountDataExportResponse,
   CreatePracticeRequest,
   CreatePracticeResponse,
   DashboardResponse,
+  DeleteAccountRequest,
+  DeleteAccountResponse,
   EntitlementsResponse,
   GetPracticeResponse,
   LoginResponse,
