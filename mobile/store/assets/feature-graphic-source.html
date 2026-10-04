@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>TOEIC GYM feature graphic</title>
+    <style>
+      * { box-sizing: border-box; }
+      html, body { margin: 0; width: 1024px; height: 500px; overflow: hidden; }
+      body {
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+        color: #082d4f;
+        background:
+          radial-gradient(circle at 86% 18%, rgba(13, 214, 204, .28), transparent 24%),
+          radial-gradient(circle at 15% 90%, rgba(36, 90, 67, .15), transparent 28%),
+          #f7f6f1;
+      }
+      .canvas { position: relative; display: grid; grid-template-columns: 1.1fr .9fr; width: 100%; height: 100%; padding: 62px 70px; }
+      .canvas::before, .canvas::after { content: ""; position: absolute; border-radius: 999px; transform: rotate(-18deg); }
+      .canvas::before { right: -95px; bottom: -125px; width: 470px; height: 300px; background: #052f5b; }
+      .canvas::after { right: 115px; bottom: -155px; width: 430px; height: 250px; background: #13c9c2; opacity: .86; }
+      .copy { position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: center; }
+      .brand { display: flex; align-items: center; gap: 18px; }
+      .brand img { width: 92px; height: 92px; filter: drop-shadow(0 14px 20px rgba(5, 47, 91, .12)); }
+      .wordmark { font-size: 48px; line-height: 1; font-weight: 900; letter-spacing: -2.5px; color: #052f5b; }
+      .wordmark span { color: #09bdb7; }
+      h1 { margin: 34px 0 0; max-width: 520px; font-size: 35px; line-height: 1.16; letter-spacing: -1.2px; }
+      p { margin: 15px 0 0; max-width: 470px; font-size: 18px; line-height: 1.5; color: #45584d; }
+      .cards { position: relative; z-index: 3; display: flex; flex-direction: column; justify-content: center; gap: 16px; padding-left: 38px; }
+      .card { display: grid; grid-template-columns: 54px 1fr; align-items: center; gap: 16px; min-height: 94px; padding: 18px 22px; border: 1px solid rgba(5, 47, 91, .12); border-radius: 22px; background: rgba(255,255,255,.92); box-shadow: 0 20px 45px rgba(5, 47, 91, .12); transform: translateX(var(--offset)); }
+      .icon { display: grid; place-items: center; width: 54px; height: 54px; border-radius: 18px; font-size: 27px; color: #052f5b; background: #dff8f4; }
+      .card strong { display: block; font-size: 19px; line-height: 1.2; color: #172821; }
+      .card small { display: block; margin-top: 5px; font-size: 14px; color: #566a5e; }
+      [data-lang="en"] .vi, [data-lang="vi"] .en { display: none; }
+    </style>
+  </head>
+  <body data-lang="vi">
+    <main class="canvas">
+      <section class="copy">
+        <div class="brand">
+          <img src="../../assets/images/splash-icon.png" alt="" />
+          <div class="wordmark">TOEIC <span>GYM</span></div>
+        </div>
+        <h1 class="vi">Luyện đúng phần cần cải thiện.</h1>
+        <h1 class="en">Practice what needs improvement.</h1>
+        <p class="vi">Bài tập Listening &amp; Reading, ôn lỗi sai và tiến độ dựa trên bằng chứng học tập.</p>
+        <p class="en">Listening &amp; Reading practice, mistake review and progress grounded in learning evidence.</p>
+      </section>
+      <section class="cards" aria-hidden="true">
+        <div class="card" style="--offset: 14px"><div class="icon">▶</div><div><strong class="vi">Bài tập hôm nay</strong><strong class="en">Today’s Workout</strong><small class="vi">Bước tiếp theo hữu ích</small><small class="en">Your next useful step</small></div></div>
+        <div class="card" style="--offset: -12px"><div class="icon">✓</div><div><strong class="vi">Ôn câu sai</strong><strong class="en">Review mistakes</strong><small class="vi">Hiểu lý do, luyện lại đúng chỗ</small><small class="en">Understand and retry</small></div></div>
+        <div class="card" style="--offset: 22px"><div class="icon">↗</div><div><strong class="vi">Theo dõi tiến bộ</strong><strong class="en">Track progress</strong><small class="vi">Không dự đoán điểm thi</small><small class="en">No score prediction</small></div></div>
+      </section>
+    </main>
+    <script>
+      const language = new URLSearchParams(location.search).get("lang");
+      if (language === "en" || language === "vi") {
+        document.body.dataset.lang = language;
+        document.documentElement.lang = language;
+      }
+    </script>
+  </body>
+</html>
