@@ -49,6 +49,11 @@ database, restores as the app role, runs the production integrity verifier, boot
 exact production app image against that restored database, requires the health route
 to query it, and drops the temporary database on exit.
 
+The on-demand `db-tools` image is not necessarily rebuilt by a normal Dokploy app
+deployment. The drill therefore mounts the verifier read-only from the audited Git
+checkout into that one-off container, preventing a stale tools image from silently
+running an older gate.
+
 ### Local media
 
 `scripts/backup-media.sh` mounts the same named media volume read-only through the

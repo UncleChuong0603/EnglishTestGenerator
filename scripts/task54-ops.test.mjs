@@ -16,6 +16,7 @@ describe("Task 54 backup and recovery controls", () => {
     const restoreTest = read("scripts/test-restore-db.sh");
     expect(restoreTest).toContain("--no-owner --no-privileges");
     expect(restoreTest).toContain("compose run --rm --no-deps");
+    expect(restoreTest).toContain("$VERIFY_SCRIPT:/app/scripts/verify-production-db.mjs:ro");
     expect(restoreTest).toContain("server.js");
     expect(restoreTest).toContain('/api/health');
     expect(restoreTest).toContain("dropdb --if-exists");

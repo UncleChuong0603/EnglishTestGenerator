@@ -7,6 +7,8 @@ cd "$(dirname "$0")/.."
 BACKUP_FILE="$(cd "$(dirname "$1")" && pwd -P)/$(basename "$1")"
 test -f "$BACKUP_FILE"
 TEST_DB="restore_test_$(date -u +%Y%m%d%H%M%S)_$$"
+VERIFY_SCRIPT="$(pwd -P)/scripts/verify-production-db.mjs"
+test -f "$VERIFY_SCRIPT"
 
 if [ -f "$BACKUP_FILE.sha256" ]; then
   (cd "$(dirname "$BACKUP_FILE")" && sha256sum -c "$(basename "$BACKUP_FILE").sha256") > /dev/null
@@ -27,7 +29,7 @@ else
   compose exec -T postgres sh -c 'pg_restore --exit-on-error --no-owner --no-privileges -U "$POSTGRES_USER" -d "$1"' sh "$TEST_DB" < "$BACKUP_FILE"
 fi
 compose exec -T postgres sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$1" -c "select count(*) from users" -c "select count(*) from questions"' sh "$TEST_DB"
-compose run --rm -e TEST_DB="$TEST_DB" db-tools sh -c '
+compose run --rm -e TEST_DB="$TEST_DB" -v "$VERIFY_SCRIPT:/app/scripts/verify-production-db.mjs:ro" db-tools sh -c '
   DATABASE_URL="$(node -e '\''const url = new URL(process.env.DATABASE_URL); url.pathname = `/${process.env.TEST_DB}`; process.stdout.write(url.href)'\'')"
   export DATABASE_URL
   npm run verify:production-db
