@@ -168,7 +168,7 @@ export async function applyVerifiedStorePurchase(
           .values({
             userId,
             eventName: "trial_to_paid",
-            source: "store",
+            source: "payment",
             deduplicationKey: `trial-to-paid:${userId}`,
             properties: { provider: verified.provider },
           })

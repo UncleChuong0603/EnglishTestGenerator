@@ -35,4 +35,10 @@ describe("cross-platform billing architecture", () => {
       service.indexOf("if (owned && shouldAdvancePurchase)"),
     );
   });
+  it("records trial conversion through the constrained payment analytics source", () => {
+    const service = read("src/lib/store-billing/service.ts");
+    expect(service).toContain('eventName: "trial_to_paid"');
+    expect(service).toContain('source: "payment"');
+    expect(service).not.toContain('source: "store"');
+  });
 });
