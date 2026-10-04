@@ -242,5 +242,6 @@ async function main() {
 try {
   await main();
 } finally {
-  await pool.end();
+  const { pool: applicationPool } = await import("../src/db/index.ts");
+  await Promise.all([pool.end(), applicationPool.end()]);
 }
