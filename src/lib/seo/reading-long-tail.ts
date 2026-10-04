@@ -1,5 +1,6 @@
 import { readingParaphraseGuide } from "./reading-paraphrase-guide";
 import { readingInferenceGuide } from "./reading-inference-guide";
+import { readingChatGuide } from "./reading-chat-guide";
 import { readingPart6WordsGuide } from "./reading-part6-words-guide";
 
 export type ReadingSampleQuestion = {
@@ -29,6 +30,7 @@ export type ReadingLongTailGuide = {
 export const readingLongTailGuides = {
   paraphrase: readingParaphraseGuide,
   inference: readingInferenceGuide,
+  chat: readingChatGuide,
   wordPhraseCompletion: readingPart6WordsGuide,
   sentenceInsertion: {
     path: "/toeic/part-6/dien-cau-vao-doan-van",
@@ -136,6 +138,7 @@ export const readingLongTailGuides = {
       { href: "/toeic/part-7", label: "Tổng quan TOEIC Part 7", description: "Ôn các dạng câu hỏi và cách định vị bằng chứng." },
       { href: "/toeic/part-7/paraphrase-tu-dong-nghia", label: "Paraphrase và từ đồng nghĩa Part 7", description: "Luyện sáu câu về cách diễn đạt lại và nghĩa trong ngữ cảnh." },
       { href: "/toeic/part-7/cau-hoi-suy-luan", label: "Câu hỏi suy luận Part 7", description: "Luyện chọn kết luận chắc chắn từ hai hoặc nhiều chi tiết trong tài liệu." },
+      { href: "/toeic/part-7/doan-tin-nhan", label: "Đoạn tin nhắn Part 7", description: "Theo dõi người nói, mốc giờ và phản hồi trong ba cuộc trò chuyện ngắn." },
       { href: "/toeic/part-7/doc-hieu-hai-doan-van", label: "Đọc hiểu hai văn bản", description: "Tiếp tục bằng bài cần đối chiếu hai email." },
       { href: "/toeic/part-7/doc-hieu-ba-van-ban", label: "Đọc hiểu ba văn bản", description: "Luyện nối lịch, số lượng và email cập nhật." },
       { href: "/blog/quan-ly-thoi-gian-toeic-reading-75-phut", label: "Chia thời gian Reading", description: "Tạo mốc thời gian để giữ đủ phút cho Part 7." },

@@ -94,6 +94,7 @@ export const readingInferenceGuide = {
   review: "Với mỗi câu, viết chuỗi bằng chứng bằng dấu cộng hoặc mũi tên. Sau đó khoanh phần của đáp án đúng có thể chứng minh được từ chuỗi đó. Với đáp án sai, đánh dấu từ hoặc ý đã vượt quá bài đọc, chẳng hạn chức danh, cảm xúc, mức độ tuyệt đối hoặc một kế hoạch chưa được nói đến. Cuối cùng, che bốn lựa chọn và tự trả lời lại bằng một câu ngắn.",
   related: [
     { href: "/toeic/part-7", label: "Tổng quan TOEIC Part 7", description: "Đặt câu suy luận vào quy trình đọc mục đích, chi tiết và nghĩa theo ngữ cảnh." },
+    { href: "/toeic/part-7/doan-tin-nhan", label: "Đoạn tin nhắn Part 7", description: "Áp dụng suy luận vào chuỗi phản hồi có nhiều người nói và mốc giờ." },
     { href: "/toeic/part-7/paraphrase-tu-dong-nghia", label: "Paraphrase và từ đồng nghĩa", description: "Nhận ra cách đáp án diễn đạt lại kết luận từ bằng chứng trong bài." },
     { href: "/toeic/part-7/doc-hieu-mot-doan-van", label: "Đọc hiểu một văn bản", description: "Luyện định vị thông tin trong một email trước khi nối nhiều chi tiết." },
     { href: "/toeic/part-7/doc-hieu-hai-doan-van", label: "Đọc hiểu hai văn bản", description: "Áp dụng suy luận khi phải đối chiếu hai tài liệu." },

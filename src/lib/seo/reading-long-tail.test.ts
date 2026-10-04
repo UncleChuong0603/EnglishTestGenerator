@@ -55,6 +55,17 @@ describe("Reading long-tail guides", () => {
     expect(readingLongTailGuides.triplePassage.related.some(link => link.href === guide.path)).toBe(true);
   });
 
+  it("publishes a distinct text message chain exercise", () => {
+    const guide = readingLongTailGuides.chat;
+    expect(guide.path).toBe("/toeic/part-7/doan-tin-nhan");
+    expect(guide.documents).toHaveLength(3);
+    expect(guide.questions).toHaveLength(6);
+    expect(guide.documents.every(document => document.paragraphs.every(paragraph => /^\d{1,2}:\d{2}/.test(paragraph)))).toBe(true);
+    expect(guide.related.some(link => link.href === readingLongTailGuides.inference.path)).toBe(true);
+    expect(readingLongTailGuides.inference.related.some(link => link.href === guide.path)).toBe(true);
+    expect(readingLongTailGuides.singlePassage.related.some(link => link.href === guide.path)).toBe(true);
+  });
+
   it("separates Part 6 word and phrase completion from sentence insertion", () => {
     const words = readingLongTailGuides.wordPhraseCompletion;
     const sentences = readingLongTailGuides.sentenceInsertion;

@@ -3,7 +3,8 @@ import Image from "next/image";
 import type { InterfaceLanguage } from "@/lib/i18n/config";
 import { getMarketingTranslations } from "@/lib/i18n/marketing";
 
-const footerLink = "inline-flex min-h-11 items-center hover:text-[#245a43] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245a43]";
+const footerLink = "inline-flex min-h-11 items-center py-2 text-sm leading-6 text-[#45584d] underline-offset-4 transition-colors hover:text-[#245a43] hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245a43]";
+const utilityLink = "inline-flex min-h-11 items-center text-sm text-[#45584d] underline-offset-4 transition-colors hover:text-[#245a43] hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245a43]";
 
 export function PublicFooter({ locale }: { locale: InterfaceLanguage }) {
   const t = getMarketingTranslations(locale);
@@ -23,21 +24,53 @@ export function PublicFooter({ locale }: { locale: InterfaceLanguage }) {
     ["/#features", vi ? "Tất cả tính năng" : "All features"],
     ["/ve-toeic-gym", vi ? "Về TOEIC GYM" : "About TOEIC GYM"],
   ];
-  return <footer className="border-t border-[#dce3d9] bg-white">
-    <div className="mx-auto grid max-w-7xl gap-8 px-5 py-10 sm:px-6 md:grid-cols-2 lg:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,1fr))]">
-      <div><Image src="/brand/toeic-gym-logo.png" alt="TOEIC GYM" width={96} height={96} /><p className="mt-3 max-w-md text-sm leading-7 text-[#45584d]">{vi ? "Nền tảng luyện TOEIC độc lập, không liên kết hoặc được ETS bảo trợ. Kết quả là độ chính xác thô, không phải điểm TOEIC chính thức." : "An independent TOEIC practice platform, not affiliated with or endorsed by ETS. Results are raw accuracy, not official TOEIC scores."}</p></div>
-      <div><p className="font-black">{vi ? "Bài luyện & bài học" : "Practice & lessons"}</p><div className="mt-3 grid text-sm text-[#45584d]">{practiceLinks.map(([href, label]) => <Link className={footerLink} href={href} key={href}>{label}</Link>)}</div></div>
-      <div><p className="font-black">{t.footer.product}</p><div className="mt-3 grid text-sm text-[#45584d]">{productLinks.map(([href, label]) => <Link className={footerLink} href={href} key={href}>{label}</Link>)}</div></div>
-      <div><p className="font-black">{vi ? "Hỗ trợ & cộng đồng" : "Support & community"}</p><div className="mt-3 grid text-sm text-[#45584d]">
-        <Link className={footerLink} href="/support">{vi ? "Trung tâm trợ giúp" : "Help center"}</Link>
-        <Link className={footerLink} href="/support#feedback">{vi ? "Gửi phản hồi" : "Send feedback"}</Link>
-        <a className={footerLink} href="https://www.facebook.com/profile.php?id=61594521208737" target="_blank" rel="noopener noreferrer">{vi ? "Trang Facebook" : "Facebook Page"}</a>
-        <a className={footerLink} href="https://www.facebook.com/groups/1632623558419538" target="_blank" rel="noopener noreferrer">{vi ? "Nhóm Facebook" : "Facebook Group"}</a>
-        <Link className={footerLink} href="/privacy">{t.footer.privacy}</Link>
-        <Link className={footerLink} href="/delete-account">{vi ? "Xóa tài khoản" : "Delete account"}</Link>
-        <Link className={footerLink} href="/terms">{t.footer.terms}</Link>
-      </div></div>
+  return <footer className="border-t border-[#dce3d9] bg-[#f7f6f1] text-[#172821]">
+    <div className="mx-auto max-w-7xl px-5 py-8 sm:px-6 sm:py-10 lg:grid lg:grid-cols-[minmax(15.5rem,.9fr)_minmax(0,2.1fr)] lg:gap-16 lg:py-12">
+      <div className="flex items-start gap-4 border-b border-[#dce3d9] pb-7 lg:block lg:border-0 lg:pb-0">
+        <Link aria-label={vi ? "Trang chủ TOEIC GYM" : "TOEIC GYM home"} className="shrink-0 rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#245a43]" href="/" prefetch={false}>
+          <Image src="/brand/toeic-gym-logo.png" alt="" width={72} height={72} />
+        </Link>
+        <p className="max-w-sm text-sm leading-6 text-[#45584d] lg:mt-4">{vi ? "Nền tảng luyện TOEIC độc lập, không liên kết hoặc được ETS bảo trợ. Kết quả là độ chính xác thô, không phải điểm TOEIC chính thức." : "An independent TOEIC practice platform, not affiliated with or endorsed by ETS. Results are raw accuracy, not official TOEIC scores."}</p>
+      </div>
+
+      <nav aria-label={vi ? "Liên kết chân trang" : "Footer links"} className="mt-7 grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-3 sm:gap-x-8 lg:mt-0">
+        <section aria-labelledby="footer-practice-title">
+          <h2 className="text-sm font-extrabold leading-6" id="footer-practice-title">{vi ? "Bài luyện & bài học" : "Practice & lessons"}</h2>
+          <ul className="mt-2 grid">
+            {practiceLinks.map(([href, label]) => <li key={href}><Link className={footerLink} href={href} prefetch={false}>{label}</Link></li>)}
+          </ul>
+        </section>
+
+        <section aria-labelledby="footer-product-title">
+          <h2 className="text-sm font-extrabold leading-6" id="footer-product-title">{t.footer.product}</h2>
+          <ul className="mt-2 grid">
+            {productLinks.map(([href, label]) => <li key={href}><Link className={footerLink} href={href} prefetch={false}>{label}</Link></li>)}
+          </ul>
+        </section>
+
+        <section aria-labelledby="footer-support-title" className="col-span-2 sm:col-span-1">
+          <h2 className="text-sm font-extrabold leading-6" id="footer-support-title">{vi ? "Hỗ trợ & cộng đồng" : "Support & community"}</h2>
+          <ul className="mt-2 grid grid-cols-2 gap-x-6 sm:grid-cols-1">
+            <li><Link className={footerLink} href="/support" prefetch={false}>{vi ? "Trung tâm trợ giúp" : "Help center"}</Link></li>
+            <li><Link className={footerLink} href="/support#feedback" prefetch={false}>{vi ? "Gửi phản hồi" : "Send feedback"}</Link></li>
+            <li><a className={footerLink} href="https://www.facebook.com/profile.php?id=61594521208737" target="_blank" rel="noopener noreferrer">{vi ? "Trang Facebook" : "Facebook Page"}<span className="sr-only">{vi ? " (mở trong tab mới)" : " (opens in a new tab)"}</span></a></li>
+            <li><a className={footerLink} href="https://www.facebook.com/groups/1632623558419538" target="_blank" rel="noopener noreferrer">{vi ? "Nhóm Facebook" : "Facebook Group"}<span className="sr-only">{vi ? " (mở trong tab mới)" : " (opens in a new tab)"}</span></a></li>
+          </ul>
+        </section>
+      </nav>
     </div>
-    <div className="border-t border-[#dce3d9] px-5 py-5 text-center text-xs text-[#45584d]">© {new Date().getFullYear()} TOEIC GYM. {t.footer.rights}</div>
+
+    <div className="border-t border-[#dce3d9]">
+      <div className="mx-auto flex max-w-7xl flex-col px-5 py-3 sm:px-6 md:flex-row md:items-center md:justify-between md:gap-6">
+        <p className="py-2 text-sm leading-6 text-[#45584d]">© {new Date().getFullYear()} TOEIC GYM. {t.footer.rights}</p>
+        <nav aria-label={vi ? "Pháp lý" : "Legal"}>
+          <ul className="flex flex-wrap gap-x-5">
+            <li><Link className={utilityLink} href="/privacy" prefetch={false}>{t.footer.privacy}</Link></li>
+            <li><Link className={utilityLink} href="/terms" prefetch={false}>{t.footer.terms}</Link></li>
+            <li><Link className={utilityLink} href="/delete-account" prefetch={false}>{vi ? "Xóa tài khoản" : "Delete account"}</Link></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
   </footer>;
 }

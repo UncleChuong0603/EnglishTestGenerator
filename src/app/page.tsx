@@ -5,6 +5,7 @@ import { ChallengeStartButton } from "@/components/challenge-start-button";
 import { PublicFooter } from "@/components/public-footer";
 import { PublicHeader } from "@/components/public-header";
 import { FeatureDirectory } from "@/components/marketing/feature-directory";
+import { GuideCarousel } from "@/components/marketing/guide-carousel";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getPreferences } from "@/lib/i18n/get-translations";
 import { getSiteUrl } from "@/lib/seo/site-url";
@@ -37,23 +38,27 @@ const copy = {
     entryTitle: "Đổi cách tập. Giữ hứng thú học.",
     entryLead: "Nghe một câu chuyện, làm workout hôm nay hoặc xem thứ hạng tuần. Chọn hoạt động bạn muốn thử ngay bên dưới.",
     loopEyebrow: "CÁC TÍNH NĂNG CỦA TOEIC GYM",
-    loopTitle: "Bạn muốn luyện gì? Có lối vào ở đây.",
-    loopLead: "Từ bài thử không cần đăng nhập đến công cụ học với tài khoản miễn phí. Mỗi mục dẫn thẳng đến đúng tính năng.",
+    loopTitle: "Chọn tính năng để bắt đầu.",
     bankEyebrow: "KHO LUYỆN TẬP",
     bankTitle: "Đủ 7 Part. Chọn đúng phần cần tập.",
     bankLead: "Chọn dạng bài để đọc chiến lược và làm câu mẫu miễn phí. Muốn tự chọn số câu cho buổi luyện? Mở mục Luyện riêng từng Part ở trên.",
     listening: "Listening",
     reading: "Reading",
     guideEyebrow: "HỌC THÊM MỘT CHÚT",
-    guideTitle: "Đọc hướng dẫn rồi thử ngay.",
+    guideTitle: "Bài viết trọng tâm để học TOEIC đúng hướng.",
+    guideCarouselLabel: "Bài viết TOEIC nổi bật",
+    guideItemLabel: "Bài",
+    guidePrevious: "Xem bài viết trước",
+    guideNext: "Xem bài viết tiếp theo",
+    guideRead: "Đọc bài viết",
+    guideAll: "Xem tất cả bài viết TOEIC",
     guideLinks: [
-      { href: "/toeic/part-5/thi-dong-tu", label: "Thì động từ Part 5" },
-      { href: "/toeic/part-5/word-form", label: "Word Form" },
-      { href: "/toeic/part-6", label: "Cách làm Part 6" },
-      { href: "/toeic/part-7", label: "Cách làm Part 7" },
-      { href: "/toeic/listening", label: "Luyện nghe TOEIC" },
-      { href: "/thi-thu-toeic-online", label: "Thi thử TOEIC online" },
-      { href: "/blog", label: "Bài học TOEIC" },
+      { category: "BẮT ĐẦU", href: "/toeic", title: "Cấu trúc đề thi TOEIC: 7 Part, 200 câu", description: "Nắm bố cục Listening và Reading, dạng câu hỏi và cách chọn phần cần luyện trước." },
+      { category: "LỘ TRÌNH", href: "/blog/chien-luoc-tang-diem-toeic-450-den-700", title: "Từ mục tiêu điểm đến kế hoạch học", description: "Biến mục tiêu TOEIC thành các chặng luyện có thể theo dõi và điều chỉnh." },
+      { category: "LISTENING", href: "/blog/cach-luyen-nghe-toeic-part-3-4", title: "Luyện nghe Part 3–4 mà không cần nghe từng từ", description: "Đọc trước câu hỏi, dự đoán bối cảnh, bắt paraphrase và sửa bài bằng transcript." },
+      { category: "READING", href: "/blog/quan-ly-thoi-gian-toeic-reading-75-phut", title: "Chia 75 phút Reading để không bỏ dở Part 7", description: "Thiết lập mốc chuyển Part 5–6–7, xử lý câu mắc kẹt và review buổi bấm giờ." },
+      { category: "NGỮ PHÁP", href: "/blog/ngu-phap-toeic-part-5-can-hoc", title: "7 chủ điểm ngữ pháp Part 5 cần học trước", description: "Ưu tiên loại từ, động từ, hòa hợp, mệnh đề, liên từ, giới từ và lượng từ." },
+      { category: "TỪ VỰNG", href: "/blog/tu-vung-toeic-theo-chu-de-cong-so", title: "Học từ vựng TOEIC theo cụm và ngữ cảnh", description: "Xây vốn từ dùng được ngay trong Listening và Reading thay vì ghi nhớ từ rời rạc." },
     ],
     closing: "Bắt đầu bằng một bài ngắn. Biết mình cần làm gì tiếp.",
     closingBody: "10 câu Part 5, kết quả và lời giải ngay sau khi nộp. Không cần tài khoản.",
@@ -77,23 +82,27 @@ const copy = {
     entryTitle: "Switch up your practice. Keep it interesting.",
     entryLead: "Listen to a story, do today’s workout or check the weekly standings. Choose an activity to try below.",
     loopEyebrow: "TOEIC GYM FEATURES",
-    loopTitle: "Choose your activity. Go straight to it.",
-    loopLead: "From practice without signing in to study tools with a free account. Every entry links directly to its feature.",
+    loopTitle: "Choose a feature to start.",
     bankEyebrow: "QUESTION BANK",
     bankTitle: "All 7 Parts. Practice what matters.",
     bankLead: "Choose a task to read strategies and try free sample questions. To configure your own set size, open Practice Parts 1–7 above.",
     listening: "Listening",
     reading: "Reading",
     guideEyebrow: "LEARN A LITTLE MORE",
-    guideTitle: "Read a guide, then try it.",
+    guideTitle: "Essential TOEIC guides, selected for your next step.",
+    guideCarouselLabel: "Featured TOEIC guides",
+    guideItemLabel: "Guide",
+    guidePrevious: "View previous guide",
+    guideNext: "View next guide",
+    guideRead: "Read guide",
+    guideAll: "View all TOEIC guides",
     guideLinks: [
-      { href: "/toeic/part-5/thi-dong-tu", label: "Part 5 verb tenses" },
-      { href: "/toeic/part-5/word-form", label: "Word Form" },
-      { href: "/toeic/part-6", label: "Part 6 guide" },
-      { href: "/toeic/part-7", label: "Part 7 guide" },
-      { href: "/toeic/listening", label: "TOEIC Listening" },
-      { href: "/thi-thu-toeic-online", label: "TOEIC mock tests" },
-      { href: "/blog", label: "TOEIC guides" },
+      { category: "START HERE", href: "/toeic", title: "TOEIC test format: 7 Parts and 200 questions", description: "Understand the Listening and Reading structure, question types and where to begin practicing." },
+      { category: "ROADMAP", href: "/blog/chien-luoc-tang-diem-toeic-450-den-700", title: "Turn a target score into a study plan", description: "Break your TOEIC goal into practice stages you can review, measure and adjust." },
+      { category: "LISTENING", href: "/blog/cach-luyen-nghe-toeic-part-3-4", title: "Train for Parts 3–4 without catching every word", description: "Preview questions, predict context, notice paraphrases and review with transcripts." },
+      { category: "READING", href: "/blog/quan-ly-thoi-gian-toeic-reading-75-phut", title: "Plan the 75-minute Reading section", description: "Set checkpoints for Parts 5–7, move past stuck questions and review timed sessions." },
+      { category: "GRAMMAR", href: "/blog/ngu-phap-toeic-part-5-can-hoc", title: "Seven Part 5 grammar topics to learn first", description: "Prioritize word forms, verbs, agreement, clauses, connectors, prepositions and quantifiers." },
+      { category: "VOCABULARY", href: "/blog/tu-vung-toeic-theo-chu-de-cong-so", title: "Learn TOEIC vocabulary in phrases and context", description: "Build vocabulary you can recognize in Listening and Reading instead of memorizing isolated words." },
     ],
     closing: "Start with a short set. Know what comes next.",
     closingBody: "Ten Part 5 questions, with results and explanations after submission. No account needed.",
@@ -191,8 +200,8 @@ export default async function Home() {
 
     <section aria-labelledby="features-title" className={styles.directorySection} id="features">
       <div className={styles.section}>
-        <div className={styles.sectionIntro}><div><p className={styles.eyebrow}>{t.loopEyebrow}</p><h2 id="features-title">{t.loopTitle}</h2></div><p>{t.loopLead}</p></div>
-        <FeatureDirectory locale={locale} />
+        <div className={styles.sectionIntro}><div><p className={styles.eyebrow}>{t.loopEyebrow}</p><h2 id="features-title">{t.loopTitle}</h2></div></div>
+        <FeatureDirectory compact locale={locale} />
       </div>
     </section>
 
@@ -201,7 +210,21 @@ export default async function Home() {
       <div className={styles.partGroups}><div><h3>{t.listening}</h3><div>{parts.slice(0, 4).map((part) => <Link href={`/toeic/part-${part.number}`} key={part.number}><span>0{part.number}</span><strong>Part {part.number}</strong><small>{vi ? part.vi : part.en}</small><span aria-hidden="true">↗</span></Link>)}</div></div><div><h3>{t.reading}</h3><div>{parts.slice(4).map((part) => <Link href={`/toeic/part-${part.number}`} key={part.number}><span>0{part.number}</span><strong>Part {part.number}</strong><small>{vi ? part.vi : part.en}</small><span aria-hidden="true">↗</span></Link>)}</div></div></div>
     </section>
 
-    <section aria-labelledby="method-title" className={styles.method} id="how-it-works"><p className={styles.eyebrow}>{t.guideEyebrow}</p><h2 id="method-title">{t.guideTitle}</h2><div className={styles.guideLinks}>{t.guideLinks.map((item) => <Link href={item.href} key={item.href}>{item.label} <span aria-hidden="true">↗</span></Link>)}</div><Link className={styles.secondaryAction} href="/ve-toeic-gym">{vi ? "Tính năng, cách học và nguồn nội dung của TOEIC GYM" : "TOEIC GYM features, study flow and content sources"}<span aria-hidden="true">↗</span></Link></section>
+    <section aria-labelledby="method-title" className={styles.method} id="how-it-works">
+      <p className={styles.eyebrow}>{t.guideEyebrow}</p>
+      <h2 id="method-title">{t.guideTitle}</h2>
+      <GuideCarousel
+        allGuidesHref="/blog"
+        allGuidesLabel={t.guideAll}
+        itemLabel={t.guideItemLabel}
+        items={t.guideLinks}
+        label={t.guideCarouselLabel}
+        locale={locale}
+        nextLabel={t.guideNext}
+        previousLabel={t.guidePrevious}
+        readLabel={t.guideRead}
+      />
+    </section>
 
     <section aria-labelledby="closing-title" className={styles.closing}><div><p className={styles.eyebrow}>TOEIC GYM</p><h2 id="closing-title">{t.closing}</h2><p>{t.closingBody}</p></div>{user ? <Link className={styles.primaryAction} href="/dashboard">{t.continue}<span aria-hidden="true">↗</span></Link> : <form action={startPart5Challenge}><ChallengeStartButton className={styles.primaryAction} label={t.start} pendingLabel={t.starting} /></form>}</section>
     </main>

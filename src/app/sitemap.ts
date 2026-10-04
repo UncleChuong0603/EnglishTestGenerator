@@ -15,6 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ["/toeic/part-4", new Date("2026-10-02T00:00:00.000Z")],
     ["/toeic/part-6/dien-tu-va-cum-tu", new Date("2026-10-04T00:00:00.000Z")],
     ["/toeic/part-7/cau-hoi-suy-luan", new Date("2026-10-04T00:00:00.000Z")],
+    ["/toeic/part-7/doan-tin-nhan", new Date("2026-10-04T00:00:00.000Z")],
     ["/toeic/part-7/doc-hieu-mot-doan-van", new Date("2026-10-02T00:00:00.000Z")],
     ["/toeic/part-7/paraphrase-tu-dong-nghia", new Date("2026-10-02T00:00:00.000Z")],
     ["/toeic/thang-diem", new Date("2026-10-02T00:00:00.000Z")],

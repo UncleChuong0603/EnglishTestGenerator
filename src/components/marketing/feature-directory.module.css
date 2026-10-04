@@ -8,6 +8,17 @@
 .access { display: block; margin-top: .4rem; color: #45584d; font-size: .8rem; line-height: 1.6; }
 .feature p { margin: 0; color: #45584d; font-size: 1rem; line-height: 1.7; }
 .action { display: flex; align-items: center; justify-content: space-between; gap: .75rem; color: var(--green); font-size: .9rem; font-weight: 800; line-height: 1.6; text-decoration: underline; text-underline-offset: .25rem; }
+.compactDirectory { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2.5rem 3rem; }
+.compactGroup h3 { margin-bottom: .75rem; font-size: 1rem; }
+.compactGroup .compactList { border-top-color: #cbd8ca; }
+.compactFeature { display: flex; min-height: 4.75rem; align-items: center; gap: 1rem; border-bottom: 1px solid var(--line); padding: .8rem .5rem; transition: background .2s ease, color .2s ease; }
+.compactFeature:hover { background: #edf2e9; }
+.compactFeature:focus-visible { outline: 3px solid var(--green); outline-offset: 3px; }
+.compactFeature h4 { min-width: 0; margin: 0; color: var(--ink); font-size: .98rem; font-weight: 800; line-height: 1.45; }
+.iconFrame { display: grid; width: 2.6rem; height: 2.6rem; flex: none; place-items: center; border: 1px solid #bdd0bf; border-radius: .35rem; background: #e9eee5; color: var(--green); }
+.icon { width: 1.4rem; height: 1.4rem; }
+.arrow { margin-left: auto; color: var(--green); font-weight: 800; }
 @media (max-width: 800px) { .feature { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); } .action { grid-column: 2; justify-content: flex-start; } }
-@media (max-width: 550px) { .feature { grid-template-columns: minmax(0, 1fr); gap: .8rem; padding: 1.4rem .25rem; } .action { grid-column: auto; min-height: 2.75rem; } }
-@media (prefers-reduced-motion: reduce) { .feature { transition: none; } }
+@media (max-width: 700px) { .compactDirectory { grid-template-columns: minmax(0, 1fr); gap: 2rem; } }
+@media (max-width: 550px) { .feature { grid-template-columns: minmax(0, 1fr); gap: .8rem; padding: 1.4rem .25rem; } .action { grid-column: auto; min-height: 2.75rem; } .compactFeature { padding-inline: .25rem; } }
+@media (prefers-reduced-motion: reduce) { .feature, .compactFeature { transition: none; } }
