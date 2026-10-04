@@ -29,8 +29,28 @@ in `docs/deferred-operational-debt.md`.
 - Existing DB cron ran daily at 02:00 UTC with 14-day local retention. There was no
   media backup or media schedule before this task.
 
-Final backup timestamps, restore evidence, DB structure metrics and cron status are
-recorded in the task handoff after post-deployment verification.
+Post-deployment verification at revision `638b382311277f5b0c2a0f300d8c47a50f50deff`
+recorded a healthy replacement app container, a successful migration container and
+the following recovery evidence:
+
+- database backup `english-test-20261004T101753Z.dump`: checksum valid, custom
+  archive valid, 4,513,065 bytes, mode `0600`;
+- isolated PostgreSQL 17 restore: 28 users and 10,045 questions restored; every
+  integrity check returned zero, the demo gate was ready, and the exact production
+  app image passed `/api/health` against the restored database;
+- media backup `toeicgym-media-20261004T104236Z.tar.gz`: checksum/archive valid,
+  954,104,884 bytes, mode `0600`, and exactly 3,539 files matching the source count;
+- installed schedules: database daily at 02:00 UTC, media daily at 03:00 UTC, and
+  ops health every 15 minutes, while preserving unrelated cron entries;
+- final health gate: app and PostgreSQL healthy with zero restarts, both schedulers
+  running with zero restarts, HTTPS `200`, database backup age 1,601 seconds, media
+  backup age 49 seconds, and root disk exactly at the allowed 90% ceiling.
+
+The read-only database audit reported PostgreSQL 17, 55 migrations with only the
+accepted historical `0017_question_bank_import` mismatch, latest migration present,
+55,555,763 database bytes, no invalid/unready indexes, no unvalidated constraints,
+no orphan-like relations and no tables lacking a primary key. `pg_stat_statements`
+is not enabled, so no query-level index recommendation was claimed.
 
 ## Backup design
 
