@@ -93,6 +93,11 @@ export default async function PricingPage() {
             {locale === "vi" ? "Khôi phục Premium" : "Restore Premium"}
           </Link>
         </aside>
+      ) : account?.membershipStatus === "REVOKED" ? (
+        <aside className="mx-auto mt-8 flex max-w-5xl flex-wrap items-center justify-between gap-4 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4">
+          <div><strong>{locale === "vi" ? "Quyền Premium đã bị thu hồi" : "Premium access was revoked"}</strong><p className="mt-1 text-sm text-slate-700">{locale === "vi" ? "Đây không phải trạng thái hết hạn tự nhiên. Hãy kiểm tra giao dịch hoặc liên hệ hỗ trợ nếu bạn không yêu cầu hoàn tiền." : "This is not natural expiry. Review the transaction or contact support if you did not request a refund."}</p></div>
+          <Link className="inline-flex min-h-11 items-center rounded-xl bg-slate-900 px-5 py-3 font-bold text-white" href="/billing">{locale === "vi" ? "Xem thanh toán" : "Review billing"}</Link>
+        </aside>
       ) : null}
       {preview ? (
         <PersonalizedPremiumSummary locale={locale} preview={preview} />

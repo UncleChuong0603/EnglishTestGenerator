@@ -78,7 +78,7 @@ try {
   const capped = await addUser("cap", 36);
   await pool.query("insert into lifecycle_emails(user_id,type,window_key,status,sent_at) values($1,'inactive_3d','older','sent',$2)", [capped, before(1)]);
   const premium = await addUser("premium", 36);
-  await pool.query("insert into user_plan_memberships(user_id,plan_key,source,starts_at,ends_at) values($1,'PREMIUM','MANUAL',$2,$3)", [premium, before(24), new Date(now.getTime() + 30 * 86_400_000)]);
+  await pool.query("insert into user_plan_memberships(user_id,plan_key,source,starts_at,ends_at) values($1,'PREMIUM','ADMIN',$2,$3)", [premium, before(24), new Date(now.getTime() + 30 * 86_400_000)]);
   const first = await runLifecycleEmails(now);
   assert.equal(first.sent, 5); // signup, day1, inactive, weekly, premium
   assert.equal(first.failed, 1);

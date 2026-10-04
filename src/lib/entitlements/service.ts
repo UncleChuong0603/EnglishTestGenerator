@@ -25,14 +25,15 @@ export async function getEffectiveCapabilities(userId: string, now = new Date())
   return { plan, ...getPlanCapabilities(plan) };
 }
 
-export type MembershipState = { status: "ACTIVE" | "EXPIRED" | "FREE"; expiresAt: Date | null; daysRemaining: number | null };
+export type MembershipState = { status: "ACTIVE" | "EXPIRED" | "REVOKED" | "FREE"; expiresAt: Date | null; daysRemaining: number | null };
 export async function getMembershipState(userId: string, now = new Date()): Promise<MembershipState> {
   await recordTrialExpiry(userId, now);
   const [active] = await db.select({ endsAt: userPlanMemberships.endsAt }).from(userPlanMemberships).where(activePremiumMembership(userId, now)).orderBy(sql`case when ${userPlanMemberships.source} = 'TRIAL' then 1 else 0 end`, sql`${userPlanMemberships.endsAt} desc nulls first`, desc(userPlanMemberships.createdAt)).limit(1);
   if (active) return { status: "ACTIVE", expiresAt: active.endsAt, daysRemaining: active.endsAt ? Math.max(1, Math.ceil((active.endsAt.getTime() - now.getTime()) / 86_400_000)) : null };
-  const [row] = await db.select({ endsAt: userPlanMemberships.endsAt }).from(userPlanMemberships).where(and(eq(userPlanMemberships.userId, userId), eq(userPlanMemberships.planKey, "PREMIUM")))
+  const [row] = await db.select({ endsAt: userPlanMemberships.endsAt, revokedAt: userPlanMemberships.revokedAt }).from(userPlanMemberships).where(and(eq(userPlanMemberships.userId, userId), eq(userPlanMemberships.planKey, "PREMIUM")))
     .orderBy(sql`${userPlanMemberships.endsAt} desc nulls first`, desc(userPlanMemberships.createdAt)).limit(1);
   if (!row) return { status: "FREE", expiresAt: null, daysRemaining: null };
+  if (row.revokedAt && (!row.endsAt || row.endsAt > row.revokedAt)) return { status: "REVOKED", expiresAt: row.revokedAt, daysRemaining: 0 };
   return { status: "EXPIRED", expiresAt: row.endsAt, daysRemaining: 0 };
 }
 
@@ -52,15 +53,15 @@ export async function getUsageStatus(userId: string, now = new Date()): Promise<
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 export type EntitlementTx = Tx;
 
-export async function grantPremiumWithTx(tx: Tx, input: { userId: string; days: number; now?: Date; source?: "MANUAL" | "PROMOTION" | "PAYMENT"; paymentOrderId?: string }) {
+export async function grantPremiumWithTx(tx: Tx, input: { userId: string; days: number; now?: Date; source?: "ADMIN" | "PROMOTION" | "PAYOS"; paymentOrderId?: string }) {
   const now = input.now ?? new Date();
   if (!Number.isInteger(input.days) || input.days < 1 || input.days > 3650) throw new Error("INVALID_DURATION");
   await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${input.userId}:plan`}, 0))`);
   const [latest] = await tx.select({ endsAt: userPlanMemberships.endsAt }).from(userPlanMemberships).where(activePremiumMembership(input.userId, now)).orderBy(sql`${userPlanMemberships.endsAt} desc nulls first`).limit(1);
   if (latest?.endsAt === null) return { membershipId: null, endsAt: null, unchanged: true as const };
   const endsAt = quoteResultingExpiry(latest ? { status: "ACTIVE", expiresAt: latest.endsAt, daysRemaining: null } : { status: "FREE", expiresAt: null, daysRemaining: null }, input.days, now);
-  const source = input.source ?? "MANUAL";
-  if ((source === "PAYMENT") !== Boolean(input.paymentOrderId)) throw new Error("INVALID_MEMBERSHIP_SOURCE");
+  const source = input.source ?? "ADMIN";
+  if ((source === "PAYOS") !== Boolean(input.paymentOrderId)) throw new Error("INVALID_MEMBERSHIP_SOURCE");
   const [membership] = await tx.insert(userPlanMemberships).values({ userId: input.userId, planKey: "PREMIUM", source, paymentOrderId: input.paymentOrderId, startsAt: now, endsAt }).returning({ id: userPlanMemberships.id });
   return { membershipId: membership.id, endsAt, unchanged: false as const };
 }
@@ -68,11 +69,11 @@ export async function grantPremiumWithTx(tx: Tx, input: { userId: string; days: 
 export async function revokePremiumWithTx(tx: Tx, input: { userId: string; now?: Date }) {
   const now = input.now ?? new Date();
   await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${input.userId}:plan`}, 0))`);
-  return tx.update(userPlanMemberships).set({ revokedAt: now, updatedAt: now }).where(activePremiumMembership(input.userId, now)).returning({ id: userPlanMemberships.id });
+  return tx.update(userPlanMemberships).set({ revokedAt: now, updatedAt: now }).where(and(activePremiumMembership(input.userId, now), sql`${userPlanMemberships.source} in ('ADMIN','PROMOTION','TRIAL')`)).returning({ id: userPlanMemberships.id });
 }
 
 export async function getMembershipHistory(userId: string, page = 1, pageSize = 20) {
-  return db.select({ id: userPlanMemberships.id, planKey: userPlanMemberships.planKey, source: userPlanMemberships.source, paymentOrderId: userPlanMemberships.paymentOrderId, startsAt: userPlanMemberships.startsAt, endsAt: userPlanMemberships.endsAt, revokedAt: userPlanMemberships.revokedAt, createdAt: userPlanMemberships.createdAt })
+  return db.select({ id: userPlanMemberships.id, planKey: userPlanMemberships.planKey, source: userPlanMemberships.source, paymentOrderId: userPlanMemberships.paymentOrderId, storePurchaseId: userPlanMemberships.storePurchaseId, startsAt: userPlanMemberships.startsAt, endsAt: userPlanMemberships.endsAt, revokedAt: userPlanMemberships.revokedAt, createdAt: userPlanMemberships.createdAt })
     .from(userPlanMemberships).where(eq(userPlanMemberships.userId, userId)).orderBy(desc(userPlanMemberships.createdAt), desc(userPlanMemberships.id)).limit(pageSize).offset((page - 1) * pageSize);
 }
 export class UsageLimitError extends Error { readonly code = "USAGE_LIMIT_REACHED"; constructor(readonly status: { entitlement: EntitlementKey; used: number; limit: number; remaining: 0; resetAt: string; effectivePlan: PlanKey }) { super("USAGE_LIMIT_REACHED"); } }

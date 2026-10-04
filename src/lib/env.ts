@@ -26,6 +26,15 @@ const serverEnvSchema = z.object({
   LOCAL_MEDIA_ROOT: optionalString(),
   MEDIA_SIGNING_SECRET: optionalString(32),
   EXPO_PUSH_ACCESS_TOKEN: optionalString(),
+  APPLE_BUNDLE_ID: optionalString(),
+  APPLE_APP_ID: z.preprocess((value) => value === "" ? undefined : value, z.coerce.number().int().positive().optional()),
+  APPLE_ROOT_CA_B64: optionalString(),
+  APPLE_IAP_PRODUCT_IDS: optionalString(),
+  GOOGLE_PLAY_PACKAGE_NAME: optionalString(),
+  GOOGLE_PLAY_PRODUCT_IDS: optionalString(),
+  GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_B64: optionalString(),
+  GOOGLE_PLAY_RTDN_AUDIENCE: optionalString(),
+  GOOGLE_PLAY_RTDN_SERVICE_ACCOUNT_EMAIL: optionalString(),
 });
 
 export function getServerEnv() {
@@ -33,6 +42,11 @@ export function getServerEnv() {
   if (!parsed.success) throw new Error(`Invalid server environment: ${parsed.error.issues.map((issue) => issue.path.join(".")).join(", ")}`);
   if (Boolean(parsed.data.GOOGLE_CLIENT_ID) !== Boolean(parsed.data.GOOGLE_CLIENT_SECRET)) throw new Error("GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be configured together");
   if (Boolean(parsed.data.SMTP_USER) !== Boolean(parsed.data.SMTP_PASSWORD)) throw new Error("SMTP_USER and SMTP_PASSWORD must be configured together");
+  const appleConfigured = [parsed.data.APPLE_BUNDLE_ID, parsed.data.APPLE_APP_ID, parsed.data.APPLE_ROOT_CA_B64, parsed.data.APPLE_IAP_PRODUCT_IDS].filter(Boolean).length;
+  if (appleConfigured !== 0 && appleConfigured !== 4) throw new Error("Apple IAP verification must be configured as one complete set");
+  const googleConfigured = [parsed.data.GOOGLE_PLAY_PACKAGE_NAME, parsed.data.GOOGLE_PLAY_PRODUCT_IDS, parsed.data.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_B64].filter(Boolean).length;
+  if (googleConfigured !== 0 && googleConfigured !== 3) throw new Error("Google Play verification must be configured as one complete set");
+  if (Boolean(parsed.data.GOOGLE_PLAY_RTDN_AUDIENCE) !== Boolean(parsed.data.GOOGLE_PLAY_RTDN_SERVICE_ACCOUNT_EMAIL)) throw new Error("Google Play RTDN identity settings must be configured together");
   if (parsed.data.MEDIA_ENABLED === "true" && (!parsed.data.LOCAL_MEDIA_ROOT || !parsed.data.MEDIA_SIGNING_SECRET)) throw new Error("Local media root and signing secret are required when media is enabled");
   if (process.env.NODE_ENV === "production") {
     const appUrl = parseUrl(parsed.data.APP_URL, "APP_URL");

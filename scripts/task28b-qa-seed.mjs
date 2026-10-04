@@ -10,7 +10,7 @@ async function user(name, premium = false) {
   const email = `task28b-${name}@qa.invalid`;
   const row = (await pool.query("insert into users(email,email_normalized,password_hash,email_verified_at,status) values($1,$1,'qa',now(),'active') returning id", [email])).rows[0];
   await pool.query("insert into profiles(id,full_name,interface_language,explanation_language,ranking_visibility) values($1,$2,'vi','both','HIDDEN')", [row.id, `QA ${name}`]);
-  if (premium) await pool.query("insert into user_plan_memberships(user_id,plan_key,source,starts_at,ends_at) values($1,'PREMIUM','MANUAL',now()-interval '1 day',now()+interval '30 days')", [row.id]);
+  if (premium) await pool.query("insert into user_plan_memberships(user_id,plan_key,source,starts_at,ends_at) values($1,'PREMIUM','ADMIN',now()-interval '1 day',now()+interval '30 days')", [row.id]);
   return row.id;
 }
 

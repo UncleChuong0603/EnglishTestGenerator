@@ -14,7 +14,7 @@ async function fixture(browser: Browser, premium = false, admin = false, locale:
   const { rows: [user] } = await pool.query("insert into users(email,email_normalized,status,email_verified_at) values($1,$1,'active',now()) returning id", [email]);
   users.push(user.id);
   await pool.query("insert into profiles(id,interface_language) values($1,$2)", [user.id, locale]);
-  if (premium) await pool.query("insert into user_plan_memberships(user_id,plan_key,source,starts_at) values($1,'PREMIUM','MANUAL',now())", [user.id]);
+  if (premium) await pool.query("insert into user_plan_memberships(user_id,plan_key,source,starts_at) values($1,'PREMIUM','ADMIN',now())", [user.id]);
   if (admin) await pool.query("insert into user_roles(user_id,role) values($1,'ADMIN')", [user.id]);
   const token = randomBytes(32).toString("base64url");
   await pool.query("insert into user_sessions(user_id,session_token_hash,expires_at) values($1,$2,now()+interval '1 hour')", [user.id, hash(token)]);

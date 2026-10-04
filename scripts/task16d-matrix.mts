@@ -21,7 +21,7 @@ async function user(label: string, visibility = "PUBLIC", premium = false) {
   const email = `${label}-${id}@task16d.invalid`;
   await pool.query(`insert into users(id,email,email_normalized,status,email_verified_at) values($1,$2,$2,'active',now())`, [id, email]);
   await pool.query(`insert into profiles(id,full_name,ranking_visibility) values($1,$2,$3)`, [id, label, visibility]);
-  if (premium) await pool.query(`insert into user_plan_memberships(user_id,plan_key,source,starts_at) values($1,'PREMIUM','MANUAL',now())`, [id]);
+  if (premium) await pool.query(`insert into user_plan_memberships(user_id,plan_key,source,starts_at) values($1,'PREMIUM','ADMIN',now())`, [id]);
   return id;
 }
 

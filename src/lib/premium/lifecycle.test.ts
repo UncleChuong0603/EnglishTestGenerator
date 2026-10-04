@@ -8,6 +8,7 @@ describe("Premium lifecycle policy", () => {
     expect(getPremiumLifecycle({ status: "ACTIVE", expiresAt: new Date(), daysRemaining: 14 })).toBe("ACTIVE_EXPIRING_SOON");
     expect(getPremiumLifecycle({ status: "ACTIVE", expiresAt: new Date(), daysRemaining: 3 })).toBe("ACTIVE_EXPIRING_VERY_SOON");
     expect(getPremiumLifecycle({ status: "EXPIRED", expiresAt: now, daysRemaining: 0 })).toBe("EXPIRED");
+    expect(getPremiumLifecycle({ status: "REVOKED", expiresAt: now, daysRemaining: 0 })).toBe("REVOKED");
   });
   it("preserves active unused time and starts expired/free access now", () => {
     const currentExpiry = new Date("2026-10-20T05:00:00.000Z");

@@ -73,7 +73,7 @@ export async function applyVerifiedPayment(event: VerifiedPayment, providerName:
     // A late provider callback must retain accounting facts without restoring
     // access, membership or learner analytics for an erased account.
     const days = resolveProductDuration(order.productKey);
-    if (account && !account.deletedAt) await grantPremiumWithTx(tx, { userId: order.userId, days, source: "PAYMENT", paymentOrderId: order.id });
+    if (account && !account.deletedAt) await grantPremiumWithTx(tx, { userId: order.userId, days, source: "PAYOS", paymentOrderId: order.id });
     const [trial] = await tx.select({ id: userPlanMemberships.id }).from(userPlanMemberships).where(and(eq(userPlanMemberships.userId, order.userId), eq(userPlanMemberships.source, "TRIAL"))).limit(1);
     if (trial && account && !account.deletedAt) await tx.insert(productEvents).values({ userId: order.userId, eventName: "trial_to_paid", source: "payment", deduplicationKey: `trial-to-paid:${order.userId}`, properties: { orderId: order.id } }).onConflictDoNothing();
     if (injectFailure) throw new Error("INJECTED_ROLLBACK");

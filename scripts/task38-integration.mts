@@ -70,7 +70,7 @@ try {
   assert.equal((await getTrialEligibility(admin)).reason, "ACCOUNT");
   const premium = await user("premium");
   await learning(premium, items);
-  await raw.query(`insert into user_plan_memberships(user_id,plan_key,source,starts_at,ends_at) values($1,'PREMIUM','MANUAL',now(),now()+interval '30 days')`, [premium]);
+  await raw.query(`insert into user_plan_memberships(user_id,plan_key,source,starts_at,ends_at) values($1,'PREMIUM','ADMIN',now(),now()+interval '30 days')`, [premium]);
   assert.equal((await getTrialEligibility(premium)).reason, "PREMIUM");
   const pending = await user("pending");
   await learning(pending, items);

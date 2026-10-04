@@ -55,7 +55,7 @@ beforeAll(async () => {
     insert into payment_orders (user_id,product_key,provider,order_code,provider_payment_id,amount,status,checkout_url,expires_at) values
       ('${USER_A}','PREMIUM_30_DAYS','FAKE',420001,'provider-private',99000,'PAID','https://checkout.invalid/private',now() + interval '1 day');
     insert into user_plan_memberships (user_id,plan_key,source,starts_at,ends_at,payment_order_id)
-      select '${USER_A}','PREMIUM','PAYMENT',now(),now() + interval '30 days',id from payment_orders where user_id='${USER_A}';
+      select '${USER_A}','PREMIUM','PAYOS',now(),now() + interval '30 days',id from payment_orders where user_id='${USER_A}';
     insert into user_roles (user_id,role) values ('${USER_ADMIN}','ADMIN');
     insert into questions(id,toeic_part,skill,sub_skill,question_type,question_text,difficulty)
       values ('${QUESTION_A}',5,'grammar','verb_tense','part5','Unit question','medium');

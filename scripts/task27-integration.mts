@@ -114,7 +114,7 @@ try {
   );
   await pool.query(
     `insert into user_plan_memberships(user_id,plan_key,source,starts_at,ends_at,created_at,updated_at)
-     values($1,'PREMIUM','MANUAL',$2,$3,$2,$2)`,
+     values($1,'PREMIUM','ADMIN',$2,$3,$2,$2)`,
     [premium, at(19), "2027-01-01T00:00:00.000Z"],
   );
 

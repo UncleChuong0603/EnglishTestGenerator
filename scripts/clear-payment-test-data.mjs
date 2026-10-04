@@ -12,13 +12,13 @@ try {
     select
       (select count(*)::int from payment_orders) as orders,
       (select count(*)::int from payment_events) as events,
-      (select count(*)::int from user_plan_memberships where source = 'PAYMENT') as memberships,
+      (select count(*)::int from user_plan_memberships where source = 'PAYOS') as memberships,
       (select coalesce(sum(amount), 0)::bigint from payment_orders where status = 'PAID') as paid_revenue_vnd
   `);
   const preserved = preserveEmail ? await pool.query(`
     select u.id, u.email,
       count(m.id)::int as active_memberships,
-      count(m.id) filter (where m.source = 'PAYMENT')::int as active_payment_memberships
+      count(m.id) filter (where m.source = 'PAYOS')::int as active_payment_memberships
     from users u
     left join user_plan_memberships m on m.user_id = u.id
       and m.revoked_at is null
@@ -43,18 +43,18 @@ try {
         if (preservedUser.active_memberships < 1) throw new Error("PRESERVE_PREMIUM_HAS_NO_ACTIVE_MEMBERSHIP");
         const result = await client.query(`
           update user_plan_memberships m
-          set source = 'MANUAL', payment_order_id = null, updated_at = now()
+          set source = 'ADMIN', payment_order_id = null, updated_at = now()
           from users u
           where m.user_id = u.id
             and u.email_normalized = $1
-            and m.source = 'PAYMENT'
+            and m.source = 'PAYOS'
             and m.revoked_at is null
             and m.starts_at <= now()
             and (m.ends_at is null or m.ends_at > now())
         `, [preserveEmail]);
         preservedMemberships = result.rowCount;
       }
-      const memberships = await client.query("delete from user_plan_memberships where source = 'PAYMENT'");
+      const memberships = await client.query("delete from user_plan_memberships where source = 'PAYOS'");
       const events = await client.query("delete from payment_events");
       const orders = await client.query("delete from payment_orders");
       await client.query("commit");

@@ -67,4 +67,10 @@ Firebase or Supabase.
 
 Remote push delivery requires the EAS/APNs/FCM human actions documented in
 `docs/task-48-native-retention.md`. Offline scored practice remains excluded;
-store billing and store submission are not part of this mobile release.
+native store checkout and store submission are not part of this mobile release.
+
+The mobile API now exposes server-owned Apple/Google product configuration and
+purchase/restore verification contracts. A later native StoreKit/Play Billing
+client must use the returned account binding and must never unlock Premium
+locally. Store console, credential, notification and sandbox actions are listed
+in `docs/task-49-cross-platform-billing.md`.

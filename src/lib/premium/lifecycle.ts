@@ -5,10 +5,11 @@ export const PREMIUM_EXPIRY_POLICY = {
   verySoonDays: 3,
 } as const;
 
-export type PremiumLifecycle = "FREE" | "ACTIVE_NORMAL" | "ACTIVE_EXPIRING_SOON" | "ACTIVE_EXPIRING_VERY_SOON" | "EXPIRED";
+export type PremiumLifecycle = "FREE" | "ACTIVE_NORMAL" | "ACTIVE_EXPIRING_SOON" | "ACTIVE_EXPIRING_VERY_SOON" | "EXPIRED" | "REVOKED";
 
 export function getPremiumLifecycle(state: MembershipState): PremiumLifecycle {
   if (state.status === "FREE") return "FREE";
+  if (state.status === "REVOKED") return "REVOKED";
   if (state.status === "EXPIRED") return "EXPIRED";
   if (state.daysRemaining !== null && state.daysRemaining <= PREMIUM_EXPIRY_POLICY.verySoonDays) return "ACTIVE_EXPIRING_VERY_SOON";
   if (state.daysRemaining !== null && state.daysRemaining <= PREMIUM_EXPIRY_POLICY.soonDays) return "ACTIVE_EXPIRING_SOON";

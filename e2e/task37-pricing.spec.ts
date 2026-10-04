@@ -13,7 +13,7 @@ let quotaUsageId: string | null = null;
 test.beforeAll(async () => {
   const user = (await pool.query<{ id: string }>("select id from users where email_normalized='task26b-complete@qa.invalid'" )).rows[0];
   if (!user) throw new Error("Missing isolated QA learner");
-  const row = await pool.query<{ id: string }>("insert into user_plan_memberships(user_id,plan_key,source,starts_at,ends_at) values($1,'PREMIUM','MANUAL',now()-interval '40 days',now()-interval '10 days') returning id", [user.id]);
+  const row = await pool.query<{ id: string }>("insert into user_plan_memberships(user_id,plan_key,source,starts_at,ends_at) values($1,'PREMIUM','ADMIN',now()-interval '40 days',now()-interval '10 days') returning id", [user.id]);
   expiredMembershipId = row.rows[0].id;
   const quotaUser = (await pool.query<{ id: string }>("select id from users where email_normalized='task26b-quota@qa.invalid'" )).rows[0];
   if (!quotaUser) throw new Error("Missing isolated quota learner");

@@ -58,7 +58,7 @@ export default function SettingsTab() {
       <Card>
         <Text style={styles.title}>{vi ? "Gói hiện tại" : "Current plan"}</Text>
         <Muted>{plan
-          ? `${plan.effectivePlan}${plan.isTrial ? (vi ? " · Dùng thử" : " · Trial") : ""}${expiry ? (vi ? ` · Hết hạn ${expiry}` : ` · Expires ${expiry}`) : ""}`
+          ? plan.membershipStatus === "REVOKED" ? (vi ? "Free · Quyền Premium đã bị thu hồi; xem chi tiết thanh toán trên web." : "Free · Premium was revoked; review billing details on the web.") : `${plan.effectivePlan}${plan.isTrial ? (vi ? " · Dùng thử" : " · Trial") : ""}${expiry ? (vi ? ` · Hết hạn ${expiry}` : ` · Expires ${expiry}`) : ""}`
           : (vi ? "Đang tải trạng thái gói…" : "Loading plan status…")}</Muted>
       </Card>
       <Card>

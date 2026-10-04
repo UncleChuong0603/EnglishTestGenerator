@@ -24,6 +24,8 @@ describe("mobile API v1 contracts", () => {
       "/api/v1/notifications/preferences",
       "/api/v1/notifications/devices",
       "/api/v1/notifications/devices/:id",
+      "/api/v1/billing/store/config",
+      "/api/v1/billing/store/verify",
       "/api/v1/dashboard",
       "/api/v1/plan",
       "/api/v1/practice",

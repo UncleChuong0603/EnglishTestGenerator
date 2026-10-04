@@ -38,7 +38,7 @@ async function createUser(label, plan = "FREE") {
   if (plan !== "FREE") await pool.query(
     `insert into user_plan_memberships(user_id,plan_key,source,starts_at,ends_at)
      values($1,'PREMIUM',$2,now()-interval '1 day',now()+interval '2 days')`,
-    [user.id, plan === "TRIAL" ? "TRIAL" : "MANUAL"],
+    [user.id, plan === "TRIAL" ? "TRIAL" : "ADMIN"],
   );
   return { id: user.id, email };
 }

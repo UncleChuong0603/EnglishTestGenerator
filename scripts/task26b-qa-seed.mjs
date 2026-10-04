@@ -34,7 +34,7 @@ try {
   for (const state of ["active", "resumable", "complete", "quota", "premium"]) await pool.query(`insert into learner_goals(user_id,target_score,exam_date,daily_study_minutes,study_days_per_week) values($1,800,current_date+60,20,5)`, [fixtures[state].id]);
   await pool.query(`insert into learner_goals(user_id,target_score,study_days_per_week) values($1,750,3)`, [fixtures["partial-goal"].id]);
   await pool.query(`insert into practice_sessions(user_id,skill_area,practice_type,part,status,question_count,requested_question_count,source) values($1,'READING','part_5',5,'in_progress',5,5,'custom')`, [fixtures.resumable.id]);
-  await pool.query(`insert into user_plan_memberships(user_id,plan_key,source,starts_at,ends_at) values($1,'PREMIUM','MANUAL',now()-interval '1 day',now()+interval '90 days')`, [fixtures.premium.id]);
+  await pool.query(`insert into user_plan_memberships(user_id,plan_key,source,starts_at,ends_at) values($1,'PREMIUM','ADMIN',now()-interval '1 day',now()+interval '90 days')`, [fixtures.premium.id]);
   await pool.query(`insert into usage_consumptions(user_id,entitlement_key,quantity,source_type,source_id) values($1,'TODAYS_WORKOUT',1,'PRACTICE_SESSION',gen_random_uuid())`, [fixtures.quota.id]);
   console.log(JSON.stringify(Object.fromEntries(Object.entries(fixtures).map(([state, value]) => [state, value.email]))));
 } finally { await pool.end(); }

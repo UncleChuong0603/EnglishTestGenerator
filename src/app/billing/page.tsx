@@ -78,6 +78,13 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
               </a>
             </section>
           ) : null}
+          {account.membershipStatus === "REVOKED" ? (
+            <section className="rounded-[20px] border border-rose-200 bg-rose-50 p-6" aria-label={vi ? "Premium đã bị thu hồi" : "Premium revoked"}>
+              <h2 className="text-xl font-black">{vi ? "Quyền Premium đã bị thu hồi" : "Premium access was revoked"}</h2>
+              <p className="mt-2 leading-7 text-slate-700">{vi ? "Trạng thái này khác với hết hạn tự nhiên và thường liên quan đến hoàn tiền hoặc thu hồi giao dịch. Dữ liệu học của bạn vẫn được giữ; vui lòng xem lịch sử giao dịch hoặc liên hệ hỗ trợ nếu cần." : "This is different from natural expiry and usually reflects a refund or provider revocation. Your learning data remains saved; review transaction history or contact support if needed."}</p>
+              {account.expiresAt ? <p className="mt-3 text-sm font-semibold">{vi ? "Thu hồi lúc" : "Revoked at"}: {date(account.expiresAt)}</p> : null}
+            </section>
+          ) : null}
           <section aria-labelledby="current-plan" className={`rounded-[20px] border p-6 shadow-sm sm:p-8 ${account.isPremium ? "border-amber-200 bg-[#fffaf0]" : "border-teal-200 bg-[#eff8f6]"}`}>
             <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
               <div className="max-w-2xl">

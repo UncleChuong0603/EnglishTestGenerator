@@ -282,6 +282,20 @@ export const registerPushDeviceRequestSchema = z.strictObject({
 export const registerPushDeviceResponseSchema = z.strictObject({ data: z.strictObject({ id: uuidSchema }) });
 export const revokePushDeviceResponseSchema = z.strictObject({ data: z.strictObject({ revoked: z.literal(true) }) });
 
+export const storeBillingConfigResponseSchema = z.strictObject({ data: z.strictObject({
+  apple: z.strictObject({ available: z.boolean(), productIds: z.array(z.string().min(1).max(200)), appAccountToken: uuidSchema }),
+  google: z.strictObject({ available: z.boolean(), productIds: z.array(z.string().min(1).max(200)), obfuscatedAccountId: z.string().length(64) }),
+}) });
+export const verifyStorePurchaseRequestSchema = z.discriminatedUnion("platform", [
+  z.strictObject({ platform: z.literal("ios"), mode: z.enum(["PURCHASE", "RESTORE"]), signedTransaction: z.string().min(100).max(65_536) }),
+  z.strictObject({ platform: z.literal("android"), mode: z.enum(["PURCHASE", "RESTORE"]), purchaseToken: z.string().min(20).max(4096) }),
+]);
+export const verifyStorePurchaseResponseSchema = z.strictObject({ data: z.strictObject({
+  effectivePlan: z.enum(["FREE", "PREMIUM"]),
+  membershipStatus: z.enum(["ACTIVE", "EXPIRED", "REVOKED", "FREE"]),
+  premiumExpiresAt: isoDateTimeSchema.nullable(),
+}) });
+
 export const mistakesResponseSchema = z.strictObject({
   data: z.array(z.strictObject({
     questionId: uuidSchema,
@@ -335,7 +349,7 @@ export const entitlementsResponseSchema = z.strictObject({
   data: z.strictObject({
     effectivePlan: z.enum(["FREE", "PREMIUM"]),
     premiumExpiresAt: isoDateTimeSchema.nullable(),
-    membershipStatus: z.enum(["ACTIVE", "EXPIRED", "FREE"]),
+    membershipStatus: z.enum(["ACTIVE", "EXPIRED", "REVOKED", "FREE"]),
     isTrial: z.boolean(),
     capabilities: z.record(z.string(), z.union([z.boolean(), z.number(), z.string()])),
     usage: z.record(z.enum(["TODAYS_WORKOUT", "MANUAL_PRACTICE", "MASTERY_REVIEW", "FULL_MOCK"]), usageSchema),
@@ -351,6 +365,8 @@ export const apiV1Contracts = {
   updateNotificationPreferences: { method: "POST", path: "/api/v1/notifications/preferences", auth: "session", request: updateNotificationPreferencesRequestSchema, response: notificationPreferencesResponseSchema },
   registerPushDevice: { method: "POST", path: "/api/v1/notifications/devices", auth: "session", request: registerPushDeviceRequestSchema, response: registerPushDeviceResponseSchema },
   revokePushDevice: { method: "DELETE", path: "/api/v1/notifications/devices/:id", auth: "session+ownership", response: revokePushDeviceResponseSchema },
+  storeBillingConfig: { method: "GET", path: "/api/v1/billing/store/config", auth: "session", response: storeBillingConfigResponseSchema },
+  verifyStorePurchase: { method: "POST", path: "/api/v1/billing/store/verify", auth: "session", request: verifyStorePurchaseRequestSchema, response: verifyStorePurchaseResponseSchema, idempotency: "required" },
   dashboard: { method: "GET", path: "/api/v1/dashboard", auth: "session", response: dashboardResponseSchema },
   plan: { method: "GET", path: "/api/v1/plan", auth: "session", response: planResponseSchema },
   createPractice: { method: "POST", path: "/api/v1/practice", auth: "session", request: createPracticeRequestSchema, response: createPracticeResponseSchema, idempotency: "required" },
@@ -376,6 +392,9 @@ export type UpdateNotificationPreferencesRequest = z.infer<typeof updateNotifica
 export type RegisterPushDeviceRequest = z.infer<typeof registerPushDeviceRequestSchema>;
 export type RegisterPushDeviceResponse = z.infer<typeof registerPushDeviceResponseSchema>;
 export type RevokePushDeviceResponse = z.infer<typeof revokePushDeviceResponseSchema>;
+export type StoreBillingConfigResponse = z.infer<typeof storeBillingConfigResponseSchema>;
+export type VerifyStorePurchaseRequest = z.infer<typeof verifyStorePurchaseRequestSchema>;
+export type VerifyStorePurchaseResponse = z.infer<typeof verifyStorePurchaseResponseSchema>;
 export type DashboardResponse = z.infer<typeof dashboardResponseSchema>;
 export type PlanResponse = z.infer<typeof planResponseSchema>;
 export type CreatePracticeRequest = z.infer<typeof createPracticeRequestSchema>;

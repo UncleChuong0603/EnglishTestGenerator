@@ -57,7 +57,7 @@ async function createUser(label: string, lifecycle: "FREE" | "PREMIUM" | "TRIAL"
     const active = lifecycle !== "EXPIRED";
     await pool.query(
       "insert into user_plan_memberships(user_id,plan_key,source,starts_at,ends_at) values($1,'PREMIUM',$2,now()-interval '2 days',now()+$3::interval)",
-      [user.id, lifecycle === "TRIAL" ? "TRIAL" : "MANUAL", active ? "2 days" : "-1 day"],
+      [user.id, lifecycle === "TRIAL" ? "TRIAL" : "ADMIN", active ? "2 days" : "-1 day"],
     );
   }
   const token = randomBytes(32).toString("base64url");

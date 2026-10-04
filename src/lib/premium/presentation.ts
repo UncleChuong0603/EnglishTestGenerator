@@ -5,7 +5,7 @@ import { getCurrentProfile } from "@/lib/profiles/profile";
 import { getPremiumLifecycle, type PremiumLifecycle } from "./lifecycle";
 import { getActiveTrial } from "./trial";
 
-export type PremiumAccount = { name: string; avatarUrl: string | null; isPremium: boolean; isTrial: boolean; membershipStatus: "ACTIVE" | "EXPIRED" | "FREE"; lifecycle: PremiumLifecycle; expiresAt: Date | null; daysRemaining: number | null };
+export type PremiumAccount = { name: string; avatarUrl: string | null; isPremium: boolean; isTrial: boolean; membershipStatus: "ACTIVE" | "EXPIRED" | "REVOKED" | "FREE"; lifecycle: PremiumLifecycle; expiresAt: Date | null; daysRemaining: number | null };
 
 export const getPremiumAccount = cache(async (userId: string, fallbackName: string): Promise<PremiumAccount> => {
   const now = new Date();

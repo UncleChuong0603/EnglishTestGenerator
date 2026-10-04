@@ -53,6 +53,49 @@ export const paymentEvents = pgTable("payment_events", {
   receivedAt: timestamp("received_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(), processedAt: timestamp("processed_at", { withTimezone: true, mode: "date" }),
 }, (table) => [unique("payment_events_provider_key_unique").on(table.provider, table.providerEventKey), index("payment_events_order_idx").on(table.orderId, table.receivedAt), check("payment_events_provider_check", sql`${table.provider} in ('PAYOS','FAKE')`), check("payment_events_processing_check", sql`${table.processingStatus} in ('RECEIVED','PROCESSED','REJECTED','FAILED')`)]);
 
+export const storePurchases = pgTable("store_purchases", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+  provider: text("provider").notNull(),
+  providerReferenceHash: text("provider_reference_hash").notNull(),
+  originalTransactionId: text("original_transaction_id").notNull(),
+  latestTransactionId: text("latest_transaction_id").notNull(),
+  productId: text("product_id").notNull(),
+  status: text("status").notNull(),
+  environment: text("environment").notNull(),
+  startsAt: timestamp("starts_at", { withTimezone: true, mode: "date" }).notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true, mode: "date" }).notNull(),
+  revokedAt: timestamp("revoked_at", { withTimezone: true, mode: "date" }),
+  lastVerifiedAt: timestamp("last_verified_at", { withTimezone: true, mode: "date" }).notNull(),
+  ...timestamps,
+}, (table) => [
+  uniqueIndex("store_purchases_provider_reference_uidx").on(table.provider, table.providerReferenceHash),
+  index("store_purchases_user_status_idx").on(table.userId, table.status, table.expiresAt),
+  check("store_purchases_provider_check", sql`${table.provider} in ('APPLE_IAP','GOOGLE_PLAY')`),
+  check("store_purchases_status_check", sql`${table.status} in ('ACTIVE','EXPIRED','REFUNDED','REVOKED')`),
+  check("store_purchases_environment_check", sql`${table.environment} in ('PRODUCTION','SANDBOX')`),
+  check("store_purchases_reference_hash_check", sql`length(${table.providerReferenceHash}) = 64`),
+  check("store_purchases_range_check", sql`${table.expiresAt} > ${table.startsAt}`),
+]);
+
+export const storePurchaseEvents = pgTable("store_purchase_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  provider: text("provider").notNull(),
+  providerEventId: text("provider_event_id").notNull(),
+  purchaseId: uuid("purchase_id").references(() => storePurchases.id, { onDelete: "restrict" }),
+  eventType: text("event_type").notNull(),
+  processingStatus: text("processing_status").notNull().default("RECEIVED"),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}),
+  receivedAt: timestamp("received_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+  processedAt: timestamp("processed_at", { withTimezone: true, mode: "date" }),
+}, (table) => [
+  unique("store_purchase_events_provider_event_unique").on(table.provider, table.providerEventId),
+  index("store_purchase_events_purchase_idx").on(table.purchaseId, table.receivedAt),
+  check("store_purchase_events_provider_check", sql`${table.provider} in ('APPLE_IAP','GOOGLE_PLAY')`),
+  check("store_purchase_events_type_check", sql`${table.eventType} in ('PURCHASE','RESTORE','RENEWAL','EXPIRATION','REFUND','REVOKE')`),
+  check("store_purchase_events_processing_check", sql`${table.processingStatus} in ('RECEIVED','PROCESSED','REJECTED','FAILED')`),
+]);
+
 export const userPlanMemberships = pgTable("user_plan_memberships", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
@@ -62,15 +105,19 @@ export const userPlanMemberships = pgTable("user_plan_memberships", {
   endsAt: timestamp("ends_at", { withTimezone: true, mode: "date" }),
   revokedAt: timestamp("revoked_at", { withTimezone: true, mode: "date" }),
   paymentOrderId: uuid("payment_order_id").references(() => paymentOrders.id, { onDelete: "restrict" }),
+  storePurchaseId: uuid("store_purchase_id").references(() => storePurchases.id, { onDelete: "restrict" }),
+  sourceReference: text("source_reference"),
   ...timestamps,
 }, (table) => [
   index("user_plan_memberships_user_window_idx").on(table.userId, table.startsAt, table.endsAt, table.revokedAt),
   check("user_plan_memberships_plan_check", sql`${table.planKey} = 'PREMIUM'`),
-  check("user_plan_memberships_source_check", sql`${table.source} in ('MANUAL','PROMOTION','PAYMENT','TRIAL')`),
+  check("user_plan_memberships_source_check", sql`${table.source} in ('PAYOS','APPLE_IAP','GOOGLE_PLAY','TRIAL','PROMOTION','ADMIN')`),
   uniqueIndex("user_plan_memberships_trial_lifetime_uidx").on(table.userId).where(sql`${table.source} = 'TRIAL'`),
   check("user_plan_memberships_range_check", sql`${table.endsAt} is null or ${table.endsAt} > ${table.startsAt}`),
   uniqueIndex("user_plan_memberships_payment_order_uidx").on(table.paymentOrderId).where(sql`${table.paymentOrderId} is not null`),
-  check("user_plan_memberships_payment_source_check", sql`(${table.source} = 'PAYMENT') = (${table.paymentOrderId} is not null)`),
+  check("user_plan_memberships_payos_source_check", sql`(${table.source} = 'PAYOS') = (${table.paymentOrderId} is not null)`),
+  check("user_plan_memberships_store_source_check", sql`(${table.source} in ('APPLE_IAP','GOOGLE_PLAY')) = (${table.storePurchaseId} is not null)`),
+  uniqueIndex("user_plan_memberships_source_reference_uidx").on(table.source, table.sourceReference).where(sql`${table.sourceReference} is not null`),
 ]);
 
 export const usageConsumptions = pgTable("usage_consumptions", {

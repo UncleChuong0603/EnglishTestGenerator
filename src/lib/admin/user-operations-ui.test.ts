@@ -25,10 +25,11 @@ describe("admin user operations center", () => {
     expect(list).toContain("getLearnerActivityState({learningDays:user.learningDays,lastLearningAt:user.lastLearningAt})");
   });
   it("organizes detail into support tabs and confirms sensitive actions", () => {
-    for (const tab of ["overview", "learning", "plan", "security", "activity"]) expect(detail).toContain(`key:\"${tab}\"`);
+    for (const tab of ["overview", "learning", "plan", "security", "activity"])
+      expect(detail).toMatch(new RegExp(`key:\\s*\"${tab}\"`));
     expect(detail.match(/ConfirmSubmit/g)?.length).toBeGreaterThanOrEqual(4);
     expect(detail).toContain("currentPaid");
-    expect(service).toContain('eq(userPlanMemberships.source, "PAYMENT")');
+    expect(service).toContain("'PAYOS','APPLE_IAP','GOOGLE_PLAY'");
   });
   it("keeps the learner snapshot read-only and server-authorized", () => {
     expect(snapshot).toContain('requireAdmin("USER_READ")');

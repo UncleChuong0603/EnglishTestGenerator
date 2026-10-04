@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, eq, ne, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   accountActivationTokens,
@@ -30,6 +30,8 @@ import {
   questionReports,
   rankedChallengeRuns,
   securityEvents,
+  storePurchaseEvents,
+  storePurchases,
   studyStreaks,
   supportTickets,
   usageConsumptions,
@@ -192,6 +194,10 @@ export async function exportLearningData(userId: string, exportedAt = new Date()
       streak: mobileNotificationPreferences.streak,
       updatedAt: mobileNotificationPreferences.updatedAt,
     }).from(mobileNotificationPreferences).where(eq(mobileNotificationPreferences.userId, userId)).limit(1);
+    const [storeRows, storeEventRows] = await Promise.all([
+      tx.select({ id: storePurchases.id, provider: storePurchases.provider, productId: storePurchases.productId, status: storePurchases.status, environment: storePurchases.environment, startsAt: storePurchases.startsAt, expiresAt: storePurchases.expiresAt, revokedAt: storePurchases.revokedAt, createdAt: storePurchases.createdAt, updatedAt: storePurchases.updatedAt }).from(storePurchases).where(eq(storePurchases.userId, userId)),
+      tx.select({ provider: storePurchaseEvents.provider, eventType: storePurchaseEvents.eventType, processingStatus: storePurchaseEvents.processingStatus, receivedAt: storePurchaseEvents.receivedAt, processedAt: storePurchaseEvents.processedAt }).from(storePurchaseEvents).innerJoin(storePurchases, eq(storePurchases.id, storePurchaseEvents.purchaseId)).where(eq(storePurchases.userId, userId)),
+    ]);
     return {
       format: "toeicgym-learning-data" as const,
       version: LEARNING_DATA_EXPORT_VERSION,
@@ -219,7 +225,7 @@ export async function exportLearningData(userId: string, exportedAt = new Date()
         rankedChallenges: challengeRows,
         gamification: gamificationRows,
       },
-      planAndBilling: { memberships: membershipRows, usage: usageRows, payments: paymentRows },
+      planAndBilling: { memberships: membershipRows, usage: usageRows, payments: paymentRows, storePurchases: storeRows, storeEvents: storeEventRows },
       communications: { notificationPreferences: notificationPreferences ?? null, lifecycleEmails: emailRows, supportTickets: supportRows, questionReports: reports },
     };
   });
@@ -273,9 +279,9 @@ export async function deleteAccount(userId: string, confirmationEmail: string, n
 
     // Payment-backed membership and order rows are legal/accounting records.
     // They retain only the anonymous tombstone FK and non-secret provider facts.
-    await tx.delete(userPlanMemberships).where(and(eq(userPlanMemberships.userId, userId), ne(userPlanMemberships.source, "PAYMENT")));
+    await tx.delete(userPlanMemberships).where(and(eq(userPlanMemberships.userId, userId), sql`${userPlanMemberships.source} not in ('PAYOS','APPLE_IAP','GOOGLE_PLAY')`));
     await tx.update(userPlanMemberships).set({ revokedAt: now, updatedAt: now })
-      .where(and(eq(userPlanMemberships.userId, userId), eq(userPlanMemberships.source, "PAYMENT")));
+      .where(and(eq(userPlanMemberships.userId, userId), sql`${userPlanMemberships.source} in ('PAYOS','APPLE_IAP','GOOGLE_PLAY')`));
     await tx.update(paymentOrders).set({ checkoutUrl: null, updatedAt: now }).where(eq(paymentOrders.userId, userId));
 
     await tx.delete(lifecycleEmails).where(eq(lifecycleEmails.userId, userId));

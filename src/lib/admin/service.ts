@@ -37,7 +37,7 @@ export async function grantPremiumAsAdmin(actorUserId: string, targetUserId: str
 export async function revokePremiumAsAdmin(actorUserId: string, targetUserId: string) {
   return db.transaction(async (tx) => {
     await assertPermission(tx, actorUserId, "PLAN_MANAGE"); await assertUser(tx, targetUserId);
-    const [paid] = await tx.select({ id: userPlanMemberships.id }).from(userPlanMemberships).where(and(eq(userPlanMemberships.userId, targetUserId), eq(userPlanMemberships.source, "PAYMENT"), isNull(userPlanMemberships.revokedAt), lteNow(userPlanMemberships.startsAt), sql`(${userPlanMemberships.endsAt} is null or ${userPlanMemberships.endsAt} > now())`)).limit(1);
+    const [paid] = await tx.select({ id: userPlanMemberships.id }).from(userPlanMemberships).where(and(eq(userPlanMemberships.userId, targetUserId), sql`${userPlanMemberships.source} in ('PAYOS','APPLE_IAP','GOOGLE_PLAY')`, isNull(userPlanMemberships.revokedAt), lteNow(userPlanMemberships.startsAt), sql`(${userPlanMemberships.endsAt} is null or ${userPlanMemberships.endsAt} > now())`)).limit(1);
     if (paid) throw new AdminActionError("INVALID_OPERATION");
     const revoked = await revokePremiumWithTx(tx, { userId: targetUserId });
     if (revoked.length) await tx.insert(adminAuditLogs).values({ actorUserId, targetUserId, action: "PREMIUM_REVOKED", metadata: { membershipIds: revoked.map((row) => row.id) } });

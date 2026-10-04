@@ -30,7 +30,7 @@ async function main(){
   const migrations=await freshMigrate();
   const version=(await pool.query(`show server_version`)).rows[0].server_version; assert.match(version,/^17\./);
   const constraints=(await pool.query(`select constraint_name from information_schema.table_constraints where table_name in ('payment_orders','payment_events','user_plan_memberships')`)).rows.map(r=>r.constraint_name);
-  for(const name of ["payment_orders_amount_check","payment_orders_currency_check","payment_orders_provider_check","payment_orders_status_check","payment_events_provider_key_unique","user_plan_memberships_payment_source_check"])assert.ok(constraints.includes(name),name);
+  for(const name of ["payment_orders_amount_check","payment_orders_currency_check","payment_orders_provider_check","payment_orders_status_check","payment_events_provider_key_unique","user_plan_memberships_payos_source_check","user_plan_memberships_store_source_check"])assert.ok(constraints.includes(name),name);
 
   const [{FakePaymentProvider},{createPaymentOrder,applyVerifiedPayment,getUserOrder,reconcileOrder,cancelOrder},{getEffectivePlan},{grantPremiumWithTx},{db}]=await Promise.all([import("../src/lib/payments/provider.ts"),import("../src/lib/payments/service.ts"),import("../src/lib/entitlements/service.ts"),import("../src/lib/entitlements/service.ts"),import("../src/db/index.ts")]);
   const fake=new FakePaymentProvider(); const alice=await user("alice@task17.invalid"),bob=await user("bob@task17.invalid");
@@ -38,7 +38,7 @@ async function main(){
   const duplicate=await createPaymentOrder(alice,"PREMIUM_30_DAYS",fake); assert.equal(duplicate.id,created.id);
   const event={eventKey:"success-30",orderCode:created.orderCode,amountVnd:created.amount,currency:"VND" as const,providerPaymentId:created.providerPaymentId!,paid:true};
   await applyVerifiedPayment(event,"FAKE"); assert.equal((await orderRow(created.id)).status,"PAID"); assert.equal(await getEffectivePlan(alice),"PREMIUM");
-  let member=await memberships(alice); assert.equal(member.length,1); assert.equal(member[0].source,"PAYMENT"); assert.equal(member[0].payment_order_id,created.id);
+  let member=await memberships(alice); assert.equal(member.length,1); assert.equal(member[0].source,"PAYOS"); assert.equal(member[0].payment_order_id,created.id);
   for(let i=0;i<10;i++)await applyVerifiedPayment(event,"FAKE"); assert.equal((await memberships(alice)).length,1);
   await applyVerifiedPayment({...event,eventKey:"success-30-other"},"FAKE"); assert.equal((await memberships(alice)).length,1);
 
@@ -58,8 +58,8 @@ async function main(){
   const lateUser=await user("late@task17.invalid"),late=await createPaymentOrder(lateUser,"PREMIUM_30_DAYS",fake);await pool.query(`update payment_orders set expires_at=now()-interval '1 minute' where id=$1`,[late.id]);await applyVerifiedPayment({...ce,eventKey:"late",orderCode:late.orderCode,providerPaymentId:late.providerPaymentId!},"FAKE");assert.equal((await orderRow(late.id)).status,"PAID");
   const failUser=await user("failure@task17.invalid");const failing={...fake,name:"FAKE" as const,create:async()=>{throw new Error("FAKE_CREATE_FAILURE")}};await assert.rejects(createPaymentOrder(failUser,"PREMIUM_30_DAYS",failing),/FAKE_CREATE_FAILURE/);assert.equal((await pool.query(`select status from payment_orders where user_id=$1`,[failUser])).rows[0].status,"FAILED");assert.equal(await getEffectivePlan(failUser),"FREE");
 
-  const manual=await user("manual@task17.invalid");await db.transaction(tx=>grantPremiumWithTx(tx,{userId:manual,days:30}));const manualRows=await memberships(manual);assert.equal(manualRows[0].source,"MANUAL");assert.equal(manualRows[0].payment_order_id,null);assert.equal((await pool.query(`select count(*)::int n from payment_orders where user_id=$1`,[manual])).rows[0].n,0);
-  const expired=await user("expired@task17.invalid");await pool.query(`insert into user_plan_memberships(user_id,plan_key,source,starts_at,ends_at) values($1,'PREMIUM','MANUAL',now()-interval '2 day',now()-interval '1 day')`,[expired]);assert.equal(await getEffectivePlan(expired),"FREE");
+  const manual=await user("manual@task17.invalid");await db.transaction(tx=>grantPremiumWithTx(tx,{userId:manual,days:30}));const manualRows=await memberships(manual);assert.equal(manualRows[0].source,"ADMIN");assert.equal(manualRows[0].payment_order_id,null);assert.equal((await pool.query(`select count(*)::int n from payment_orders where user_id=$1`,[manual])).rows[0].n,0);
+  const expired=await user("expired@task17.invalid");await pool.query(`insert into user_plan_memberships(user_id,plan_key,source,starts_at,ends_at) values($1,'PREMIUM','ADMIN',now()-interval '2 day',now()-interval '1 day')`,[expired]);assert.equal(await getEffectivePlan(expired),"FREE");
   const eventCounts=(await pool.query(`select count(*)::int events,count(*) filter(where processing_status='REJECTED')::int rejected from payment_events`)).rows[0];assert.ok(eventCounts.rejected>=1);
   console.log("TASK17B_POSTGRES_INTEGRATION_PASS");console.log(JSON.stringify({postgresVersion:version.split(".")[0],host:"127.0.0.1",port:15433,migrations:`${migrations.first}-${migrations.latest}`,sameEvent:true,differentEvents:true,concurrency:true,rollback:true,amountMismatch:true,crossUser:true,latePayment:true,realPayosCalls:0}));
 }

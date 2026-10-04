@@ -34,7 +34,7 @@ async function consume(userId: string, entitlement: keyof typeof PLAN_CATALOG.FR
 try {
   const free = await user(), premium = await user(), expired = await user();
   for (const [id, end] of [[premium, "10 days"], [expired, "-1 day"]]) {
-    await pool.query("insert into user_plan_memberships(user_id,plan_key,source,starts_at,ends_at) values($1,'PREMIUM','MANUAL',now()-interval '40 days',now()+$2::interval)", [id, end]);
+    await pool.query("insert into user_plan_memberships(user_id,plan_key,source,starts_at,ends_at) values($1,'PREMIUM','ADMIN',now()-interval '40 days',now()+$2::interval)", [id, end]);
   }
   for (const [id, plan] of [[free, "FREE"], [premium, "PREMIUM"], [expired, "FREE"]] as const) {
     assert.deepEqual(await getEffectiveCapabilities(id), { plan, ...PLAN_CAPABILITIES[plan] });

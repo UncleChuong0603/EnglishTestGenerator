@@ -29,7 +29,7 @@ async function upsertUser(email, fullName, premium) {
   await pool.query(`delete from user_plan_memberships where user_id=$1`, [user.id]);
   if (premium) await pool.query(
     `insert into user_plan_memberships(user_id,plan_key,source,starts_at,ends_at)
-     values ($1,'PREMIUM','MANUAL',now()-interval '3 days',now()+interval '87 days')`,
+     values ($1,'PREMIUM','ADMIN',now()-interval '3 days',now()+interval '87 days')`,
     [user.id],
   );
   await pool.query(

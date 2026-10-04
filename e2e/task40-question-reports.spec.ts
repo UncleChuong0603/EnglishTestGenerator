@@ -19,7 +19,7 @@ async function createUser(label: string, plan: "FREE" | "PREMIUM" | "TRIAL") {
   const email = `task40-${label}@qa.invalid`;
   const user = (await pool.query<{ id: string }>("insert into users(email,email_normalized,email_verified_at,status) values($1,$1,now(),'active') returning id", [email])).rows[0];
   await pool.query("insert into profiles(id,full_name,interface_language,explanation_language,ranking_visibility) values($1,$2,'vi','both','HIDDEN')", [user.id, `Task 40 ${label}`]);
-  if (plan !== "FREE") await pool.query("insert into user_plan_memberships(user_id,plan_key,source,starts_at,ends_at) values($1,'PREMIUM',$2,now()-interval '1 day',now()+interval '2 days')", [user.id, plan === "TRIAL" ? "TRIAL" : "MANUAL"]);
+  if (plan !== "FREE") await pool.query("insert into user_plan_memberships(user_id,plan_key,source,starts_at,ends_at) values($1,'PREMIUM',$2,now()-interval '1 day',now()+interval '2 days')", [user.id, plan === "TRIAL" ? "TRIAL" : "ADMIN"]);
   const token = randomBytes(32).toString("base64url");
   const hash = createHmac("sha256", sessionSecret).update(token).digest("hex");
   await pool.query("insert into user_sessions(user_id,session_token_hash,expires_at) values($1,$2,now()+interval '1 day')", [user.id, hash]);
