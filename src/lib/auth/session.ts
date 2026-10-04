@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, ne } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
@@ -27,8 +27,6 @@ export async function revokeCurrentSession() {
   (await cookies()).delete(SESSION_COOKIE);
 }
 export async function revokeAllUserSessions(userId: string, exceptSessionId?: string) {
-  const condition = exceptSessionId ? and(eq(userSessions.userId, userId), isNull(userSessions.revokedAt), sql`${userSessions.id} <> ${exceptSessionId}`) : and(eq(userSessions.userId, userId), isNull(userSessions.revokedAt));
+  const condition = exceptSessionId ? and(eq(userSessions.userId, userId), isNull(userSessions.revokedAt), ne(userSessions.id, exceptSessionId)) : and(eq(userSessions.userId, userId), isNull(userSessions.revokedAt));
   await db.transaction(async (tx) => { await tx.update(userSessions).set({ revokedAt: new Date() }).where(condition); await tx.insert(securityEvents).values({ userId, eventType: "session_revoked", metadata: { scope: exceptSessionId ? "other" : "all" } }); });
 }
-
-import { sql } from "drizzle-orm";

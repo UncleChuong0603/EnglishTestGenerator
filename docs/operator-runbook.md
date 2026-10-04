@@ -22,6 +22,10 @@ docker compose --env-file .env.production run --rm db-tools npm run verify:produ
 ./scripts/backup-db.sh /opt/toeic-app/backups
 ./scripts/test-restore-db.sh /opt/toeic-app/backups/FILE.dump
 ./scripts/restore-db.sh /opt/toeic-app/backups/FILE.dump
+./scripts/backup-media.sh /opt/toeicgym/media-backups
+
+# Lightweight production gate (returns nonzero on stale backups/disk/health)
+COMPOSE_PROJECT_NAME=toeic-gym-frontend-bhwkds sh ./scripts/ops-health-check.sh
 
 # Deploy update
 ./scripts/deploy-production.sh
@@ -38,7 +42,26 @@ docker volume inspect toeic_app_postgres_data
 docker stats --no-stream
 ```
 
+Trên Dokploy production hiện tại, checkout là
+`/etc/dokploy/compose/toeic-gym-frontend-bhwkds/code`, file môi trường là
+`.env`, Compose file là `docker-compose.dokploy.yml`, và backup host nằm tại
+`/opt/toeicgym/backups` / `/opt/toeicgym/media-backups`. Không ghi backup vào
+filesystem tạm bên trong container Dokploy.
+
+Mỗi archive phải có file `.sha256`, mode `0600` và qua restore test cô lập.
+Backup cùng ổ đĩa không thay thế bản sao mã hóa off-VPS. Cron chuẩn trong
+`ops/cron/toeicgym-production`: DB 02:00 UTC, media 03:00 UTC, health mỗi 15 phút.
+
 Nếu health fail: xem `migrate` và `app` log, xác minh container Postgres healthy, dung lượng đĩa, DNS/certificate và biến bắt buộc theo tên (không echo giá trị). Không chạy reset schema, `DROP DATABASE`, seed development phá hủy dữ liệu hoặc xóa volume. Khi nghi ngờ compromise, giữ bằng chứng/log, chặn truy cập ở firewall nếu cần và rotate secrets qua một cửa sổ bảo trì.
+
+Khi xác minh deploy Dokploy, HEAD checkout chỉ chứng minh Git fetch. Ghi lại
+container/image ID trước deploy; sau khi HEAD khớp revision mong muốn, bắt buộc
+`migrate` exit 0, app có container/image mới, app/Postgres healthy, hai scheduler
+running và HTTPS health 200. Nếu runtime ID không đổi, chọn Redeploy trong
+Dokploy rồi kiểm tra lại; không tuyên bố deploy thành công từ webhook/HEAD.
+
+Quy trình khôi phục DB, media, bad deploy, migration fail và mất VPS chi tiết
+tại `docs/task-54-reliability-ops-audit.md`.
 
 ## Kiểm tra an toàn sau sự cố lộ môi trường (Task 36B)
 

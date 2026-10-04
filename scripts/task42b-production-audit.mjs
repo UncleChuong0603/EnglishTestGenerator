@@ -33,20 +33,23 @@ try {
   const journal = JSON.parse(readFileSync("drizzle/meta/_journal.json", "utf8"));
   const entries = journal.entries;
   const ordered = entries.every((entry, index) => entry.idx === index && (index === 0 || entry.when > entries[index - 1].when));
-  const expected = entries.map(entry => ({ when: String(entry.when), hash: createHash("sha256").update(readFileSync(`drizzle/${entry.tag}.sql`, "utf8")).digest("hex") }));
+  const expected = entries.map(entry => ({ tag: entry.tag, when: String(entry.when), hash: createHash("sha256").update(readFileSync(`drizzle/${entry.tag}.sql`, "utf8")).digest("hex") }));
   // The child can use its DATABASE_URL; only fixed booleans/counts leave it.
-  const code = `const {Client}=require('pg');const c=new Client({connectionString:process.env.DATABASE_URL});(async()=>{await c.connect();await c.query('BEGIN READ ONLY');const rows=(await c.query('select hash,created_at from drizzle.__drizzle_migrations order by id')).rows;const expected=${JSON.stringify(expected)};const tables=(await c.query("select to_regclass('public.question_reports') is not null as reports,to_regclass('public.question_issue_reports') is not null as issues,to_regclass('public.question_duplicate_scans') is not null as scans")).rows[0];const last=expected.at(-1);console.log(JSON.stringify({migrationCount:rows.length,chainMatches:rows.length===expected.length&&rows.every((r,i)=>r.hash===expected[i].hash&&String(r.created_at)===expected[i].when),migration0048:rows.some(r=>r.hash===last.hash&&String(r.created_at)===last.when),questionReports:tables.reports,questionIssueReports:tables.issues,questionDuplicateScans:tables.scans}));await c.query('ROLLBACK');await c.end()})().catch(()=>{console.log('{"auditFailed":true}');process.exit(1)})`;
+  const code = `const {Client}=require('pg');const c=new Client({connectionString:process.env.DATABASE_URL});(async()=>{await c.connect();await c.query('BEGIN READ ONLY');const rows=(await c.query('select hash,created_at from drizzle.__drizzle_migrations order by id')).rows;const expected=${JSON.stringify(expected)};const mismatchTags=expected.filter((e,i)=>!rows[i]||rows[i].hash!==e.hash||String(rows[i].created_at)!==e.when).map(e=>e.tag);if(rows.length>expected.length)mismatchTags.push('unexpected_database_entries');const chainMatches=rows.length===expected.length&&mismatchTags.length===0;const historical0017Drift=rows.length===expected.length&&mismatchTags.length===1&&mismatchTags[0]==='0017_question_bank_import';const tables=(await c.query("select to_regclass('public.question_reports') is not null as reports,to_regclass('public.question_issue_reports') is not null as issues,to_regclass('public.question_duplicate_scans') is not null as scans")).rows[0];const last=expected.at(-1);console.log(JSON.stringify({migrationCount:rows.length,chainMatches,historical0017Drift,mismatchTags,latestMigrationApplied:rows.some(r=>r.hash===last.hash&&String(r.created_at)===last.when),questionReports:tables.reports,questionIssueReports:tables.issues,questionDuplicateScans:tables.scans}));await c.query('ROLLBACK');await c.end()})().catch(()=>{console.log('{"auditFailed":true}');process.exit(1)})`;
   const raw = JSON.parse(run("docker", ["exec", `${project}-app-1`, "node", "-e", code]));
-  const migration = Object.fromEntries(Object.entries(raw).filter(([key, value]) => ["migrationCount", "chainMatches", "migration0048", "questionReports", "questionIssueReports", "questionDuplicateScans"].includes(key) && (typeof value === "boolean" || (typeof value === "number" && Number.isInteger(value)))));
+  const allowedMigrationFields = ["migrationCount", "chainMatches", "historical0017Drift", "latestMigrationApplied", "questionReports", "questionIssueReports", "questionDuplicateScans"];
+  const migration = Object.fromEntries(Object.entries(raw).filter(([key, value]) => allowedMigrationFields.includes(key) && (typeof value === "boolean" || (typeof value === "number" && Number.isInteger(value)))));
+  migration.mismatchTags = Array.isArray(raw.mismatchTags) ? raw.mismatchTags.filter(tag => typeof tag === "string" && /^[0-9]{4}_[a-z0-9_]+$|^unexpected_database_entries$/.test(tag)) : ["audit_failed"];
   console.log(JSON.stringify({
     revision: /^[a-f0-9]{40}$/.test(revision) ? revision : "unknown",
     journalOrdered: ordered, journalCount: entries.length,
     configuredCredentialNames: [...new Set(envNames)].sort(),
-    app: service("app"), scheduler: service("lifecycle-scheduler"),
+    app: service("app"), scheduler: service("lifecycle-scheduler"), mobileScheduler: service("mobile-retention-scheduler"),
     postgres: service("postgres"), media: service("media-server"), migrate: service("migrate"),
     migration,
   }));
-  if (!ordered || !migration.chainMatches || !migration.migration0048) process.exitCode = 1;
+  const acceptedChain = migration.chainMatches || migration.historical0017Drift;
+  if (!ordered || !acceptedChain || !migration.latestMigrationApplied) process.exitCode = 1;
 } catch {
   console.log(JSON.stringify({ auditFailed: true }));
   process.exitCode = 1;

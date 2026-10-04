@@ -1,0 +1,8 @@
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Times are UTC on the production VPS. Keep database and media jobs separate so
+# their I/O does not overlap. Logs contain status only, never environment values.
+0 2 * * * cd /etc/dokploy/compose/toeic-gym-frontend-bhwkds/code && COMPOSE_PROJECT_NAME=toeic-gym-frontend-bhwkds COMPOSE_ENV_FILE=.env COMPOSE_FILE_PATH=docker-compose.dokploy.yml sh ./scripts/backup-db.sh /opt/toeicgym/backups >> /var/log/toeicgym-db-backup.log 2>&1
+0 3 * * * cd /etc/dokploy/compose/toeic-gym-frontend-bhwkds/code && COMPOSE_PROJECT_NAME=toeic-gym-frontend-bhwkds COMPOSE_ENV_FILE=.env COMPOSE_FILE_PATH=docker-compose.dokploy.yml sh ./scripts/backup-media.sh /opt/toeicgym/media-backups >> /var/log/toeicgym-media-backup.log 2>&1
+*/15 * * * * COMPOSE_PROJECT_NAME=toeic-gym-frontend-bhwkds sh /etc/dokploy/compose/toeic-gym-frontend-bhwkds/code/scripts/ops-health-check.sh >> /var/log/toeicgym-ops-health.log 2>&1
