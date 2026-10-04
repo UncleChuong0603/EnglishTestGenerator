@@ -14,7 +14,7 @@ import {
 } from "./contracts";
 
 describe("mobile API v1 contracts", () => {
-  it("defines every Task 42 endpoint under the versioned prefix", () => {
+  it("defines every supported endpoint under the versioned prefix", () => {
     expect(Object.values(apiV1Contracts).map((contract) => contract.path)).toEqual([
       "/api/v1/auth/login",
       "/api/v1/auth/logout",
@@ -39,6 +39,12 @@ describe("mobile API v1 contracts", () => {
       "/api/v1/vocabulary/:id/review",
       "/api/v1/progress",
       "/api/v1/entitlements",
+      "/api/v1/dictation",
+      "/api/v1/dictation",
+      "/api/v1/dictation/:id",
+      "/api/v1/dictation/:id/attempts",
+      "/api/v1/dictation/:id/hint",
+      "/api/v1/dictation/history",
     ]);
   });
 

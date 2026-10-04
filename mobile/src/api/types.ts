@@ -1,4 +1,84 @@
-import type { CreatePracticeRequest, CreatePracticeResponse, DashboardResponse, EntitlementsResponse, GetPracticeResponse, LoginResponse, MeResponse, MistakesResponse, NotificationPreferencesResponse, PlanResponse, ProgressResponse, RegisterPushDeviceRequest, RegisterPushDeviceResponse, ReviewVocabularyRequest, ReviewVocabularyResponse, RevokePushDeviceResponse, SaveMistakeReasonRequest, SaveMistakeReasonResponse, StartRemediationRequest, StartRemediationResponse, StoreBillingConfigResponse, SubmitPracticeResponse, UpdateNotificationPreferencesRequest, UpdatePreferencesRequest, UpdatePreferencesResponse, VerifyStorePurchaseRequest, VerifyStorePurchaseResponse, VocabularyResponse } from "../../../src/lib/api-v1/contracts";
-export type { CreatePracticeRequest, CreatePracticeResponse, DashboardResponse, EntitlementsResponse, GetPracticeResponse, LoginResponse, MeResponse, MistakesResponse, NotificationPreferencesResponse, PlanResponse, ProgressResponse, RegisterPushDeviceRequest, RegisterPushDeviceResponse, ReviewVocabularyRequest, ReviewVocabularyResponse, RevokePushDeviceResponse, SaveMistakeReasonRequest, SaveMistakeReasonResponse, StartRemediationRequest, StartRemediationResponse, StoreBillingConfigResponse, SubmitPracticeResponse, UpdateNotificationPreferencesRequest, UpdatePreferencesRequest, UpdatePreferencesResponse, VerifyStorePurchaseRequest, VerifyStorePurchaseResponse, VocabularyResponse };
-export type PracticeSession = Extract<GetPracticeResponse["data"], { status: "in_progress" }>;
-export type PracticeResult = Extract<GetPracticeResponse["data"], { status: "submitted" }>;
+import type {
+  CreatePracticeRequest,
+  CreatePracticeResponse,
+  DashboardResponse,
+  DictationAttemptRequest,
+  DictationAttemptResponse,
+  DictationCatalogResponse,
+  DictationHintResponse,
+  DictationHistoryResponse,
+  DictationSessionResponse,
+  EntitlementsResponse,
+  GetPracticeResponse,
+  LoginResponse,
+  MeResponse,
+  MistakesResponse,
+  NotificationPreferencesResponse,
+  PlanResponse,
+  ProgressResponse,
+  RegisterPushDeviceRequest,
+  RegisterPushDeviceResponse,
+  ReviewVocabularyRequest,
+  ReviewVocabularyResponse,
+  RevokePushDeviceResponse,
+  SaveMistakeReasonRequest,
+  SaveMistakeReasonResponse,
+  StartDictationRequest,
+  StartRemediationRequest,
+  StartRemediationResponse,
+  StoreBillingConfigResponse,
+  SubmitPracticeResponse,
+  UpdateNotificationPreferencesRequest,
+  UpdatePreferencesRequest,
+  UpdatePreferencesResponse,
+  VerifyStorePurchaseRequest,
+  VerifyStorePurchaseResponse,
+  VocabularyResponse,
+} from "../../../src/lib/api-v1/contracts";
+export type {
+  CreatePracticeRequest,
+  CreatePracticeResponse,
+  DashboardResponse,
+  EntitlementsResponse,
+  GetPracticeResponse,
+  LoginResponse,
+  MeResponse,
+  MistakesResponse,
+  NotificationPreferencesResponse,
+  PlanResponse,
+  ProgressResponse,
+  RegisterPushDeviceRequest,
+  RegisterPushDeviceResponse,
+  ReviewVocabularyRequest,
+  ReviewVocabularyResponse,
+  RevokePushDeviceResponse,
+  SaveMistakeReasonRequest,
+  SaveMistakeReasonResponse,
+  StartRemediationRequest,
+  StartRemediationResponse,
+  StoreBillingConfigResponse,
+  SubmitPracticeResponse,
+  UpdateNotificationPreferencesRequest,
+  UpdatePreferencesRequest,
+  UpdatePreferencesResponse,
+  VerifyStorePurchaseRequest,
+  VerifyStorePurchaseResponse,
+  VocabularyResponse,
+};
+export type {
+  DictationAttemptRequest,
+  DictationAttemptResponse,
+  DictationCatalogResponse,
+  DictationHintResponse,
+  DictationHistoryResponse,
+  DictationSessionResponse,
+  StartDictationRequest,
+};
+export type PracticeSession = Extract<
+  GetPracticeResponse["data"],
+  { status: "in_progress" }
+>;
+export type PracticeResult = Extract<
+  GetPracticeResponse["data"],
+  { status: "submitted" }
+>;

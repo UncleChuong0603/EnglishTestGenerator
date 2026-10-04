@@ -35,6 +35,7 @@
     "test:integration:task40": "node --import tsx scripts/task40-integration.mts",
     "test:integration:task44": "node --conditions=react-server --import tsx scripts/task44-api-integration.mts",
     "test:integration:task49": "node --conditions=react-server --import tsx scripts/task49-billing-integration.mts",
+    "test:integration:task50": "node --conditions=react-server --import tsx scripts/task50-dictation-integration.mts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",

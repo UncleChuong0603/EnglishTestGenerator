@@ -930,3 +930,44 @@ export const listeningLessons = pgTable("listening_lessons", {
   check("listening_lessons_status_check", sql`${table.status} in ('DRAFT','PUBLISHED','ARCHIVED')`),
   check("listening_lessons_image_check", sql`(${table.imageStorageKey} is null) = (${table.imageChecksum} is null)`),
 ]);
+
+// Dictation progress is intentionally separate from TOEIC scoring. A session
+// references an existing, curated audio/transcript pair and never stores a
+// generated transcript or a predicted TOEIC score.
+export const dictationSessions = pgTable("dictation_sessions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  sourceType: text("source_type").notNull(),
+  sourceRef: text("source_ref").notNull(),
+  contentFingerprint: text("content_fingerprint").notNull(),
+  status: text("status").notNull().default("IN_PROGRESS"),
+  attemptsCount: integer("attempts_count").notNull().default(0),
+  bestAccuracy: integer("best_accuracy").notNull().default(0),
+  hintUsed: boolean("hint_used").notNull().default(false),
+  transcriptRevealedAt: timestamp("transcript_revealed_at", { withTimezone: true, mode: "date" }),
+  masteredAt: timestamp("mastered_at", { withTimezone: true, mode: "date" }),
+  ...timestamps,
+}, (table) => [
+  index("dictation_sessions_user_created_idx").on(table.userId, table.createdAt),
+  index("dictation_sessions_user_status_idx").on(table.userId, table.status, table.updatedAt),
+  check("dictation_sessions_source_check", sql`${table.sourceType} in ('TALK')`),
+  check("dictation_sessions_status_check", sql`${table.status} in ('IN_PROGRESS','MASTERED')`),
+  check("dictation_sessions_accuracy_check", sql`${table.bestAccuracy} between 0 and 100`),
+  check("dictation_sessions_attempts_check", sql`${table.attemptsCount} >= 0`),
+]);
+
+export const dictationAttempts = pgTable("dictation_attempts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  sessionId: uuid("session_id").notNull().references(() => dictationSessions.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  attemptNumber: integer("attempt_number").notNull(),
+  accuracy: integer("accuracy").notNull(),
+  exact: boolean("exact").notNull(),
+  usedHint: boolean("used_hint").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+}, (table) => [
+  unique("dictation_attempts_session_number_unique").on(table.sessionId, table.attemptNumber),
+  index("dictation_attempts_user_created_idx").on(table.userId, table.createdAt),
+  check("dictation_attempts_number_check", sql`${table.attemptNumber} > 0`),
+  check("dictation_attempts_accuracy_check", sql`${table.accuracy} between 0 and 100`),
+]);
