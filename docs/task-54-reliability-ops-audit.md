@@ -132,6 +132,11 @@ statistics and whether `pg_stat_statements` is available. It emits no learner ro
 Table scan counters are signals, not proof of a query problem; no index is added from
 a tiny or unmatured sample alone.
 
+The production integrity verifier now distinguishes valid anonymous guest sessions
+(`user_id IS NULL`) and deliberately profile-less deleted-account tombstones from
+true broken ownership. PostgreSQL `IS DISTINCT FROM` keeps owner comparison
+null-safe; those expected V1 records no longer create false orphan failures.
+
 ## Disaster recovery procedures
 
 ### Database loss or corruption

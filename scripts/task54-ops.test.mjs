@@ -49,4 +49,11 @@ describe("Task 54 backup and recovery controls", () => {
     expect(audit).toContain("latestMigrationApplied");
     expect(audit).toContain('mobile-retention-scheduler');
   });
+
+  it("treats deleted tombstones and anonymous guest practice as valid", () => {
+    const verifier = read("scripts/verify-production-db.mjs");
+    expect(verifier).toContain("u.deleted_at is null and p.id is null");
+    expect(verifier).toContain("s.user_id is not null and u.id is null");
+    expect(verifier).toContain("s.user_id is distinct from a.user_id");
+  });
 });
