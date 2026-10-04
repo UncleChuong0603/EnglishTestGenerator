@@ -74,4 +74,10 @@ describe("weekly plan policy", () => {
     expect(plan.items).toEqual([]);
     expect(buildWeeklyPlan({ ...input, reviewableMistakes: 0 }).items.some(item => item.activity === "REVIEW")).toBe(false);
   });
+
+  it("can prioritize review from a sufficiently supported reason pattern", () => {
+    const plan = buildWeeklyPlan({ ...input, reviewableMistakes: 4, reasonPatternSupported: true });
+    expect(plan.items[0].activity).toBe("REVIEW");
+    expect(plan.adjustmentReasons).toContain("mistake_reason_pattern");
+  });
 });

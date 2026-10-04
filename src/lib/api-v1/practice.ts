@@ -14,7 +14,7 @@ export function mapPracticeError(error: unknown): never {
     throw new ApiV1Error(403, "USAGE_LIMIT_REACHED", "Your plan limit has been reached.", error.status);
   }
   const code = error instanceof Error ? error.message : "";
-  if (["NOT_FOUND", "QUESTION_NOT_ASSIGNED", "OPTION_NOT_ASSIGNED"].includes(code)) throw new ApiV1Error(404, "NOT_FOUND", "Practice resource not found.");
+  if (["NOT_FOUND", "QUESTION_NOT_ASSIGNED", "OPTION_NOT_ASSIGNED", "INVALID_REMEDIATION_SOURCE"].includes(code)) throw new ApiV1Error(404, "NOT_FOUND", "Practice resource not found.");
   if (code === "SESSION_CLOSED") throw new ApiV1Error(409, "CONFLICT", "This practice session is already closed.");
   if (["NO_MISTAKES", "NO_REVIEWABLE_MISTAKES", "NO_PUBLISHED_CONTENT", "NOT_ENOUGH_HISTORY"].includes(code)) throw new ApiV1Error(409, "CONFLICT", "No suitable practice is available yet.");
   if (code === "PREMIUM_REQUIRED") throw new ApiV1Error(403, "FORBIDDEN", "This activity requires Premium.");

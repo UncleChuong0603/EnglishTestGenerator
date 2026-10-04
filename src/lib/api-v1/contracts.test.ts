@@ -22,6 +22,7 @@ describe("mobile API v1 contracts", () => {
       "/api/v1/practice/:id/answer",
       "/api/v1/practice/:id/submit",
       "/api/v1/practice/:id/reason",
+      "/api/v1/practice/:id/remediation",
       "/api/v1/mistakes",
       "/api/v1/vocabulary",
       "/api/v1/progress",

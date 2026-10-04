@@ -16,6 +16,7 @@ export default function ResultScreen() {
   const [error, setError] = useState<string | null>(null);
   const [savingReason, setSavingReason] = useState<string | null>(null);
   const [reasonError, setReasonError] = useState<string | null>(null);
+  const [startingRemediation, setStartingRemediation] = useState<string | null>(null);
   const load = useCallback(async () => {
     if (!auth.token || !id) return;
     setError(null);
@@ -56,6 +57,18 @@ export default function ResultScreen() {
     } catch (cause) {
       setReasonError(cause instanceof Error ? cause.message : (vi ? "Chưa thể lưu lý do." : "Could not save the reason."));
     } finally { setSavingReason(null); }
+  };
+  const startRemediation = async (questionId: string) => {
+    if (!auth.token || !id) return;
+    setStartingRemediation(questionId); setError(null);
+    try {
+      const response = await api.startRemediation(auth.token, id, { questionId });
+      router.push(`/practice/${response.data.id}`);
+    } catch (cause) {
+      if (cause instanceof MobileApiError && cause.code === "UNAUTHENTICATED") { await auth.signOut(); return; }
+      setError(cause instanceof Error ? cause.message : (vi ? "Chưa thể tạo bài ôn." : "Could not start the review."));
+      setStartingRemediation(null);
+    }
   };
 
   return (
@@ -105,6 +118,11 @@ export default function ResultScreen() {
               })}
             </View>
             {savingReason === item.questionId ? <Muted>{vi ? "Đang lưu…" : "Saving…"}</Muted> : null}
+            <PrimaryButton
+              busy={startingRemediation === item.questionId}
+              label={vi ? "Học ngắn + luyện 3–5 câu" : "Micro lesson + 3–5 questions"}
+              onPress={() => void startRemediation(item.questionId)}
+            />
           </View> : null}
         </Card>
       ))}

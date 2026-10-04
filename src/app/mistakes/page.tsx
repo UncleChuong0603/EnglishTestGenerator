@@ -24,6 +24,7 @@ import { remediationStage, type RemediationStage } from "@/lib/remediation/polic
 import { getLatestReasonsForQuestions, getMistakeReasonPattern } from "@/lib/mistake-reasons/service";
 import { mistakeReasonDefinition } from "@/lib/mistake-reasons/catalog";
 import { MIN_CLASSIFIED_REASON_SAMPLE } from "@/lib/mistake-reasons/analytics";
+import { getLatestRemediationTraces } from "@/lib/remediation/service";
 
 export default async function MistakesPage({
   searchParams,
@@ -60,9 +61,10 @@ export default async function MistakesPage({
       : "priority";
   const repeated = premium && query.filter === "repeated";
   const rows = await getMistakeBank(user.id, status, { part, skillArea: area });
-  const [latestReasons, reasonPattern] = await Promise.all([
+  const [latestReasons, reasonPattern, remediationTraces] = await Promise.all([
     getLatestReasonsForQuestions(user.id, rows.map((row) => row.questionId)),
     getMistakeReasonPattern(user.id),
+    getLatestRemediationTraces(user.id, rows.map((row) => row.questionId)),
   ]);
   const skills = [...new Set(rows.map((row) => row.skill))].sort((a, b) => a.localeCompare(b));
   const skill = typeof query.skill === "string" && skills.includes(query.skill) ? query.skill : undefined;
@@ -463,7 +465,10 @@ export default async function MistakesPage({
           </section>
         ) : (
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            {items.map((item) => (
+            {items.map((item) => {
+              const trace = remediationTraces.get(item.questionId);
+              const stage = remediationStage(item.status, item.reviewSuccessStreak);
+              return (
               <article
                 className="rounded-2xl border border-slate-200 bg-white p-5"
                 key={item.questionId}
@@ -478,6 +483,17 @@ export default async function MistakesPage({
                   {taxonomyLabel(item.subSkill, preferences.interfaceLanguage)}
                 </p>
                 {latestReasons.get(item.questionId) ? <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700">{vi ? "Lý do gần nhất" : "Latest reason"}: {mistakeReasonDefinition(latestReasons.get(item.questionId)!).label[preferences.interfaceLanguage]}</p> : null}
+                {trace ? <div className="mt-3 rounded-xl border border-teal-100 bg-teal-50 p-3 text-sm text-slate-700">
+                  <p className="font-bold text-teal-900">{vi ? "Chuỗi khắc phục" : "Remediation trail"}</p>
+                  <p className="mt-1 leading-6">
+                    {mistakeReasonDefinition(trace.reasonCode).label[preferences.interfaceLanguage]}
+                    {" → "}{trace.lessonKind === "GRAMMAR_ARTICLE" ? (vi ? "bài ngữ pháp" : "grammar lesson") : trace.lessonKind === "LISTENING_LESSON" ? (vi ? "bài nghe" : "listening lesson") : (vi ? "lời giải câu hỏi" : "question explanation")}
+                    {" → "}{stage === "MASTERED" ? (vi ? "đã nắm" : "mastered") : stage === "STRENGTHENING" ? (vi ? "đang củng cố" : "strengthening") : (vi ? "cần ôn" : "needs review")}
+                  </p>
+                  <Link className="mt-2 inline-flex min-h-11 items-center font-bold text-teal-800 underline" href={trace.status === "submitted" ? `/practice/${trace.sessionId}/results` : `/practice/${trace.sessionId}`}>
+                    {trace.status === "submitted" ? (vi ? "Xem lần ôn" : "View review") : (vi ? "Tiếp tục bài ôn" : "Continue review")}
+                  </Link>
+                </div> : null}
                 {premium ? (
                   <p className="mt-3 text-sm text-slate-700">
                     {vi
@@ -536,7 +552,7 @@ export default async function MistakesPage({
                   </p>
                 ) : null}
               </article>
-            ))}
+            );})}
           </div>
         )}
         {!premium &&

@@ -36,6 +36,7 @@ type Input = {
   workoutAvailable: boolean; reviewAvailable: boolean; manualAvailable: boolean; mockAvailable: boolean;
   learningDays: number; completedActivities: number; completedByActivity?: Partial<Record<PlanActivity, number>>; history?: WeeklyPlan["history"];
   review?: WeeklyReview | null;
+  reasonPatternSupported?: boolean;
 };
 
 export function buildWeeklyPlan(input: Input): WeeklyPlan {
@@ -55,6 +56,14 @@ export function buildWeeklyPlan(input: Input): WeeklyPlan {
   const choices = pool.filter(item => item.activity !== "WORKOUT" || input.recommendedReady);
   const reasons: string[] = [];
   const review = input.review;
+  if (input.reasonPatternSupported) {
+    const reasonReview = choices.find(item => item.activity === "REVIEW" && item.available);
+    if (reasonReview) {
+      choices.splice(choices.indexOf(reasonReview), 1);
+      choices.unshift(reasonReview);
+      reasons.push("mistake_reason_pattern");
+    }
+  }
   if (review?.hasActivity) {
     if (review.repeatedMistakes > 0 && choices.some(item => item.activity === "REVIEW")) {
       choices.sort((a, b) => Number(b.activity === "REVIEW") - Number(a.activity === "REVIEW"));

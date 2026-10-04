@@ -10,6 +10,7 @@ import { readingAssignmentSetId, validReadingAssignment } from "./reading-assign
 import { remediationStage } from "@/lib/remediation/policy";
 import { getSessionMistakeReasons, mistakeReasonChoices } from "@/lib/mistake-reasons/service";
 import type { MistakeReasonEvidence } from "@/lib/mistake-reasons/catalog";
+import { getRemediationContext } from "@/lib/remediation/service";
 
 export type PracticeOwner = { userId: string; guestOwnerHash?: never } | { userId?: never; guestOwnerHash: string };
 function ownerCondition(owner: PracticeOwner) { return "userId" in owner ? eq(practiceSessions.userId, owner.userId!) : and(eq(practiceSessions.guestOwnerHash, owner.guestOwnerHash), gt(practiceSessions.expiresAt, new Date())); }
@@ -66,9 +67,12 @@ export async function getSafeSessionContent(sessionId: string, listening = false
 
 export async function getPracticeSession(sessionId: string, owner: PracticeOwner): Promise<PracticeSession | null | "submitted"> {
   const session = await getOwnedSession(sessionId, owner); if (!session || session.practiceType === "demo_test" || session.fullMockRunId || session.rankedChallengeRunId) return null; if (session.status === "submitted") return "submitted"; if (session.status !== "in_progress") return null;
-  const listening = session.skillArea === "LISTENING"; const content = await getSafeSessionContent(session.id, listening); const expected = session.part === 2 ? 3 : 4;
+  const listening = session.skillArea === "LISTENING"; const [content, remediationContext] = await Promise.all([
+    getSafeSessionContent(session.id, listening),
+    "userId" in owner && owner.userId ? getRemediationContext(owner.userId, session.id) : null,
+  ]); const expected = session.part === 2 ? 3 : 4;
   if (content.questions.length !== session.questionCount || content.questions.some((q) => q.options.length !== expected)) throw new Error("PRACTICE_LOAD_FAILED");
-  return { id: session.id, status: "in_progress", questionCount: session.questionCount, requestedQuestionCount: session.requestedQuestionCount, mode: session.practiceType as PracticeSession["mode"], skillArea: listening ? "LISTENING" : "READING", source: session.source as PracticeSession["source"], requestedSkill: session.requestedSkill, requestedSubSkill: session.requestedSubSkill, questions: content.questions, groups: content.groups };
+  return { id: session.id, status: "in_progress", questionCount: session.questionCount, requestedQuestionCount: session.requestedQuestionCount, mode: session.practiceType as PracticeSession["mode"], skillArea: listening ? "LISTENING" : "READING", source: session.source as PracticeSession["source"], requestedSkill: session.requestedSkill, requestedSubSkill: session.requestedSubSkill, questions: content.questions, groups: content.groups, ...(remediationContext ? { remediationContext } : {}) };
 }
 
 export async function getPracticeResult(sessionId: string, owner: PracticeOwner): Promise<PracticeResult | null | "in_progress"> {

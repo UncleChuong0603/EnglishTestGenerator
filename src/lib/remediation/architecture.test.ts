@@ -5,6 +5,7 @@ const selector = readFileSync("src/lib/practice/selector.ts", "utf8");
 const action = readFileSync("src/app/practice/actions.ts", "utf8");
 const persistence = readFileSync("src/lib/mastery/persistence.ts", "utf8");
 const schema = readFileSync("src/db/schema/index.ts", "utf8");
+const apiRoute = readFileSync("src/app/api/v1/practice/[id]/remediation/route.ts", "utf8");
 
 describe("focused remediation architecture", () => {
   it("derives a wrong answer and taxonomy from an owned submitted session", () => {
@@ -24,5 +25,14 @@ describe("focused remediation architecture", () => {
     expect(selector).toContain('entitlement: "MASTERY_REVIEW"');
     expect(selector).toContain("canUseSmartMistakeReview");
     expect(selector).toContain("createMasteryReviewSession");
+  });
+
+  it("shares the server selector between web and mobile without another mastery model", () => {
+    expect(action).toContain("createFocusedRemediationSession(user.id");
+    expect(apiRoute).toContain("createFocusedRemediationSession(actor.user.id");
+    expect(apiRoute).toContain("idempotent(");
+    expect(selector).toContain("selectFocusedRemediationUnits");
+    expect(schema.match(/export const questionMastery =/g)).toHaveLength(1);
+    expect(schema).toContain('pgTable("remediation_session_contexts"');
   });
 });

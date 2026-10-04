@@ -1,7 +1,7 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { api, MobileApiError } from "@/api/client";
 import type { PracticeSession } from "@/api/types";
 import { useAuth } from "@/auth/auth-context";
@@ -93,6 +93,17 @@ export default function PracticeScreen() {
 
   return (
     <Screen>
+      {session.remediationContext ? <Card>
+        <Text style={styles.lessonEyebrow}>{vi ? "BƯỚC 1/3 · BÀI HỌC NGẮN" : "STEP 1/3 · MICRO LESSON"}</Text>
+        <Text style={styles.lessonTitle}>{session.remediationContext.microLesson.title[vi ? "vi" : "en"]}</Text>
+        <Text style={styles.lessonSummary}>{session.remediationContext.microLesson.summary[vi ? "vi" : "en"]}</Text>
+        {session.remediationContext.microLesson.href ? <Pressable
+          accessibilityRole="link"
+          onPress={() => void Linking.openURL(`https://toeicgym.net${session.remediationContext!.microLesson.href}`)}
+          style={({ pressed }) => [styles.lessonLink, pressed && styles.optionPressed]}
+        ><Text style={styles.lessonLinkText}>{vi ? "Mở bài học đầy đủ" : "Open the full lesson"}</Text></Pressable> : null}
+        <Text style={styles.lessonNext}>{vi ? `Bước 2/3 · Làm ${session.questionCount} câu cùng dạng` : `Step 2/3 · Answer ${session.questionCount} focused questions`}</Text>
+      </Card> : null}
       <View style={styles.progressRow}>
         <Text style={styles.progress}>{vi ? `Câu ${index + 1}/${session.questionCount}` : `Question ${index + 1}/${session.questionCount}`}</Text>
         <Text style={styles.saved}>{saving ? (vi ? "Đang lưu…" : "Saving…") : (vi ? `${answered} đã trả lời` : `${answered} answered`)}</Text>
@@ -175,6 +186,12 @@ export default function PracticeScreen() {
 }
 
 const styles = StyleSheet.create({
+  lessonEyebrow: { color: colors.forest, fontSize: 13, fontWeight: "800", letterSpacing: 1 },
+  lessonTitle: { color: colors.ink, fontSize: 22, lineHeight: 29, fontWeight: "800" },
+  lessonSummary: { color: colors.ink, fontSize: 16, lineHeight: 25 },
+  lessonLink: { minHeight: 48, justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: colors.forest, borderRadius: radius.md, paddingHorizontal: 14 },
+  lessonLinkText: { color: colors.forest, fontSize: 16, fontWeight: "800" },
+  lessonNext: { borderTopWidth: 1, borderTopColor: colors.rule, color: colors.forest, fontSize: 15, lineHeight: 22, fontWeight: "800", paddingTop: space.md },
   progressRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   progress: { color: colors.ink, fontSize: 17, fontWeight: "800" },
   saved: { color: colors.muted, fontSize: 14 },

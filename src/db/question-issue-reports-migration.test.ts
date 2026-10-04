@@ -20,7 +20,7 @@ describe("question issue reports migration", () => {
     }
     const prefixes = readdirSync("drizzle").filter((file) => /^\d{4}_.+\.sql$/.test(file)).map((file) => file.slice(0, 4));
     expect(new Set(prefixes).size).toBe(prefixes.length);
-    expect(journal.entries.at(-1)?.tag).toBe("0050_task45_mistake_reasons");
+    expect(journal.entries.at(-1)?.tag).toBe("0051_task46_remediation_context");
   });
 
   it("stores one durable system report for each detected pair", async () => {

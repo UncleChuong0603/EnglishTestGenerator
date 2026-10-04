@@ -51,7 +51,7 @@ export function RemediationCard({
         </span>
       </div>
       <h4 className="mt-3 text-lg font-black" id={`remediation-${question.number}`}>
-        {vi ? "Củng cố đúng dạng vừa sai" : "Reinforce the skill you missed"}
+        {vi ? "Học ngắn rồi làm 3–5 câu cùng dạng" : "Learn briefly, then answer 3–5 focused questions"}
       </h4>
       <dl className="mt-4 grid gap-3 sm:grid-cols-2">
         <div className="rounded-xl bg-white p-3">
@@ -69,8 +69,8 @@ export function RemediationCard({
       </dl>
       <p className="mt-4 text-sm leading-6 text-slate-700">
         {vi
-          ? `${question.remediation.reviewSuccessStreak}/2 lần đúng liên tiếp khi ôn. Một câu khác cùng dạng sẽ được ưu tiên nếu ngân hàng đủ nội dung.`
-          : `${question.remediation.reviewSuccessStreak}/2 consecutive correct reviews. A different question with the same taxonomy is preferred when content is available.`}
+          ? `${question.remediation.reviewSuccessStreak}/2 lần đúng liên tiếp khi ôn. Hệ thống ưu tiên câu chưa làm, rồi câu cũ và cuối cùng mới dùng câu gần đây.`
+          : `${question.remediation.reviewSuccessStreak}/2 consecutive correct reviews. The drill prefers unseen questions, then older attempts, then recent content.`}
       </p>
       {stage !== "MASTERED" && action ? (
         <form action={action} className="mt-4">

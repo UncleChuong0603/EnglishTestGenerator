@@ -11,14 +11,15 @@ import { selectListeningPractice, loadUnits } from "@/lib/practice/selector";
 import { getGroupSafeWorkoutSize } from "@/lib/workout/policy";
 import type { WeeklyReview } from "@/lib/weekly-review/policy";
 import { activityForSession, buildWeeklyPlan, productWeekWindow, type PlanActivity, type WeeklyPlan, type WeeklyPlanItem } from "./policy";
+import { getMistakeReasonPattern } from "@/lib/mistake-reasons/service";
 
 const available = (usage: UsageStatus, key: keyof UsageStatus["entitlements"]) => {
   const item = usage.entitlements[key];
   return item.type === "UNLIMITED" || item.remaining > 0;
 };
 
-function materialSignature(goal: GoalProfile | null, plan: string) {
-  return JSON.stringify([plan, goal?.targetScore ?? null, goal?.examDate ?? null, goal?.dailyStudyMinutes ?? null, goal?.studyDaysPerWeek ?? null]);
+function materialSignature(goal: GoalProfile | null, plan: string, reasonCode: string | null) {
+  return JSON.stringify([plan, goal?.targetScore ?? null, goal?.examDate ?? null, goal?.dailyStudyMinutes ?? null, goal?.studyDaysPerWeek ?? null, reasonCode]);
 }
 
 function applySnapshot(plan: WeeklyPlan, items: Array<{ slot: number; activity: string; minutes: number; reason: string }>, reasons: string[], completedByActivity: Partial<Record<PlanActivity, number>>, premium: boolean): WeeklyPlan {
@@ -48,7 +49,7 @@ export async function getWeeklyPlan(userId: string, goal: GoalProfile | null, us
           recommendation.part >= 3 ? getGroupSafeWorkoutSize(recommendation.part, targetQuestions).groupCount! : targetQuestions,
           { userId, skill: recommendation.primarySkill ?? undefined, subSkill: recommendation.primarySubskill ?? undefined }).then(() => true).catch(() => false)
         : Promise.resolve(false);
-  const [recommendedReady, readingReady, focusedReadingReady, listeningReady, mockListeningReady, activity, learning, mockActivity, history, existing] = await Promise.all([
+  const [recommendedReady, readingReady, focusedReadingReady, listeningReady, mockListeningReady, activity, learning, mockActivity, history, existing, reasonPattern] = await Promise.all([
     recommendedReadyQuery,
     loadUnits(5).then(units => units.length >= (minutes >= 45 ? 20 : minutes >= 30 ? 15 : 10)).catch(() => false),
     usage.effectivePlan === "PREMIUM" && dashboard.recommendation?.reasonCode === "SUPPORTED_WEAKNESS" && dashboard.recommendation.skillArea === "READING" && focusPart !== null && focusPart !== undefined && focusPart >= 5
@@ -73,6 +74,7 @@ export async function getWeeklyPlan(userId: string, goal: GoalProfile | null, us
       .limit(4) : Promise.resolve([]),
     db.select({ signature: weeklyPlanSnapshots.signature, items: weeklyPlanSnapshots.items, adjustmentReasons: weeklyPlanSnapshots.adjustmentReasons })
       .from(weeklyPlanSnapshots).where(and(eq(weeklyPlanSnapshots.userId, userId), eq(weeklyPlanSnapshots.weekStart, new Date(week.start.getTime() + 7 * 3_600_000).toISOString().slice(0, 10)))).limit(1),
+    getMistakeReasonPattern(userId),
   ]);
   const completedByActivity: Partial<Record<PlanActivity, number>> = {};
   for (const row of activity) {
@@ -87,8 +89,9 @@ export async function getWeeklyPlan(userId: string, goal: GoalProfile | null, us
     manualAvailable: available(usage, "MANUAL_PRACTICE"), mockAvailable: available(usage, "FULL_MOCK"),
     learningDays: Number(learning[0]?.learningDays ?? 0), completedActivities: activity.reduce((sum, row) => sum + Number(row.completedActivities), 0) + Number(mockActivity[0]?.completedActivities ?? 0), completedByActivity,
     history: history.map(row => ({ weekStart: row.weekStart, completedSessions: Number(row.completedSessions) })), review,
+    reasonPatternSupported: reasonPattern.sufficient,
   });
-  const signature = materialSignature(goal, usage.effectivePlan);
+  const signature = materialSignature(goal, usage.effectivePlan, reasonPattern.top?.code ?? null);
   if (existing[0]?.signature === signature) return applySnapshot(plan, existing[0].items, existing[0].adjustmentReasons, completedByActivity, usage.effectivePlan === "PREMIUM");
   if (!plan.items.length) return plan;
   const saved = await db.insert(weeklyPlanSnapshots).values({ userId, weekStart: plan.weekStart, signature,

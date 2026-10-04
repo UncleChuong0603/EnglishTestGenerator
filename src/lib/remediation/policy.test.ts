@@ -4,6 +4,7 @@ import {
   chooseRemediationEvidenceQuestion,
   rankFocusedRemediationUnits,
   remediationStage,
+  selectFocusedRemediationUnits,
 } from "./policy";
 
 const history = {
@@ -75,5 +76,23 @@ describe("learning remediation policy", () => {
       { seenQuestionIds: new Set(), recentQuestionIds: new Set() },
       "source",
     )).toEqual([]);
+  });
+
+  it("builds a 3–5 question drill without splitting grouped units", () => {
+    expect(selectFocusedRemediationUnits([
+      { id: "a", part: 5, questionIds: ["1"] },
+      { id: "b", part: 5, questionIds: ["2"] },
+      { id: "c", part: 5, questionIds: ["3"] },
+      { id: "d", part: 5, questionIds: ["4"] },
+      { id: "e", part: 5, questionIds: ["5"] },
+      { id: "f", part: 5, questionIds: ["6"] },
+    ]).flatMap((unit) => unit.questionIds)).toEqual(["1", "2", "3"]);
+    expect(selectFocusedRemediationUnits([
+      { id: "p6", part: 6, questionIds: ["1", "2", "3", "4"] },
+      { id: "extra", part: 6, questionIds: ["5", "6", "7", "8"] },
+    ])).toEqual([{ id: "p6", part: 6, questionIds: ["1", "2", "3", "4"] }]);
+    expect(selectFocusedRemediationUnits([
+      { id: "too-small", part: 5, questionIds: ["1", "2"] },
+    ])).toEqual([]);
   });
 });

@@ -11,6 +11,7 @@ describe("Task 43 API architecture", () => {
     expect(route("practice")).toContain("idempotent(");
     expect(route("practice/[id]/answer")).toContain("idempotent(");
     expect(route("practice/[id]/submit")).toContain("idempotent(");
+    expect(route("practice/[id]/remediation")).toContain("idempotent(");
     expect(readFileSync("drizzle/0049_mobile_api_v1.sql", "utf8")).toContain("api_idempotency_keys_scope_unique");
   });
   it("keeps selection and scoring on shared server services", () => {

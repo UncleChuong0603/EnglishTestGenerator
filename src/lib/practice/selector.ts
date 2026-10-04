@@ -2,7 +2,7 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import { and, asc, desc, eq, gte, inArray, lt, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { attemptAnswers, listeningTranscripts, mediaAssets, passageSets, passages, practiceSessionQuestions, practiceSessions, questionGroupMedia, questionMastery, questionOptions, questionSolutions, questions } from "@/db/schema";
+import { attemptAnswers, listeningLessons, listeningTranscripts, mediaAssets, mistakeReasonClassifications, passageSets, passages, practiceSessionQuestions, practiceSessions, questionGroupMedia, questionMastery, questionOptions, questionSolutions, questions, remediationSessionContexts } from "@/db/schema";
 import { validateListeningEligibility, validateListeningGroupEligibility } from "@/lib/listening/eligibility";
 import { MIXED_PART_WEIGHTS, READING_TAXONOMY } from "./constants";
 import { flattenUniqueQuestionIds, rankPreferUnseen, rankSelectionUnits, RECENT_CONTENT_SESSION_WINDOW, selectClosestUnits, shuffle, type ContentHistory, type SelectionUnit } from "./selection";
@@ -13,7 +13,9 @@ import { expandReviewGroups, getReviewCandidates, getSmartReviewCandidates } fro
 import { getEffectiveCapabilities } from "@/lib/entitlements/service";
 import { consumeUsage } from "@/lib/entitlements/service";
 import { resolveQuestionBankPool, type QuestionBankPool } from "./pool";
-import { chooseRemediationEvidenceQuestion, rankFocusedRemediationUnits } from "@/lib/remediation/policy";
+import { chooseRemediationEvidenceQuestion, rankFocusedRemediationUnits, selectFocusedRemediationUnits } from "@/lib/remediation/policy";
+import { remediationLessonReference } from "@/lib/remediation/content";
+import type { MistakeReasonCode } from "@/lib/mistake-reasons/catalog";
 
 const EMPTY_HISTORY: ContentHistory = { seenQuestionIds: new Set(), recentQuestionIds: new Set() };
 const keepOrder = () => 0.999;
@@ -279,7 +281,7 @@ export async function createRecommendedReadingPracticeSession(userId: string, ta
   });
 }
 /** Creates a server-authoritative, single-Part review session; grouped content is expanded atomically. */
-export async function createMasteryReviewSession(userId: string, requestedPart?: number, options?: { smart?: boolean; size?: number }, transaction?: PracticeTransaction) {
+export async function createMasteryReviewSession(userId: string, requestedPart?: number, options?: { smart?: boolean; size?: number; resume?: boolean }, transaction?: PracticeTransaction) {
   if (options?.smart && !(await getEffectiveCapabilities(userId)).canUseSmartMistakeReview) throw new Error("PREMIUM_REQUIRED");
   const candidates = options?.smart ? await getSmartReviewCandidates(userId, requestedPart) : await getReviewCandidates(userId, requestedPart);
   if (!candidates.length) throw new Error("NO_MISTAKES");
@@ -299,7 +301,7 @@ export async function createMasteryReviewSession(userId: string, requestedPart?:
   const sessionId = randomUUID(); const now = new Date();
   return inPracticeTransaction(transaction, async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${userId}:practice`}, 0))`);
-    const [existing] = await tx.select({ id: practiceSessions.id }).from(practiceSessions).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), eq(practiceSessions.source, "mastery_review"))).limit(1); if (existing) return existing.id;
+    const [existing] = options?.resume === false ? [] : await tx.select({ id: practiceSessions.id }).from(practiceSessions).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), eq(practiceSessions.source, "mastery_review"))).limit(1); if (existing) return existing.id;
     await tx.update(practiceSessions).set({ status: "abandoned" }).where(and(eq(practiceSessions.userId, userId), eq(practiceSessions.status, "in_progress"), ne(practiceSessions.practiceType, "demo_test"), ne(practiceSessions.source, "diagnostic")));
     await consumeUsage(tx, { userId, entitlement: "MASTERY_REVIEW", sourceType: "PRACTICE_SESSION", sourceId: sessionId, now });
     const [session] = await tx.insert(practiceSessions).values({ id: sessionId, userId, skillArea, practiceType: skillArea === "LISTENING" ? `listening_part_${part}` : `part_${part}`, part, questionCount: expanded.length, requestedQuestionCount: targetSize, source: "mastery_review" }).returning({ id: practiceSessions.id });
@@ -316,9 +318,9 @@ export async function createMasteryReviewSession(userId: string, requestedPart?:
 export async function createFocusedRemediationSession(
   userId: string,
   sourceSessionId: string,
-  questionNumber: number,
+  questionLocator: number | string,
 ): Promise<{ sessionId: string; focused: boolean }> {
-  if (!sourceSessionId || !Number.isInteger(questionNumber) || questionNumber < 1 || questionNumber > 200) {
+  if (!sourceSessionId || (typeof questionLocator === "number" && (!Number.isInteger(questionLocator) || questionLocator < 1 || questionLocator > 200)) || (typeof questionLocator === "string" && !questionLocator)) {
     throw new Error("INVALID_REMEDIATION_SOURCE");
   }
   const [target] = await db
@@ -330,6 +332,9 @@ export async function createFocusedRemediationSession(
       skillArea: questions.skillArea,
       skill: questions.skill,
       subSkill: questions.subSkill,
+      explanationEn: questionSolutions.explanationEn,
+      explanationVi: questionSolutions.explanationVi,
+      reasonCode: mistakeReasonClassifications.reasonCode,
     })
     .from(practiceSessionQuestions)
     .innerJoin(
@@ -337,6 +342,7 @@ export async function createFocusedRemediationSession(
       eq(practiceSessions.id, practiceSessionQuestions.sessionId),
     )
     .innerJoin(questions, eq(questions.id, practiceSessionQuestions.questionId))
+    .innerJoin(questionSolutions, eq(questionSolutions.questionId, questions.id))
     .innerJoin(
       attemptAnswers,
       and(
@@ -344,6 +350,11 @@ export async function createFocusedRemediationSession(
         eq(attemptAnswers.questionId, practiceSessionQuestions.questionId),
       ),
     )
+    .leftJoin(mistakeReasonClassifications, and(
+      eq(mistakeReasonClassifications.userId, userId),
+      eq(mistakeReasonClassifications.sessionId, sourceSessionId),
+      eq(mistakeReasonClassifications.questionId, questions.id),
+    ))
     .innerJoin(
       questionMastery,
       and(
@@ -356,39 +367,69 @@ export async function createFocusedRemediationSession(
         eq(practiceSessions.id, sourceSessionId),
         eq(practiceSessions.userId, userId),
         eq(practiceSessions.status, "submitted"),
-        eq(practiceSessionQuestions.displayOrder, questionNumber),
+        typeof questionLocator === "number"
+          ? eq(practiceSessionQuestions.displayOrder, questionLocator)
+          : eq(practiceSessionQuestions.questionId, questionLocator),
         eq(attemptAnswers.isCorrect, false),
       ),
     )
     .limit(1);
   if (!target || ![1, 2, 3, 4, 5, 6, 7].includes(target.part)) {
-    throw new Error("NO_MISTAKES");
+    throw new Error("INVALID_REMEDIATION_SOURCE");
   }
+  const [reusable] = await db.select({ id: practiceSessions.id })
+    .from(remediationSessionContexts)
+    .innerJoin(practiceSessions, eq(practiceSessions.id, remediationSessionContexts.sessionId))
+    .where(and(
+      eq(remediationSessionContexts.userId, userId),
+      eq(remediationSessionContexts.sourceSessionId, sourceSessionId),
+      eq(remediationSessionContexts.sourceQuestionId, target.questionId),
+      eq(practiceSessions.status, "in_progress"),
+    )).limit(1);
+  if (reusable) return { sessionId: reusable.id, focused: true };
 
   const capabilities = await getEffectiveCapabilities(userId);
-  const fallback = async () => ({
-    sessionId: await createMasteryReviewSession(userId, target.part, {
-      smart: capabilities.canUseSmartMistakeReview,
-    }),
-    focused: false,
+  const reasonCode = (target.reasonCode ?? "UNKNOWN") as MistakeReasonCode;
+  const [listeningLesson] = reasonCode === "MISHEARD_WORD"
+    ? await db.select({ id: listeningLessons.id }).from(listeningLessons)
+      .where(and(eq(listeningLessons.status, "PUBLISHED"), eq(listeningLessons.toeicPart, target.part)))
+      .orderBy(desc(listeningLessons.publishedAt)).limit(1)
+    : [];
+  const lesson = remediationLessonReference({ reasonCode, part: target.part, subSkill: target.subSkill, listeningLessonId: listeningLesson?.id });
+  const contextValues = (sessionId: string) => ({
+    sessionId, userId, sourceSessionId, sourceQuestionId: target.questionId,
+    reasonCode, lessonKind: lesson.kind, lessonRef: lesson.ref,
   });
+  const fallback = async () => {
+    const sessionId = await createMasteryReviewSession(userId, target.part, { smart: capabilities.canUseSmartMistakeReview, resume: false });
+    await db.insert(remediationSessionContexts).values(contextValues(sessionId)).onConflictDoNothing();
+    return { sessionId, focused: false };
+  };
 
   let selectedQuestions: Array<typeof questions.$inferSelect> = [];
   try {
     if (target.skillArea === "LISTENING" && target.part <= 4) {
-      selectedQuestions = await selectListeningPractice(
-        target.part as 1 | 2 | 3 | 4,
-        1,
-        {
-          userId,
-          skill: target.skill,
-          subSkill: target.subSkill,
-          strictTaxonomy: true,
-          excludedPassageSetIds: target.passageSetId
-            ? new Set([target.passageSetId])
-            : undefined,
-        },
-      );
+      const part = target.part as 1 | 2 | 3 | 4;
+      const counts = part <= 2 ? [5, 4, 3] : [1];
+      for (const count of counts) {
+        try {
+          selectedQuestions = await selectListeningPractice(part, count, {
+            userId, skill: target.skill, subSkill: target.subSkill, strictTaxonomy: true,
+            excludedPassageSetIds: target.passageSetId ? new Set([target.passageSetId]) : undefined,
+          });
+          break;
+        } catch { /* Retry with a smaller group-safe target. */ }
+      }
+      if (selectedQuestions.length < 3) {
+        for (const count of counts) {
+          try {
+            selectedQuestions = await selectListeningPractice(part, count, {
+              userId, skill: target.skill, subSkill: target.subSkill, strictTaxonomy: true,
+            });
+            break;
+          } catch { /* The canonical fallback handles a genuinely small bank. */ }
+        }
+      }
     } else if (target.skillArea === "READING" && target.part >= 5) {
       const units = await loadUnits(
         target.part as ReadingPart,
@@ -397,23 +438,25 @@ export async function createFocusedRemediationSession(
       );
       const candidateIds = flattenUniqueQuestionIds(units);
       const history = await loadContentHistory(userId, candidateIds);
-      const selectedUnit = rankFocusedRemediationUnits(
+      let selectedUnits = selectFocusedRemediationUnits(rankFocusedRemediationUnits(
         units,
         history,
         target.passageSetId ?? target.questionId,
-      )[0];
-      if (selectedUnit) {
+      ));
+      if (!selectedUnits.length) selectedUnits = selectFocusedRemediationUnits(rankFocusedRemediationUnits(units, history, ""));
+      if (selectedUnits.length) {
+        const selectedIds = flattenUniqueQuestionIds(selectedUnits);
         selectedQuestions = await db
           .select()
           .from(questions)
-          .where(inArray(questions.id, selectedUnit.questionIds))
+          .where(inArray(questions.id, selectedIds))
           .orderBy(asc(questions.questionOrder));
       }
     }
   } catch {
     selectedQuestions = [];
   }
-  if (!selectedQuestions.length) return fallback();
+  if (selectedQuestions.length < 3 || selectedQuestions.length > 5) return fallback();
 
   const selectedHistory = await loadContentHistory(
     userId,
@@ -489,6 +532,7 @@ export async function createFocusedRemediationSession(
           question.id === evidenceQuestion.id ? target.masteryQuestionId : null,
       })),
     );
+    await tx.insert(remediationSessionContexts).values(contextValues(session.id));
     return session.id;
   });
   return { sessionId: savedId, focused: true };

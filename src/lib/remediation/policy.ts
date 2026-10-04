@@ -5,6 +5,8 @@ import {
 } from "@/lib/practice/selection";
 
 export type RemediationStage = "NEEDS_REVIEW" | "STRENGTHENING" | "MASTERED";
+export const FOCUSED_REMEDIATION_MIN_QUESTIONS = 3;
+export const FOCUSED_REMEDIATION_MAX_QUESTIONS = 5;
 
 export function remediationStage(
   status: "UNRESOLVED" | "MASTERED",
@@ -24,6 +26,20 @@ export function rankFocusedRemediationUnits<T extends SelectionUnit>(
     units.filter((unit) => unit.id !== excludedUnitId),
     history,
   );
+}
+
+/** Selects whole units while keeping the drill within the pedagogical 3–5 range. */
+export function selectFocusedRemediationUnits<T extends SelectionUnit>(units: readonly T[]): T[] {
+  const selected: T[] = [];
+  let count = 0;
+  for (const unit of units) {
+    const next = count + unit.questionIds.length;
+    if (unit.questionIds.length > FOCUSED_REMEDIATION_MAX_QUESTIONS || next > FOCUSED_REMEDIATION_MAX_QUESTIONS) continue;
+    selected.push(unit);
+    count = next;
+    if (count >= FOCUSED_REMEDIATION_MIN_QUESTIONS) break;
+  }
+  return count >= FOCUSED_REMEDIATION_MIN_QUESTIONS ? selected : [];
 }
 
 export function chooseRemediationEvidenceQuestion<T extends { id: string; skill: string; subSkill: string }>(

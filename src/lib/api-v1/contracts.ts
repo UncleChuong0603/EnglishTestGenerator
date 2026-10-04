@@ -186,7 +186,20 @@ export const practiceSessionSchema = z.strictObject({
     questionIds: z.array(uuidSchema),
     passages: z.array(z.strictObject({ id: uuidSchema, title: z.string().nullable(), content: z.string(), position: z.number().int().positive(), documentType: z.string() })),
   })),
+  remediationContext: z.strictObject({
+    sourceQuestionId: uuidSchema,
+    reasonCode: mistakeReasonCodeContractSchema,
+    microLesson: z.strictObject({
+      kind: z.enum(["GRAMMAR_ARTICLE", "LISTENING_LESSON", "QUESTION_EXPLANATION"]),
+      title: z.strictObject({ vi: z.string(), en: z.string() }),
+      summary: z.strictObject({ vi: z.string(), en: z.string() }),
+      href: z.string().nullable(),
+    }),
+  }).optional(),
 });
+
+export const startRemediationRequestSchema = z.strictObject({ questionId: uuidSchema });
+export const startRemediationResponseSchema = z.strictObject({ data: z.strictObject({ id: uuidSchema, focused: z.boolean() }) });
 
 export const createPracticeResponseSchema = z.strictObject({ data: z.strictObject({ id: uuidSchema, resumed: z.boolean() }) });
 
@@ -313,6 +326,7 @@ export const apiV1Contracts = {
   answerPractice: { method: "POST", path: "/api/v1/practice/:id/answer", auth: "session+ownership", request: answerPracticeRequestSchema, response: answerPracticeResponseSchema, idempotency: "required" },
   submitPractice: { method: "POST", path: "/api/v1/practice/:id/submit", auth: "session+ownership", request: submitPracticeRequestSchema, response: submitPracticeResponseSchema, idempotency: "required" },
   saveMistakeReason: { method: "POST", path: "/api/v1/practice/:id/reason", auth: "session+ownership", request: saveMistakeReasonRequestSchema, response: saveMistakeReasonResponseSchema },
+  startRemediation: { method: "POST", path: "/api/v1/practice/:id/remediation", auth: "session+ownership", request: startRemediationRequestSchema, response: startRemediationResponseSchema },
   mistakes: { method: "GET", path: "/api/v1/mistakes", auth: "session", query: paginationRequestSchema, response: mistakesResponseSchema },
   vocabulary: { method: "GET", path: "/api/v1/vocabulary", auth: "session", query: paginationRequestSchema, response: vocabularyResponseSchema },
   progress: { method: "GET", path: "/api/v1/progress", auth: "session", response: progressResponseSchema },
@@ -332,5 +346,7 @@ export type AnswerPracticeRequest = z.infer<typeof answerPracticeRequestSchema>;
 export type SubmitPracticeResponse = z.infer<typeof submitPracticeResponseSchema>;
 export type SaveMistakeReasonRequest = z.infer<typeof saveMistakeReasonRequestSchema>;
 export type SaveMistakeReasonResponse = z.infer<typeof saveMistakeReasonResponseSchema>;
+export type StartRemediationRequest = z.infer<typeof startRemediationRequestSchema>;
+export type StartRemediationResponse = z.infer<typeof startRemediationResponseSchema>;
 export type ProgressResponse = z.infer<typeof progressResponseSchema>;
 export type EntitlementsResponse = z.infer<typeof entitlementsResponseSchema>;

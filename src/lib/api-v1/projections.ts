@@ -189,5 +189,6 @@ export async function practiceProjection(userId: string, sessionId: string) {
     questionCount: session.questionCount,
     questions: session.questions.map((question) => sessionQuestion(question, selected.get(question.id) ?? null)),
     groups: session.groups.map((group) => ({ id: group.id, part: group.part, setType: group.setType, title: group.title, questionIds: group.questions.map((question) => question.id), passages: group.passages })),
+    ...(session.remediationContext ? { remediationContext: session.remediationContext } : {}),
   } };
 }
