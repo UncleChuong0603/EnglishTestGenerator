@@ -1,7 +1,7 @@
 import "server-only";
 import { and, count, eq, max, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { attemptAnswers, fullMockRuns, practiceSessions, questions } from "@/db/schema";
+import { attemptAnswers, diagnosticRuns, fullMockRuns, practiceSessions, questions } from "@/db/schema";
 import { isValidSkillPart, type PartBearingSkillArea, type ToeicPart } from "@/lib/toeic/domain";
 import { calculateToeicProgress } from "./calculate";
 import type { ProgressAggregateRow, ToeicProgress } from "./types";
@@ -19,9 +19,10 @@ export async function getToeicProgress(userId: string): Promise<ToeicProgress> {
     latestAttemptAt: max(sql<Date>`coalesce(${attemptAnswers.answeredAt}, ${attemptAnswers.createdAt})`),
   }).from(attemptAnswers)
     .innerJoin(practiceSessions, and(eq(practiceSessions.id, attemptAnswers.sessionId), eq(practiceSessions.userId, attemptAnswers.userId)))
+    .leftJoin(diagnosticRuns, eq(diagnosticRuns.id, practiceSessions.diagnosticRunId))
     .leftJoin(fullMockRuns, eq(fullMockRuns.id, practiceSessions.fullMockRunId))
     .innerJoin(questions, eq(questions.id, attemptAnswers.questionId))
-    .where(and(eq(attemptAnswers.userId, userId), eq(practiceSessions.status, "submitted"), sql`${questions.skillArea} = ${practiceSessions.skillArea}`, sql`(${practiceSessions.source} <> 'full_mock' or ${fullMockRuns.status} = 'COMPLETED')`))
+    .where(and(eq(attemptAnswers.userId, userId), eq(practiceSessions.status, "submitted"), sql`${questions.skillArea} = ${practiceSessions.skillArea}`, sql`(${practiceSessions.source} <> 'diagnostic' or ${diagnosticRuns.status} = 'COMPLETED')`, sql`(${practiceSessions.source} <> 'full_mock' or ${fullMockRuns.status} = 'COMPLETED')`))
     .groupBy(questions.skillArea, questions.toeicPart, questions.skill, questions.subSkill);
 
   const safeRows: ProgressAggregateRow[] = rows.flatMap((row) => {
@@ -40,8 +41,9 @@ export async function getLearnerTrend(userId: string, period: TrendPeriod, now =
     correctCount: sql<number>`count(*) filter (where ${attemptAnswers.isCorrect})::int`,
   }).from(attemptAnswers)
     .innerJoin(practiceSessions, and(eq(practiceSessions.id, attemptAnswers.sessionId), eq(practiceSessions.userId, attemptAnswers.userId)))
+    .leftJoin(diagnosticRuns, eq(diagnosticRuns.id, practiceSessions.diagnosticRunId))
     .leftJoin(fullMockRuns, eq(fullMockRuns.id, practiceSessions.fullMockRunId))
-    .where(and(eq(attemptAnswers.userId, userId), eq(practiceSessions.status, "submitted"), sql`coalesce(${attemptAnswers.answeredAt}, ${attemptAnswers.createdAt}) >= ${start}`, sql`(${practiceSessions.source} <> 'full_mock' or ${fullMockRuns.status} = 'COMPLETED')`))
+    .where(and(eq(attemptAnswers.userId, userId), eq(practiceSessions.status, "submitted"), sql`coalesce(${attemptAnswers.answeredAt}, ${attemptAnswers.createdAt}) >= ${start}`, sql`(${practiceSessions.source} <> 'diagnostic' or ${diagnosticRuns.status} = 'COMPLETED')`, sql`(${practiceSessions.source} <> 'full_mock' or ${fullMockRuns.status} = 'COMPLETED')`))
     .groupBy(sql`to_char(timezone('Asia/Ho_Chi_Minh', coalesce(${attemptAnswers.answeredAt}, ${attemptAnswers.createdAt})), 'YYYY-MM-DD')`);
   const normalized: DailyAnswerCount[] = rows.map((row) => ({ day: row.day, answeredCount: Number(row.answeredCount), correctCount: Number(row.correctCount) }));
   return { period, points: buildDailyTrend(normalized, period, now), comparison: comparePeriods(normalized, period, now) };

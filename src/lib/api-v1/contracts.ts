@@ -512,6 +512,16 @@ export const reviewVocabularyResponseSchema = z.strictObject({
   data: z.strictObject({ reviewed: z.literal(true) }),
 });
 
+const readinessStateSchema = z.enum(["INSUFFICIENT_DATA", "NEEDS_WORK", "DEVELOPING", "STABLE", "STRONG"]);
+const readinessAreaSchema = z.strictObject({
+  state: readinessStateSchema,
+  answered: z.number().int().nonnegative(),
+  correct: z.number().int().nonnegative(),
+  accuracy: z.number().int().min(0).max(100).nullable(),
+  latestAttemptAt: isoDateTimeSchema.nullable(),
+  minimumSample: z.number().int().positive(),
+});
+
 export const progressResponseSchema = z.strictObject({
   data: z.strictObject({
     overall: accuracySummarySchema,
@@ -521,6 +531,46 @@ export const progressResponseSchema = z.strictObject({
       z.strictObject({ part: toeicPartSchema, summary: accuracySummarySchema }),
     ),
     latestAttemptAt: isoDateTimeSchema.nullable(),
+    readiness: z.strictObject({
+      goal: z.strictObject({
+        targetScore: z.number().int().min(10).max(990).nullable(),
+        examDate: z.iso.date().nullable(),
+        daysUntilExam: z.number().int().nullable(),
+      }),
+      consistency: z.strictObject({
+        state: readinessStateSchema,
+        learningDays28: z.number().int().min(0).max(28),
+        targetDays28: z.number().int().min(0).max(28).nullable(),
+      }),
+      listening: readinessAreaSchema,
+      reading: readinessAreaSchema,
+      diagnostic: z.strictObject({ completed: z.boolean(), completedAt: isoDateTimeSchema.nullable() }),
+      mastery: z.strictObject({ unresolved: z.number().int().nonnegative(), mastered: z.number().int().nonnegative() }),
+      weeklyPlan: z.strictObject({
+        state: readinessStateSchema,
+        planned: z.number().int().min(0).max(7),
+        completed: z.number().int().min(0).max(7),
+      }),
+      mocks: z.strictObject({
+        completed: z.number().int().nonnegative(),
+        latestCompletedAt: isoDateTimeSchema.nullable(),
+        recommended: z.boolean(),
+        access: z.enum(["AVAILABLE", "QUOTA_REACHED"]),
+      }),
+      priorities: z.array(z.strictObject({
+        skillArea: z.enum(["LISTENING", "READING"]),
+        part: toeicPartSchema,
+        skill: z.string().nullable(),
+        state: readinessStateSchema,
+        answered: z.number().int().nonnegative(),
+        correct: z.number().int().nonnegative(),
+        accuracy: z.number().int().min(0).max(100).nullable(),
+      })).max(3),
+      actions: z.array(z.strictObject({
+        code: z.enum(["TAKE_DIAGNOSTIC", "REVIEW_MISTAKES", "PRACTICE_LISTENING", "PRACTICE_READING", "TAKE_FULL_MOCK", "CONTINUE_WEEKLY_PLAN"]),
+        href: z.string().startsWith("/"),
+      })).max(3),
+    }),
   }),
 });
 

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { ComparisonBars, TrendChart } from "@/components/analytics/charts";
 import { UnifiedRecommendationCard as RecommendationCard } from "@/components/diagnosis/recommendation-card";
 import { LearnerNav } from "@/components/learner-nav";
+import { ExamReadiness } from "@/components/progress/exam-readiness";
 import { getCurrentUser } from "@/lib/auth/session";
 import { loadRecommendedWorkout } from "@/lib/diagnosis/service";
 import { getEffectiveCapabilities } from "@/lib/entitlements/service";
@@ -19,6 +20,7 @@ import {
   getDiagnosticHistory,
 } from "@/lib/diagnostic/service";
 import { getPremiumPreview } from "@/lib/premium/preview";
+import { getExamReadiness } from "@/lib/readiness/service";
 
 export default async function ProgressPage({
   searchParams,
@@ -39,15 +41,15 @@ export default async function ProgressPage({
     const period = allowed.includes(requested as TrendPeriod)
       ? (requested as TrendPeriod)
       : 7;
+    const progress = await getToeicProgress(user.id);
     const [
-      progress,
       recommendation,
       mistakes,
       trend,
       diagnosticHistory,
       preview,
+      readiness,
     ] = await Promise.all([
-      getToeicProgress(user.id),
       loadRecommendedWorkout(user.id).catch(() => null),
       getMistakeCounts(user.id),
       getLearnerTrend(user.id, period),
@@ -55,6 +57,7 @@ export default async function ProgressPage({
         ? getDiagnosticHistory(user.id)
         : Promise.resolve([]),
       getPremiumPreview(),
+      getExamReadiness(user.id, { progress }),
     ]);
     const latestDiagnostic = diagnosticHistory[0] ?? null;
     const previousDiagnostic = diagnosticHistory[1] ?? null;
@@ -94,6 +97,7 @@ export default async function ProgressPage({
               {t.progress.unifiedIntro}
             </p>
           </header>
+          <ExamReadiness readiness={readiness} locale={locale} />
           {progress.attemptedCount === 0 ? (
             <section className="mt-8 rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center sm:p-12">
               <h2 className="text-2xl font-black">
@@ -145,7 +149,7 @@ export default async function ProgressPage({
                 ))}
               </section>
               <div className="mt-7 grid gap-7 lg:grid-cols-2">
-                <section className="rounded-2xl border border-slate-200 bg-white p-6">
+                <section className="min-w-0 rounded-2xl border border-slate-200 bg-white p-6">
                   <h2 className="text-xl font-black">Listening vs Reading</h2>
                   <p className="mt-2 text-sm text-slate-600">
                     {vi
@@ -159,7 +163,7 @@ export default async function ProgressPage({
                     />
                   </div>
                 </section>
-                <section className="rounded-2xl border border-slate-200 bg-white p-6">
+                <section className="min-w-0 rounded-2xl border border-slate-200 bg-white p-6">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <h2 className="text-xl font-black">
                       {vi ? "Xu hướng độ chính xác" : "Accuracy trend"}

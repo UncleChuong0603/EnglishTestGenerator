@@ -36,6 +36,8 @@
     "test:integration:task44": "node --conditions=react-server --import tsx scripts/task44-api-integration.mts",
     "test:integration:task49": "node --conditions=react-server --import tsx scripts/task49-billing-integration.mts",
     "test:integration:task50": "node --conditions=react-server --import tsx scripts/task50-dictation-integration.mts",
+    "test:e2e:task51:seed": "node --env-file=.env.local --conditions=react-server --import tsx scripts/task51-qa-seed.mts",
+    "test:e2e:task51": "playwright test e2e/task51-readiness.spec.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",

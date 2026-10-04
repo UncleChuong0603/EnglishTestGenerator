@@ -12,6 +12,7 @@ import { getLatestReasonsForQuestions } from "@/lib/mistake-reasons/service";
 import { getPracticeResult, getPracticeSession } from "@/lib/practice/queries";
 import { getToeicProgress } from "@/lib/progress/queries";
 import type { ProgressCounts } from "@/lib/progress/types";
+import { getExamReadiness } from "@/lib/readiness/service";
 import { getActiveTrial } from "@/lib/premium/trial";
 import { getVocabularyCards } from "@/lib/vocabulary/service";
 import { getWeeklyPlan } from "@/lib/weekly-plan/service";
@@ -109,12 +110,14 @@ export async function entitlementsProjection(userId: string) {
 
 export async function progressProjection(userId: string) {
   const progress = await getToeicProgress(userId);
+  const readiness = await getExamReadiness(userId, { progress });
   return { data: {
     overall: accuracy(progress),
     listening: accuracy(progress.listening),
     reading: accuracy(progress.reading),
     parts: progress.parts.map((part) => ({ part: part.part, summary: accuracy(part) })),
     latestAttemptAt: progress.latestAttemptAt,
+    readiness,
   } };
 }
 
