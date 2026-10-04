@@ -1,7 +1,10 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
+import { useEffect, useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import type { PracticeSession } from "@/api/types";
+import { useAuth } from "@/auth/auth-context";
+import { cachedAudioUri } from "@/lib/audio-cache";
 import { colors, radius, space } from "@/theme";
 
 type Media = NonNullable<PracticeSession["questions"][number]["media"]>[number];
@@ -13,8 +16,16 @@ function formatTime(seconds: number) {
 }
 
 function AudioControl({ item, vi }: { item: Media; vi: boolean }) {
-  const player = useAudioPlayer(item.url, { updateInterval: 500 });
+  const auth = useAuth();
+  const [source, setSource] = useState<string | { uri: string; headers: Record<string, string> }>(() => ({ uri: item.url, headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : {} as Record<string, string> }));
+  const player = useAudioPlayer(source, { updateInterval: 500 });
   const status = useAudioPlayerStatus(player);
+  useEffect(() => {
+    if (!auth.token) return;
+    let active = true;
+    void cachedAudioUri(item.id, item.url, auth.token).then((uri) => { if (active && uri) setSource(uri); });
+    return () => { active = false; player.setActiveForLockScreen(false); };
+  }, [auth.token, item.id, item.url, player]);
   const finished = status.duration > 0 && status.currentTime >= status.duration - 0.15;
   const label = status.playing
     ? (vi ? "Tạm dừng audio" : "Pause audio")
@@ -25,9 +36,11 @@ function AudioControl({ item, vi }: { item: Media; vi: boolean }) {
   async function toggle() {
     if (status.playing) {
       player.pause();
+      player.setActiveForLockScreen(false);
       return;
     }
     if (finished) await player.seekTo(0);
+    player.setActiveForLockScreen(true, { title: item.alt || "TOEIC listening", artist: "TOEIC GYM" });
     player.play();
   }
 
@@ -55,6 +68,7 @@ function AudioControl({ item, vi }: { item: Media; vi: boolean }) {
 }
 
 export function QuestionMedia({ media = [], vi }: { media?: Media[]; vi: boolean }) {
+  const auth = useAuth();
   const audio = media.find((item) => item.kind === "AUDIO");
   const images = media.filter((item) => item.kind === "IMAGE");
   return (
@@ -66,7 +80,7 @@ export function QuestionMedia({ media = [], vi }: { media?: Media[]; vi: boolean
           alt={item.alt}
           key={item.id}
           resizeMode="contain"
-          source={{ uri: item.url }}
+          source={{ uri: item.url, headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined }}
           style={styles.image}
         />
       ))}

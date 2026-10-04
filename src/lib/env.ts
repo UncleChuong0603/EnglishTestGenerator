@@ -25,6 +25,7 @@ const serverEnvSchema = z.object({
   MEDIA_STORAGE_PROVIDER: z.literal("LOCAL").default("LOCAL"),
   LOCAL_MEDIA_ROOT: optionalString(),
   MEDIA_SIGNING_SECRET: optionalString(32),
+  EXPO_PUSH_ACCESS_TOKEN: optionalString(),
 });
 
 export function getServerEnv() {

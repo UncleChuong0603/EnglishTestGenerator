@@ -265,6 +265,23 @@ export const updatePreferencesRequestSchema = z.strictObject({
 });
 export const updatePreferencesResponseSchema = meResponseSchema;
 
+const notificationPreferencesDataSchema = z.strictObject({
+  enabled: z.boolean(),
+  todaysWorkout: z.boolean(),
+  vocabularyDue: z.boolean(),
+  unresolvedReview: z.boolean(),
+  weeklyReview: z.boolean(),
+  streak: z.boolean(),
+});
+export const notificationPreferencesResponseSchema = z.strictObject({ data: notificationPreferencesDataSchema });
+export const updateNotificationPreferencesRequestSchema = notificationPreferencesDataSchema;
+export const registerPushDeviceRequestSchema = z.strictObject({
+  expoPushToken: z.string().min(20).max(256).regex(/^(?:Exponent|Expo)PushToken\[[A-Za-z0-9_-]+\]$/),
+  platform: z.enum(["android", "ios"]),
+});
+export const registerPushDeviceResponseSchema = z.strictObject({ data: z.strictObject({ id: uuidSchema }) });
+export const revokePushDeviceResponseSchema = z.strictObject({ data: z.strictObject({ revoked: z.literal(true) }) });
+
 export const mistakesResponseSchema = z.strictObject({
   data: z.array(z.strictObject({
     questionId: uuidSchema,
@@ -330,6 +347,10 @@ export const apiV1Contracts = {
   logout: { method: "POST", path: "/api/v1/auth/logout", auth: "session", request: logoutRequestSchema, response: logoutResponseSchema },
   me: { method: "GET", path: "/api/v1/me", auth: "session", response: meResponseSchema },
   updatePreferences: { method: "POST", path: "/api/v1/me/preferences", auth: "session", request: updatePreferencesRequestSchema, response: updatePreferencesResponseSchema },
+  notificationPreferences: { method: "GET", path: "/api/v1/notifications/preferences", auth: "session", response: notificationPreferencesResponseSchema },
+  updateNotificationPreferences: { method: "POST", path: "/api/v1/notifications/preferences", auth: "session", request: updateNotificationPreferencesRequestSchema, response: notificationPreferencesResponseSchema },
+  registerPushDevice: { method: "POST", path: "/api/v1/notifications/devices", auth: "session", request: registerPushDeviceRequestSchema, response: registerPushDeviceResponseSchema },
+  revokePushDevice: { method: "DELETE", path: "/api/v1/notifications/devices/:id", auth: "session+ownership", response: revokePushDeviceResponseSchema },
   dashboard: { method: "GET", path: "/api/v1/dashboard", auth: "session", response: dashboardResponseSchema },
   plan: { method: "GET", path: "/api/v1/plan", auth: "session", response: planResponseSchema },
   createPractice: { method: "POST", path: "/api/v1/practice", auth: "session", request: createPracticeRequestSchema, response: createPracticeResponseSchema, idempotency: "required" },
@@ -340,7 +361,7 @@ export const apiV1Contracts = {
   startRemediation: { method: "POST", path: "/api/v1/practice/:id/remediation", auth: "session+ownership", request: startRemediationRequestSchema, response: startRemediationResponseSchema },
   mistakes: { method: "GET", path: "/api/v1/mistakes", auth: "session", query: paginationRequestSchema, response: mistakesResponseSchema },
   vocabulary: { method: "GET", path: "/api/v1/vocabulary", auth: "session", query: paginationRequestSchema, response: vocabularyResponseSchema },
-  reviewVocabulary: { method: "POST", path: "/api/v1/vocabulary/:id/review", auth: "session+ownership", request: reviewVocabularyRequestSchema, response: reviewVocabularyResponseSchema },
+  reviewVocabulary: { method: "POST", path: "/api/v1/vocabulary/:id/review", auth: "session+ownership", request: reviewVocabularyRequestSchema, response: reviewVocabularyResponseSchema, idempotency: "required" },
   progress: { method: "GET", path: "/api/v1/progress", auth: "session", response: progressResponseSchema },
   entitlements: { method: "GET", path: "/api/v1/entitlements", auth: "session", response: entitlementsResponseSchema },
 } as const;
@@ -350,6 +371,11 @@ export type LoginResponse = z.infer<typeof loginResponseSchema>;
 export type MeResponse = z.infer<typeof meResponseSchema>;
 export type UpdatePreferencesRequest = z.infer<typeof updatePreferencesRequestSchema>;
 export type UpdatePreferencesResponse = z.infer<typeof updatePreferencesResponseSchema>;
+export type NotificationPreferencesResponse = z.infer<typeof notificationPreferencesResponseSchema>;
+export type UpdateNotificationPreferencesRequest = z.infer<typeof updateNotificationPreferencesRequestSchema>;
+export type RegisterPushDeviceRequest = z.infer<typeof registerPushDeviceRequestSchema>;
+export type RegisterPushDeviceResponse = z.infer<typeof registerPushDeviceResponseSchema>;
+export type RevokePushDeviceResponse = z.infer<typeof revokePushDeviceResponseSchema>;
 export type DashboardResponse = z.infer<typeof dashboardResponseSchema>;
 export type PlanResponse = z.infer<typeof planResponseSchema>;
 export type CreatePracticeRequest = z.infer<typeof createPracticeRequestSchema>;

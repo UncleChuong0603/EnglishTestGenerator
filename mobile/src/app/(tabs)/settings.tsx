@@ -62,6 +62,11 @@ export default function SettingsTab() {
           : (vi ? "Đang tải trạng thái gói…" : "Loading plan status…")}</Muted>
       </Card>
       <Card>
+        <Text style={styles.title}>{vi ? "Nhắc học" : "Learning reminders"}</Text>
+        <Muted>{vi ? "Chọn riêng Bài tập hôm nay, từ vựng, câu sai và xem lại tuần." : "Choose Today’s Workout, vocabulary, mistake and weekly reminders separately."}</Muted>
+        <PrimaryButton label={vi ? "Cài đặt nhắc học" : "Reminder settings"} onPress={() => router.push("/notification-settings" as Href)} />
+      </Card>
+      <Card>
         <Text style={styles.title}>{vi ? "Tài khoản & dữ liệu" : "Account & data"}</Text>
         <Muted>{vi ? "Bạn có thể xuất hoặc xóa dữ liệu trong trang bảo mật trên web. Xóa tài khoản sẽ vô hiệu hóa ngay phiên mobile này." : "Export or delete your data on the secure web page. Deleting the account immediately invalidates this mobile session."}</Muted>
         <PrimaryButton label={vi ? "Mở Tài khoản & dữ liệu" : "Open Account & data"} onPress={() => router.push("/account-data" as Href)} />

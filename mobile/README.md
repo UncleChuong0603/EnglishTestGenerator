@@ -58,11 +58,13 @@ Firebase or Supabase.
 ## Current V1 surface
 
 - Home / Today's Workout
-- Part 5 manual practice (the generic practice renderer also handles grouped
-  P6/P7 content returned by Today's Workout)
+- Native Part 1–7 practice with grouped Listening/Reading content
 - Server-persisted answers and authoritative submit/results
 - Shared progress view
-- Settings, plan/trial status, logout and Account & Data web entry
+- Mistake Bank/remediation, Vocabulary SRS, streak and bounded progress views
+- Settings, granular learning reminders, plan/trial status, logout and Account & Data entry
+- 24-hour private listening-audio cache and vocabulary-only offline review queue
 
-Push notifications, offline practice, store billing and store submission are
-outside Task 44.
+Remote push delivery requires the EAS/APNs/FCM human actions documented in
+`docs/task-48-native-retention.md`. Offline scored practice remains excluded;
+store billing and store submission are not part of this mobile release.

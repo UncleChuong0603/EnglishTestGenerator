@@ -724,6 +724,49 @@ export const apiIdempotencyKeys = pgTable("api_idempotency_keys", {
   check("api_idempotency_keys_status_check", sql`${table.responseStatus} between 200 and 299`),
 ]);
 
+export const mobileNotificationPreferences = pgTable("mobile_notification_preferences", {
+  userId: uuid("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+  enabled: boolean("enabled").notNull().default(false),
+  todaysWorkout: boolean("todays_workout").notNull().default(true),
+  vocabularyDue: boolean("vocabulary_due").notNull().default(true),
+  unresolvedReview: boolean("unresolved_review").notNull().default(true),
+  weeklyReview: boolean("weekly_review").notNull().default(true),
+  streak: boolean("streak").notNull().default(true),
+  ...timestamps,
+});
+
+export const mobilePushDevices = pgTable("mobile_push_devices", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  expoPushToken: text("expo_push_token").notNull(),
+  platform: text("platform").notNull(),
+  lastSeenAt: timestamp("last_seen_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+  ...timestamps,
+}, (table) => [
+  uniqueIndex("mobile_push_devices_token_uidx").on(table.expoPushToken),
+  index("mobile_push_devices_user_idx").on(table.userId, table.lastSeenAt),
+  check("mobile_push_devices_platform_check", sql`${table.platform} in ('android','ios')`),
+]);
+
+export const mobilePushDeliveries = pgTable("mobile_push_deliveries", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  deviceId: uuid("device_id").references(() => mobilePushDevices.id, { onDelete: "set null" }),
+  kind: text("kind").notNull(),
+  localDate: date("local_date").notNull(),
+  expoTicketId: text("expo_ticket_id"),
+  status: text("status").notNull().default("PENDING"),
+  errorCode: text("error_code"),
+  sentAt: timestamp("sent_at", { withTimezone: true, mode: "date" }),
+  receiptCheckedAt: timestamp("receipt_checked_at", { withTimezone: true, mode: "date" }),
+  ...timestamps,
+}, (table) => [
+  unique("mobile_push_deliveries_device_kind_date_unique").on(table.deviceId, table.kind, table.localDate),
+  index("mobile_push_deliveries_receipt_idx").on(table.status, table.sentAt),
+  check("mobile_push_deliveries_kind_check", sql`${table.kind} in ('TODAYS_WORKOUT','VOCAB_DUE','UNRESOLVED_REVIEW','WEEKLY_REVIEW')`),
+  check("mobile_push_deliveries_status_check", sql`${table.status} in ('PENDING','TICKETED','DELIVERED','FAILED')`),
+]);
+
 export const questionReports = pgTable("question_reports", {
   id: uuid("id").primaryKey().defaultRandom(),
   questionId: uuid("question_id").notNull().references(() => questions.id, { onDelete: "restrict" }),

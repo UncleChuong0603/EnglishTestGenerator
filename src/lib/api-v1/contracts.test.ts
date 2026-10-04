@@ -5,6 +5,7 @@ import {
   apiV1Contracts,
   createPracticeRequestSchema,
   getPracticeResponseSchema,
+  registerPushDeviceRequestSchema,
   reviewVocabularyRequestSchema,
   saveMistakeReasonRequestSchema,
   submitPracticeResponseSchema,
@@ -19,6 +20,10 @@ describe("mobile API v1 contracts", () => {
       "/api/v1/auth/logout",
       "/api/v1/me",
       "/api/v1/me/preferences",
+      "/api/v1/notifications/preferences",
+      "/api/v1/notifications/preferences",
+      "/api/v1/notifications/devices",
+      "/api/v1/notifications/devices/:id",
       "/api/v1/dashboard",
       "/api/v1/plan",
       "/api/v1/practice",
@@ -96,6 +101,12 @@ describe("mobile API v1 contracts", () => {
     expect(updatePreferencesRequestSchema.safeParse({ interfaceLanguage: "fr", explanationLanguage: "both" }).success).toBe(false);
     expect(reviewVocabularyRequestSchema.safeParse({ remembered: true }).success).toBe(true);
     expect(reviewVocabularyRequestSchema.safeParse({ remembered: "yes" }).success).toBe(false);
+  });
+
+  it("accepts only Expo push tokens for owned native devices", () => {
+    expect(registerPushDeviceRequestSchema.safeParse({ expoPushToken: "ExponentPushToken[abcdefghijklmnopqrstuvwxyz]", platform: "android" }).success).toBe(true);
+    expect(registerPushDeviceRequestSchema.safeParse({ expoPushToken: "not-a-token", platform: "android" }).success).toBe(false);
+    expect(registerPushDeviceRequestSchema.safeParse({ expoPushToken: "ExponentPushToken[abcdefghijklmnopqrstuvwxyz]", platform: "web" }).success).toBe(false);
   });
 
   it("allows transcripts only in submitted result payloads", () => {

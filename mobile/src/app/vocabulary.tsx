@@ -6,6 +6,8 @@ import type { VocabularyResponse } from "@/api/types";
 import { useAuth } from "@/auth/auth-context";
 import { Card, ErrorBanner, Loading, Muted, PrimaryButton, Screen, Title } from "@/components/ui";
 import { dueVocabularyCards } from "@/lib/model";
+import { cacheVocabularyCards, createQueuedVocabularyReview, queueVocabularyReview, readCachedVocabularyCards, readVocabularyQueue, writeVocabularyQueue } from "@/lib/offline-vocabulary";
+import { queuedReviewResolution } from "@/lib/retention-policy";
 import { colors, space } from "@/theme";
 
 type VocabularyCard = VocabularyResponse["data"][number];
@@ -18,13 +20,36 @@ export default function VocabularyScreen() {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loadedAt, setLoadedAt] = useState(0);
+  const [offline, setOffline] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
   const due = useMemo(() => dueVocabularyCards(items ?? [], loadedAt), [items, loadedAt]);
   const load = useCallback(async () => {
     if (!auth.token) return;
     setError(null);
-    try { setItems((await api.vocabulary(auth.token)).data); setLoadedAt(Date.now()); }
+    try {
+      const queue = await readVocabularyQueue();
+      const remaining: typeof queue = [];
+      for (let index = 0; index < queue.length; index += 1) {
+        const review = queue[index];
+        try { await api.reviewVocabulary(auth.token, review.id, { remembered: review.remembered }, review.idempotencyKey); }
+        catch (cause) {
+          const resolution = cause instanceof MobileApiError ? queuedReviewResolution(cause.code) : "KEEP";
+          if (resolution === "DROP") continue;
+          remaining.push(review);
+          if (resolution === "RETRY_LATER") { remaining.push(...queue.slice(index + 1)); break; }
+        }
+      }
+      await writeVocabularyQueue(remaining);
+      setPendingCount(remaining.length);
+      const cards = (await api.vocabulary(auth.token)).data;
+      setItems(cards); await cacheVocabularyCards(cards); setLoadedAt(Date.now()); setOffline(false);
+    }
     catch (cause) {
       if (cause instanceof MobileApiError && cause.code === "UNAUTHENTICATED") { await auth.signOut(); return; }
+      if (cause instanceof MobileApiError && ["NETWORK_ERROR", "TIMEOUT"].includes(cause.code)) {
+        const cached = await readCachedVocabularyCards();
+        if (cached.length) { setItems(cached); setLoadedAt(Date.now()); setOffline(true); setPendingCount((await readVocabularyQueue()).length); return; }
+      }
       setError(cause instanceof Error ? cause.message : (vi ? "Không thể tải từ vựng." : "Could not load vocabulary."));
     }
   }, [auth, vi]);
@@ -33,9 +58,18 @@ export default function VocabularyScreen() {
   async function review(id: string, remembered: boolean) {
     if (!auth.token) return;
     setBusy(id); setError(null);
-    try { await api.reviewVocabulary(auth.token, id, { remembered }); setItems((current) => current?.filter((item) => item.id !== id) ?? null); }
+    try {
+      await api.reviewVocabulary(auth.token, id, { remembered });
+      const next = items?.filter((item) => item.id !== id) ?? [];
+      setItems(next); await cacheVocabularyCards(next);
+    }
     catch (cause) {
       if (cause instanceof MobileApiError && cause.code === "UNAUTHENTICATED") { await auth.signOut(); return; }
+      if (cause instanceof MobileApiError && ["NETWORK_ERROR", "TIMEOUT"].includes(cause.code)) {
+        await queueVocabularyReview(createQueuedVocabularyReview(id, remembered));
+        const next = items?.filter((item) => item.id !== id) ?? [];
+        setItems(next); await cacheVocabularyCards(next); setOffline(true); setPendingCount((await readVocabularyQueue()).length); return;
+      }
       setError(cause instanceof Error ? cause.message : (vi ? "Chưa thể lưu lần ôn." : "Could not save this review."));
     } finally { setBusy(null); }
   }
@@ -45,6 +79,7 @@ export default function VocabularyScreen() {
   return <Screen>
     <Title>{vi ? "Ôn từ vựng" : "Vocabulary review"}</Title>
     <Muted>{vi ? `${due.length} từ đến hạn · ${scheduled} từ đã lên lịch. Lịch SRS được đồng bộ với web.` : `${due.length} due · ${scheduled} scheduled. The SRS schedule is shared with web.`}</Muted>
+    {offline ? <View accessibilityLiveRegion="polite" style={styles.offline}><Text style={styles.offlineText}>{vi ? `Đang dùng hàng đợi ngoại tuyến · ${pendingCount} lần ôn chờ đồng bộ. Máy chủ sẽ quyết định lịch cuối cùng.` : `Using the offline queue · ${pendingCount} reviews pending. The server remains authoritative.`}</Text></View> : null}
     {error ? <ErrorBanner message={error} retry={() => void load()} retryLabel={vi ? "Thử lại" : "Try again"} /> : null}
     {due.length ? due.map((item) => {
       const open = Boolean(revealed[item.id]);
@@ -60,4 +95,4 @@ export default function VocabularyScreen() {
   </Screen>;
 }
 
-const styles = StyleSheet.create({ row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: space.sm }, term: { color: colors.ink, fontSize: 26, fontWeight: "800", flex: 1 }, part: { color: colors.forest, fontSize: 14, fontWeight: "800" }, context: { color: colors.ink, fontSize: 17, lineHeight: 26 }, reveal: { minHeight: 48, justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: colors.forest, borderRadius: 12 }, revealText: { color: colors.forest, fontSize: 16, fontWeight: "800" }, pressed: { opacity: 0.72 }, meaning: { backgroundColor: colors.successSurface, padding: space.md, borderRadius: 12, gap: space.xs }, meaningText: { color: colors.ink, fontSize: 18, fontWeight: "700" }, actions: { flexDirection: "row", gap: space.sm }, action: { flex: 1 }, done: { color: colors.ink, fontSize: 19, fontWeight: "800" } });
+const styles = StyleSheet.create({ row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: space.sm }, term: { color: colors.ink, fontSize: 26, fontWeight: "800", flex: 1 }, part: { color: colors.forest, fontSize: 14, fontWeight: "800" }, context: { color: colors.ink, fontSize: 17, lineHeight: 26 }, reveal: { minHeight: 48, justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: colors.forest, borderRadius: 12 }, revealText: { color: colors.forest, fontSize: 16, fontWeight: "800" }, pressed: { opacity: 0.72 }, meaning: { backgroundColor: colors.successSurface, padding: space.md, borderRadius: 12, gap: space.xs }, meaningText: { color: colors.ink, fontSize: 18, fontWeight: "700" }, actions: { flexDirection: "row", gap: space.sm }, action: { flex: 1 }, done: { color: colors.ink, fontSize: 19, fontWeight: "800" }, offline: { backgroundColor: "#fff7df", borderColor: colors.warm, borderWidth: 1, borderRadius: 12, padding: space.md }, offlineText: { color: colors.ink, fontSize: 15, lineHeight: 22 } });

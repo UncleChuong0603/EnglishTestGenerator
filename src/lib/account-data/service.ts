@@ -16,6 +16,9 @@ import {
   learnerGoals,
   lifecycleEmails,
   mediaAssets,
+  mobileNotificationPreferences,
+  mobilePushDeliveries,
+  mobilePushDevices,
   oauthStates,
   passwordResetTokens,
   paymentOrders,
@@ -41,7 +44,7 @@ import {
 } from "@/db/schema";
 import { normalizeEmail } from "@/lib/auth/crypto";
 
-export const LEARNING_DATA_EXPORT_VERSION = "2026-10-01";
+export const LEARNING_DATA_EXPORT_VERSION = "2026-10-04";
 
 export class AccountDataError extends Error {
   constructor(readonly code: "NOT_FOUND" | "CONFIRMATION_MISMATCH" | "ADMIN_HANDOFF_REQUIRED" | "PRIVATE_DATA_HANDOFF_REQUIRED") {
@@ -180,6 +183,15 @@ export async function exportLearningData(userId: string, exportedAt = new Date()
         createdAt: questionReports.createdAt, updatedAt: questionReports.updatedAt })
         .from(questionReports).where(eq(questionReports.reporterUserId, userId)),
     ] as const;
+    const [notificationPreferences] = await tx.select({
+      enabled: mobileNotificationPreferences.enabled,
+      todaysWorkout: mobileNotificationPreferences.todaysWorkout,
+      vocabularyDue: mobileNotificationPreferences.vocabularyDue,
+      unresolvedReview: mobileNotificationPreferences.unresolvedReview,
+      weeklyReview: mobileNotificationPreferences.weeklyReview,
+      streak: mobileNotificationPreferences.streak,
+      updatedAt: mobileNotificationPreferences.updatedAt,
+    }).from(mobileNotificationPreferences).where(eq(mobileNotificationPreferences.userId, userId)).limit(1);
     return {
       format: "toeicgym-learning-data" as const,
       version: LEARNING_DATA_EXPORT_VERSION,
@@ -208,7 +220,7 @@ export async function exportLearningData(userId: string, exportedAt = new Date()
         gamification: gamificationRows,
       },
       planAndBilling: { memberships: membershipRows, usage: usageRows, payments: paymentRows },
-      communications: { lifecycleEmails: emailRows, supportTickets: supportRows, questionReports: reports },
+      communications: { notificationPreferences: notificationPreferences ?? null, lifecycleEmails: emailRows, supportTickets: supportRows, questionReports: reports },
     };
   });
 }
@@ -267,6 +279,9 @@ export async function deleteAccount(userId: string, confirmationEmail: string, n
     await tx.update(paymentOrders).set({ checkoutUrl: null, updatedAt: now }).where(eq(paymentOrders.userId, userId));
 
     await tx.delete(lifecycleEmails).where(eq(lifecycleEmails.userId, userId));
+    await tx.delete(mobilePushDeliveries).where(eq(mobilePushDeliveries.userId, userId));
+    await tx.delete(mobilePushDevices).where(eq(mobilePushDevices.userId, userId));
+    await tx.delete(mobileNotificationPreferences).where(eq(mobileNotificationPreferences.userId, userId));
     await tx.delete(supportTickets).where(eq(supportTickets.userId, userId));
     await tx.update(productEvents).set({
       userId: null,

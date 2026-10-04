@@ -9,6 +9,8 @@ import { nextVocabularySchedule } from "./schedule";
 import { lookupDictionaryWord, normalizeDictionaryWord } from "./dictionary";
 import type { DictionaryCard } from "./dictionary-types";
 
+type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
 export async function saveDictionaryVocabulary(userId: string, input: string, context: string, toeicPart: number) {
   const word = normalizeDictionaryWord(input);
   if (!word || !Number.isInteger(toeicPart) || toeicPart < 1 || toeicPart > 7) return false;
@@ -57,13 +59,14 @@ export async function getVocabularyCards(userId: string) {
   });
 }
 
-export async function reviewVocabulary(userId: string, cardId: string, remembered: boolean) {
-  return db.transaction(async (tx) => {
+export async function reviewVocabulary(userId: string, cardId: string, remembered: boolean, transaction?: Transaction) {
+  const execute = async (tx: Transaction) => {
     const [card] = await tx.select().from(userVocabulary).where(and(eq(userVocabulary.id, cardId), eq(userVocabulary.userId, userId))).for("update").limit(1);
     if (!card || !cardEntry(card.entryKey, card.dictionaryCard) || card.dueAt.getTime() > Date.now()) return false;
     const now = new Date();
     const { intervalDays, dueAt } = nextVocabularySchedule(card.intervalDays, remembered, now);
     await tx.update(userVocabulary).set({ intervalDays, dueAt, correctStreak: remembered ? card.correctStreak + 1 : 0, reviewCount: sql`${userVocabulary.reviewCount} + 1`, lastReviewedAt: now, updatedAt: now }).where(and(eq(userVocabulary.id, cardId), eq(userVocabulary.userId, userId), lte(userVocabulary.dueAt, now)));
     return true;
-  });
+  };
+  return transaction ? execute(transaction) : db.transaction(execute);
 }

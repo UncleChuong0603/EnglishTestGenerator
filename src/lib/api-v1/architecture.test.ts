@@ -5,13 +5,14 @@ const route = (name: string) => readFileSync(`src/app/api/v1/${name}/route.ts`, 
 
 describe("Task 43 API architecture", () => {
   it("authenticates protected handlers from bearer sessions", () => {
-    for (const name of ["me", "me/preferences", "dashboard", "plan", "entitlements", "progress", "mistakes", "vocabulary", "vocabulary/[id]/review", "practice"]) expect(route(name)).toContain("requireApiActor");
+    for (const name of ["me", "me/preferences", "notifications/preferences", "notifications/devices", "notifications/devices/[id]", "media/[id]", "dashboard", "plan", "entitlements", "progress", "mistakes", "vocabulary", "vocabulary/[id]/review", "practice"]) expect(route(name)).toContain("requireApiActor");
   });
   it("requires durable idempotency on every practice mutation", () => {
     expect(route("practice")).toContain("idempotent(");
     expect(route("practice/[id]/answer")).toContain("idempotent(");
     expect(route("practice/[id]/submit")).toContain("idempotent(");
     expect(route("practice/[id]/remediation")).toContain("idempotent(");
+    expect(route("vocabulary/[id]/review")).toContain("idempotent(");
     expect(readFileSync("drizzle/0049_mobile_api_v1.sql", "utf8")).toContain("api_idempotency_keys_scope_unique");
   });
   it("keeps selection and scoring on shared server services", () => {
@@ -31,6 +32,14 @@ describe("Task 43 API architecture", () => {
   });
   it("keeps mobile preferences and SRS review on shared services", () => {
     expect(route("me/preferences")).toContain("updateLearnerPreferences(actor.user.id, body)");
-    expect(route("vocabulary/[id]/review")).toContain("reviewVocabulary(actor.user.id, id.data, body.remembered)");
+    expect(route("vocabulary/[id]/review")).toContain("reviewVocabulary(actor.user.id, id.data, body.remembered, tx)");
+  });
+  it("ownership-scopes push revocation and opaque media access", () => {
+    expect(route("notifications/devices/[id]")).toContain("revokePushDevice(actor.user.id, id.data)");
+    expect(readFileSync("src/lib/mobile-retention/service.ts", "utf8")).toContain("eq(mobilePushDevices.userId, userId)");
+    const media = route("media/[id]");
+    expect(media).toContain("eq(practiceSessions.userId, actor.user.id)");
+    expect(media).toContain('eq(practiceSessions.status, "in_progress")');
+    expect(readFileSync("mobile/src/app/_layout.tsx", "utf8")).toContain("<Stack.Protected guard={Boolean(auth.token)}>");
   });
 });

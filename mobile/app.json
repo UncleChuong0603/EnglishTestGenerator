@@ -33,11 +33,18 @@
       ],
       "expo-secure-store",
       [
+        "expo-notifications",
+        {
+          "color": "#245a43",
+          "defaultChannel": "learning-reminders"
+        }
+      ],
+      [
         "expo-audio",
         {
           "microphonePermission": false,
           "recordAudioAndroid": false,
-          "enableBackgroundPlayback": false,
+          "enableBackgroundPlayback": true,
           "enableBackgroundRecording": false
         }
       ],

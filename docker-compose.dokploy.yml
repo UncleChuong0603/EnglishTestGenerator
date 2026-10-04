@@ -30,6 +30,7 @@ x-app-environment: &app-environment
   MEDIA_STORAGE_PROVIDER: LOCAL
   LOCAL_MEDIA_ROOT: ${LOCAL_MEDIA_ROOT:-/var/lib/toeicgym/media}
   MEDIA_SIGNING_SECRET: ${MEDIA_SIGNING_SECRET:-}
+  EXPO_PUSH_ACCESS_TOKEN: ${EXPO_PUSH_ACCESS_TOKEN:-}
   PRACTICE_POOL_ISOLATED: ${PRACTICE_POOL_ISOLATED:-true}
 
 services:
@@ -270,6 +271,23 @@ services:
     command: ["node", "/app/lifecycle-scheduler.mjs"]
     volumes:
       - ./scripts/lifecycle-scheduler.mjs:/app/lifecycle-scheduler.mjs:ro
+    depends_on:
+      app:
+        condition: service_healthy
+    networks: [database]
+    security_opt: [no-new-privileges:true]
+    logging: *default-logging
+
+  mobile-retention-scheduler:
+    image: node:22-alpine
+    restart: unless-stopped
+    init: true
+    environment:
+      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET is required}
+      MOBILE_RETENTION_JOB_URL: http://app:3000/api/internal/mobile-retention
+    command: ["node", "/app/mobile-retention-scheduler.mjs"]
+    volumes:
+      - ./scripts/mobile-retention-scheduler.mjs:/app/mobile-retention-scheduler.mjs:ro
     depends_on:
       app:
         condition: service_healthy

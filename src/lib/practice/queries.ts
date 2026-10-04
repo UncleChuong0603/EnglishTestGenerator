@@ -2,7 +2,7 @@ import "server-only";
 import { and, asc, eq, gt, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { attemptAnswers, diagnosticRuns, fullMockRuns, listeningTranscripts, mediaAssets, passageSets, passages, practiceSessionQuestions, practiceSessions, questionGroupMedia, questionMastery, questionOptions, questionSolutions, questions, rankedChallengeRuns, rankedChallenges } from "@/db/schema";
-import { createMediaStorage } from "@/lib/media/storage";
+import { getServerEnv } from "@/lib/env";
 import type { PracticeGroup, PracticeQuestion, PracticeResult, PracticeSession } from "./types";
 import { toLearnerPracticeQuestion } from "./learner-dto";
 import { challengePhase } from "@/lib/challenges/policy";
@@ -29,12 +29,12 @@ export async function getSafeSessionContent(sessionId: string, listening = false
       db.select({ groupId: questionGroupMedia.questionGroupId, id: mediaAssets.id, kind: mediaAssets.kind, role: questionGroupMedia.role, storageKey: mediaAssets.storageKey, status: mediaAssets.status, scope: mediaAssets.accessScope }).from(questionGroupMedia).innerJoin(mediaAssets, eq(questionGroupMedia.mediaAssetId, mediaAssets.id)).where(inArray(questionGroupMedia.questionGroupId, setIds)),
       db.select().from(listeningTranscripts).where(inArray(listeningTranscripts.questionGroupId, setIds)),
     ]);
-    const storage = createMediaStorage();
+    const mediaOrigin = getServerEnv().APP_URL.replace(/\/$/, "");
     const safeQuestions = await Promise.all(assigned.map(async (assignment) => {
       const q = questionRows.find((row) => row.id === assignment.questionId); if (!q || ![1, 2, 3, 4].includes(q.toeicPart) || q.skillArea !== "LISTENING" || !q.passageSetId) throw new Error("INVALID_LISTENING_QUESTION");
       const assets = attachments.filter((asset) => asset.groupId === q.passageSetId && asset.status === "READY" && asset.scope === "CONTENT");
       const safe = toLearnerPracticeQuestion({ ...q, displayOrder: assignment.displayOrder, options: options.filter((o) => o.questionId === q.id) });
-      safe.media = await Promise.all(assets.map(async (asset) => ({ id: asset.id, kind: asset.kind as "AUDIO" | "IMAGE", url: await storage.createReadUrl(asset.storageKey), alt: asset.kind === "IMAGE" ? `TOEIC Listening Part ${q.toeicPart} graphic` : "TOEIC listening audio" })));
+      safe.media = assets.map((asset) => ({ id: asset.id, kind: asset.kind as "AUDIO" | "IMAGE", url: `${mediaOrigin}/api/v1/media/${asset.id}?session=${sessionId}`, alt: asset.kind === "IMAGE" ? `TOEIC Listening Part ${q.toeicPart} graphic` : "TOEIC listening audio" }));
       return safe;
     }));
     const groups: PracticeGroup[] = [];

@@ -1,4 +1,4 @@
-import type { CreatePracticeRequest, CreatePracticeResponse, DashboardResponse, EntitlementsResponse, GetPracticeResponse, LoginResponse, MeResponse, MistakesResponse, PlanResponse, ProgressResponse, ReviewVocabularyRequest, ReviewVocabularyResponse, SaveMistakeReasonRequest, SaveMistakeReasonResponse, StartRemediationRequest, StartRemediationResponse, SubmitPracticeResponse, UpdatePreferencesRequest, UpdatePreferencesResponse, VocabularyResponse } from "./types";
+import type { CreatePracticeRequest, CreatePracticeResponse, DashboardResponse, EntitlementsResponse, GetPracticeResponse, LoginResponse, MeResponse, MistakesResponse, NotificationPreferencesResponse, PlanResponse, ProgressResponse, RegisterPushDeviceRequest, RegisterPushDeviceResponse, ReviewVocabularyRequest, ReviewVocabularyResponse, RevokePushDeviceResponse, SaveMistakeReasonRequest, SaveMistakeReasonResponse, StartRemediationRequest, StartRemediationResponse, SubmitPracticeResponse, UpdateNotificationPreferencesRequest, UpdatePreferencesRequest, UpdatePreferencesResponse, VocabularyResponse } from "./types";
 
 const productionBaseUrl = "https://toeicgym.net/api/v1";
 const configuredBaseUrl = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, "");
@@ -10,8 +10,8 @@ export class MobileApiError extends Error { constructor(readonly code: ApiErrorC
 const messages: Record<ApiErrorCode, string> = { BAD_REQUEST: "Yêu cầu chưa hợp lệ.", VALIDATION_FAILED: "Dữ liệu gửi lên chưa hợp lệ.", UNAUTHENTICATED: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", FORBIDDEN: "Bạn chưa có quyền thực hiện thao tác này.", NOT_FOUND: "Không tìm thấy buổi luyện tập.", CONFLICT: "Dữ liệu đã thay đổi. Vui lòng tải lại.", RATE_LIMITED: "Bạn thao tác quá nhanh. Vui lòng thử lại sau.", USAGE_LIMIT_REACHED: "Bạn đã dùng hết lượt của gói hiện tại.", IDEMPOTENCY_CONFLICT: "Yêu cầu bị trùng nhưng nội dung không khớp.", INTERNAL_ERROR: "Máy chủ đang gặp sự cố. Vui lòng thử lại.", NETWORK_ERROR: "Không thể kết nối mạng. Hãy kiểm tra Internet và thử lại.", TIMEOUT: "Kết nối mất quá nhiều thời gian. Vui lòng thử lại." };
 function idempotencyKey() { return `${Date.now()}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`; }
 
-async function request<T>(path: string, options: { token?: string; method?: "GET" | "POST"; body?: unknown; idempotent?: boolean; retry?: boolean } = {}): Promise<T> {
-  const key = options.idempotent ? idempotencyKey() : undefined;
+async function request<T>(path: string, options: { token?: string; method?: "GET" | "POST" | "DELETE"; body?: unknown; idempotent?: boolean; idempotencyKey?: string; retry?: boolean } = {}): Promise<T> {
+  const key = options.idempotencyKey ?? (options.idempotent ? idempotencyKey() : undefined);
   const execute = async () => {
     const controller = new AbortController(); const timeout = setTimeout(() => controller.abort(), 15_000);
     try {
@@ -31,10 +31,14 @@ async function request<T>(path: string, options: { token?: string; method?: "GET
 export const api = {
   login: (email: string, password: string) => request<LoginResponse>("/auth/login", { method: "POST", body: { email, password } }),
   logout: (token: string) => request<{ data: { revoked: true } }>("/auth/logout", { token, method: "POST", body: {} }), me: (token: string) => request<MeResponse>("/me", { token }), updatePreferences: (token: string, body: UpdatePreferencesRequest) => request<UpdatePreferencesResponse>("/me/preferences", { token, method: "POST", body }), dashboard: (token: string) => request<DashboardResponse>("/dashboard", { token }), plan: (token: string) => request<PlanResponse>("/plan", { token }), entitlements: (token: string) => request<EntitlementsResponse>("/entitlements", { token }), progress: (token: string) => request<ProgressResponse>("/progress", { token }),
+  notificationPreferences: (token: string) => request<NotificationPreferencesResponse>("/notifications/preferences", { token }),
+  updateNotificationPreferences: (token: string, body: UpdateNotificationPreferencesRequest) => request<NotificationPreferencesResponse>("/notifications/preferences", { token, method: "POST", body }),
+  registerPushDevice: (token: string, body: RegisterPushDeviceRequest) => request<RegisterPushDeviceResponse>("/notifications/devices", { token, method: "POST", body }),
+  revokePushDevice: (token: string, id: string) => request<RevokePushDeviceResponse>(`/notifications/devices/${id}`, { token, method: "DELETE" }),
   startPractice: (token: string, body: CreatePracticeRequest) => request<CreatePracticeResponse>("/practice", { token, method: "POST", body, idempotent: true, retry: true }), practice: (token: string, id: string) => request<GetPracticeResponse>(`/practice/${id}`, { token }), answer: (token: string, id: string, body: { questionId: string; selectedOptionId: string; responseTimeMs?: number }) => request<{ data: { accepted: true } }>(`/practice/${id}/answer`, { token, method: "POST", body, idempotent: true, retry: true }), submit: (token: string, id: string) => request<SubmitPracticeResponse>(`/practice/${id}/submit`, { token, method: "POST", body: {}, idempotent: true, retry: true }),
   saveMistakeReason: (token: string, id: string, body: SaveMistakeReasonRequest) => request<SaveMistakeReasonResponse>(`/practice/${id}/reason`, { token, method: "POST", body, retry: true }),
   startRemediation: (token: string, id: string, body: StartRemediationRequest) => request<StartRemediationResponse>(`/practice/${id}/remediation`, { token, method: "POST", body, idempotent: true, retry: true }),
   mistakes: (token: string) => request<MistakesResponse>("/mistakes?limit=50", { token }),
   vocabulary: (token: string) => request<VocabularyResponse>("/vocabulary?limit=50", { token }),
-  reviewVocabulary: (token: string, id: string, body: ReviewVocabularyRequest) => request<ReviewVocabularyResponse>(`/vocabulary/${id}/review`, { token, method: "POST", body }),
+  reviewVocabulary: (token: string, id: string, body: ReviewVocabularyRequest, key?: string) => request<ReviewVocabularyResponse>(`/vocabulary/${id}/review`, { token, method: "POST", body, idempotent: !key, idempotencyKey: key, retry: true }),
 };
