@@ -16,7 +16,7 @@ function post(draft: Draft): EditorialPost {
     editorialCover: "/blog/cover/grammar",
     socialTitle: draft.seoTitle,
     socialDescription: draft.seoDescription,
-    authorName: "TOEICGym Editorial",
+    authorName: "TOEIC GYM Editorial",
     searchIntent: "informational",
     noindex: false,
     publishedAt,
@@ -55,7 +55,7 @@ Trong mẫu loại 1 thông thường, không viết *if the client will agree* 
 
 **If the documents arrive today, we _____ them tomorrow.** (A) reviews (B) will review (C) would have reviewed (D) had reviewed
 
-**Đáp án B.** *Arrive today* đặt điều kiện có thể xảy ra, còn *tomorrow* chỉ kết quả tương lai. A không hòa hợp với *we*; C là kết quả giả định quá khứ; D là quá khứ hoàn thành. Ví dụ do TOEICGym tự biên soạn.
+**Đáp án B.** *Arrive today* đặt điều kiện có thể xảy ra, còn *tomorrow* chỉ kết quả tương lai. A không hòa hợp với *we*; C là kết quả giả định quá khứ; D là quá khứ hoàn thành. Ví dụ do TOEIC GYM tự biên soạn.
 
 ## Tự kiểm tra
 
@@ -88,7 +88,7 @@ Trong giao tiếp công việc, *Could you tell me when the meeting starts?* là
 
 **_____ the supplier send the revised contract yesterday?** (A) Do (B) Does (C) Did (D) Has
 
-**Đáp án C.** *Yesterday* đặt câu ở quá khứ đơn; sau *did* dùng động từ nguyên mẫu *send*. Câu do TOEICGym tự biên soạn.
+**Đáp án C.** *Yesterday* đặt câu ở quá khứ đơn; sau *did* dùng động từ nguyên mẫu *send*. Câu do TOEIC GYM tự biên soạn.
 
 ## Tự kiểm tra
 
@@ -161,7 +161,7 @@ Câu hỏi trực tiếp: *Where does the meeting take place?* Câu gián tiếp
 
 **Please confirm _____ the delivery will arrive before noon.** (A) whether (B) what (C) because (D) despite
 
-**Đáp án A.** Người viết cần xác nhận **liệu** hàng có đến trước trưa hay không. Câu sau chỗ trống có chủ ngữ và động từ, tạo mệnh đề danh từ. Ví dụ do TOEICGym tự biên soạn.
+**Đáp án A.** Người viết cần xác nhận **liệu** hàng có đến trước trưa hay không. Câu sau chỗ trống có chủ ngữ và động từ, tạo mệnh đề danh từ. Ví dụ do TOEIC GYM tự biên soạn.
 
 ## Tự kiểm tra
 
@@ -196,7 +196,7 @@ Câu hỏi trực tiếp: *Where does the meeting take place?* Câu gián tiếp
 
 **We will start the presentation as soon as the director _____.** (A) arrives (B) will arrive (C) arrived (D) arriving
 
-**Đáp án A.** Mệnh đề chính dùng *will start*; mệnh đề thời gian sau *as soon as* dùng hiện tại đơn để nói sự kiện tương lai. Câu do TOEICGym tự biên soạn.`,
+**Đáp án A.** Mệnh đề chính dùng *will start*; mệnh đề thời gian sau *as soon as* dùng hiện tại đơn để nói sự kiện tương lai. Câu do TOEIC GYM tự biên soạn.`,
   }),
   post({
     slug: "menh-de-rut-gon-phan-tu-ving-v3",
@@ -221,7 +221,7 @@ Trong văn bản công việc, câu *Attached to this email is the revised sched
 
 **The files _____ in the shared folder are ready for review.** (A) storing (B) stored (C) store (D) stores
 
-**Đáp án B.** *Files* được lưu trong thư mục; *stored in the shared folder* rút gọn từ *that are stored in the shared folder*. Động từ chính của câu là *are*. Ví dụ do TOEICGym tự biên soạn.
+**Đáp án B.** *Files* được lưu trong thư mục; *stored in the shared folder* rút gọn từ *that are stored in the shared folder*. Động từ chính của câu là *are*. Ví dụ do TOEIC GYM tự biên soạn.
 
 ## Tự kiểm tra
 
@@ -252,7 +252,7 @@ Trong văn bản công việc, câu *Attached to this email is the revised sched
 
 **The workshop will cover budgeting, scheduling, and _____.** (A) report (B) reports (C) reporting (D) to report
 
-**Đáp án C.** *Budgeting* và *scheduling* là hai hoạt động ở dạng V-ing; *reporting* tạo danh sách đồng dạng. Ví dụ do TOEICGym tự biên soạn.
+**Đáp án C.** *Budgeting* và *scheduling* là hai hoạt động ở dạng V-ing; *reporting* tạo danh sách đồng dạng. Ví dụ do TOEIC GYM tự biên soạn.
 
 ## Tự kiểm tra
 
@@ -283,7 +283,7 @@ Khi *not only* đứng đầu mệnh đề, đảo trợ động từ trong vế
 
 **Only after yesterday's inspection _____ the company reopen the facility.** (A) did (B) do (C) had (D) was
 
-**Đáp án A.** *Yesterday's inspection* đặt sự kiện ở quá khứ. Sau *only after* đứng đầu, mệnh đề chính dùng *did + chủ ngữ + V*. B không hòa hợp với *company* và không đúng thời gian; C cần V3; D không nối trực tiếp với *reopen*. Ví dụ do TOEICGym tự biên soạn.
+**Đáp án A.** *Yesterday's inspection* đặt sự kiện ở quá khứ. Sau *only after* đứng đầu, mệnh đề chính dùng *did + chủ ngữ + V*. B không hòa hợp với *company* và không đúng thời gian; C cần V3; D không nối trực tiếp với *reopen*. Ví dụ do TOEIC GYM tự biên soạn.
 
 ## Tự kiểm tra
 
@@ -314,7 +314,7 @@ Khi *have* mang nghĩa sở hữu, nó không phải câu khiến: *We have a pr
 
 **The company will have its website _____ before the product launch.** (A) update (B) updated (C) updating (D) to update
 
-**Đáp án B.** *Website* là đối tượng được cập nhật; *have + vật + V3* nói việc công ty sắp xếp để cập nhật. Ví dụ do TOEICGym tự biên soạn.
+**Đáp án B.** *Website* là đối tượng được cập nhật; *have + vật + V3* nói việc công ty sắp xếp để cập nhật. Ví dụ do TOEIC GYM tự biên soạn.
 
 ## Tự kiểm tra
 

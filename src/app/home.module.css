@@ -61,6 +61,22 @@
 .habitSpotlights article { border-top: 2px solid #245a43; padding: 1.5rem .5rem .5rem; }
 .spotlights article > .accessNote { font-size: .8rem; font-weight: 700; }
 .directorySection { border-block: 1px solid #dce3d9; background: #fff; }
+.roadmapSection { max-width: 1280px; margin: auto; padding: clamp(4rem, 7vw, 6.5rem) 1.5rem; }
+.roadmapIntro { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(18rem, .85fr); align-items: end; gap: 1.5rem 4rem; margin-bottom: 2.5rem; }
+.roadmapIntro h2 { max-width: 17ch; margin: .8rem 0 0; color: #172821; font-size: clamp(2.15rem, 3.6vw, 3.7rem); font-weight: 850; letter-spacing: -.045em; line-height: 1.14; }
+.roadmapIntro > p { max-width: 32rem; margin: 0; color: #45584d; font-size: 1rem; line-height: 1.7; }
+.roadmapList { margin: 0; border-top: 1px solid #bdcdbf; padding: 0; list-style: none; }
+.roadmapList li { display: grid; grid-template-columns: minmax(12rem, .65fr) minmax(0, 1.35fr); gap: 1.5rem 3rem; border-bottom: 1px solid #bdcdbf; padding: 1.75rem .5rem; }
+.roadmapMeta { display: flex; align-items: center; gap: 1rem; align-self: start; }
+.roadmapMeta > span:first-child { color: #6a7d70; font-size: .75rem; font-weight: 850; letter-spacing: .08em; }
+.roadmapMeta > span:last-child { display: inline-flex; min-height: 2rem; align-items: center; border: 1px solid #af744f; border-radius: 999px; padding: .25rem .75rem; color: #74462f; font-size: .75rem; font-weight: 800; line-height: 1.35; white-space: nowrap; }
+.roadmapCopy h3 { margin: 0; color: #172821; font-size: clamp(1.25rem, 2vw, 1.65rem); font-weight: 800; line-height: 1.35; }
+.roadmapCopy p { max-width: 46rem; margin: .6rem 0 0; color: #45584d; font-size: 1rem; line-height: 1.7; }
+.roadmapFoot { display: flex; align-items: center; justify-content: space-between; gap: 1rem 2rem; margin-top: 1.5rem; }
+.roadmapFoot p { max-width: 43rem; margin: 0; color: #52675a; font-size: .88rem; line-height: 1.65; }
+.roadmapAction { display: inline-flex; min-height: 2.75rem; flex: none; align-items: center; gap: .5rem; color: #245a43; font-size: .9rem; font-weight: 850; text-decoration: underline; text-underline-offset: .25rem; }
+.roadmapAction:hover { color: #184631; }
+.roadmapAction:focus-visible { outline: 3px solid #245a43; outline-offset: 3px; }
 .partGroups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2rem; }
 .partGroups h3 { margin: 0 0 .7rem; color: #54715d; font-size: .85rem; font-weight: 850; text-transform: uppercase; letter-spacing: .1em; }
 .partGroups > div > div { border-top: 1px solid #cbd8ca; }
@@ -97,6 +113,10 @@
   .proof span { font-size: .78rem; }
   .section, .method { padding: 3.5rem 1.25rem; }
   .sectionIntro { align-items: flex-start; flex-direction: column; }
+  .roadmapSection { padding: 3.5rem 1.25rem; }
+  .roadmapIntro { grid-template-columns: 1fr; align-items: start; gap: 1rem; margin-bottom: 2rem; }
+  .roadmapList li { grid-template-columns: 1fr; gap: 1rem; padding: 1.5rem 0; }
+  .roadmapFoot { align-items: flex-start; flex-direction: column; }
   .partGroups, .spotlights { grid-template-columns: 1fr; }
   .partGroups { gap: 2rem; }
   .closing { align-items: flex-start; flex-direction: column; padding: 3rem 1.25rem; }

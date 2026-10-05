@@ -39,6 +39,16 @@ const copy = {
     entryLead: "Nghe một câu chuyện, làm workout hôm nay hoặc xem thứ hạng tuần. Chọn hoạt động bạn muốn thử ngay bên dưới.",
     loopEyebrow: "CÁC TÍNH NĂNG CỦA TOEIC GYM",
     loopTitle: "Chọn tính năng để bắt đầu.",
+    roadmapEyebrow: "SẮP RA MẮT",
+    roadmapTitle: "TOEIC GYM đang tiến về phía trước.",
+    roadmapLead: "Những trải nghiệm tiếp theo đang được chuẩn bị cho bản mobile, để việc học không dừng lại khi bạn rời máy tính.",
+    roadmapItems: [
+      { status: "Chuẩn bị thử nghiệm", title: "Ứng dụng TOEIC GYM cho iOS & Android", description: "Tiếp tục workout, bài luyện, sổ câu sai, từ vựng và tiến độ trên điện thoại với cùng một tài khoản." },
+      { status: "Cùng bản mobile", title: "Nhắc học theo lịch bạn chọn", description: "Tự chọn ngày và giờ nhận lời nhắc. Bạn có thể thay đổi hoặc tắt thông báo bất cứ lúc nào." },
+      { status: "Cùng bản mobile", title: "Ôn từ vựng khi không có mạng", description: "Tiếp tục ôn các thẻ từ đã tải về; kết quả sẽ đồng bộ lại khi thiết bị có kết nối." },
+    ],
+    roadmapNote: "Chúng tôi chỉ công bố ngày phát hành sau khi bản cài đặt vượt qua kiểm thử trên thiết bị thật.",
+    roadmapAction: "Góp ý tính năng bạn mong chờ",
     bankEyebrow: "KHO LUYỆN TẬP",
     bankTitle: "Đủ 7 Part. Chọn đúng phần cần tập.",
     bankLead: "Chọn dạng bài để đọc chiến lược và làm câu mẫu miễn phí. Muốn tự chọn số câu cho buổi luyện? Mở mục Luyện riêng từng Part ở trên.",
@@ -83,6 +93,16 @@ const copy = {
     entryLead: "Listen to a story, do today’s workout or check the weekly standings. Choose an activity to try below.",
     loopEyebrow: "TOEIC GYM FEATURES",
     loopTitle: "Choose a feature to start.",
+    roadmapEyebrow: "COMING SOON",
+    roadmapTitle: "TOEIC GYM is moving forward.",
+    roadmapLead: "The next experiences are being prepared for mobile, so your learning can continue away from your computer.",
+    roadmapItems: [
+      { status: "Preparing for testing", title: "TOEIC GYM for iOS & Android", description: "Continue workouts, practice, Mistake Bank, vocabulary and progress on your phone with the same account." },
+      { status: "With the mobile app", title: "Study reminders on your schedule", description: "Choose when to receive a reminder. Change the schedule or turn notifications off at any time." },
+      { status: "With the mobile app", title: "Offline vocabulary review", description: "Review downloaded vocabulary cards without a connection; results sync when your device is back online." },
+    ],
+    roadmapNote: "We will only announce a release date after installable builds pass testing on real devices.",
+    roadmapAction: "Tell us what you want next",
     bankEyebrow: "QUESTION BANK",
     bankTitle: "All 7 Parts. Practice what matters.",
     bankLead: "Choose a task to read strategies and try free sample questions. To configure your own set size, open Practice Parts 1–7 above.",
@@ -202,6 +222,23 @@ export default async function Home() {
       <div className={styles.section}>
         <div className={styles.sectionIntro}><div><p className={styles.eyebrow}>{t.loopEyebrow}</p><h2 id="features-title">{t.loopTitle}</h2></div></div>
         <FeatureDirectory compact locale={locale} />
+      </div>
+    </section>
+
+    <section aria-labelledby="roadmap-title" className={styles.roadmapSection} id="roadmap">
+      <div className={styles.roadmapIntro}>
+        <div><p className={styles.eyebrow}>{t.roadmapEyebrow}</p><h2 id="roadmap-title">{t.roadmapTitle}</h2></div>
+        <p>{t.roadmapLead}</p>
+      </div>
+      <ol className={styles.roadmapList}>
+        {t.roadmapItems.map((item, index) => <li key={item.title}>
+          <div className={styles.roadmapMeta}><span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span><span>{item.status}</span></div>
+          <div className={styles.roadmapCopy}><h3>{item.title}</h3><p>{item.description}</p></div>
+        </li>)}
+      </ol>
+      <div className={styles.roadmapFoot}>
+        <p>{t.roadmapNote}</p>
+        <Link className={styles.roadmapAction} href="/support">{t.roadmapAction}<span aria-hidden="true">↗</span></Link>
       </div>
     </section>
 

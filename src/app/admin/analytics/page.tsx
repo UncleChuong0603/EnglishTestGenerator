@@ -3,51 +3,594 @@ import { AdminNav } from "@/components/admin/admin-nav";
 import { requireAdmin } from "@/lib/admin/authorization";
 import { getRetentionDiagnostics } from "@/lib/admin/user-activity";
 import { getPreferences } from "@/lib/i18n/get-translations";
-import { analyticsRecommendations, challengeFunnelRows, funnelRows, periodDays, type AnalyticsRecommendation } from "@/lib/product-analytics/calculate";
-import { getChallengeFunnel, getProductAnalytics } from "@/lib/product-analytics/queries";
-import { getLearnerContextBreakdown } from "@/lib/learner-context/service";
-import { acquisitionSourceLabel, studyPurposeLabel, type AcquisitionSource, type StudyPurpose } from "@/lib/learner-context/domain";
+import {
+  analyticsRecommendations,
+  challengeFunnelRows,
+  funnelRows,
+  periodDays,
+  type AnalyticsRecommendation,
+} from "@/lib/product-analytics/calculate";
+import {
+  getChallengeFunnel,
+  getProductAnalytics,
+} from "@/lib/product-analytics/queries";
 
-const pct = (a: number, b: number) => b ? `${Math.round(a / b * 1000) / 10}%` : "—";
-export default async function AnalyticsPage({ searchParams }: { searchParams: Promise<{ period?: string | string[] }> }) {
+const pct = (a: number, b: number) =>
+  b ? `${Math.round((a / b) * 1000) / 10}%` : "—";
+export default async function AnalyticsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ period?: string | string[] }>;
+}) {
   const actor = await requireAdmin("ADMIN_DASHBOARD_READ");
-  const [prefs, query] = await Promise.all([getPreferences(actor.id), searchParams]);
-  const vi = prefs.interfaceLanguage === "vi", period = periodDays(typeof query.period === "string" ? query.period : undefined); const [data,retentionDiagnostics,contextBreakdown,challengeCounts] = await Promise.all([getProductAnalytics(period),getRetentionDiagnostics(),getLearnerContextBreakdown(),getChallengeFunnel(period)]);
+  const [prefs, query] = await Promise.all([
+    getPreferences(actor.id),
+    searchParams,
+  ]);
+  const vi = prefs.interfaceLanguage === "vi",
+    period = periodDays(
+      typeof query.period === "string" ? query.period : undefined,
+    );
+  const [data, retentionDiagnostics, challengeCounts] = await Promise.all([
+    getProductAnalytics(period),
+    getRetentionDiagnostics(),
+    getChallengeFunnel(period),
+  ]);
   const challengeFunnel = challengeFunnelRows(challengeCounts);
   const funnel = funnelRows(data.events, data.activated);
   const recommendations = analyticsRecommendations(data);
-  const labels = vi ? ["Landing được ghi nhận", "Mở trang Try", "Bắt đầu chẩn đoán / bài thử", "Hoàn thành", "Đăng ký", "Kích hoạt"] : ["Tracked landing", "Opened Try", "Started diagnostic / guest practice", "Completed", "Signed up", "Activated"];
-  const cards = [[vi?"Đăng ký mới":"New users",data.signups],[vi?"Người học kích hoạt":"Activated learners",data.activated],[vi?"Tỷ lệ kích hoạt":"Activation rate",pct(data.activated,data.signups)],["DAU",data.dau],["WAU",data.wau],[vi?"Phiên học hoàn thành":"Completed learning sessions",data.sessions],[vi?"Câu đã luyện":"Questions practiced",data.questions]];
-  return <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 sm:px-6"><div className="mx-auto max-w-7xl"><AdminNav locale={prefs.interfaceLanguage}/><div className="mt-8 flex flex-wrap items-end justify-between gap-4"><div><p className="text-sm font-black uppercase tracking-[.15em] text-teal-700">Product intelligence</p><h1 className="mt-2 text-3xl font-black">{vi?"Phân tích sản phẩm":"Product analytics"}</h1><p className="mt-2 max-w-3xl text-slate-600">{vi?"Dữ liệu first-party trong PostgreSQL. “Kích hoạt” = người dùng đăng nhập hoàn thành hoạt động học có ý nghĩa đầu tiên.":"First-party PostgreSQL data. “Activated” = a signed-in user completes their first meaningful learning activity."}</p></div><div className="flex flex-wrap justify-end gap-3"><a className="rounded-xl border border-teal-700 bg-white px-4 py-2 text-sm font-black text-teal-800 shadow-sm hover:bg-teal-50" href={`/api/admin/analytics-export?period=${period}`}>{vi?"Xuất CSV":"Export CSV"}</a><nav className="flex rounded-xl border bg-white p-1" aria-label={vi?"Khoảng thời gian":"Period"}>{[["today",vi?"Hôm nay":"Today"],["7d","7 days"],["30d","30 days"]].map(([value,label])=><Link className={`rounded-lg px-4 py-2 text-sm font-bold ${period===value?"bg-slate-900 text-white":""}`} href={`/admin/analytics?period=${value}`} key={value}>{label}</Link>)}</nav></div></div>
-  <section className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-6">{cards.map(([label,value])=><article className="rounded-2xl border bg-white p-5" key={String(label)}><p className="text-sm font-bold text-slate-500">{label}</p><p className="mt-2 text-3xl font-black">{value}</p></article>)}</section>
-  <section className="mt-6 rounded-3xl border border-teal-200 bg-white p-5 sm:p-7" aria-label="Part 5 Challenge funnel"><h2 className="text-xl font-black">Part 5 Challenge · {vi ? "Phễu thu hút" : "Acquisition funnel"}</h2><p className="mt-2 text-sm text-slate-600">{vi ? "Cohort mở trang trong kỳ đã chọn, theo cùng trình duyệt và phiên thử thách. Số người/guest được ghi nhận, không phải số lượt click. Đăng ký chỉ tính tài khoản mới sau khi guest hoàn thành; bài học đầu tiên là workout được đề xuất đã nộp sau đăng ký." : "Tracked page-view cohort in the selected period, linked by browser guest identity and challenge session. Counts are tracked actors, not clicks. Signup requires a new account after guest completion; first workout is a submitted recommended session after signup."}</p><ol className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">{challengeFunnel.map((row, index) => <li className="rounded-2xl bg-slate-50 p-4" key={index}><p className="text-sm font-bold text-slate-600">{["Viewed", "Started", "Completed", "Signup", "First workout"][index]}</p><p className="mt-2 text-3xl font-black text-teal-800">{row.count}</p>{index ? <p className="mt-2 text-xs text-slate-600">{row.conversion === null ? (vi ? "— · mẫu bước trước dưới 20" : "— · prior step under 20") : `${row.conversion}% · n=${row.denominator}`}</p> : <p className="mt-2 text-xs text-slate-600">{vi ? "Cohort gốc" : "Entry cohort"}</p>}</li>)}</ol><p className="mt-4 text-xs text-amber-800">{vi ? "Mẫu nhỏ: xem số lượng trước khi diễn giải tỷ lệ. Không suy ra nguồn Facebook, Threads hay Google từ Direct traffic." : "Small sample: inspect counts before interpreting rates. Direct traffic does not reveal Facebook, Threads, or Google origin."}</p></section>
-  <section className="mt-6 overflow-hidden rounded-3xl border border-teal-200 bg-white"><div className="grid gap-6 bg-[radial-gradient(circle_at_top_right,_#99f6e4_0,_transparent_35%),linear-gradient(135deg,#042f2e,#0f172a)] p-5 text-white sm:p-7 lg:grid-cols-[1.1fr_.9fr]"><div><p className="text-xs font-black uppercase tracking-[.18em] text-teal-300">Early retention · Asia/Ho_Chi_Minh</p><h2 className="mt-3 text-2xl font-black">{vi?"Người học có ít nhất 2 ngày học trong 7 ngày sản phẩm":"Learners with 2+ learning days in 7 product days"}</h2><p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">{vi?"Ngày học chỉ được tính khi người học đăng nhập hoàn thành Practice, Bài hôm nay hoặc ôn câu sai có ít nhất một câu đã trả lời. Diagnostic, Demo, Ranked Challenge và Full Mock không tính.":"A learning day requires a signed-in learner to complete Practice, Workout, or mistake review with at least one answered question. Diagnostic, Demo, Ranked Challenge, and Full Mock are excluded."}</p></div><div className="rounded-2xl border border-white/15 bg-white/10 p-5"><p className="text-sm font-bold text-teal-200">2+ {vi?"ngày học":"learning days"}</p><p className="mt-2 text-4xl font-black">{retentionDiagnostics.returned2Days7d} / {retentionDiagnostics.totalLearners}</p><p className="mt-2 text-sm text-slate-300">{retentionDiagnostics.totalLearners<20?(vi?"Cỡ mẫu nhỏ; số lượng tuyệt đối quan trọng hơn phần trăm.":"Small cohort; absolute counts matter more than percentages."):`${pct(retentionDiagnostics.returned2Days7d,retentionDiagnostics.totalLearners)} ${vi?"trên tổng người học":"of registered learners"}`}</p></div></div><div className="grid gap-px bg-slate-200 sm:grid-cols-2 lg:grid-cols-6">{[[vi?"Đăng ký 7 ngày":"7-day signups",retentionDiagnostics.signups7d],[vi?"Đã kích hoạt":"Activated",retentionDiagnostics.activated],[vi?"Đúng 1 ngày":"Exactly 1 day",retentionDiagnostics.oneLearningDay7d],["2+ days",retentionDiagnostics.returned2Days7d],["3+ days",retentionDiagnostics.returned3Days7d],[vi?"Chưa học":"No learning yet",retentionDiagnostics.noMeaningfulLearning]].map(([label,value])=><div className="bg-white p-4" key={String(label)}><p className="text-xs font-bold text-slate-500">{label}</p><strong className="mt-1 block text-2xl">{value}</strong></div>)}</div>{retentionDiagnostics.workoutCompleters?<p className="border-t bg-slate-50 p-4 text-sm text-slate-600">{vi?"Workout #1 → Workout khác ngày":"Workout #1 → another-day workout"}: <strong>{retentionDiagnostics.workoutReturnedDifferentDay} / {retentionDiagnostics.workoutCompleters}</strong></p>:null}</section>
-  <section className="mt-6 overflow-hidden rounded-3xl border border-teal-200 bg-gradient-to-br from-teal-950 via-slate-900 to-slate-950 text-white shadow-sm"><div className="grid gap-6 p-5 sm:p-7 lg:grid-cols-[.62fr_1.38fr]"><div><p className="text-xs font-black uppercase tracking-[.18em] text-teal-300">{vi?"Quyết định từ dữ liệu":"Data-informed decisions"}</p><h2 className="mt-3 text-2xl font-black">{vi?"Nên tập trung cải thiện gì?":"What should improve next?"}</h2><p className="mt-3 text-sm leading-6 text-slate-300">{vi?"Hệ thống xếp hạng điểm rơi lớn nhất trong phễu, retention và chuyển đổi Premium. Độ tin cậy dựa trên cỡ mẫu; mục có mẫu nhỏ chỉ nên dùng để theo dõi.":"Ranked from the largest funnel leaks, retention gaps, and Premium conversion. Confidence reflects sample size; low-sample items are signals to watch, not conclusions."}</p></div><div className="grid gap-3">{recommendations.length?recommendations.map((item,index)=><RecommendationCard item={item} index={index} vi={vi} key={item.key}/>):<div className="rounded-2xl border border-white/15 bg-white/5 p-6"><p className="font-black">{vi?"Chưa đủ dữ liệu để đề xuất":"Not enough data for recommendations"}</p><p className="mt-2 text-sm text-slate-300">{vi?"Cần ít nhất một bước phễu, cohort retention hoặc lượt xem Pricing có dữ liệu.":"At least one funnel step, retention cohort, or Pricing view is needed."}</p></div>}</div></div></section>
-  <div className="mt-6 grid gap-6 xl:grid-cols-[1.35fr_.65fr]"><section className="rounded-3xl border bg-white p-5 sm:p-7"><h2 className="text-xl font-black">{vi?"Phễu kích hoạt":"Activation funnel"}</h2>{funnel.some(x=>x.count)?<ol className="mt-6 space-y-4">{funnel.map((row,i)=><li key={labels[i]}><div className="flex flex-wrap justify-between gap-2 text-sm"><strong>{labels[i]}</strong><span>{row.count} · {row.conversion}% {vi?"chuyển đổi":"conversion"} · {row.dropoff}% {vi?"rời bước":"drop-off"}</span></div><div className="mt-2 h-3 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-teal-600" style={{width:`${Math.max(2,Math.min(100,funnel[0].count?row.count/funnel[0].count*100:0))}%`}}/></div></li>)}</ol>:<Empty vi={vi}/>}</section>
-  <section className="rounded-3xl border bg-slate-900 p-5 text-white sm:p-7"><h2 className="text-xl font-black">{vi?"Chuyển đổi Premium":"Premium conversion"}</h2><dl className="mt-5 space-y-4">{[[vi?"Premium đang hiệu lực":"Active Premium users",data.activePremiumUsers],[vi?"Lượt xem Pricing":"Pricing views",data.events.pricing_viewed??0],[vi?"Bắt đầu checkout":"Checkout starts",data.events.checkout_started??0],[vi?"Tạo checkout thành công":"Checkout created",data.checkoutCreated],[vi?"Kích hoạt qua thanh toán trong kỳ":"Payment activations in period",data.premiumActivated]].map(([k,v])=><div className="flex justify-between border-b border-slate-700 pb-3" key={String(k)}><dt>{k}</dt><dd className="text-xl font-black text-teal-300">{v}</dd></div>)}</dl><p className="mt-5 text-sm text-slate-300">Pricing → Checkout: {pct(data.events.checkout_started??0,data.events.pricing_viewed??0)}<br/>Checkout → Premium: {pct(data.premiumActivated,data.checkoutCreated)}<br/>Signup → Premium: {pct(data.premiumActivated,data.signups)}</p></section></div>
-  <section className="mt-6 rounded-3xl border bg-white p-5 sm:p-7"><h2 className="text-xl font-black">{vi?"Giữ chân theo cohort đăng ký":"Signup cohort retention"}</h2><p className="mt-2 text-sm text-slate-600">{vi?"Quay lại = hoàn thành một phiên học trong đúng ngày thứ N sau đăng ký. Trang chủ không được tính.":"Returned = completed a learning session on day N after signup. Homepage visits do not count."}</p><div className="mt-5 grid gap-4 sm:grid-cols-3">{[1,7,30].map(day=>{const r=data.retention[String(day)]??{cohort:0,returned:0};return <article className="rounded-2xl bg-slate-50 p-5" key={day}><p className="font-black">D{day}</p><p className="mt-2 text-3xl font-black text-teal-700">{pct(r.returned,r.cohort)}</p><p className="mt-1 text-sm text-slate-600">{r.returned}/{r.cohort} {vi?"người học":"learners"}</p>{r.cohort<20?<p className="mt-3 text-xs text-amber-700">{vi?"Mẫu nhỏ; chưa nên kết luận xu hướng.":"Small sample; avoid trend claims."}</p>:null}</article>})}</div></section>
-  <section className="mt-6 rounded-3xl border bg-white p-5 sm:p-7"><div className="flex flex-wrap items-end justify-between gap-3"><div><h2 className="text-xl font-black">{vi?"Bối cảnh người học":"Learner context"}</h2><p className="mt-2 text-sm text-slate-600">{vi?"Số lượng tự khai báo; không phải attribution đã xác minh.":"Self-reported counts; this is not verified attribution."}</p></div><p className="text-xs font-semibold text-amber-700">{vi?"Cỡ mẫu nhỏ — không suy diễn nguyên nhân":"Small sample — avoid causal claims"}</p></div><div className="mt-5 grid gap-5 lg:grid-cols-2"><Breakdown title={vi?"Lý do học TOEIC":"Study purpose"} rows={contextBreakdown.studyPurposes.map(row=>({count:row.count,label:row.value?studyPurposeLabel(row.value as StudyPurpose,prefs.interfaceLanguage):(vi?"Chưa cung cấp":"Not provided")}))}/><Breakdown title={vi?"Nguồn tự khai báo":"Self-reported acquisition"} rows={contextBreakdown.acquisitionSources.map(row=>({count:row.count,label:row.value?acquisitionSourceLabel(row.value as AcquisitionSource,prefs.interfaceLanguage):(vi?"Chưa cung cấp":"Not provided")}))}/></div></section>
-  <p className="mt-6 text-xs leading-5 text-slate-500">{vi?"Lượt landing là lượt được trình duyệt ghi nhận, có thể gồm bot/kiểm tra uptime. Event thô được thiết kế giữ 18 tháng; chưa tự động xóa trong Task 23. Backup PostgreSQL hiện tại tự nhiên bao gồm bảng analytics.":"Landing counts are browser-tracked visits and may include bots/uptime checks. Raw events are designed for 18-month retention; Task 23 does not auto-delete them. Existing PostgreSQL backups naturally include analytics."}</p></div></main>;
+  const labels = vi
+    ? [
+        "Landing được ghi nhận",
+        "Mở trang Try",
+        "Bắt đầu chẩn đoán / bài thử",
+        "Hoàn thành",
+        "Đăng ký",
+        "Kích hoạt",
+      ]
+    : [
+        "Tracked landing",
+        "Opened Try",
+        "Started diagnostic / guest practice",
+        "Completed",
+        "Signed up",
+        "Activated",
+      ];
+  const cards = [
+    [vi ? "Đăng ký mới" : "New users", data.signups],
+    [vi ? "Người học kích hoạt" : "Activated learners", data.activated],
+    [
+      vi ? "Tỷ lệ kích hoạt" : "Activation rate",
+      pct(data.activated, data.signups),
+    ],
+    ["DAU", data.dau],
+    ["WAU", data.wau],
+    [
+      vi ? "Phiên học hoàn thành" : "Completed learning sessions",
+      data.sessions,
+    ],
+    [vi ? "Câu đã luyện" : "Questions practiced", data.questions],
+  ];
+  return (
+    <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 sm:px-6">
+      <div className="mx-auto max-w-7xl">
+        <AdminNav locale={prefs.interfaceLanguage} />
+        <div className="mt-8 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-sm font-black uppercase tracking-[.15em] text-teal-700">
+              Product intelligence
+            </p>
+            <h1 className="mt-2 text-3xl font-black">
+              {vi ? "Phân tích sản phẩm" : "Product analytics"}
+            </h1>
+            <p className="mt-2 max-w-3xl text-slate-600">
+              {vi
+                ? "Dữ liệu first-party trong PostgreSQL. “Kích hoạt” = người dùng đăng nhập hoàn thành hoạt động học có ý nghĩa đầu tiên."
+                : "First-party PostgreSQL data. “Activated” = a signed-in user completes their first meaningful learning activity."}
+            </p>
+          </div>
+          <div className="flex flex-wrap justify-end gap-3">
+            <a
+              className="rounded-xl border border-teal-700 bg-white px-4 py-2 text-sm font-black text-teal-800 shadow-sm hover:bg-teal-50"
+              href={`/api/admin/analytics-export?period=${period}`}
+            >
+              {vi ? "Xuất CSV" : "Export CSV"}
+            </a>
+            <nav
+              className="flex rounded-xl border bg-white p-1"
+              aria-label={vi ? "Khoảng thời gian" : "Period"}
+            >
+              {[
+                ["today", vi ? "Hôm nay" : "Today"],
+                ["7d", "7 days"],
+                ["30d", "30 days"],
+              ].map(([value, label]) => (
+                <Link
+                  className={`rounded-lg px-4 py-2 text-sm font-bold ${period === value ? "bg-slate-900 text-white" : ""}`}
+                  href={`/admin/analytics?period=${value}`}
+                  key={value}
+                >
+                  {label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+        </div>
+        <section className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
+          {cards.map(([label, value]) => (
+            <article
+              className="rounded-2xl border bg-white p-5"
+              key={String(label)}
+            >
+              <p className="text-sm font-bold text-slate-500">{label}</p>
+              <p className="mt-2 text-3xl font-black">{value}</p>
+            </article>
+          ))}
+        </section>
+        <section
+          className="mt-6 rounded-3xl border border-teal-200 bg-white p-5 sm:p-7"
+          aria-label="Part 5 Challenge funnel"
+        >
+          <h2 className="text-xl font-black">
+            Part 5 Challenge · {vi ? "Phễu thu hút" : "Acquisition funnel"}
+          </h2>
+          <p className="mt-2 text-sm text-slate-600">
+            {vi
+              ? "Cohort mở trang trong kỳ đã chọn, theo cùng trình duyệt và phiên thử thách. Số người/guest được ghi nhận, không phải số lượt click. Đăng ký chỉ tính tài khoản mới sau khi guest hoàn thành; bài học đầu tiên là workout được đề xuất đã nộp sau đăng ký."
+              : "Tracked page-view cohort in the selected period, linked by browser guest identity and challenge session. Counts are tracked actors, not clicks. Signup requires a new account after guest completion; first workout is a submitted recommended session after signup."}
+          </p>
+          <ol className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            {challengeFunnel.map((row, index) => (
+              <li className="rounded-2xl bg-slate-50 p-4" key={index}>
+                <p className="text-sm font-bold text-slate-600">
+                  {
+                    [
+                      "Viewed",
+                      "Started",
+                      "Completed",
+                      "Signup",
+                      "First workout",
+                    ][index]
+                  }
+                </p>
+                <p className="mt-2 text-3xl font-black text-teal-800">
+                  {row.count}
+                </p>
+                {index ? (
+                  <p className="mt-2 text-xs text-slate-600">
+                    {row.conversion === null
+                      ? vi
+                        ? "— · mẫu bước trước dưới 20"
+                        : "— · prior step under 20"
+                      : `${row.conversion}% · n=${row.denominator}`}
+                  </p>
+                ) : (
+                  <p className="mt-2 text-xs text-slate-600">
+                    {vi ? "Cohort gốc" : "Entry cohort"}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ol>
+          <p className="mt-4 text-xs text-amber-800">
+            {vi
+              ? "Mẫu nhỏ: xem số lượng trước khi diễn giải tỷ lệ. Không suy ra nguồn Facebook, Threads hay Google từ Direct traffic."
+              : "Small sample: inspect counts before interpreting rates. Direct traffic does not reveal Facebook, Threads, or Google origin."}
+          </p>
+        </section>
+        <section className="mt-6 overflow-hidden rounded-3xl border border-teal-200 bg-white">
+          <div className="grid gap-6 bg-[radial-gradient(circle_at_top_right,_#99f6e4_0,_transparent_35%),linear-gradient(135deg,#042f2e,#0f172a)] p-5 text-white sm:p-7 lg:grid-cols-[1.1fr_.9fr]">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[.18em] text-teal-300">
+                Early retention · Asia/Ho_Chi_Minh
+              </p>
+              <h2 className="mt-3 text-2xl font-black">
+                {vi
+                  ? "Người học có ít nhất 2 ngày học trong 7 ngày sản phẩm"
+                  : "Learners with 2+ learning days in 7 product days"}
+              </h2>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">
+                {vi
+                  ? "Ngày học chỉ được tính khi người học đăng nhập hoàn thành Practice, Bài hôm nay hoặc ôn câu sai có ít nhất một câu đã trả lời. Diagnostic, Demo, Ranked Challenge và Full Mock không tính."
+                  : "A learning day requires a signed-in learner to complete Practice, Workout, or mistake review with at least one answered question. Diagnostic, Demo, Ranked Challenge, and Full Mock are excluded."}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-white/15 bg-white/10 p-5">
+              <p className="text-sm font-bold text-teal-200">
+                2+ {vi ? "ngày học" : "learning days"}
+              </p>
+              <p className="mt-2 text-4xl font-black">
+                {retentionDiagnostics.returned2Days7d} /{" "}
+                {retentionDiagnostics.totalLearners}
+              </p>
+              <p className="mt-2 text-sm text-slate-300">
+                {retentionDiagnostics.totalLearners < 20
+                  ? vi
+                    ? "Cỡ mẫu nhỏ; số lượng tuyệt đối quan trọng hơn phần trăm."
+                    : "Small cohort; absolute counts matter more than percentages."
+                  : `${pct(retentionDiagnostics.returned2Days7d, retentionDiagnostics.totalLearners)} ${vi ? "trên tổng người học" : "of registered learners"}`}
+              </p>
+            </div>
+          </div>
+          <div className="grid gap-px bg-slate-200 sm:grid-cols-2 lg:grid-cols-6">
+            {[
+              [
+                vi ? "Đăng ký 7 ngày" : "7-day signups",
+                retentionDiagnostics.signups7d,
+              ],
+              [
+                vi ? "Đã kích hoạt" : "Activated",
+                retentionDiagnostics.activated,
+              ],
+              [
+                vi ? "Đúng 1 ngày" : "Exactly 1 day",
+                retentionDiagnostics.oneLearningDay7d,
+              ],
+              ["2+ days", retentionDiagnostics.returned2Days7d],
+              ["3+ days", retentionDiagnostics.returned3Days7d],
+              [
+                vi ? "Chưa học" : "No learning yet",
+                retentionDiagnostics.noMeaningfulLearning,
+              ],
+            ].map(([label, value]) => (
+              <div className="bg-white p-4" key={String(label)}>
+                <p className="text-xs font-bold text-slate-500">{label}</p>
+                <strong className="mt-1 block text-2xl">{value}</strong>
+              </div>
+            ))}
+          </div>
+          {retentionDiagnostics.workoutCompleters ? (
+            <p className="border-t bg-slate-50 p-4 text-sm text-slate-600">
+              {vi
+                ? "Workout #1 → Workout khác ngày"
+                : "Workout #1 → another-day workout"}
+              :{" "}
+              <strong>
+                {retentionDiagnostics.workoutReturnedDifferentDay} /{" "}
+                {retentionDiagnostics.workoutCompleters}
+              </strong>
+            </p>
+          ) : null}
+        </section>
+        <section className="mt-6 overflow-hidden rounded-3xl border border-teal-200 bg-gradient-to-br from-teal-950 via-slate-900 to-slate-950 text-white shadow-sm">
+          <div className="grid gap-6 p-5 sm:p-7 lg:grid-cols-[.62fr_1.38fr]">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[.18em] text-teal-300">
+                {vi ? "Quyết định từ dữ liệu" : "Data-informed decisions"}
+              </p>
+              <h2 className="mt-3 text-2xl font-black">
+                {vi
+                  ? "Nên tập trung cải thiện gì?"
+                  : "What should improve next?"}
+              </h2>
+              <p className="mt-3 text-sm leading-6 text-slate-300">
+                {vi
+                  ? "Hệ thống xếp hạng điểm rơi lớn nhất trong phễu, retention và chuyển đổi Premium. Độ tin cậy dựa trên cỡ mẫu; mục có mẫu nhỏ chỉ nên dùng để theo dõi."
+                  : "Ranked from the largest funnel leaks, retention gaps, and Premium conversion. Confidence reflects sample size; low-sample items are signals to watch, not conclusions."}
+              </p>
+            </div>
+            <div className="grid gap-3">
+              {recommendations.length ? (
+                recommendations.map((item, index) => (
+                  <RecommendationCard
+                    item={item}
+                    index={index}
+                    vi={vi}
+                    key={item.key}
+                  />
+                ))
+              ) : (
+                <div className="rounded-2xl border border-white/15 bg-white/5 p-6">
+                  <p className="font-black">
+                    {vi
+                      ? "Chưa đủ dữ liệu để đề xuất"
+                      : "Not enough data for recommendations"}
+                  </p>
+                  <p className="mt-2 text-sm text-slate-300">
+                    {vi
+                      ? "Cần ít nhất một bước phễu, cohort retention hoặc lượt xem Pricing có dữ liệu."
+                      : "At least one funnel step, retention cohort, or Pricing view is needed."}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+        <div className="mt-6 grid gap-6 xl:grid-cols-[1.35fr_.65fr]">
+          <section className="rounded-3xl border bg-white p-5 sm:p-7">
+            <h2 className="text-xl font-black">
+              {vi ? "Phễu kích hoạt" : "Activation funnel"}
+            </h2>
+            {funnel.some((x) => x.count) ? (
+              <ol className="mt-6 space-y-4">
+                {funnel.map((row, i) => (
+                  <li key={labels[i]}>
+                    <div className="flex flex-wrap justify-between gap-2 text-sm">
+                      <strong>{labels[i]}</strong>
+                      <span>
+                        {row.count} · {row.conversion}%{" "}
+                        {vi ? "chuyển đổi" : "conversion"} · {row.dropoff}%{" "}
+                        {vi ? "rời bước" : "drop-off"}
+                      </span>
+                    </div>
+                    <div className="mt-2 h-3 overflow-hidden rounded-full bg-slate-100">
+                      <div
+                        className="h-full rounded-full bg-teal-600"
+                        style={{
+                          width: `${Math.max(2, Math.min(100, funnel[0].count ? (row.count / funnel[0].count) * 100 : 0))}%`,
+                        }}
+                      />
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <Empty vi={vi} />
+            )}
+          </section>
+          <section className="rounded-3xl border bg-slate-900 p-5 text-white sm:p-7">
+            <h2 className="text-xl font-black">
+              {vi ? "Chuyển đổi Premium" : "Premium conversion"}
+            </h2>
+            <dl className="mt-5 space-y-4">
+              {[
+                [
+                  vi ? "Premium đang hiệu lực" : "Active Premium users",
+                  data.activePremiumUsers,
+                ],
+                [
+                  vi ? "Lượt xem Pricing" : "Pricing views",
+                  data.events.pricing_viewed ?? 0,
+                ],
+                [
+                  vi ? "Bắt đầu checkout" : "Checkout starts",
+                  data.events.checkout_started ?? 0,
+                ],
+                [
+                  vi ? "Tạo checkout thành công" : "Checkout created",
+                  data.checkoutCreated,
+                ],
+                [
+                  vi
+                    ? "Kích hoạt qua thanh toán trong kỳ"
+                    : "Payment activations in period",
+                  data.premiumActivated,
+                ],
+              ].map(([k, v]) => (
+                <div
+                  className="flex justify-between border-b border-slate-700 pb-3"
+                  key={String(k)}
+                >
+                  <dt>{k}</dt>
+                  <dd className="text-xl font-black text-teal-300">{v}</dd>
+                </div>
+              ))}
+            </dl>
+            <p className="mt-5 text-sm text-slate-300">
+              Pricing → Checkout:{" "}
+              {pct(
+                data.events.checkout_started ?? 0,
+                data.events.pricing_viewed ?? 0,
+              )}
+              <br />
+              Checkout → Premium:{" "}
+              {pct(data.premiumActivated, data.checkoutCreated)}
+              <br />
+              Signup → Premium: {pct(data.premiumActivated, data.signups)}
+            </p>
+          </section>
+        </div>
+        <section className="mt-6 rounded-3xl border bg-white p-5 sm:p-7">
+          <h2 className="text-xl font-black">
+            {vi ? "Giữ chân theo cohort đăng ký" : "Signup cohort retention"}
+          </h2>
+          <p className="mt-2 text-sm text-slate-600">
+            {vi
+              ? "Quay lại = hoàn thành một phiên học trong đúng ngày thứ N sau đăng ký. Trang chủ không được tính."
+              : "Returned = completed a learning session on day N after signup. Homepage visits do not count."}
+          </p>
+          <div className="mt-5 grid gap-4 sm:grid-cols-3">
+            {[1, 7, 30].map((day) => {
+              const r = data.retention[String(day)] ?? {
+                cohort: 0,
+                returned: 0,
+              };
+              return (
+                <article className="rounded-2xl bg-slate-50 p-5" key={day}>
+                  <p className="font-black">D{day}</p>
+                  <p className="mt-2 text-3xl font-black text-teal-700">
+                    {pct(r.returned, r.cohort)}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-600">
+                    {r.returned}/{r.cohort} {vi ? "người học" : "learners"}
+                  </p>
+                  {r.cohort < 20 ? (
+                    <p className="mt-3 text-xs text-amber-700">
+                      {vi
+                        ? "Mẫu nhỏ; chưa nên kết luận xu hướng."
+                        : "Small sample; avoid trend claims."}
+                    </p>
+                  ) : null}
+                </article>
+              );
+            })}
+          </div>
+        </section>
+        <p className="mt-6 text-xs leading-5 text-slate-500">
+          {vi
+            ? "Lượt landing là lượt được trình duyệt ghi nhận, có thể gồm bot/kiểm tra uptime. Event thô được thiết kế giữ 18 tháng; chưa tự động xóa trong Task 23. Backup PostgreSQL hiện tại tự nhiên bao gồm bảng analytics."
+            : "Landing counts are browser-tracked visits and may include bots/uptime checks. Raw events are designed for 18-month retention; Task 23 does not auto-delete them. Existing PostgreSQL backups naturally include analytics."}
+        </p>
+      </div>
+    </main>
+  );
 }
-function Empty({vi}:{vi:boolean}) { return <div className="mt-6 rounded-2xl border border-dashed p-8 text-center"><p className="font-black">{vi?"Chưa có dữ liệu trong khoảng này":"No data in this period"}</p><p className="mt-2 text-sm text-slate-600">{vi?"Các chỉ số sẽ xuất hiện khi có hành vi thật; không dùng dữ liệu giả.":"Metrics appear after real activity; no fake production data is used."}</p></div> }
-function Breakdown({title,rows}:{title:string;rows:{label:string;count:number}[]}) { return <article className="rounded-2xl bg-slate-50 p-5"><h3 className="font-black">{title}</h3><ul className="mt-3 divide-y">{rows.sort((a,b)=>b.count-a.count).map(row=><li className="flex items-center justify-between gap-4 py-3" key={row.label}><span>{row.label}</span><strong>{row.count}</strong></li>)}</ul></article> }
+function Empty({ vi }: { vi: boolean }) {
+  return (
+    <div className="mt-6 rounded-2xl border border-dashed p-8 text-center">
+      <p className="font-black">
+        {vi ? "Chưa có dữ liệu trong khoảng này" : "No data in this period"}
+      </p>
+      <p className="mt-2 text-sm text-slate-600">
+        {vi
+          ? "Các chỉ số sẽ xuất hiện khi có hành vi thật; không dùng dữ liệu giả."
+          : "Metrics appear after real activity; no fake production data is used."}
+      </p>
+    </div>
+  );
+}
 
-const recommendationCopy: Record<string, { vi: [string, string]; en: [string, string] }> = {
-  landing_to_try: { vi: ["Tăng tỷ lệ Landing → Try", "Làm CTA bài thử nổi bật hơn và kiểm tra thông điệp đầu trang."], en: ["Improve Landing → Try", "Strengthen the trial CTA and test the above-the-fold message."] },
-  try_to_start: { vi: ["Giảm ma sát khi bắt đầu bài", "Rút ngắn bước chọn bài và làm rõ thời gian, lợi ích trước khi bắt đầu."], en: ["Reduce start friction", "Shorten setup and clarify time and value before starting."] },
-  start_to_complete: { vi: ["Tăng tỷ lệ hoàn thành bài thử", "Kiểm tra độ dài, trải nghiệm mobile và các điểm thoát giữa bài."], en: ["Improve trial completion", "Review length, mobile usability, and mid-session exit points."] },
-  complete_to_signup: { vi: ["Chuyển người hoàn thành thành đăng ký", "Cho xem kết quả có giá trị ngay, rồi đặt CTA lưu tiến độ đúng thời điểm."], en: ["Convert completers to signups", "Deliver immediate result value, then prompt users to save progress."] },
-  signup_to_activation: { vi: ["Kích hoạt người vừa đăng ký", "Đưa người học thẳng tới bài luyện phù hợp và giảm bước trống sau đăng ký."], en: ["Activate new signups", "Route learners directly to a relevant workout and remove post-signup dead ends."] },
-  retention_d1: { vi: ["Cải thiện retention D1", "Tạo lý do quay lại ngày mai bằng kế hoạch ngắn, nhắc học và bài tiếp theo rõ ràng."], en: ["Improve D1 retention", "Create a reason to return tomorrow with a short plan, reminder, and clear next workout."] },
-  retention_d7: { vi: ["Cải thiện retention D7", "Nhấn mạnh tiến bộ tuần, streak và mục tiêu học có thể hoàn thành."], en: ["Improve D7 retention", "Emphasize weekly progress, streaks, and achievable learning goals."] },
-  retention_d30: { vi: ["Cải thiện retention D30", "Tạo chu kỳ ôn tập dài hạn và recap giá trị đã đạt được."], en: ["Improve D30 retention", "Build a long-term review loop and recap accumulated value."] },
-  pricing_to_checkout: { vi: ["Tối ưu Pricing → Checkout", "Làm rõ quyền lợi, giá trị gói và xử lý do dự ngay trên trang Pricing."], en: ["Optimize Pricing → Checkout", "Clarify benefits and plan value, and address objections on Pricing."] },
+const recommendationCopy: Record<
+  string,
+  { vi: [string, string]; en: [string, string] }
+> = {
+  landing_to_try: {
+    vi: [
+      "Tăng tỷ lệ Landing → Try",
+      "Làm CTA bài thử nổi bật hơn và kiểm tra thông điệp đầu trang.",
+    ],
+    en: [
+      "Improve Landing → Try",
+      "Strengthen the trial CTA and test the above-the-fold message.",
+    ],
+  },
+  try_to_start: {
+    vi: [
+      "Giảm ma sát khi bắt đầu bài",
+      "Rút ngắn bước chọn bài và làm rõ thời gian, lợi ích trước khi bắt đầu.",
+    ],
+    en: [
+      "Reduce start friction",
+      "Shorten setup and clarify time and value before starting.",
+    ],
+  },
+  start_to_complete: {
+    vi: [
+      "Tăng tỷ lệ hoàn thành bài thử",
+      "Kiểm tra độ dài, trải nghiệm mobile và các điểm thoát giữa bài.",
+    ],
+    en: [
+      "Improve trial completion",
+      "Review length, mobile usability, and mid-session exit points.",
+    ],
+  },
+  complete_to_signup: {
+    vi: [
+      "Chuyển người hoàn thành thành đăng ký",
+      "Cho xem kết quả có giá trị ngay, rồi đặt CTA lưu tiến độ đúng thời điểm.",
+    ],
+    en: [
+      "Convert completers to signups",
+      "Deliver immediate result value, then prompt users to save progress.",
+    ],
+  },
+  signup_to_activation: {
+    vi: [
+      "Kích hoạt người vừa đăng ký",
+      "Đưa người học thẳng tới bài luyện phù hợp và giảm bước trống sau đăng ký.",
+    ],
+    en: [
+      "Activate new signups",
+      "Route learners directly to a relevant workout and remove post-signup dead ends.",
+    ],
+  },
+  retention_d1: {
+    vi: [
+      "Cải thiện retention D1",
+      "Tạo lý do quay lại ngày mai bằng kế hoạch ngắn, nhắc học và bài tiếp theo rõ ràng.",
+    ],
+    en: [
+      "Improve D1 retention",
+      "Create a reason to return tomorrow with a short plan, reminder, and clear next workout.",
+    ],
+  },
+  retention_d7: {
+    vi: [
+      "Cải thiện retention D7",
+      "Nhấn mạnh tiến bộ tuần, streak và mục tiêu học có thể hoàn thành.",
+    ],
+    en: [
+      "Improve D7 retention",
+      "Emphasize weekly progress, streaks, and achievable learning goals.",
+    ],
+  },
+  retention_d30: {
+    vi: [
+      "Cải thiện retention D30",
+      "Tạo chu kỳ ôn tập dài hạn và recap giá trị đã đạt được.",
+    ],
+    en: [
+      "Improve D30 retention",
+      "Build a long-term review loop and recap accumulated value.",
+    ],
+  },
+  pricing_to_checkout: {
+    vi: [
+      "Tối ưu Pricing → Checkout",
+      "Làm rõ quyền lợi, giá trị gói và xử lý do dự ngay trên trang Pricing.",
+    ],
+    en: [
+      "Optimize Pricing → Checkout",
+      "Clarify benefits and plan value, and address objections on Pricing.",
+    ],
+  },
 };
 
-function RecommendationCard({ item, index, vi }: { item: AnalyticsRecommendation; index: number; vi: boolean }) {
-  const copy = recommendationCopy[item.key]?.[vi ? "vi" : "en"] ?? [item.key, ""];
-  const priority = vi ? { high: "Ưu tiên cao", medium: "Ưu tiên vừa", watch: "Theo dõi" }[item.priority] : { high: "High priority", medium: "Medium priority", watch: "Watch" }[item.priority];
-  const confidence = vi ? { high: "tin cậy cao", medium: "tin cậy vừa", low: "mẫu nhỏ" }[item.confidence] : { high: "high confidence", medium: "medium confidence", low: "small sample" }[item.confidence];
-  const metric = item.metric === "dropoff" ? `${item.value}% ${vi?"rời bước":"drop-off"}` : `${item.value}% ${item.metric === "retention" ? "retention" : vi?"chuyển đổi":"conversion"}`;
-  return <article className="grid gap-3 rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur sm:grid-cols-[auto_1fr_auto] sm:items-center"><span className="grid size-9 place-items-center rounded-full bg-teal-300 font-black text-slate-950">{index+1}</span><div><div className="flex flex-wrap items-center gap-2"><h3 className="font-black">{copy[0]}</h3><span className={`rounded-full px-2 py-1 text-[11px] font-black uppercase tracking-wide ${item.priority==="high"?"bg-rose-400/20 text-rose-200":item.priority==="medium"?"bg-amber-300/20 text-amber-200":"bg-sky-300/20 text-sky-200"}`}>{priority}</span></div><p className="mt-1 text-sm text-slate-300">{copy[1]}</p></div><div className="text-left sm:text-right"><p className="font-black text-teal-300">{metric}</p><p className="mt-1 text-xs text-slate-400">n={item.sample} · {confidence}</p></div></article>;
+function RecommendationCard({
+  item,
+  index,
+  vi,
+}: {
+  item: AnalyticsRecommendation;
+  index: number;
+  vi: boolean;
+}) {
+  const copy = recommendationCopy[item.key]?.[vi ? "vi" : "en"] ?? [
+    item.key,
+    "",
+  ];
+  const priority = vi
+    ? { high: "Ưu tiên cao", medium: "Ưu tiên vừa", watch: "Theo dõi" }[
+        item.priority
+      ]
+    : { high: "High priority", medium: "Medium priority", watch: "Watch" }[
+        item.priority
+      ];
+  const confidence = vi
+    ? { high: "tin cậy cao", medium: "tin cậy vừa", low: "mẫu nhỏ" }[
+        item.confidence
+      ]
+    : {
+        high: "high confidence",
+        medium: "medium confidence",
+        low: "small sample",
+      }[item.confidence];
+  const metric =
+    item.metric === "dropoff"
+      ? `${item.value}% ${vi ? "rời bước" : "drop-off"}`
+      : `${item.value}% ${item.metric === "retention" ? "retention" : vi ? "chuyển đổi" : "conversion"}`;
+  return (
+    <article className="grid gap-3 rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur sm:grid-cols-[auto_1fr_auto] sm:items-center">
+      <span className="grid size-9 place-items-center rounded-full bg-teal-300 font-black text-slate-950">
+        {index + 1}
+      </span>
+      <div>
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="font-black">{copy[0]}</h3>
+          <span
+            className={`rounded-full px-2 py-1 text-[11px] font-black uppercase tracking-wide ${item.priority === "high" ? "bg-rose-400/20 text-rose-200" : item.priority === "medium" ? "bg-amber-300/20 text-amber-200" : "bg-sky-300/20 text-sky-200"}`}
+          >
+            {priority}
+          </span>
+        </div>
+        <p className="mt-1 text-sm text-slate-300">{copy[1]}</p>
+      </div>
+      <div className="text-left sm:text-right">
+        <p className="font-black text-teal-300">{metric}</p>
+        <p className="mt-1 text-xs text-slate-400">
+          n={item.sample} · {confidence}
+        </p>
+      </div>
+    </article>
+  );
 }

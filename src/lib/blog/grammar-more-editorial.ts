@@ -15,7 +15,7 @@ function post(draft: Draft): EditorialPost {
     editorialCover: "/blog/cover/grammar",
     socialTitle: draft.seoTitle,
     socialDescription: draft.seoDescription,
-    authorName: "TOEICGym Editorial",
+    authorName: "TOEIC GYM Editorial",
     searchIntent: "informational",
     noindex: false,
     publishedAt,
@@ -60,7 +60,7 @@ Sáu câu luyện ở đầu bài kiểm tra modal, quá khứ đơn, quá khứ
 
 **The revised schedule _____ to all employees tomorrow.** (A) will send (B) will be sent (C) sent (D) has sent
 
-**Đáp án B.** *Schedule* là thứ được gửi, và *tomorrow* đặt hành động ở tương lai. Vì vậy cần *will be sent*. A và D biến lịch trình thành người gửi; C thiếu trợ động từ phù hợp với tương lai. Ví dụ này do TOEICGym tự biên soạn.
+**Đáp án B.** *Schedule* là thứ được gửi, và *tomorrow* đặt hành động ở tương lai. Vì vậy cần *will be sent*. A và D biến lịch trình thành người gửi; C thiếu trợ động từ phù hợp với tương lai. Ví dụ này do TOEIC GYM tự biên soạn.
 
 Đừng chọn bị động chỉ vì câu có *by*: *The report was prepared by the analyst* có *by* chỉ người thực hiện, nhưng nhiều câu bị động không nêu người thực hiện: *The report was prepared yesterday*.
 
@@ -94,7 +94,7 @@ Trong *The documents _____ before the meeting began*, hành động hoàn tất 
 
 **The final report must _____ by the director before publication.** (A) approve (B) be approved (C) approved (D) approving
 
-**Đáp án B.** *Report* nhận hành động phê duyệt và *by the director* nêu người thực hiện; sau *must* cần *be + V3*. Đây là ví dụ do TOEICGym tự biên soạn.
+**Đáp án B.** *Report* nhận hành động phê duyệt và *by the director* nêu người thực hiện; sau *must* cần *be + V3*. Đây là ví dụ do TOEIC GYM tự biên soạn.
 
 **The contracts _____ by both parties last week.** (A) signed (B) were signed (C) are signing (D) have signed
 
@@ -121,7 +121,7 @@ Các lựa chọn *they, them, their, theirs* cùng nói về một nhóm ngư�
 
 **The manager asked _____ to review the invoice.** (A) they (B) them (C) their (D) theirs
 
-**Đáp án B.** Sau động từ *asked* cần tân ngữ chỉ người được yêu cầu: *them*. *Their* phải đi cùng danh từ, như *their team*. Ví dụ do TOEICGym tự biên soạn. Nếu sau chỗ trống là danh từ, hãy kiểm tra thêm [loại từ trong Part 5](/blog/loai-tu-trong-toeic-part-5).
+**Đáp án B.** Sau động từ *asked* cần tân ngữ chỉ người được yêu cầu: *them*. *Their* phải đi cùng danh từ, như *their team*. Ví dụ do TOEIC GYM tự biên soạn. Nếu sau chỗ trống là danh từ, hãy kiểm tra thêm [loại từ trong Part 5](/blog/loai-tu-trong-toeic-part-5).
 
 ## This, these, each, every: vừa nhìn số lượng vừa nhìn danh từ
 
@@ -191,7 +191,7 @@ Ghi ba cột trong sổ: cụm trước chỗ trống, dạng đúng, câu mới
 
 **The staff looks forward to _____ the new clients next week.** (A) meet (B) meeting (C) met (D) to meet
 
-**Đáp án B.** *Look forward to* kết thúc bằng giới từ; sau giới từ cần *meeting*. *Next week* nói thời gian của cuộc gặp, không quyết định dạng động từ sau giới từ. Ví dụ do TOEICGym tự biên soạn.
+**Đáp án B.** *Look forward to* kết thúc bằng giới từ; sau giới từ cần *meeting*. *Next week* nói thời gian của cuộc gặp, không quyết định dạng động từ sau giới từ. Ví dụ do TOEIC GYM tự biên soạn.
 
 **The director decided _____ the launch until Monday.** (A) postpone (B) postponing (C) to postpone (D) postponed
 
@@ -240,7 +240,7 @@ Sau *be, seem, become, remain* khi mô tả **chủ ngữ**, thường dùng tí
 
 **The consultant gave a _____ explanation of the new procedure.** (A) clearly (B) clarity (C) clear (D) clarify
 
-**Đáp án C.** Chỗ trống đứng trước danh từ *explanation*, nên *clear* mô tả lời giải thích. *Clearly* là trạng từ, *clarity* là danh từ, *clarify* là động từ. Đây là ví dụ do TOEICGym tự biên soạn.
+**Đáp án C.** Chỗ trống đứng trước danh từ *explanation*, nên *clear* mô tả lời giải thích. *Clearly* là trạng từ, *clarity* là danh từ, *clarify* là động từ. Đây là ví dụ do TOEIC GYM tự biên soạn.
 
 **The support team responded _____ to the request.** (A) prompt (B) promptly (C) prompting (D) promptness
 

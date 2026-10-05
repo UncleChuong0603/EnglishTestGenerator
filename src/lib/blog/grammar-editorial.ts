@@ -36,7 +36,7 @@ function grammarPost(draft: Draft): EditorialPost {
     ...draft, id: `editorial-grammar-${draft.slug}`, status: "PUBLISHED", category: "GRAMMAR",
     canonicalPath: `/blog/${draft.slug}`, coverMediaId: null,
     editorialCover: grammarImageForSlug(draft.slug)!, socialTitle: draft.seoTitle,
-    socialDescription: draft.seoDescription, authorName: "TOEICGym Editorial",
+    socialDescription: draft.seoDescription, authorName: "TOEIC GYM Editorial",
     searchIntent: "informational", noindex: false, publishedAt, createdAt: publishedAt,
     updatedAt: publishedAt, createdBy: "editorial", updatedBy: "editorial",
     tags: [{ name: "Ngữ pháp TOEIC", slug: "ngu-phap-toeic" }, { name: "Part 5", slug: "part-5" }],
@@ -69,7 +69,7 @@ Trong Part 5, bốn đáp án đôi khi cùng gốc từ: *success, succeed, suc
 
 **The marketing team prepared a _____ report for the client.** (A) detail (B) detailed (C) detailing (D) details
 
-Sau mạo từ *a* và trước danh từ *report*, chỗ trống cần một từ mô tả *report*. **B. detailed** là tính từ: “một báo cáo chi tiết”. *Detail* và *details* là danh từ trong các lựa chọn này; *detailing* có thể là phân từ trong ngữ cảnh khác, nhưng *a detailed report* là cách diễn đạt tự nhiên ở đây. Câu này do TOEICGym tự biên soạn, không phải đề ETS.
+Sau mạo từ *a* và trước danh từ *report*, chỗ trống cần một từ mô tả *report*. **B. detailed** là tính từ: “một báo cáo chi tiết”. *Detail* và *details* là danh từ trong các lựa chọn này; *detailing* có thể là phân từ trong ngữ cảnh khác, nhưng *a detailed report* là cách diễn đạt tự nhiên ở đây. Câu này do TOEIC GYM tự biên soạn, không phải đề ETS.
 
 ## Quy trình ba bước khi làm bài
 
@@ -109,7 +109,7 @@ Trong email, thông báo và câu Part 5, thì động từ cho biết sự vi�
 
 **The invoices _____ before the accounting team closed the monthly report last Friday.** (A) had been checked (B) have checked (C) are checking (D) check
 
-“Invoices” là đối tượng **được kiểm tra**, nên cần bị động. Việc kiểm tra diễn ra **trước** thời điểm đóng báo cáo trong quá khứ. **A. had been checked** diễn đạt cả hai quan hệ. *Have checked* vừa chủ động vừa không phù hợp với chủ ngữ “invoices”. Ví dụ do TOEICGym biên soạn.
+“Invoices” là đối tượng **được kiểm tra**, nên cần bị động. Việc kiểm tra diễn ra **trước** thời điểm đóng báo cáo trong quá khứ. **A. had been checked** diễn đạt cả hai quan hệ. *Have checked* vừa chủ động vừa không phù hợp với chủ ngữ “invoices”. Ví dụ do TOEIC GYM biên soạn.
 
 ## Cách giải trong 20 giây
 
@@ -193,7 +193,7 @@ Thay vì viết hai câu “The employee called. The employee handles invoices�
 
 **The technician _____ repaired the printer will return tomorrow.** (A) who (B) whose (C) where (D) when
 
-Sau chỗ trống là động từ *repaired*; mệnh đề đang thiếu **chủ ngữ** chỉ người. **A. who** đúng. *Whose* cần theo sau bằng danh từ, ví dụ *whose team repaired the printer*. Câu này do TOEICGym tự viết.
+Sau chỗ trống là động từ *repaired*; mệnh đề đang thiếu **chủ ngữ** chỉ người. **A. who** đúng. *Whose* cần theo sau bằng danh từ, ví dụ *whose team repaired the printer*. Câu này do TOEIC GYM tự viết.
 
 So sánh: *The technician **whom** we contacted...* có *we* làm chủ ngữ, còn chỗ trống là tân ngữ; trong văn phong thường, *who/that* cũng được dùng cho tân ngữ của mệnh đề xác định. Đừng áp một công thức cho mọi câu.
 
@@ -324,7 +324,7 @@ Chọn đáp án trước khi mở lời giải. Với mỗi câu sai hoặc đ�
 
 **All employees must complete the safety training _____ Friday.** (A) by (B) until (C) during (D) since
 
-**Đáp án A.** Câu nói về **hạn hoàn thành**, nên *by Friday*. *Until Friday* hợp với một hành động hoặc trạng thái kéo dài, chẳng hạn *The registration portal will stay open until Friday*. Câu do TOEICGym biên soạn.
+**Đáp án A.** Câu nói về **hạn hoàn thành**, nên *by Friday*. *Until Friday* hợp với một hành động hoặc trạng thái kéo dài, chẳng hạn *The registration portal will stay open until Friday*. Câu do TOEIC GYM biên soạn.
 
 ## Tự kiểm tra
 
@@ -360,7 +360,7 @@ Tương tự, **many** đi với danh từ đếm được số nhiều (*many c
 
 **The revised procedure requires _____ time than the previous one.** (A) fewer (B) less (C) many (D) most
 
-**Đáp án B.** *Time* trong nghĩa “lượng thời gian” không đếm được; *than* cho thấy đang so sánh hơn. *Less time* hợp cả hai tín hiệu. Ví dụ do TOEICGym tự viết.
+**Đáp án B.** *Time* trong nghĩa “lượng thời gian” không đếm được; *than* cho thấy đang so sánh hơn. *Less time* hợp cả hai tín hiệu. Ví dụ do TOEIC GYM tự viết.
 
 ## Tự kiểm tra
 

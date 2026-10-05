@@ -19,7 +19,7 @@ function tip(input: Tip): EditorialPost {
     canonicalPath: `/blog/${input.slug}`,
     coverMediaId: null,
     editorialCover: input.editorialCover ?? `/blog/cover/${input.category.toLowerCase()}`,
-    authorName: "TOEICGym Editorial",
+    authorName: "TOEIC GYM Editorial",
     searchIntent: "informational",
     noindex: false,
     publishedAt,
@@ -62,7 +62,7 @@ Một câu có từ vựng đúng bối cảnh vẫn có thể sai ở động t
 - C. The chairs are surrounding a table.
 - D. A wall is being painted.
 
-**Đáp án A.** Ảnh xác nhận được ghế xếp hàng và vị trí sát tường. B và D bịa thêm người hoặc hành động; C đổi quan hệ không gian. Đây là ví dụ TOEICGym tự biên soạn, không phải câu hỏi ETS.
+**Đáp án A.** Ảnh xác nhận được ghế xếp hàng và vị trí sát tường. B và D bịa thêm người hoặc hành động; C đổi quan hệ không gian. Đây là ví dụ TOEIC GYM tự biên soạn, không phải câu hỏi ETS.
 
 ## Bài luyện 10 phút có thể làm ngay
 
@@ -74,7 +74,7 @@ Nếu sai vì âm, nghe lại cả câu. Nếu sai vì suy diễn, luyện mô t
 
 Khi đã biết kiểm tra bằng chứng trong ảnh, hãy áp dụng cùng nguyên tắc cho lời nói: đáp án Part 2 phải **phản hồi đúng ý định câu hỏi**, không chỉ lặp một từ. Xem [mẹo làm TOEIC Part 2](/blog/meo-lam-toeic-part-2-hoi-dap) để luyện tiếp.
 
-**Nguồn đối chiếu:** [ETS mô tả cấu trúc bài Listening & Reading](${etsFormat}) và cung cấp [đề mẫu chính thức](${etsSamples}). Các bước quan sát và ví dụ trên là hướng dẫn luyện tập do TOEICGym biên soạn.`,
+**Nguồn đối chiếu:** [ETS mô tả cấu trúc bài Listening & Reading](${etsFormat}) và cung cấp [đề mẫu chính thức](${etsSamples}). Các bước quan sát và ví dụ trên là hướng dẫn luyện tập do TOEIC GYM biên soạn.`,
   }),
   tip({
     id: "tip-part-2", slug: "meo-lam-toeic-part-2-hoi-dap", category: "LISTENING",
@@ -109,7 +109,7 @@ Ví dụ tự biên soạn: “Has the invoice been sent?” – “I emailed it
 - B. By Thursday afternoon.
 - C. I replaced the broken handle.
 
-**Chọn B** vì câu hỏi cần thời điểm. A và C bám theo *parts/replaced* nhưng không cho biết lúc hàng đến. Với câu hỏi “When”, đáp án đôi khi có thể là “The supplier hasn't confirmed yet”; vẫn hợp lý vì người trả lời chưa có thời gian chính xác. Ví dụ do TOEICGym biên soạn, không lấy từ đề ETS.
+**Chọn B** vì câu hỏi cần thời điểm. A và C bám theo *parts/replaced* nhưng không cho biết lúc hàng đến. Với câu hỏi “When”, đáp án đôi khi có thể là “The supplier hasn't confirmed yet”; vẫn hợp lý vì người trả lời chưa có thời gian chính xác. Ví dụ do TOEIC GYM biên soạn, không lấy từ đề ETS.
 
 ## Sửa bài theo nguyên nhân, không chỉ chép đáp án
 
@@ -117,7 +117,7 @@ Làm 12 câu ở tốc độ chuẩn. Với câu sai, nghe lại **trước khi*
 
 Khi lỡ một câu trong bài thi, chọn phương án tốt nhất hiện có rồi chuyển sang câu mới. Bạn sẽ cần giữ nhịp này ở [Part 3–4, nơi mỗi đoạn có nhiều câu hỏi](/blog/cach-luyen-nghe-toeic-part-3-4).
 
-**Nguồn đối chiếu:** [ETS giới thiệu Part 2 Question-Response](${etsFormat}) và [đề mẫu TOEIC chính thức](${etsSamples}). Chiến thuật cùng ví dụ là nội dung luyện tập của TOEICGym.`,
+**Nguồn đối chiếu:** [ETS giới thiệu Part 2 Question-Response](${etsFormat}) và [đề mẫu TOEIC chính thức](${etsSamples}). Chiến thuật cùng ví dụ là nội dung luyện tập của TOEIC GYM.`,
   }),
   tip({
     id: "tip-part-5", slug: "meo-lam-toeic-part-5-trong-thoi-gian-gioi-han", category: "READING",
@@ -142,7 +142,9 @@ Ví dụ tự biên soạn: “The manager gave a ___ explanation of the policy.
 
 Với câu “The forms must be submitted ___ Friday”, chỉ nhìn sau chỗ trống chưa đủ. Đọc toàn câu để hiểu hạn chót, rồi cân nhắc giới từ chỉ thời hạn như *by*. Mẹo loại từ không thay thế việc hiểu nghĩa, nhất là khi đáp án đều cùng từ loại.
 
-**Thử một câu do TOEICGym biên soạn:** “The finance team will send the revised budget ___ the director approves it.” (A) because of (B) once (C) despite (D) during. Chọn **B. once**: sau chỗ trống là mệnh đề *the director approves it*, và việc gửi sẽ diễn ra khi việc phê duyệt hoàn tất. Ba lựa chọn còn lại cần cụm danh từ trong cấu trúc này; *because of the approval*, *despite the delay*, *during the meeting* đều có thể đúng trong câu khác nhưng không đi trực tiếp trước mệnh đề đã cho.
+**Thử một câu do TOEIC GYM biên soạn:** “The finance team will send the revised budget ___ the director approves it.” (A) because of (B) once (C) despite (D) during
+
+Chọn **B. once**: sau chỗ trống là mệnh đề *the director approves it*, và việc gửi sẽ diễn ra khi việc phê duyệt hoàn tất. Ba lựa chọn còn lại cần cụm danh từ trong cấu trúc này; *because of the approval*, *despite the delay*, *during the meeting* đều có thể đúng trong câu khác nhưng không đi trực tiếp trước mệnh đề đã cho.
 
 ## Bước 3: chốt câu có bằng chứng; đánh dấu câu chưa chắc
 
@@ -154,7 +156,7 @@ Làm 10 câu hỗn hợp và tự ghi ký hiệu bên cạnh mỗi câu: **F** (
 
 Để học phần nền, xem [7 chủ điểm ngữ pháp Part 5](/blog/ngu-phap-toeic-part-5-can-hoc). Nếu lỗi chủ yếu ở dạng động từ, [luyện 5 câu thì động từ có lời giải](/toeic/part-5/thi-dong-tu); nếu lỗi ở loại từ, [thử Word Form](/toeic/part-5/word-form). Bài này tập trung vào trình tự quyết định trong lúc làm bài.
 
-**Nguồn đối chiếu:** [ETS xác nhận Part 5 là Incomplete Sentences](${etsFormat}) và có [đề mẫu](${etsSamples}). Ví dụ và mốc luyện tập do TOEICGym biên soạn.`,
+**Nguồn đối chiếu:** [ETS xác nhận Part 5 là Incomplete Sentences](${etsFormat}) và có [đề mẫu](${etsSamples}). Ví dụ và mốc luyện tập do TOEIC GYM biên soạn.`,
   }),
   tip({
     id: "tip-part-6", slug: "meo-lam-toeic-part-6-dien-doan-van", category: "READING",
@@ -186,7 +188,7 @@ Ví dụ tự biên soạn: “The meeting has moved to Friday. ___. Please upda
 
 Chọn một đoạn Part 6, bấm giờ theo tốc độ hiện tại. Với mỗi đáp án, gạch đúng **câu trước hoặc sau** tạo ra bằng chứng. Khi sửa, phân nhóm lỗi: ngữ pháp tại câu, từ vựng theo ngữ cảnh, hay liên kết ý. Sau đó thử [quy trình Part 5](/blog/meo-lam-toeic-part-5-trong-thoi-gian-gioi-han) với lỗi ngữ pháp và [cách đọc Part 7](/blog/meo-lam-toeic-part-7-doc-hieu-nhieu-van-ban) với lỗi hiểu văn bản.
 
-**Nguồn đối chiếu:** [ETS liệt kê Part 6 Text Completion trong Reading](${etsFormat}) và cung cấp [đề mẫu chính thức](${etsSamples}). Ví dụ, quy trình và mốc luyện là gợi ý của TOEICGym.`,
+**Nguồn đối chiếu:** [ETS liệt kê Part 6 Text Completion trong Reading](${etsFormat}) và cung cấp [đề mẫu chính thức](${etsSamples}). Ví dụ, quy trình và mốc luyện là gợi ý của TOEIC GYM.`,
   }),
   tip({
     id: "tip-part-7", slug: "meo-lam-toeic-part-7-doc-hieu-nhieu-van-ban", category: "READING",
@@ -223,6 +225,6 @@ Làm một cụm bài đơn và một cụm nhiều văn bản. Sau mỗi câu, 
 
 Nếu cần bài áp dụng ngay, hãy bắt đầu với [hai email và ba câu hỏi Part 7](/toeic/part-7/doc-hieu-hai-doan-van). Sau đó làm [bài ba văn bản với năm câu hỏi](/toeic/part-7/doc-hieu-ba-van-ban): ít nhất hai câu cần nối lịch sự kiện với email cập nhật giao hàng. Cả hai bài đều mở công khai và có lời giải theo bằng chứng.
 
-**Nguồn đối chiếu:** [ETS giới thiệu Part 7 Reading Comprehension](${etsFormat}) và có [đề mẫu](${etsSamples}). Tình huống cùng quy trình trên do TOEICGym biên soạn.`,
+**Nguồn đối chiếu:** [ETS giới thiệu Part 7 Reading Comprehension](${etsFormat}) và có [đề mẫu](${etsSamples}). Tình huống cùng quy trình trên do TOEIC GYM biên soạn.`,
   }),
 ];

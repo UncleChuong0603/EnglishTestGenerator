@@ -10,7 +10,7 @@ export const PART5_REVIEW_GUIDE: EditorialPost = {
   seoDescription: "Biến một câu Part 5 sai thành việc cần luyện: ghi tín hiệu, lý do chọn nhầm, cách loại đáp án và thời điểm làm lại. Có ví dụ và checklist ngắn.",
   canonicalPath: `/blog/${slug}`, coverMediaId: null, coverAlt: "", editorialCover: "/blog/cover/toeic_strategy",
   socialTitle: "Làm sai một câu Part 5: buổi sau nên luyện gì?", socialDescription: "Một mẫu sổ lỗi bốn dòng, áp dụng cả với câu đúng do đoán.",
-  contentOrigin: "AI_ASSISTED", authorName: "TOEICGym", targetTopic: "review lỗi sai TOEIC", searchIntent: "LEARN", noindex: false,
+  contentOrigin: "AI_ASSISTED", authorName: "TOEIC GYM", targetTopic: "review lỗi sai TOEIC", searchIntent: "LEARN", noindex: false,
   publishedAt: date, createdAt: date, updatedAt: date, createdBy: "editorial", updatedBy: "editorial",
   tags: [{ name: "Part 5", slug: "part-5" }, { name: "Ôn lỗi sai", slug: "on-loi-sai" }],
   content: `Sau khi chấm bài, chọn một câu sai hoặc đúng do đoán. Che lời giải, xác định tín hiệu quyết định và nói vì sao đáp án mình chọn không phù hợp. Nếu chưa giải thích được, đó là câu cần review; chép lại đáp án chưa đủ.
@@ -22,7 +22,7 @@ export const PART5_REVIEW_GUIDE: EditorialPost = {
 3. **Vì sao đáp án cũ sai?** Nêu lỗi cụ thể về loại từ, hòa hợp hoặc nghĩa. Không ghi chung chung “chưa cẩn thận”.
 4. **Tôi sẽ kiểm tra lại bằng cách nào?** Làm lại câu này không nhìn đáp án, rồi thử một câu mới cùng dạng.
 
-## Một ví dụ Part 5 do TOEICGym biên soạn
+## Một ví dụ Part 5 do TOEIC GYM biên soạn
 
 “Every visitor to the research center _____ a temporary access card.” (A) receive (B) receives (C) receiving (D) have received.
 

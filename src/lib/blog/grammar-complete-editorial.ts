@@ -15,7 +15,7 @@ function post(draft: Draft): EditorialPost {
     editorialCover: "/blog/cover/grammar",
     socialTitle: draft.seoTitle,
     socialDescription: draft.seoDescription,
-    authorName: "TOEICGym Editorial",
+    authorName: "TOEIC GYM Editorial",
     searchIntent: "informational",
     noindex: false,
     publishedAt,

@@ -15,7 +15,7 @@ function post(draft: Draft): EditorialPost {
     editorialCover: "/blog/cover/grammar",
     socialTitle: draft.seoTitle,
     socialDescription: draft.seoDescription,
-    authorName: "TOEICGym Editorial",
+    authorName: "TOEIC GYM Editorial",
     searchIntent: "informational",
     noindex: false,
     publishedAt,
@@ -47,7 +47,7 @@ Các động từ chỉ trạng thái như *know, own, belong* ít dùng ở d�
 
 **The engineers _____ the network for three hours, and the repair is still in progress.** (A) has been testing (B) have been testing (C) will testing (D) had testing
 
-**Đáp án B.** *Still in progress* nhấn quá trình đang tiếp tục. A dùng *has* với chủ ngữ số nhiều; C phải dùng *will + V*; D thiếu *been* trước V-ing. Ví dụ do TOEICGym tự biên soạn.
+**Đáp án B.** *Still in progress* nhấn quá trình đang tiếp tục. A dùng *has* với chủ ngữ số nhiều; C phải dùng *will + V*; D thiếu *been* trước V-ing. Ví dụ do TOEIC GYM tự biên soạn.
 
 ## Tự kiểm tra
 
@@ -74,7 +74,7 @@ Trong *By the time the meeting began, the staff had prepared the room*, việc c
 
 **Before the client arrived, the designer _____ the final version.** (A) had completed (B) has completed (C) completes (D) is completing
 
-**Đáp án A.** Việc hoàn tất đã xảy ra trước một mốc quá khứ; *had completed* thể hiện thứ tự. Ví dụ do TOEICGym tự biên soạn. Với trường hợp hai việc chỉ đồng thời trong quá khứ, xem [quá khứ đơn và quá khứ tiếp diễn](/blog/qua-khu-don-va-qua-khu-tiep-dien).
+**Đáp án A.** Việc hoàn tất đã xảy ra trước một mốc quá khứ; *had completed* thể hiện thứ tự. Ví dụ do TOEIC GYM tự biên soạn. Với trường hợp hai việc chỉ đồng thời trong quá khứ, xem [quá khứ đơn và quá khứ tiếp diễn](/blog/qua-khu-don-va-qua-khu-tiep-dien).
 
 ## Tự kiểm tra
 
@@ -109,7 +109,7 @@ Với thói quen quá khứ, có thể nói *I didn't use to work weekends* và 
 
 **New employees need time to get used to _____ remotely.** (A) work (B) working (C) worked (D) to work
 
-**Đáp án B.** Trong *get used to*, *to* là giới từ, nên dùng *working*. Ví dụ do TOEICGym tự biên soạn.
+**Đáp án B.** Trong *get used to*, *to* là giới từ, nên dùng *working*. Ví dụ do TOEIC GYM tự biên soạn.
 
 ## Tự kiểm tra
 
@@ -138,7 +138,7 @@ Với thói quen quá khứ, có thể nói *I didn't use to work weekends* và 
 
 **The team installed a second printer _____ employees could print without waiting.** (A) so that (B) such (C) despite (D) because of
 
-**Đáp án A.** Phần sau có chủ ngữ *employees* và động từ *could print*, diễn tả mục đích. Câu do TOEICGym tự biên soạn. Nếu cần phân biệt quan hệ nguyên nhân và nhượng bộ, xem [liên từ TOEIC](/blog/lien-tu-va-tu-noi-toeic).
+**Đáp án A.** Phần sau có chủ ngữ *employees* và động từ *could print*, diễn tả mục đích. Câu do TOEIC GYM tự biên soạn. Nếu cần phân biệt quan hệ nguyên nhân và nhượng bộ, xem [liên từ TOEIC](/blog/lien-tu-va-tu-noi-toeic).
 
 ## Tự kiểm tra
 
@@ -169,7 +169,7 @@ Trong tiếng Anh Anh, cũng có thể thấy *should + V*: *The manager recomme
 
 **The director requested that each employee _____ the form by Friday.** (A) submits (B) submit (C) submitted (D) submitting
 
-**Đáp án B.** *Requested that* đưa ra yêu cầu; trong mẫu trang trọng, *submit* là dạng nguyên mẫu. *Each employee* số ít không đổi dạng này thành *submits*. Ví dụ do TOEICGym tự biên soạn.
+**Đáp án B.** *Requested that* đưa ra yêu cầu; trong mẫu trang trọng, *submit* là dạng nguyên mẫu. *Each employee* số ít không đổi dạng này thành *submits*. Ví dụ do TOEIC GYM tự biên soạn.
 
 ## Tự kiểm tra
 

@@ -59,7 +59,7 @@ export const EDITORIAL_POSTS: EditorialPost[] = [
     revisedAt: new Date("2026-10-02T00:00:00.000Z"),
     title: "Cách luyện nghe TOEIC Part 3 và 4 không cần nghe từng từ",
     excerpt: "Kỹ thuật đọc trước câu hỏi, dự đoán bối cảnh và bắt cụm thông tin giúp bạn theo kịp hội thoại dài.",
-    seoTitle: "Cách luyện nghe TOEIC Part 3, 4 hiệu quả", seoDescription: "Hướng dẫn luyện nghe TOEIC Part 3 và 4: đọc trước câu hỏi, bắt từ khóa, nhận diện paraphrase và sửa lỗi bằng transcript.", canonicalPath: "/blog/cach-luyen-nghe-toeic-part-3-4", coverAlt: "Tai nghe và dạng sóng minh họa luyện nghe TOEIC Part 3 và 4", socialTitle: "Nghe Part 3–4 mà không cần hiểu từng từ", socialDescription: "Một quy trình nghe chủ động, dễ áp dụng trong mỗi buổi luyện.", authorName: "TOEICGym Editorial", targetTopic: "cách luyện nghe TOEIC Part 3 4", searchIntent: "informational", tags: [tag("TOEIC Listening", "toeic-listening"), tag("Part 3", "part-3"), tag("Part 4", "part-4")],
+    seoTitle: "Cách luyện nghe TOEIC Part 3, 4 hiệu quả", seoDescription: "Hướng dẫn luyện nghe TOEIC Part 3 và 4: đọc trước câu hỏi, bắt từ khóa, nhận diện paraphrase và sửa lỗi bằng transcript.", canonicalPath: "/blog/cach-luyen-nghe-toeic-part-3-4", coverAlt: "Tai nghe và dạng sóng minh họa luyện nghe TOEIC Part 3 và 4", socialTitle: "Nghe Part 3–4 mà không cần hiểu từng từ", socialDescription: "Một quy trình nghe chủ động, dễ áp dụng trong mỗi buổi luyện.", authorName: "TOEIC GYM Editorial", targetTopic: "cách luyện nghe TOEIC Part 3 4", searchIntent: "informational", tags: [tag("TOEIC Listening", "toeic-listening"), tag("Part 3", "part-3"), tag("Part 4", "part-4")],
     content: `## Vì sao cố nghe từng từ lại làm bạn chậm hơn?
 
 Part 3 và Part 4 kiểm tra khả năng theo dõi mục đích giao tiếp, chi tiết và hành động tiếp theo. Nếu cố dịch từng từ sang tiếng Việt, bạn dễ mắc kẹt ở một câu và bỏ lỡ phần còn lại. Mục tiêu tốt hơn là nhận ra **khung thông tin** của đoạn nghe.
@@ -105,7 +105,7 @@ Theo dõi riêng ba loại lỗi: không nhận ra âm, không biết từ và b
 
 ## Ví dụ nhận diện paraphrase
 
-Trong câu hỏi tự luyện “What will the woman do next?”, bạn nghe “I’ll send the revised schedule this afternoon.” Đáp án đúng có thể viết “Email an updated timetable”. *Send* tương ứng với *email*, còn *revised schedule* tương ứng với *updated timetable*. Ví dụ này do TOEICGym biên soạn để minh họa kỹ thuật, không phải câu hỏi ETS.
+Trong câu hỏi tự luyện “What will the woman do next?”, bạn nghe “I’ll send the revised schedule this afternoon.” Đáp án đúng có thể viết “Email an updated timetable”. *Send* tương ứng với *email*, còn *revised schedule* tương ứng với *updated timetable*. Ví dụ này do TOEIC GYM biên soạn để minh họa kỹ thuật, không phải câu hỏi ETS.
 
 Sau khi chọn đáp án, gạch dưới cụm trong transcript tạo ra suy luận. Nếu không tìm được bằng chứng, đánh dấu là câu đoán đúng và ôn lại. Với câu suy luận, bằng chứng có thể nằm ở cả ngữ cảnh thay vì một cụm từ duy nhất. Hãy thử [một hội thoại Part 3 có audio, transcript và ba câu hỏi](/toeic/part-3) để áp dụng ngay. Nếu hay mất nhịp trước khi vào đoạn hội thoại, luyện [Part 2 hỏi đáp ngắn](/blog/meo-lam-toeic-part-2-hoi-dap); nếu Reading chậm, xem [khung luyện 75 phút](/blog/quan-ly-thoi-gian-toeic-reading-75-phut).`
   }),
@@ -114,7 +114,7 @@ Sau khi chọn đáp án, gạch dưới cụm trong transcript tạo ra suy lu�
     title: "Cách chia 75 phút TOEIC Reading để không bỏ dở Part 7",
     excerpt: "Tự tính thời gian cho Part 5, 6, 7 trong 75 phút Reading; thử khung luyện, ghi mốc thực tế và sửa nguyên nhân làm chậm.",
     revisedAt: new Date("2026-10-02T00:00:00.000Z"), contentOrigin: "AI_ASSISTED",
-    seoTitle: "Chia 75 phút TOEIC Reading: công cụ tính và cách luyện", seoDescription: "Tự chia 75 phút TOEIC Reading bằng công cụ miễn phí: tính phút Part 7, mốc chuyển Part 5–6 và thời gian rà đáp án; kèm cách sửa lỗi làm chậm.", canonicalPath: "/blog/quan-ly-thoi-gian-toeic-reading-75-phut", coverAlt: "Đồng hồ 75 phút và ba phần của bài TOEIC Reading", socialTitle: "Tự chia 75 phút TOEIC Reading", socialDescription: "Tính mốc theo kế hoạch của bạn, thử trên câu mới và điều chỉnh sau khi sửa bài.", authorName: "TOEICGym Editorial", targetTopic: "chia thời gian TOEIC Reading 75 phút", searchIntent: "informational", tags: [tag("TOEIC Reading", "toeic-reading"), tag("Part 7", "part-7")],
+    seoTitle: "Chia 75 phút TOEIC Reading: công cụ tính và cách luyện", seoDescription: "Tự chia 75 phút TOEIC Reading bằng công cụ miễn phí: tính phút Part 7, mốc chuyển Part 5–6 và thời gian rà đáp án; kèm cách sửa lỗi làm chậm.", canonicalPath: "/blog/quan-ly-thoi-gian-toeic-reading-75-phut", coverAlt: "Đồng hồ 75 phút và ba phần của bài TOEIC Reading", socialTitle: "Tự chia 75 phút TOEIC Reading", socialDescription: "Tính mốc theo kế hoạch của bạn, thử trên câu mới và điều chỉnh sau khi sửa bài.", authorName: "TOEIC GYM Editorial", targetTopic: "chia thời gian TOEIC Reading 75 phút", searchIntent: "informational", tags: [tag("TOEIC Reading", "toeic-reading"), tag("Part 7", "part-7")],
     content: `## Mục tiêu không phải làm Part 5 thật nhanh bằng mọi giá
 
 Reading có 100 câu trong 75 phút. Nhiều người dành quá lâu cho các câu ngữ pháp khó rồi phải đoán hàng loạt ở Part 7. Một khung để thử là: Part 5 trong 12 phút, Part 6 trong 10 phút, Part 7 trong 50 phút và 3 phút cuối để rà đáp án. Nếu bạn tô đáp án ngay sau mỗi câu, có thể chuyển bớt thời gian kiểm tra cho Part 7.
@@ -177,7 +177,7 @@ Ví dụ khi còn 50 phút mà vẫn ở Part 5, hãy chốt các câu chưa ch�
     revisedAt: new Date("2026-09-26T18:00:00.000Z"),
     title: "7 chủ điểm ngữ pháp TOEIC Part 5 cần học trước",
     excerpt: "Chọn chủ điểm Part 5 theo lỗi bạn mắc: loại từ, động từ, hòa hợp, mệnh đề, liên từ, giới từ và lượng từ. Có ví dụ và đường học tiếp.",
-    seoTitle: "7 chủ điểm ngữ pháp TOEIC Part 5 quan trọng", seoDescription: "Tổng hợp 7 chủ điểm ngữ pháp TOEIC Part 5 nên ưu tiên: loại từ, thì, hòa hợp, mệnh đề, liên từ, giới từ và cấu trúc so sánh.", canonicalPath: "/blog/ngu-phap-toeic-part-5-can-hoc", coverAlt: "Các khối câu minh họa ngữ pháp TOEIC Part 5", socialTitle: "Ngữ pháp Part 5: học 7 nhóm này trước", socialDescription: "Dấu hiệu nhận biết và cách ôn theo lỗi thay vì học thuộc rời rạc.", authorName: "TOEICGym Editorial", targetTopic: "ngữ pháp TOEIC Part 5", searchIntent: "informational", tags: [tag("Ngữ pháp TOEIC", "ngu-phap-toeic"), tag("Part 5", "part-5")],
+    seoTitle: "7 chủ điểm ngữ pháp TOEIC Part 5 quan trọng", seoDescription: "Tổng hợp 7 chủ điểm ngữ pháp TOEIC Part 5 nên ưu tiên: loại từ, thì, hòa hợp, mệnh đề, liên từ, giới từ và cấu trúc so sánh.", canonicalPath: "/blog/ngu-phap-toeic-part-5-can-hoc", coverAlt: "Các khối câu minh họa ngữ pháp TOEIC Part 5", socialTitle: "Ngữ pháp Part 5: học 7 nhóm này trước", socialDescription: "Dấu hiệu nhận biết và cách ôn theo lỗi thay vì học thuộc rời rạc.", authorName: "TOEIC GYM Editorial", targetTopic: "ngữ pháp TOEIC Part 5", searchIntent: "informational", tags: [tag("Ngữ pháp TOEIC", "ngu-phap-toeic"), tag("Part 5", "part-5")],
     content: `Bạn không cần học lại toàn bộ ngữ pháp trước khi làm Part 5. Làm một nhóm câu hỗn hợp, ghi vì sao từng câu sai, rồi chọn chủ điểm tương ứng bên dưới. Nếu muốn bắt đầu ngay, [làm 10 câu Part 5 miễn phí](/challenge/part-5) và dùng kết quả để chọn bài ôn.
 
 ## 1. Loại từ
@@ -228,7 +228,7 @@ Chọn một chủ điểm, làm 8–10 câu và ghi lại mẫu khiến bạn c
 
 ## Thử một câu loại từ
 
-“The manager gave a ___ explanation of the new policy.” Chọn **clear**, không chọn *clearly*: chỗ trống đứng trước danh từ *explanation*, nên cần tính từ bổ nghĩa cho danh từ. Sau khi làm, viết lại tín hiệu “a + tính từ + danh từ” vào sổ lỗi. Đây là câu minh họa do TOEICGym biên soạn, không phải đề ETS.
+“The manager gave a ___ explanation of the new policy.” Chọn **clear**, không chọn *clearly*: chỗ trống đứng trước danh từ *explanation*, nên cần tính từ bổ nghĩa cho danh từ. Sau khi làm, viết lại tín hiệu “a + tính từ + danh từ” vào sổ lỗi. Đây là câu minh họa do TOEIC GYM biên soạn, không phải đề ETS.
 
 Nếu bạn hay chọn theo nghĩa tiếng Việt trước khi nhìn cấu trúc, thử [bài Word Form ngắn](/toeic/part-5/word-form) rồi giải thích vì sao ba đáp án còn lại sai. Sau đó áp dụng [quy trình tìm tín hiệu quanh chỗ trống](/blog/meo-lam-toeic-part-5-trong-thoi-gian-gioi-han). Nếu làm đúng nhưng quá chậm, kết hợp [khung thời gian Reading](/blog/quan-ly-thoi-gian-toeic-reading-75-phut) để kiểm tra tốc độ thực tế.`
   }),
@@ -236,7 +236,7 @@ Nếu bạn hay chọn theo nghĩa tiếng Việt trước khi nhìn cấu trúc
     id: "editorial-vocabulary", category: "VOCABULARY", slug: "tu-vung-toeic-theo-chu-de-cong-so",
     title: "Từ vựng TOEIC theo chủ đề công sở: học cụm, không học từ lẻ",
     excerpt: "Cách xây vốn từ có thể dùng ngay trong Listening và Reading bằng collocation, ngữ cảnh và lịch ôn ngắt quãng.",
-    seoTitle: "Từ vựng TOEIC theo chủ đề công sở dễ nhớ", seoDescription: "Học từ vựng TOEIC theo cụm và chủ đề: tuyển dụng, họp, giao hàng, du lịch công tác; kèm phương pháp ôn ngắt quãng.", canonicalPath: "/blog/tu-vung-toeic-theo-chu-de-cong-so", coverAlt: "Sổ từ vựng TOEIC với các chủ đề công sở", socialTitle: "Học từ vựng TOEIC theo cụm để nhớ lâu", socialDescription: "Biến danh sách từ thành vốn từ dùng được trong bài thi.", authorName: "TOEICGym Editorial", targetTopic: "từ vựng TOEIC theo chủ đề", searchIntent: "informational", tags: [tag("Từ vựng TOEIC", "tu-vung-toeic"), tag("Collocation", "collocation")],
+    seoTitle: "Từ vựng TOEIC theo chủ đề công sở dễ nhớ", seoDescription: "Học từ vựng TOEIC theo cụm và chủ đề: tuyển dụng, họp, giao hàng, du lịch công tác; kèm phương pháp ôn ngắt quãng.", canonicalPath: "/blog/tu-vung-toeic-theo-chu-de-cong-so", coverAlt: "Sổ từ vựng TOEIC với các chủ đề công sở", socialTitle: "Học từ vựng TOEIC theo cụm để nhớ lâu", socialDescription: "Biến danh sách từ thành vốn từ dùng được trong bài thi.", authorName: "TOEIC GYM Editorial", targetTopic: "từ vựng TOEIC theo chủ đề", searchIntent: "informational", tags: [tag("Từ vựng TOEIC", "tu-vung-toeic"), tag("Collocation", "collocation")],
     content: `## Vì sao danh sách 600 từ thường không đủ?
 
 Biết nghĩa tiếng Việt của một từ chưa chắc giúp bạn nhận ra nó khi nghe hoặc chọn đúng trong câu. TOEIC kiểm tra từ trong ngữ cảnh công việc, vì vậy đơn vị học hiệu quả nên là **cụm từ + tình huống + một câu mẫu**.
@@ -306,7 +306,7 @@ Che phần giải thích và viết một câu mới cho ba cụm: *issue an inv
     id: "editorial-study-plan", category: "STUDY_PLAN", slug: "lo-trinh-hoc-toeic-30-ngay-cho-nguoi-ban-ron",
     title: "Lộ trình học TOEIC 30 ngày cho người bận rộn",
     excerpt: "Kế hoạch 30–45 phút mỗi ngày với mục tiêu rõ cho từng tuần, ngày nghỉ và cách điều chỉnh khi lỡ buổi.",
-    seoTitle: "Lộ trình học TOEIC 30 ngày cho người bận rộn", seoDescription: "Kế hoạch học TOEIC 30 ngày, 30–45 phút mỗi ngày: đánh giá đầu vào, luyện theo điểm yếu, thi thử và ôn lỗi có hệ thống.", canonicalPath: "/blog/lo-trinh-hoc-toeic-30-ngay-cho-nguoi-ban-ron", coverAlt: "Lịch học TOEIC 30 ngày với các buổi luyện ngắn", socialTitle: "Lộ trình TOEIC 30 ngày, mỗi ngày 30–45 phút", socialDescription: "Một kế hoạch đủ nhẹ để duy trì và đủ rõ để đo tiến bộ.", authorName: "TOEICGym Editorial", targetTopic: "lộ trình học TOEIC 30 ngày", searchIntent: "informational", tags: [tag("Kế hoạch học", "ke-hoach-hoc"), tag("30 ngày", "30-ngay")],
+    seoTitle: "Lộ trình học TOEIC 30 ngày cho người bận rộn", seoDescription: "Kế hoạch học TOEIC 30 ngày, 30–45 phút mỗi ngày: đánh giá đầu vào, luyện theo điểm yếu, thi thử và ôn lỗi có hệ thống.", canonicalPath: "/blog/lo-trinh-hoc-toeic-30-ngay-cho-nguoi-ban-ron", coverAlt: "Lịch học TOEIC 30 ngày với các buổi luyện ngắn", socialTitle: "Lộ trình TOEIC 30 ngày, mỗi ngày 30–45 phút", socialDescription: "Một kế hoạch đủ nhẹ để duy trì và đủ rõ để đo tiến bộ.", authorName: "TOEIC GYM Editorial", targetTopic: "lộ trình học TOEIC 30 ngày", searchIntent: "informational", tags: [tag("Kế hoạch học", "ke-hoach-hoc"), tag("30 ngày", "30-ngay")],
     content: `## Nguyên tắc: buổi ngắn nhưng có vòng phản hồi
 
 Một kế hoạch tốt phải gồm luyện, chấm, hiểu lỗi và ôn lại. Nếu 45 phút chỉ dùng để làm câu mới, bạn sẽ lặp lại cùng một lỗi. Hãy dành ít nhất một phần ba thời gian cho sửa bài.
@@ -346,7 +346,7 @@ Ngày bận nhất, chỉ cần 10 phút xem lại ba câu sai cũ. Với mục 
     id: "editorial-exam", category: "EXAM_TIPS", slug: "kinh-nghiem-thi-toeic-ngay-thi",
     title: "Kinh nghiệm thi TOEIC: checklist trước và trong ngày thi",
     excerpt: "Chuẩn bị giấy tờ, nhịp sinh hoạt và chiến thuật phòng thi để năng lực thật không bị giảm vì lỗi nhỏ.",
-    seoTitle: "Kinh nghiệm thi TOEIC và checklist ngày thi", seoDescription: "Checklist thi TOEIC: giấy tờ, thời gian có mặt, ăn ngủ, tô đáp án và cách xử lý khi mất tập trung trong phòng thi.", canonicalPath: "/blog/kinh-nghiem-thi-toeic-ngay-thi", coverAlt: "Checklist chuẩn bị cho ngày thi TOEIC", socialTitle: "Checklist ngày thi TOEIC để tránh mất điểm oan", socialDescription: "Những việc nhỏ nên chuẩn bị từ tối hôm trước đến khi nộp bài.", authorName: "TOEICGym Editorial", targetTopic: "kinh nghiệm thi TOEIC ngày thi", searchIntent: "informational", tags: [tag("Ngày thi TOEIC", "ngay-thi-toeic"), tag("Checklist", "checklist")],
+    seoTitle: "Kinh nghiệm thi TOEIC và checklist ngày thi", seoDescription: "Checklist thi TOEIC: giấy tờ, thời gian có mặt, ăn ngủ, tô đáp án và cách xử lý khi mất tập trung trong phòng thi.", canonicalPath: "/blog/kinh-nghiem-thi-toeic-ngay-thi", coverAlt: "Checklist chuẩn bị cho ngày thi TOEIC", socialTitle: "Checklist ngày thi TOEIC để tránh mất điểm oan", socialDescription: "Những việc nhỏ nên chuẩn bị từ tối hôm trước đến khi nộp bài.", authorName: "TOEIC GYM Editorial", targetTopic: "kinh nghiệm thi TOEIC ngày thi", searchIntent: "informational", tags: [tag("Ngày thi TOEIC", "ngay-thi-toeic"), tag("Checklist", "checklist")],
     content: `## Trước ngày thi
 
 Kiểm tra chính xác giấy tờ được đơn vị tổ chức yêu cầu, địa điểm, phòng thi và giờ có mặt. Quy định có thể thay đổi theo từng đơn vị, vì vậy hãy đọc thông báo chính thức thay vì chỉ dựa vào kinh nghiệm truyền miệng.

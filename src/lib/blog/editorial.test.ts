@@ -47,6 +47,23 @@ describe("editorial TOEIC library", () => {
     }
   });
 
+  it("keeps inline practice choices complete, ordered, and separate from explanations", () => {
+    const examples = EDITORIAL_POSTS.flatMap(post =>
+      post.content
+        .split("\n")
+        .filter(line => /\s\(A\)\s/.test(line))
+        .map(line => ({ post: post.slug, line })),
+    );
+
+    expect(examples.length).toBeGreaterThan(80);
+    for (const example of examples) {
+      const labels = [...example.line.matchAll(/\s\(([A-D])\)\s/g)].map(match => match[1]);
+      expect(labels.length, example.post).toBeGreaterThanOrEqual(2);
+      expect(labels, example.post).toEqual(labels.map((_, index) => String.fromCharCode(65 + index)));
+      expect(example.line, `${example.post} keeps its explanation on the question line`).not.toMatch(/\([^)]*D\)[^\n]*(?:Đáp án|Chọn)\s/i);
+    }
+  });
+
   it("answers the observed grammar and Listening searches on their existing canonical pages", () => {
     expect(getEditorialPost("sua-de-mau-ets-toeic-2025-reading-part-5-6-7")?.content).toContain("Có PDF ETS TOEIC 2025 chính thức không?");
     expect(getEditorialPost("hien-tai-hoan-thanh-va-qua-khu-don")?.content).toContain("Yesterday dùng since hay for?");

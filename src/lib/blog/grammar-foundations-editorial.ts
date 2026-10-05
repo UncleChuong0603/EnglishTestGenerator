@@ -16,7 +16,7 @@ function post(draft: Draft): EditorialPost {
     editorialCover: "/blog/cover/grammar",
     socialTitle: draft.seoTitle,
     socialDescription: draft.seoDescription,
-    authorName: "TOEICGym Editorial",
+    authorName: "TOEIC GYM Editorial",
     searchIntent: "informational",
     noindex: false,
     publishedAt,
@@ -91,7 +91,7 @@ Danh từ đếm được số ít thường cần một từ hạn định: *a 
 
 **The equipment _____ inspected every month.** (A) are (B) is (C) have (D) be
 
-**Đáp án B.** *Equipment* là danh từ không đếm được trong nghĩa này, nên dùng động từ số ít *is*. *Every month* chỉ tần suất, không làm danh từ thành số nhiều. Câu ví dụ do TOEICGym tự biên soạn.
+**Đáp án B.** *Equipment* là danh từ không đếm được trong nghĩa này, nên dùng động từ số ít *is*. *Every month* chỉ tần suất, không làm danh từ thành số nhiều. Câu ví dụ do TOEIC GYM tự biên soạn.
 
 ## Tự kiểm tra
 
@@ -124,17 +124,17 @@ Danh từ đếm được số ít thường cần một từ hạn định: *a 
 
 **Please send _____ updated invoice to the client today.** (A) a (B) an (C) the (D) không dùng mạo từ
 
-Nếu đây là lần đầu nhắc đến một hóa đơn bất kỳ, **B. an** phù hợp vì *updated* bắt đầu bằng nguyên âm. Nếu hai bên đã biết hóa đơn cụ thể nào, **C. the** cũng có thể đúng. Vì vậy, câu chỉ có một đáp án cần thêm ngữ cảnh. Trong bài thi thực tế, hãy đọc toàn bộ câu và đoạn, đừng chọn chỉ theo chữ đầu. Đây là ví dụ phân tích ngữ cảnh, không phải câu chấm điểm.
+Nếu đây là lần đầu nhắc đến một hóa đơn bất kỳ, **B. an** phù hợp vì *updated* bắt đầu bằng **âm nguyên âm** /ʌ/. Nếu hai bên đã biết hóa đơn cụ thể nào, **C. the** cũng có thể đúng. Vì vậy, câu chỉ có một đáp án cần thêm ngữ cảnh. Trong bài thi thực tế, hãy đọc toàn bộ câu và đoạn, đừng chọn chỉ theo chữ cái đầu. Đây là ví dụ phân tích ngữ cảnh, không phải câu chấm điểm.
 
 **Please send _____ updated invoice attached to this email.** (A) a (B) an (C) the (D) không dùng mạo từ
 
-**Đáp án C.** *Attached to this email* xác định hóa đơn cụ thể. Ví dụ do TOEICGym tự biên soạn.
+**Đáp án C.** *Attached to this email* xác định hóa đơn cụ thể. Ví dụ do TOEIC GYM tự biên soạn.
 
 ## Tự kiểm tra
 
 **Our team needs _____ additional hour to finish the review.** (A) a (B) an (C) the (D) không dùng mạo từ
 
-**Đáp án B.** *Hour* bắt đầu bằng âm nguyên âm vì *h* câm. Cụm *an additional hour* cũng có *additional* bắt đầu bằng âm nguyên âm. Với *this/that/our*, ôn tiếp [đại từ và từ hạn định](/blog/dai-tu-va-tu-han-dinh-toeic). [Cambridge Grammar](https://dictionary.cambridge.org/grammar/british-grammar/articles) trình bày thêm sự khác nhau giữa *a/an*, *the* và trường hợp không dùng mạo từ.`,
+**Đáp án B.** Trong cụm *an additional hour*, mạo từ đứng ngay trước *additional*, từ bắt đầu bằng âm nguyên âm /ə/. Nếu nói *an hour*, ta vẫn dùng *an* vì *h* trong *hour* là âm câm. Với *this/that/our*, ôn tiếp [đại từ và từ hạn định](/blog/dai-tu-va-tu-han-dinh-toeic). [Cambridge Grammar](https://dictionary.cambridge.org/grammar/british-grammar/articles) trình bày thêm sự khác nhau giữa *a/an*, *the* và trường hợp không dùng mạo từ.`,
   }),
   post({
     slug: "hien-tai-don-va-hien-tai-tiep-dien",
@@ -160,7 +160,7 @@ Một số động từ chỉ trạng thái như *know, own, believe, understand
 
 **The accounting team usually _____ invoices on Fridays, but it _____ them today because of the holiday.** (A) processes / is processing (B) is processing / processes
 
-**Đáp án A.** *Usually* chỉ lịch thường lệ; *today because of the holiday* cho thấy thay đổi tạm thời. Ví dụ do TOEICGym tự biên soạn. Nếu chỗ trống chỉ yêu cầu số ít/số nhiều, xem [hòa hợp chủ ngữ – động từ](/blog/hoa-hop-chu-ngu-dong-tu-toeic).
+**Đáp án A.** *Usually* chỉ lịch thường lệ; *today because of the holiday* cho thấy thay đổi tạm thời. Ví dụ do TOEIC GYM tự biên soạn. Nếu chỗ trống chỉ yêu cầu số ít/số nhiều, xem [hòa hợp chủ ngữ – động từ](/blog/hoa-hop-chu-ngu-dong-tu-toeic).
 
 ## Tự kiểm tra
 
@@ -195,7 +195,7 @@ Nếu có hai hành động đều đã hoàn tất theo trình tự, dùng quá
 
 **The receptionist _____ a customer when the fire alarm sounded.** (A) is helping (B) was helping (C) has helped (D) will help
 
-**Đáp án B.** Việc hỗ trợ khách đang diễn ra thì chuông báo cháy vang lên. A là hiện tại tiếp diễn, không phù hợp với mốc quá khứ *sounded*. Ví dụ do TOEICGym tự biên soạn.
+**Đáp án B.** Việc hỗ trợ khách đang diễn ra thì chuông báo cháy vang lên. A là hiện tại tiếp diễn, không phù hợp với mốc quá khứ *sounded*. Ví dụ do TOEIC GYM tự biên soạn.
 
 ## Tự kiểm tra
 
@@ -230,7 +230,7 @@ Tóm lại: *yesterday* trả lời “khi nào?”, *since yesterday* trả l�
 
 **The company _____ three new branches since January.** (A) opened (B) has opened (C) had opened (D) opening
 
-**Đáp án B** nếu người nói đang tính từ tháng Một đến hiện tại. *Had opened* cần một mốc quá khứ khác làm điểm nhìn. Ví dụ do TOEICGym tự biên soạn.
+**Đáp án B.** *Since January* cho biết khoảng thời gian bắt đầu vào tháng Một và kéo dài đến hiện tại, nên dùng *has opened*. *Had opened* cần một mốc quá khứ khác làm điểm nhìn. Ví dụ do TOEIC GYM tự biên soạn.
 
 ## Tự kiểm tra
 
@@ -267,7 +267,7 @@ So sánh *The board discusses the policy next Tuesday* (lịch trình) và *The 
 
 **Look at the confirmed schedule. The board _____ the new policy next Tuesday.** (A) discussed (B) is discussing (C) had discussed (D) discusses yesterday
 
-**Đáp án B.** Lịch đã xác nhận và các phương án còn lại sai thời gian hoặc cấu trúc. Câu do TOEICGym tự biên soạn.
+**Đáp án B.** Lịch đã xác nhận và các phương án còn lại sai thời gian hoặc cấu trúc. Câu do TOEIC GYM tự biên soạn.
 
 ## Tự kiểm tra
 
@@ -301,7 +301,7 @@ Muốn nói khả năng trong quá khứ, dùng *could* khi phù hợp: *I could
 
 **Under the mandatory safety policy, employees _____ wear safety glasses in the laboratory.** (A) must (B) might (C) could (D) would
 
-**Đáp án A.** *Mandatory safety policy* xác định đây là nghĩa vụ bắt buộc. *Might* chỉ khả năng; *could* nói khả năng hoặc sự cho phép; *would* không nêu nghĩa vụ hiện tại trong câu này. Ví dụ do TOEICGym tự biên soạn.
+**Đáp án A.** *Mandatory safety policy* xác định đây là nghĩa vụ bắt buộc. *Might* chỉ khả năng; *could* nói khả năng hoặc sự cho phép; *would* không nêu nghĩa vụ hiện tại trong câu này. Ví dụ do TOEIC GYM tự biên soạn.
 
 ## Tự kiểm tra
 

@@ -1,0 +1,194 @@
+[
+  {
+    "locale": "vi",
+    "viewport": {
+      "name": "375",
+      "width": 375,
+      "height": 812
+    },
+    "status": 200,
+    "metrics": {
+      "articleLang": "vi",
+      "horizontalOverflow": 0,
+      "questionCount": 3,
+      "firstChoiceCount": 4,
+      "gridColumns": 1,
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "answerCallouts": 2
+    },
+    "consoleErrors": []
+  },
+  {
+    "locale": "vi",
+    "viewport": {
+      "name": "768",
+      "width": 768,
+      "height": 1024
+    },
+    "status": 200,
+    "metrics": {
+      "articleLang": "vi",
+      "horizontalOverflow": 0,
+      "questionCount": 3,
+      "firstChoiceCount": 4,
+      "gridColumns": 2,
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "answerCallouts": 2
+    },
+    "consoleErrors": []
+  },
+  {
+    "locale": "vi",
+    "viewport": {
+      "name": "1024",
+      "width": 1024,
+      "height": 900
+    },
+    "status": 200,
+    "metrics": {
+      "articleLang": "vi",
+      "horizontalOverflow": 0,
+      "questionCount": 3,
+      "firstChoiceCount": 4,
+      "gridColumns": 2,
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "answerCallouts": 2
+    },
+    "consoleErrors": []
+  },
+  {
+    "locale": "vi",
+    "viewport": {
+      "name": "1440",
+      "width": 1440,
+      "height": 1000
+    },
+    "status": 200,
+    "metrics": {
+      "articleLang": "vi",
+      "horizontalOverflow": 0,
+      "questionCount": 3,
+      "firstChoiceCount": 4,
+      "gridColumns": 2,
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "answerCallouts": 2
+    },
+    "consoleErrors": []
+  },
+  {
+    "locale": "en",
+    "viewport": {
+      "name": "375",
+      "width": 375,
+      "height": 812
+    },
+    "status": 200,
+    "metrics": {
+      "articleLang": "vi",
+      "horizontalOverflow": 0,
+      "questionCount": 3,
+      "firstChoiceCount": 4,
+      "gridColumns": 1,
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "answerCallouts": 2
+    },
+    "consoleErrors": []
+  },
+  {
+    "locale": "en",
+    "viewport": {
+      "name": "768",
+      "width": 768,
+      "height": 1024
+    },
+    "status": 200,
+    "metrics": {
+      "articleLang": "vi",
+      "horizontalOverflow": 0,
+      "questionCount": 3,
+      "firstChoiceCount": 4,
+      "gridColumns": 2,
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "answerCallouts": 2
+    },
+    "consoleErrors": []
+  },
+  {
+    "locale": "en",
+    "viewport": {
+      "name": "1024",
+      "width": 1024,
+      "height": 900
+    },
+    "status": 200,
+    "metrics": {
+      "articleLang": "vi",
+      "horizontalOverflow": 0,
+      "questionCount": 3,
+      "firstChoiceCount": 4,
+      "gridColumns": 2,
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "answerCallouts": 2
+    },
+    "consoleErrors": []
+  },
+  {
+    "locale": "en",
+    "viewport": {
+      "name": "1440",
+      "width": 1440,
+      "height": 1000
+    },
+    "status": 200,
+    "metrics": {
+      "articleLang": "vi",
+      "horizontalOverflow": 0,
+      "questionCount": 3,
+      "firstChoiceCount": 4,
+      "gridColumns": 2,
+      "labels": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "answerCallouts": 2
+    },
+    "consoleErrors": []
+  }
+]

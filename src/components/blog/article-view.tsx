@@ -29,7 +29,7 @@ export function ArticleView({ post, locale, coverUrl, preview = false, signedIn 
         <p className="mt-5 text-lg leading-8 text-slate-600 sm:text-xl">{post.excerpt}</p>
         <div className="mt-5 flex flex-wrap gap-x-2 gap-y-1 text-sm text-slate-500">{post.publishedAt && dateLabels.published ? <time dateTime={post.publishedAt.toISOString()}>{dateLabels.published}</time> : <span>{locale === "vi" ? "Bản nháp" : "Draft"}</span>}{dateLabels.updated && <><span aria-hidden="true">·</span><time dateTime={post.updatedAt.toISOString()}>{dateLabels.updated}</time></>}<span aria-hidden="true">·</span><span>{readingMinutes(post.content)} {locale === "vi" ? "phút đọc" : "min read"}</span></div>
       </header>
-      {coverUrl && <Image alt={post.coverAlt||""} className="mt-8 aspect-[16/9] max-h-[32rem] w-full rounded-2xl object-cover" height={675} priority src={coverUrl} unoptimized width={1200} />}
+      {coverUrl && <Image alt={post.coverAlt||""} className="mt-8 aspect-[16/9] max-h-[32rem] w-full rounded-2xl object-cover" height={675} preload src={coverUrl} unoptimized width={1200} />}
       {questions.length > 0 && <MiniPractice questions={questions} locale={locale} />}
       {post.slug === "quan-ly-thoi-gian-toeic-reading-75-phut" && <ReadingTimePlanner locale={locale} />}
       <div className="mt-9"><Markdown content={post.content} /></div>
