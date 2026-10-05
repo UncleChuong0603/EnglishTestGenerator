@@ -6,7 +6,9 @@ The `ui-ux-pro-max` skill was queried for **adult education exam preparation min
 
 ## Product promise
 
-Learners answer questions, understand mistakes and choose a useful next session. Public pages show that cycle with real routes and honest examples. Raw accuracy must never be presented as an official TOEIC score. Do not invent testimonials, progress metrics or user results.
+TOEIC GYM helps each learner know exactly what to practice today. Learners set a target, answer questions, understand mistakes, review until stronger and receive a useful next session and weekly path from real learning evidence. Public pages show that cycle with real routes and honest examples. Raw accuracy must never be presented as an official TOEIC score. Do not invent testimonials, progress metrics or user results.
+
+Do not market the product as a generic collection of TOEIC tools or as a feature-count competitor. The durable product loop is learning history → supported priority → recommendation → remediation → mastery → next recommendation. Transcript listening, vocabulary, grammar, mock exams and progress are valuable when they reinforce that loop.
 
 For first-time visitors, lead with a short practice that works without an account. Explain account benefits when relevant. Do not put plan quotas or Premium upsells in the first-use path; show an entitlement reminder when the actual limit is reached. Pricing and account pages can describe limits where the user seeks that information.
 

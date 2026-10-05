@@ -2,12 +2,12 @@
 
 Use the global [MASTER.md](../MASTER.md) rules, with these homepage priorities:
 
-1. The first viewport names actual practice options: questions, audio with transcripts and daily workouts. Keep the short free practice action prominent.
+1. The first viewport leads with the core promise: practice real mistakes and know what to study today. Keep the short free practice action prominent; transcript, vocabulary and other tools support the promise instead of competing with it.
 2. The guest hero action starts a Part 5 session directly: ten questions, no account, results and explanations after submission. Other entry links may open `/challenge/part-5`. The signed-in hero action goes to `/dashboard`.
-3. Show a clearly labeled illustrative answer explanation beside the hero. Do not present fabricated scores or user progress as real.
-4. Below the hero, link directly to listening with transcripts, daily workouts, weekly rankings and vocabulary. Give listening, workouts and rankings prominent sections with real content and accurate access labels. Follow with a complete feature directory, then Part guides and learning resources. Reuse the directory on the About page so feature descriptions and destinations stay consistent.
+3. Show a clearly labeled illustration of how learning evidence becomes today's workout and a weekly path. The example may include a real question and explanation, but must not present fabricated scores, progress or unsupported weakness detection as real.
+4. Below the hero, explain the adaptive daily/weekly loop and give prominent, authentic entry points to transcript listening, vocabulary and grammar. Put mistake review, today's workout and the weekly path first in the shared feature directory. Ranking remains available but does not outrank the learning loop. Follow with Part guides and learning resources. Reuse the directory on the About page so feature descriptions and destinations stay consistent.
 5. Keep plan limits and Premium upsells out of this first-use page. Pricing details remain available on the dedicated pricing page.
-6. Keep the header as the only navigation system on the public homepage. Vocabulary is a direct top-bar destination. Lead with copy and the action on mobile; supporting product preview follows.
+6. Keep the header as the only navigation system on the public homepage. Vocabulary is a direct top-bar destination. Lead with the promise, evidence and action on mobile; supporting product preview follows.
 7. Verify 375px, 768px, 1024px and 1440px, both Vietnamese and English, plus keyboard focus and route destinations.
 
 ## Feature content
