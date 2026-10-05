@@ -39,6 +39,8 @@ try {
   await word.hover();
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByRole("heading", { name: "invoice" })).toBeVisible();
+  await expect(dialog.getByText("Part of speech", { exact: true })).toBeVisible();
+  await expect(dialog.getByText("Noun", { exact: true })).toBeVisible();
   await dialog.getByRole("button", { name: "Save to review" }).click();
   await expect(dialog.getByRole("button", { name: "Saved", exact: true })).toBeDisabled();
   expect(saves).toBe(1);
@@ -62,6 +64,8 @@ try {
     await page.setViewportSize({ width, height: 800 });
     await page.locator("#transcript-vi [role=button]", { hasText: /^week$/ }).click();
     await expect(dialog.getByText("Nghĩa trong câu")).toBeVisible();
+    await expect(dialog.getByText("Loại từ", { exact: true })).toBeVisible();
+    await expect(dialog.getByText("Danh từ", { exact: true })).toBeVisible();
     const responsiveBounds = await dialog.boundingBox();
     expect(responsiveBounds.x).toBeGreaterThanOrEqual(0); expect(responsiveBounds.x + responsiveBounds.width).toBeLessThanOrEqual(width);
     if (process.env.VISUAL_REVIEW) await page.screenshot({ path: `.tmp/vocabulary-hover-${width}.png`, fullPage: true });

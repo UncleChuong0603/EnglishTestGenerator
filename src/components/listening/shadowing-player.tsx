@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRef, useState } from "react";
 import type { InterfaceLanguage } from "@/lib/i18n/config";
 import { FollowingTranscript } from "./following-transcript";
@@ -17,7 +18,7 @@ function clock(seconds: number) {
   return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`;
 }
 
-export function ShadowingPlayer({ clips, locale }: { clips: readonly ShadowingClip[]; locale: InterfaceLanguage }) {
+export function ShadowingPlayer({ clips, locale, signedIn = true }: { clips: readonly ShadowingClip[]; locale: InterfaceLanguage; signedIn?: boolean }) {
   const vi = locale === "vi";
   const audioRef = useRef<HTMLAudioElement>(null);
   const [selectedId, setSelectedId] = useState(clips[0]?.id ?? "");
@@ -31,6 +32,8 @@ export function ShadowingPlayer({ clips, locale }: { clips: readonly ShadowingCl
   const minutes = clip.minutes;
   const durations = [...new Set(clips.map(item => item.minutes))];
   const choices = clips.filter(item => item.minutes === minutes);
+  const signInHref = "/sign-in?next=%2Flistening-lessons";
+  const trialClipId = clips[0]?.id;
 
   function selectClip(id: string) {
     audioRef.current?.pause();
@@ -41,18 +44,19 @@ export function ShadowingPlayer({ clips, locale }: { clips: readonly ShadowingCl
     setError(false);
   }
 
-  return <div className="mt-6 grid gap-5 lg:grid-cols-2">
+  return <div className="mt-6 grid gap-5 xl:grid-cols-2">
     <section className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-7">
       <p className="text-sm font-bold uppercase tracking-wider text-teal-700">{vi ? "Một bài nói liền mạch" : "One continuous talk"}</p>
       <h2 className="mt-2 text-2xl font-black">{vi ? "Chọn thời lượng audio" : "Choose the audio length"}</h2>
       <div aria-label={vi ? "Thời lượng audio" : "Audio duration"} className="mt-4 flex flex-wrap gap-2" role="group">
-        {durations.map(value => <button aria-pressed={minutes === value} className={`min-h-11 rounded-full px-5 font-bold ${minutes === value ? "bg-teal-800 text-white" : "border border-teal-700 bg-white text-teal-800"}`} key={value} onClick={() => selectClip(clips.find(item => item.minutes === value)!.id)} type="button">{value} {vi ? "phút" : value === 1 ? "minute" : "minutes"}</button>)}
+        {durations.map(value => { const target = clips.find(item => item.minutes === value)!; const className = `inline-flex min-h-11 items-center rounded-full px-5 font-bold ${minutes === value ? "bg-teal-800 text-white" : "border border-teal-700 bg-white text-teal-800"}`; const label = <>{value} {vi ? "phút" : value === 1 ? "minute" : "minutes"}</>; return !signedIn && target.id !== trialClipId ? <Link className={className} href={signInHref} key={value}>{label}</Link> : <button aria-pressed={minutes === value} className={className} key={value} onClick={() => selectClip(target.id)} type="button">{label}</button>; })}
       </div>
       <p className="mt-3 text-sm text-slate-600">{vi ? "Mỗi audio là một bài chia sẻ riêng về một chủ đề khác nhau. Chọn thời lượng rồi chọn chủ đề bạn muốn nghe." : "Each audio is a complete talk on a different topic. Choose a length, then pick a topic."}</p>
-      <div className="mt-5"><p className="text-sm font-bold text-slate-700">{vi ? "Chọn chủ đề" : "Choose a topic"}</p><div aria-label={vi ? "Chủ đề audio" : "Audio topics"} className="mt-2 flex flex-wrap gap-2" role="group">{choices.map(item => <button aria-pressed={clip.id === item.id} className={`min-h-11 rounded-xl px-4 text-left text-sm font-semibold ${clip.id === item.id ? "border border-teal-700 bg-teal-50 text-teal-900" : "border border-slate-300 bg-white text-slate-700 hover:border-teal-500"}`} key={item.id} onClick={() => selectClip(item.id)} type="button">{item.title}</button>)}</div></div>
+      <div className="mt-5"><p className="text-sm font-bold text-slate-700">{vi ? "Chọn chủ đề" : "Choose a topic"}</p><div aria-label={vi ? "Chủ đề audio" : "Audio topics"} className="mt-2 flex flex-wrap gap-2" role="group">{choices.map(item => { const className = `inline-flex min-h-11 items-center rounded-xl px-4 text-left text-sm font-semibold ${clip.id === item.id ? "border border-teal-700 bg-teal-50 text-teal-900" : "border border-slate-300 bg-white text-slate-700 hover:border-teal-500"}`; return !signedIn && item.id !== trialClipId ? <Link className={className} href={signInHref} key={item.id}>{item.title}</Link> : <button aria-pressed={clip.id === item.id} className={className} key={item.id} onClick={() => selectClip(item.id)} type="button">{item.title}</button>; })}</div></div>
       <div className="mt-7 rounded-2xl bg-slate-50 p-5">
         <p className="text-sm font-semibold text-slate-500">{vi ? "Bài đang nghe" : "Current talk"}</p>
         <h3 className="mt-1 text-lg font-black">{clip.title}</h3>
+        {!signedIn ? <div className="mt-4 rounded-xl border border-teal-200 bg-teal-50 p-3 text-sm leading-6 text-teal-950"><strong>{vi ? "Bài nghe thử miễn phí." : "Free sample."}</strong> {vi ? "Bạn có thể nghe trọn bài 1 phút và dùng transcript; đăng nhập để mở các bài còn lại." : "Listen to the complete one-minute talk and use its transcript; sign in to unlock the rest."}</div> : null}
         <audio aria-label={vi ? "Audio bài chia sẻ" : "Talk audio"} className="mt-4 w-full" controls key={clip.id} onDurationChange={event => setDuration(event.currentTarget.duration)} onEnded={event => setTime(event.currentTarget.duration)} onError={() => setError(true)} onLoadedMetadata={event => { event.currentTarget.playbackRate = speed; }} onSeeked={event => setTime(event.currentTarget.currentTime)} onTimeUpdate={event => setTime(event.currentTarget.currentTime)} preload="metadata" ref={audioRef} src={clip.audioUrl} />
         <div className="mt-3 flex items-center justify-between text-sm font-semibold"><span>{clock(time)} / {duration > 0 && Number.isFinite(duration) ? clock(duration) : `${minutes}:00`}</span><span>{duration > 0 && Number.isFinite(duration) ? `${Math.min(100, Math.round(time / duration * 100))}%` : "0%"}</span></div>
         <progress aria-label={vi ? "Tiến độ bài nghe" : "Talk progress"} className="mt-2 h-2 w-full accent-teal-700" max={duration > 0 && Number.isFinite(duration) ? duration : minutes * 60} value={time} />

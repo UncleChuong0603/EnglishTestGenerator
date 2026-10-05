@@ -40,4 +40,18 @@ describe("authentication return destinations", () => {
     expect(safeAuthContinuation("//evil.example/billing/confirm?product=PREMIUM_30_DAYS")).toBeNull();
     expect(safeAuthContinuation("/billing/confirm?product=PREMIUM_30_DAYS&other=1")).toBeNull();
   });
+
+  it.each([
+    "/dashboard",
+    "/practice",
+    "/progress",
+    "/full-mock",
+    "/mistakes",
+    "/vocabulary",
+    "/listening-lessons",
+    "/listening-lessons/dictation",
+    "/listening-lessons/talk/grandmothers-soup",
+  ])("allows a known learner preview return path: %s", (path) => {
+    expect(safeAuthContinuation(path)).toBe(path);
+  });
 });

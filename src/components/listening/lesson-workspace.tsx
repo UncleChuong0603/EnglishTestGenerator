@@ -2,27 +2,28 @@
 /* Signed private media URLs are dynamic. */
 /* eslint-disable @next/next/no-img-element */
 import { useRef, useState } from "react";
+import Link from "next/link";
 import type { InterfaceLanguage } from "@/lib/i18n/config";
 import { FollowingTranscript } from "./following-transcript";
 
-export function LessonWorkspace({ audioUrl, imageUrl, imageAlt, transcript, locale }: { audioUrl: string; imageUrl: string | null; imageAlt: string | null; transcript: string; locale: InterfaceLanguage }) {
+export function LessonWorkspace({ audioUrl, imageUrl, imageAlt, transcript, locale, signedIn = true, returnTo = "/listening-lessons" }: { audioUrl: string; imageUrl: string | null; imageAlt: string | null; transcript: string; locale: InterfaceLanguage; signedIn?: boolean; returnTo?: string }) {
   const audio = useRef<HTMLAudioElement>(null);
   const [showTranscript, setShowTranscript] = useState(true);
   const [speed, setSpeed] = useState(1);
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const vi = locale === "vi";
-  return <div className="mt-7 grid gap-6 lg:grid-cols-2">
+  const signInHref = `/sign-in?next=${encodeURIComponent(returnTo)}`;
+  return <div className="mt-7 grid gap-6 xl:grid-cols-2">
     <section className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-7" aria-label={vi ? "Nghe audio" : "Listen to audio"}>
       {imageUrl && <img alt={imageAlt ?? ""} className="mb-6 max-h-[50vh] w-full rounded-2xl object-contain" src={imageUrl} />}
       <h2 className="text-xl font-black">{vi ? "Nghe và nói theo" : "Listen and shadow"}</h2>
       <p className="mt-2 text-sm text-slate-600">{vi ? "Nghe audio, nhìn transcript bên cạnh và nói theo nhịp của người nói. Tạm dừng hoặc nghe lại bất cứ lúc nào." : "Listen, follow the transcript beside the audio, and speak along. Pause or replay whenever you like."}</p>
-      <audio aria-label={vi ? "Audio bài học" : "Lesson audio"} className="mt-5 w-full" controls onDurationChange={event => setDuration(event.currentTarget.duration)} onSeeked={event => setTime(event.currentTarget.currentTime)} onTimeUpdate={event => { setTime(event.currentTarget.currentTime); if (event.currentTarget.currentTime >= 600) event.currentTarget.pause(); }} preload="metadata" ref={audio} src={audioUrl} />
-      <label className="mt-5 flex items-center gap-3 text-sm font-semibold">{vi ? "Tốc độ" : "Speed"}<select className="rounded-lg border px-3 py-2" onChange={event => { const value = Number(event.target.value); setSpeed(value); if (audio.current) audio.current.playbackRate = value; }} value={speed}>{[0.75, 1, 1.25].map(value => <option key={value} value={value}>{value}×</option>)}</select></label>
+      {signedIn ? <><audio aria-label={vi ? "Audio bài học" : "Lesson audio"} className="mt-5 w-full" controls onDurationChange={event => setDuration(event.currentTarget.duration)} onSeeked={event => setTime(event.currentTarget.currentTime)} onTimeUpdate={event => { setTime(event.currentTarget.currentTime); if (event.currentTarget.currentTime >= 600) event.currentTarget.pause(); }} preload="metadata" ref={audio} src={audioUrl} /><label className="mt-5 flex items-center gap-3 text-sm font-semibold">{vi ? "Tốc độ" : "Speed"}<select className="rounded-lg border px-3 py-2" onChange={event => { const value = Number(event.target.value); setSpeed(value); if (audio.current) audio.current.playbackRate = value; }} value={speed}>{[0.75, 1, 1.25].map(value => <option key={value} value={value}>{value}×</option>)}</select></label></> : <div className="mt-5 rounded-xl border border-teal-200 bg-teal-50 p-4"><p className="text-sm leading-6 text-slate-700">{vi ? "Đăng nhập miễn phí để phát audio và luyện nói theo." : "Sign in free to play the audio and shadow the speaker."}</p><Link className="mt-3 inline-flex min-h-11 items-center rounded-lg bg-teal-800 px-4 font-bold text-white hover:bg-teal-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-900" href={signInHref}>{vi ? "Đăng nhập để bắt đầu nghe" : "Sign in to start listening"}</Link></div>}
     </section>
     <section className="self-start rounded-3xl border border-slate-200 bg-white p-5 sm:p-7" aria-label="Transcript">
-      <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-xl font-black">Transcript</h2><button aria-expanded={showTranscript} className="min-h-11 rounded-xl border border-teal-700 px-4 font-bold text-teal-800" onClick={() => setShowTranscript(value => !value)} type="button">{showTranscript ? (vi ? "Ẩn transcript" : "Hide transcript") : (vi ? "Hiện transcript" : "Show transcript")}</button></div>
-      {showTranscript ? <FollowingTranscript duration={Math.min(duration, 600)} locale={locale} time={time} transcript={transcript} /> : <p className="mt-5 rounded-xl bg-slate-50 p-5 text-slate-600">{vi ? "Hãy nghe trước, rồi hiện transcript khi bạn muốn đối chiếu." : "Listen first, then show the transcript when you want to check."}</p>}
+      <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-xl font-black">Transcript</h2>{signedIn ? <button aria-expanded={showTranscript} className="min-h-11 rounded-xl border border-teal-700 px-4 font-bold text-teal-800" onClick={() => setShowTranscript(value => !value)} type="button">{showTranscript ? (vi ? "Ẩn transcript" : "Hide transcript") : (vi ? "Hiện transcript" : "Show transcript")}</button> : <span className="rounded-full bg-[#eef3eb] px-3 py-1 text-xs font-bold text-[#245a43]">{vi ? "BẢN XEM TRƯỚC" : "PREVIEW"}</span>}</div>
+      {signedIn ? (showTranscript ? <FollowingTranscript duration={Math.min(duration, 600)} locale={locale} time={time} transcript={transcript} /> : <p className="mt-5 rounded-xl bg-slate-50 p-5 text-slate-600">{vi ? "Hãy nghe trước, rồi hiện transcript khi bạn muốn đối chiếu." : "Listen first, then show the transcript when you want to check."}</p>) : <div className="mt-5"><p className="line-clamp-4 text-lg leading-9 text-slate-700" lang="en">{transcript}</p><Link className="mt-5 inline-flex min-h-11 items-center rounded-lg border border-teal-700 px-4 font-bold text-teal-800 hover:bg-teal-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-900" href={signInHref}>{vi ? "Đăng nhập để mở toàn bộ transcript" : "Sign in for the full transcript"}</Link></div>}
     </section>
   </div>;
 }

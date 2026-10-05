@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { LearnerNav } from "@/components/learner-nav";
 import {
   ShadowingPlayer,
@@ -11,8 +10,7 @@ import { listeningTalks } from "@/lib/listening-lessons/talks";
 
 export default async function ListeningLessonsPage() {
   const user = await getCurrentUser();
-  if (!user) redirect("/sign-in?next=/listening-lessons");
-  const prefs = await getPreferences(user.id);
+  const prefs = await getPreferences(user?.id);
   const vi = prefs.interfaceLanguage === "vi";
   const clips: ShadowingClip[] = listeningTalks.map((talk) => ({
     id: talk.slug,
@@ -42,7 +40,7 @@ export default async function ListeningLessonsPage() {
           </p>
         </div>
 
-        <ShadowingPlayer clips={clips} locale={prefs.interfaceLanguage} />
+        <ShadowingPlayer clips={clips} locale={prefs.interfaceLanguage} signedIn={Boolean(user)} />
 
         <section className="mt-10 rounded-3xl border border-teal-200 bg-teal-50 p-6 sm:p-8">
           <p className="text-sm font-black uppercase tracking-wide text-teal-800">
@@ -60,9 +58,9 @@ export default async function ListeningLessonsPage() {
           </p>
           <Link
             className="mt-5 inline-flex min-h-11 items-center rounded-xl bg-teal-800 px-5 font-bold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-800"
-            href="/listening-lessons/dictation"
+            href={user ? "/listening-lessons/dictation" : "/sign-in?next=%2Flistening-lessons%2Fdictation"}
           >
-            {vi ? "Mở Dictation" : "Open Dictation"}
+            {user ? (vi ? "Mở Dictation" : "Open Dictation") : (vi ? "Đăng nhập để mở Dictation" : "Sign in to open Dictation")}
           </Link>
         </section>
 
@@ -81,7 +79,7 @@ export default async function ListeningLessonsPage() {
             {listeningTalks.map((talk) => (
               <Link
                 className="rounded-2xl border bg-white p-6 hover:border-teal-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
-                href={`/listening-lessons/talk/${talk.slug}`}
+                href={user ? `/listening-lessons/talk/${talk.slug}` : `/sign-in?next=${encodeURIComponent(`/listening-lessons/talk/${talk.slug}`)}`}
                 key={talk.slug}
               >
                 <span className="text-sm font-black uppercase tracking-wide text-teal-700">
@@ -96,7 +94,7 @@ export default async function ListeningLessonsPage() {
                   {vi ? talk.descriptionVi : talk.descriptionEn}
                 </p>
                 <span className="mt-4 inline-block font-bold text-teal-800">
-                  {vi ? "Nghe bài này →" : "Listen to this talk →"}
+                  {user ? (vi ? "Nghe bài này →" : "Listen to this talk →") : (vi ? "Đăng nhập để nghe bài này →" : "Sign in to hear this talk →")}
                 </span>
               </Link>
             ))}

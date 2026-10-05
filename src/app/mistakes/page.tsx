@@ -25,6 +25,7 @@ import { getLatestReasonsForQuestions, getMistakeReasonPattern } from "@/lib/mis
 import { mistakeReasonDefinition } from "@/lib/mistake-reasons/catalog";
 import { MIN_CLASSIFIED_REASON_SAMPLE } from "@/lib/mistake-reasons/analytics";
 import { getLatestRemediationTraces } from "@/lib/remediation/service";
+import { MistakeFilterPanel } from "@/components/mistake-filter-panel";
 
 export default async function MistakesPage({
   searchParams,
@@ -91,6 +92,20 @@ export default async function MistakesPage({
     });
   const href = (changes: Record<string, string | undefined>) =>
     `/mistakes?${new URLSearchParams(Object.entries({ tab: view === "MASTERED" ? "mastered" : view === "STRENGTHENING" ? "strengthening" : "review", area, part: part?.toString(), skill, filter: repeated ? "repeated" : undefined, sort: premium ? sort : undefined, ...changes }).filter((entry): entry is [string, string] => Boolean(entry[1])))}`;
+  const activeFilterCount = [
+    area,
+    part,
+    skill,
+    repeated ? "repeated" : undefined,
+    premium && view !== "MASTERED" && sort !== "priority" ? sort : undefined,
+  ].filter(Boolean).length;
+  const clearFiltersHref = href({
+    area: undefined,
+    part: undefined,
+    skill: undefined,
+    filter: undefined,
+    sort: undefined,
+  });
   const total = counts.unresolved + counts.mastered;
   const eligible = items.filter((row) => row.available).length;
   const reviewUsage = preview.usage.MASTERY_REVIEW;
@@ -343,95 +358,105 @@ export default async function MistakesPage({
             {vi ? "Đã nắm" : "Mastered"} · {counts.mastered}
           </Link>
         </nav>
-        <div
-          className="mt-5 flex flex-wrap gap-2"
-          aria-label={vi ? "Bộ lọc" : "Filters"}
+        <MistakeFilterPanel
+          activeCount={activeFilterCount}
+          clearHref={clearFiltersHref}
+          clearLabel={vi ? "Xóa bộ lọc" : "Clear filters"}
+          label={vi ? "Bộ lọc" : "Filters"}
         >
-          {["ALL", "LISTENING", "READING"].map((value) => (
-            <Link
-              aria-current={(area ?? "ALL") === value ? "page" : undefined}
-              className="inline-flex min-h-11 items-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold focus-visible:outline-2"
-              href={href({
-                area: value === "ALL" ? undefined : value,
-                part: undefined,
-                skill: undefined,
-              })}
-              key={value}
-            >
-              {value === "ALL" ? (vi ? "Tất cả" : "All") : value}
-            </Link>
-          ))}
-          {[1, 2, 3, 4, 5, 6, 7].map((value) => (
-            <Link
-              aria-current={part === value ? "page" : undefined}
-              className="inline-flex min-h-11 items-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold focus-visible:outline-2"
-              href={href({ part: String(value), area: undefined, skill: undefined })}
-              key={value}
-            >
-              Part {value}
-            </Link>
-          ))}
-        </div>
-        {skills.length > 1 ? (
-          <div className="mt-3 flex flex-wrap gap-2" aria-label={vi ? "Lọc theo kỹ năng" : "Filter by skill"}>
-            <Link
-              aria-current={!skill ? "page" : undefined}
-              className="inline-flex min-h-11 items-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold focus-visible:outline-2"
-              href={href({ skill: undefined })}
-            >
-              {vi ? "Mọi kỹ năng" : "All skills"}
-            </Link>
-            {skills.map((value) => (
+          <div className="flex flex-wrap gap-2" aria-label={vi ? "Lọc theo phần thi" : "Filter by test section"}>
+            {["ALL", "LISTENING", "READING"].map((value) => {
+              const selected = (area ?? (!part ? "ALL" : undefined)) === value;
+              return (
+                <Link
+                  aria-current={selected ? "page" : undefined}
+                  className={`inline-flex min-h-11 items-center rounded-lg border px-3 py-2 text-sm font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 ${selected ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-800 hover:border-teal-600"}`}
+                  href={href({
+                    area: value === "ALL" ? undefined : value,
+                    part: undefined,
+                    skill: undefined,
+                  })}
+                  key={value}
+                >
+                  {value === "ALL" ? (vi ? "Tất cả" : "All") : value}
+                </Link>
+              );
+            })}
+            {[1, 2, 3, 4, 5, 6, 7].map((value) => (
               <Link
-                aria-current={skill === value ? "page" : undefined}
-                className="inline-flex min-h-11 items-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold focus-visible:outline-2"
-                href={href({ skill: value })}
+                aria-current={part === value ? "page" : undefined}
+                className={`inline-flex min-h-11 items-center rounded-lg border px-3 py-2 text-sm font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 ${part === value ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-800 hover:border-teal-600"}`}
+                href={href({ part: String(value), area: undefined, skill: undefined })}
                 key={value}
               >
-                {taxonomyLabel(value, preferences.interfaceLanguage)}
+                Part {value}
               </Link>
             ))}
           </div>
-        ) : null}
-        {premium ? (
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Link
-              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-bold"
-              href={href({ filter: repeated ? undefined : "repeated" })}
-            >
-              {vi ? "Sai nhiều lần" : "Repeated misses"}
-              {repeated ? " ✓" : ""}
-            </Link>
-            {view !== "MASTERED"
-              ? (["priority", "recent", "oldest", "most"] as const).map(
-                  (value) => (
-                    <Link
-                      key={value}
-                      aria-current={sort === value ? "page" : undefined}
-                      className={`rounded-lg px-3 py-2 text-sm font-bold ${sort === value ? "bg-slate-900 text-white" : "bg-white"}`}
-                      href={href({ sort: value })}
-                    >
-                      {value === "priority"
-                        ? vi
-                          ? "Ưu tiên"
-                          : "Priority"
-                        : value === "recent"
+          {skills.length > 1 ? (
+            <div className="mt-4 border-t border-slate-100 pt-4">
+              <p className="mb-2 text-sm font-bold text-slate-600">{vi ? "Kỹ năng" : "Skill"}</p>
+              <div className="flex flex-wrap gap-2" aria-label={vi ? "Lọc theo kỹ năng" : "Filter by skill"}>
+                <Link
+                  aria-current={!skill ? "page" : undefined}
+                  className={`inline-flex min-h-11 items-center rounded-lg border px-3 py-2 text-sm font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 ${!skill ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-800 hover:border-teal-600"}`}
+                  href={href({ skill: undefined })}
+                >
+                  {vi ? "Mọi kỹ năng" : "All skills"}
+                </Link>
+                {skills.map((value) => (
+                  <Link
+                    aria-current={skill === value ? "page" : undefined}
+                    className={`inline-flex min-h-11 items-center rounded-lg border px-3 py-2 text-sm font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 ${skill === value ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-800 hover:border-teal-600"}`}
+                    href={href({ skill: value })}
+                    key={value}
+                  >
+                    {taxonomyLabel(value, preferences.interfaceLanguage)}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : null}
+          {premium ? (
+            <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
+              <Link
+                aria-current={repeated ? "page" : undefined}
+                className={`inline-flex min-h-11 items-center rounded-lg border px-3 py-2 text-sm font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 ${repeated ? "border-slate-900 bg-slate-900 text-white" : "border-slate-300 bg-white text-slate-800 hover:border-teal-600"}`}
+                href={href({ filter: repeated ? undefined : "repeated" })}
+              >
+                {vi ? "Sai nhiều lần" : "Repeated misses"}
+              </Link>
+              {view !== "MASTERED"
+                ? (["priority", "recent", "oldest", "most"] as const).map(
+                    (value) => (
+                      <Link
+                        key={value}
+                        aria-current={sort === value ? "page" : undefined}
+                        className={`inline-flex min-h-11 items-center rounded-lg border px-3 py-2 text-sm font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 ${sort === value ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-800 hover:border-teal-600"}`}
+                        href={href({ sort: value })}
+                      >
+                        {value === "priority"
                           ? vi
-                            ? "Mới sai"
-                            : "Recent"
-                          : value === "oldest"
+                            ? "Ưu tiên"
+                            : "Priority"
+                          : value === "recent"
                             ? vi
-                              ? "Cũ nhất"
-                              : "Oldest"
-                            : vi
-                              ? "Sai nhiều"
-                              : "Most misses"}
-                    </Link>
-                  ),
-                )
-              : null}
-          </div>
-        ) : null}
+                              ? "Mới sai"
+                              : "Recent"
+                            : value === "oldest"
+                              ? vi
+                                ? "Cũ nhất"
+                                : "Oldest"
+                              : vi
+                                ? "Sai nhiều"
+                                : "Most misses"}
+                      </Link>
+                    ),
+                  )
+                : null}
+            </div>
+          ) : null}
+        </MistakeFilterPanel>
         {!items.length ? (
           <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-8 text-center">
             <h2 className="text-2xl font-black">

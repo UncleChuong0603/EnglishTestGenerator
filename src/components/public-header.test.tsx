@@ -1,0 +1,42 @@
+import { renderToStaticMarkup } from "react-dom/server";
+import { describe, expect, it, vi } from "vitest";
+import { PublicHeader } from "./public-header";
+
+vi.mock("@/app/challenge/actions", () => ({
+  startPart5Challenge: vi.fn(),
+}));
+
+vi.mock("@/components/language-switcher", () => ({
+  LanguageSwitcher: () => null,
+}));
+
+describe("PublicHeader", () => {
+  it.each([
+    ["vi", "Từ vựng"],
+    ["en", "Vocabulary"],
+  ] as const)("links to the vocabulary preview in the %s desktop and mobile navigation", (locale, label) => {
+    const html = renderToStaticMarkup(<PublicHeader locale={locale} />);
+
+    expect(html.match(new RegExp(`href="/vocabulary"[^>]*>${label}</a>`, "g"))).toHaveLength(2);
+  });
+
+  it.each([
+    ["vi", "Trang học", "Tiếp tục học"],
+    ["en", "Dashboard", "Continue learning"],
+  ] as const)("shows one dashboard action per signed-in %s header layout", (locale, dashboardLabel, continueLabel) => {
+    const html = renderToStaticMarkup(<PublicHeader locale={locale} signedIn />);
+
+    expect(html).not.toContain(`>${dashboardLabel}</a>`);
+    expect(html.match(new RegExp(`>${continueLabel}(?: <!-- -->)?`, "g"))).toHaveLength(2);
+  });
+
+  it.each([
+    ["vi", "Trang học", "Tiếp tục học"],
+    ["en", "Dashboard", "Continue learning"],
+  ] as const)("keeps the signed-in %s dashboard link when the primary action is hidden", (locale, dashboardLabel, continueLabel) => {
+    const html = renderToStaticMarkup(<PublicHeader locale={locale} showPrimary={false} signedIn />);
+
+    expect(html.match(new RegExp(`>${dashboardLabel}</a>`, "g"))).toHaveLength(2);
+    expect(html).not.toContain(continueLabel);
+  });
+});

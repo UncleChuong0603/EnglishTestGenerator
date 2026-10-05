@@ -1,6 +1,6 @@
 import type { InterfaceLanguage } from "@/lib/i18n/config";
 
-type FeatureAccess = "guest" | "account" | "availability";
+type FeatureAccess = "guest" | "preview" | "account" | "availability";
 type FeatureCopy = { title: string; description: string; action: string };
 type Feature = {
   id: string;
@@ -24,10 +24,10 @@ export const productFeatures = [
   { id: "mock", href: "/full-mock", access: "availability",
     vi: { title: "Thi thử có đồng hồ", description: "Chọn Reading, Listening hoặc toàn bài. Trang thi thử cho biết dạng nào đã đủ nội dung để bắt đầu.", action: "Xem các dạng thi thử" },
     en: { title: "Timed mock tests", description: "Choose Reading, Listening or a full test. The mock hub shows which formats have enough content to start.", action: "View mock formats" } },
-  { id: "listening", href: "/listening-lessons", access: "account",
+  { id: "listening", href: "/listening-lessons", access: "preview",
     vi: { title: "Nghe theo transcript", description: "Chọn audio 1, 3, 5 hoặc 10 phút. Theo dõi từng câu, ẩn transcript để tự nghe và chỉnh tốc độ phát.", action: "Chọn bài nghe" },
     en: { title: "Listen with a transcript", description: "Choose 1, 3, 5 or 10-minute audio. Follow each sentence, hide the transcript and adjust playback speed.", action: "Choose a talk" } },
-  { id: "vocabulary", href: "/vocabulary", access: "account",
+  { id: "vocabulary", href: "/vocabulary", access: "preview",
     vi: { title: "Từ vựng & flashcards", description: "Học theo chủ đề, làm trắc nghiệm nghĩa, nghe phát âm và lưu từ gặp trong bài để ôn lại.", action: "Mở kho từ vựng" },
     en: { title: "Vocabulary & flashcards", description: "Study by topic, quiz word meanings, hear pronunciation and save words from practice for review.", action: "Open vocabulary" } },
   { id: "mistakes", href: "/mistakes", access: "account",
@@ -71,6 +71,7 @@ export const featureGroups = [
 
 export function featureAccessLabel(access: FeatureAccess, locale: InterfaceLanguage) {
   if (access === "guest") return locale === "vi" ? "Miễn phí · mở ngay" : "Free · open now";
+  if (access === "preview") return locale === "vi" ? "Dùng thử miễn phí · đăng nhập để mở đầy đủ" : "Free trial · sign in for full access";
   if (access === "availability") return locale === "vi" ? "Tài khoản miễn phí · theo trạng thái mở" : "Free account · subject to availability";
   return locale === "vi" ? "Với tài khoản miễn phí" : "With a free account";
 }

@@ -13,6 +13,7 @@ const headerAction = "inline-flex min-h-11 shrink-0 cursor-pointer items-center 
 export function PublicHeader({ locale, signedIn = false, showPrimary = true }: { locale: InterfaceLanguage; signedIn?: boolean; showPrimary?: boolean }) {
   const t = getMarketingTranslations(locale);
   const accountHref = signedIn ? "/dashboard" : "/sign-in";
+  const showAccountLink = !signedIn || !showPrimary;
   const primaryLabel = signedIn ? t.nav.continue : locale === "vi" ? "Thử 10 câu miễn phí" : "Try 10 free questions";
   const pendingLabel = locale === "vi" ? "Đang chuẩn bị bài…" : "Preparing your questions…";
   return <header className="public-header border-b border-[#dce3d9] bg-[#f7f6f1]">
@@ -21,13 +22,14 @@ export function PublicHeader({ locale, signedIn = false, showPrimary = true }: {
       <nav className="hidden items-center gap-1 xl:flex" aria-label="Public navigation">
         <Link className={navLink} href="/toeic">{locale === "vi" ? "Luyện TOEIC" : "TOEIC practice"}</Link>
         <Link className={navLink} href="/ngu-phap">{locale === "vi" ? "Ngữ pháp A–Z" : "Grammar A–Z"}</Link>
+        <Link className={navLink} href="/vocabulary">{locale === "vi" ? "Từ vựng" : "Vocabulary"}</Link>
         <Link className={navLink} href="/listening-lessons">{locale === "vi" ? "Nghe transcript" : "Audio & transcript"}</Link>
         <Link className={navLink} href="/ranking">{locale === "vi" ? "Xếp hạng" : "Rankings"}</Link>
         <Link className={navLink} href="/blog">Blog</Link>
       </nav>
       <div className="hidden items-center gap-2 xl:flex">
         <LanguageSwitcher locale={locale} />
-        <Link className={navLink} href={accountHref}>{signedIn ? t.nav.dashboard : t.nav.signIn}</Link>
+        {showAccountLink ? <Link className={navLink} href={accountHref}>{signedIn ? t.nav.dashboard : t.nav.signIn}</Link> : null}
         {showPrimary && (signedIn ? <Link className={headerAction} href="/dashboard">{primaryLabel} <span className="ml-3" aria-hidden="true">↗</span></Link> : <form action={startPart5Challenge}><ChallengeStartButton className={`${headerAction} gap-3`} label={primaryLabel} pendingLabel={pendingLabel} /></form>)}
       </div>
       <details className="group relative xl:hidden">
@@ -38,13 +40,14 @@ export function PublicHeader({ locale, signedIn = false, showPrimary = true }: {
           <Link className={mobileLink} href="/diagnostic">{locale === "vi" ? "Đánh giá đầu vào" : "Diagnostic"}</Link>
           <Link className={mobileLink} href="/toeic">{locale === "vi" ? "Luyện TOEIC theo Part" : "Practice by Part"}</Link>
           <Link className={mobileLink} href="/ngu-phap">{locale === "vi" ? "Ngữ pháp A–Z" : "Grammar A–Z"}</Link>
+          <Link className={mobileLink} href="/vocabulary">{locale === "vi" ? "Từ vựng" : "Vocabulary"}</Link>
           <Link className={mobileLink} href="/listening-lessons">{locale === "vi" ? "Nghe theo transcript" : "Listen with a transcript"}</Link>
           <Link className={mobileLink} href="/ranking">{locale === "vi" ? "Bảng xếp hạng tuần" : "Weekly leaderboard"}</Link>
           <Link className={mobileLink} href="/ve-toeic-gym">{locale === "vi" ? "Về TOEIC GYM" : "About TOEIC GYM"}</Link>
           <Link className={mobileLink} href="/blog">Blog</Link>
-          <Link className={mobileLink} href={accountHref}>{signedIn ? t.nav.dashboard : t.nav.signIn}</Link>
+          {showAccountLink ? <Link className={mobileLink} href={accountHref}>{signedIn ? t.nav.dashboard : t.nav.signIn}</Link> : null}
           <div className="px-2 py-3"><LanguageSwitcher locale={locale} /></div>
-          {showPrimary && (signedIn ? <Link className="flex min-h-12 items-center justify-center rounded-md bg-[#245a43] px-4 font-bold text-white" href="/dashboard">{primaryLabel}</Link> : <form action={startPart5Challenge}><ChallengeStartButton className="flex min-h-12 w-full cursor-pointer items-center justify-center gap-3 rounded-md bg-[#245a43] px-4 font-bold text-white disabled:cursor-wait disabled:opacity-70" label={primaryLabel} pendingLabel={pendingLabel} /></form>)}
+          {showPrimary && (signedIn ? <Link className="flex min-h-12 items-center justify-center rounded-md bg-[#245a43] px-4 font-bold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245a43]" href="/dashboard">{primaryLabel}</Link> : <form action={startPart5Challenge}><ChallengeStartButton className="flex min-h-12 w-full cursor-pointer items-center justify-center gap-3 rounded-md bg-[#245a43] px-4 font-bold text-white disabled:cursor-wait disabled:opacity-70" label={primaryLabel} pendingLabel={pendingLabel} /></form>)}
         </nav>
       </details>
     </div>

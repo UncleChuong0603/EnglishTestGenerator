@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { InterfaceLanguage } from "@/lib/i18n/config";
 import { createVocabularyQuizQuestion, type VocabularyQuizQuestion } from "@/lib/vocabulary/quiz";
@@ -7,7 +8,7 @@ import type { StudyTopic } from "@/lib/vocabulary/study-list";
 
 const QUESTION_COUNT = 10;
 
-export function VocabularyMeaningQuiz({ topics, locale }: { topics: StudyTopic[]; locale: InterfaceLanguage }) {
+export function VocabularyMeaningQuiz({ topics, locale, signedIn = true }: { topics: StudyTopic[]; locale: InterfaceLanguage; signedIn?: boolean }) {
   const vi = locale === "vi";
   const entries = useMemo(() => topics.flatMap((topic) => topic.entries), [topics]);
   const firstQuestion = useMemo(() => createVocabularyQuizQuestion(entries, locale, () => 0), [entries, locale]);
@@ -57,9 +58,10 @@ export function VocabularyMeaningQuiz({ topics, locale }: { topics: StudyTopic[]
 
     {complete ? <div className="mt-6 rounded-xl border border-teal-300 bg-white p-5" role="status"><p className="text-lg font-black">{vi ? `Bạn đúng ${score}/${QUESTION_COUNT} câu.` : `You got ${score}/${QUESTION_COUNT} correct.`}</p><p className="mt-2 text-sm leading-6 text-slate-600">{vi ? "Làm lại để gặp một nhóm từ khác trong kho nghĩa." : "Try again to practise a different group from the meaning pool."}</p><button className="mt-4 min-h-11 rounded-lg bg-teal-800 px-4 font-bold text-white transition hover:bg-teal-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-900" onClick={restart} type="button">{vi ? "Làm lại 10 câu" : "Try 10 more"}</button></div> : <>
       <div className="mt-6 rounded-xl border border-teal-200 bg-white p-5 sm:p-6"><p className="text-xs font-black uppercase tracking-wider text-teal-800">{vi ? "Từ cần chọn nghĩa" : "Word or phrase"}</p><h3 className="mt-2 text-3xl font-black tracking-tight" lang="en">{question.term}</h3></div>
+      {!signedIn ? <p className="mt-4 rounded-xl border border-teal-200 bg-white px-4 py-3 text-sm font-semibold text-teal-950">{vi ? "Bạn có thể làm thử câu đầu tiên. Đăng nhập để tiếp tục đủ 10 câu và lưu tiến độ." : "Try the first question free. Sign in to continue all 10 questions and save your progress."}</p> : null}
       <div className="mt-4 grid gap-3 sm:grid-cols-2" role="group" aria-label={vi ? "Các đáp án" : "Answer choices"}>{question.options.map((option, index) => { const selected = selectedOptionId === option.id; const correct = option.id === question.correctOptionId; const stateClass = selectedOptionId ? correct ? "border-teal-700 bg-teal-50 text-teal-950" : selected ? "border-amber-500 bg-amber-50 text-amber-950" : "border-slate-200 bg-white text-slate-800" : selected ? "border-teal-700 bg-teal-50 text-teal-950" : "border-slate-200 bg-white text-slate-800 hover:border-teal-400 hover:bg-white"; return <button aria-pressed={selected} className={`flex min-h-14 items-start gap-3 rounded-xl border p-4 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-800 disabled:cursor-default ${stateClass}`} disabled={Boolean(selectedOptionId)} key={option.id} onClick={() => chooseOption(option.id)} type="button"><span className="flex h-7 min-w-7 items-center justify-center rounded-full border border-current text-sm font-black">{String.fromCharCode(65 + index)}</span><span className="min-w-0 break-words leading-6">{option.text}</span></button>; })}</div>
       <div aria-live="polite" className="mt-4 min-h-7 text-sm font-semibold">{selectedOptionId ? selectedIsCorrect ? <span className="text-teal-800">{vi ? "Đúng rồi." : "Correct."}</span> : <span className="text-amber-900">{vi ? `Chưa đúng. Đáp án đúng là: ${question.options.find((option) => option.id === question.correctOptionId)?.text}.` : `Not quite. The correct answer is: ${question.options.find((option) => option.id === question.correctOptionId)?.text}.`}</span> : null}</div>
-      <button className="mt-2 min-h-11 rounded-lg bg-teal-800 px-5 font-bold text-white transition hover:bg-teal-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-900 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600" disabled={!selectedOptionId} onClick={moveNext} type="button">{answeredCount + 1 >= QUESTION_COUNT ? (vi ? "Xem kết quả" : "See result") : (vi ? "Câu tiếp theo" : "Next question")}</button>
+      {signedIn ? <button className="mt-2 min-h-11 rounded-lg bg-teal-800 px-5 font-bold text-white transition hover:bg-teal-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-900 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600" disabled={!selectedOptionId} onClick={moveNext} type="button">{answeredCount + 1 >= QUESTION_COUNT ? (vi ? "Xem kết quả" : "See result") : (vi ? "Câu tiếp theo" : "Next question")}</button> : selectedOptionId ? <Link className="mt-2 inline-flex min-h-11 items-center rounded-lg bg-teal-800 px-5 font-bold text-white transition hover:bg-teal-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-900" href="/sign-in?next=%2Fvocabulary">{vi ? "Đăng nhập để làm tiếp 9 câu" : "Sign in to continue 9 more questions"}</Link> : null}
     </>}
   </section>;
 }

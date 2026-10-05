@@ -15,7 +15,7 @@ describe("free dictionary lookup", () => {
   it("returns IPA, same-origin audio, meaning, example and attribution", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json(payload)));
     const card = await lookupDictionaryWord("Invoice");
-    expect(card).toMatchObject({ term: "invoice", phonetic: "/ˈɪnvɔɪs/", audioUrl: "/api/vocabulary/audio/invoice", meaningEn: "A bill for goods.", example: "Please pay the invoice.", sourceUrl: "https://en.wiktionary.org/wiki/invoice" });
+    expect(card).toMatchObject({ term: "invoice", phonetic: "/ˈɪnvɔɪs/", audioUrl: "/api/vocabulary/audio/invoice", partOfSpeech: "noun", meaningEn: "A bill for goods.", example: "Please pay the invoice.", sourceUrl: "https://en.wiktionary.org/wiki/invoice" });
     expect(card?.meaningVi).toBeTruthy();
   });
   it("resolves inflections to a locally known base form before requesting an upstream", async () => {
@@ -33,6 +33,15 @@ describe("free dictionary lookup", () => {
   it("uses the local catalog when the primary dictionary is unavailable", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
     expect(await lookupDictionaryWord("invoice")).toMatchObject({ term: "invoice", meaningVi: "hóa đơn", source: "toeic_gym", meaningViSource: "toeic_gym" });
+  });
+  it("uses the secondary dictionary word class when the primary source is unavailable", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input: string | URL | Request) => {
+      const url = new URL(String(input));
+      if (url.hostname === "api.dictionaryapi.dev") return new Response(null, { status: 503 });
+      if (url.hostname === "api.datamuse.com") return Response.json([{ word: "month", defs: ["n\ta division of the calendar year"] }]);
+      return Response.json({ responseStatus: 200, responseData: { translatedText: "tháng" } });
+    }));
+    expect(await lookupDictionaryWord("month")).toMatchObject({ term: "month", partOfSpeech: "noun", meaningVi: "tháng" });
   });
   it("prefers a known plain Vietnamese gloss and adds the sentence translation", async () => {
     const context = "It made a big impression during her first week.";

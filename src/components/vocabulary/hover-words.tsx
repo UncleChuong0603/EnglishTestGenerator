@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { useEffect, useId, useRef, useState } from "react";
 import type { DictionaryCard } from "@/lib/vocabulary/dictionary-types";
 import type { InterfaceLanguage } from "@/lib/i18n/config";
+import { partOfSpeechLabel } from "@/lib/vocabulary/part-of-speech";
 import { DictionaryAttribution } from "./dictionary-attribution";
 
 const wordPattern = /([A-Za-z]+(?:['’-][A-Za-z]+)*)/g;
@@ -139,7 +140,10 @@ export function HoverWords({ text, locale, part = 5 }: { text: string; locale: I
       <button aria-label={vi ? "Đóng thẻ" : "Close card"} className="mb-1 ml-auto flex min-h-11 min-w-11 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-teal-700" onClick={() => setActive(null)} type="button"><svg aria-hidden="true" className="size-5" fill="none" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeLinecap="round" strokeWidth="2" /></svg></button>
       {loading ? <p aria-live="polite" className="text-sm text-slate-600">{vi ? "Đang tra từ…" : "Looking up word…"}</p> : missing || !card ? <div><p className="text-sm text-slate-600">{vi ? "Chưa tìm thấy nghĩa phù hợp. Nguồn tra cứu có thể đang bận." : "No suitable meaning was found. The lookup source may be temporarily unavailable."}</p><button className="mt-3 min-h-11 rounded-lg border border-teal-700 px-3 text-sm font-bold text-teal-800 hover:bg-teal-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700" onClick={retryLookup} type="button">{vi ? "Thử lại" : "Try again"}</button></div> : <>
         <div className="flex items-start justify-between gap-2"><div><h3 className="text-xl font-black" lang="en">{card.term}</h3>{card.phonetic ? <p className="text-sm text-slate-600">{card.phonetic}</p> : null}</div><button aria-label={vi ? "Phát âm" : "Pronounce"} className="flex min-h-11 min-w-11 items-center justify-center rounded-full bg-teal-50 text-teal-800 hover:bg-teal-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700" onClick={play} type="button"><svg aria-hidden="true" className="size-5" fill="none" viewBox="0 0 24 24"><path d="M11 5 6.5 9H3v6h3.5l4.5 4V5Z" stroke="currentColor" strokeLinejoin="round" strokeWidth="2"/><path d="M15 9a4 4 0 0 1 0 6M17.8 6.8a7.4 7.4 0 0 1 0 10.4" stroke="currentColor" strokeLinecap="round" strokeWidth="2"/></svg></button></div>
-        {card.partOfSpeech ? <p className="mt-2 text-xs font-bold uppercase tracking-wide text-teal-800">{card.partOfSpeech}</p> : null}
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+          <span className="font-semibold text-slate-500">{vi ? "Loại từ" : "Part of speech"}</span>
+          <span className="rounded-full bg-teal-50 px-2.5 py-1 font-bold text-teal-900">{partOfSpeechLabel(card.partOfSpeech, locale)}</span>
+        </div>
         {card.meaningVi ? <p className="mt-2 font-bold">{card.meaningVi}</p> : null}
         <p className="mt-1 text-sm text-slate-600">{card.meaningEn}</p>
         {vi && card.contextVi ? <div className="mt-3 rounded-xl bg-teal-50 p-3"><p className="text-xs font-bold text-teal-900">Nghĩa trong câu</p><p className="mt-1 text-sm leading-6 text-slate-700">{card.contextVi}</p></div> : null}

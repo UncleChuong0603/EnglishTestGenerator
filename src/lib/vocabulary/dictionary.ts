@@ -1,6 +1,7 @@
 import "server-only";
 import type { DictionaryCard } from "./dictionary-types";
 import { foundationalVocabularyByKey, vocabularyByKey } from "./catalog";
+import { normalizePartOfSpeech } from "./part-of-speech";
 
 const validWord = /^[a-z]+(?:['-][a-z]+)*$/;
 
@@ -104,7 +105,7 @@ async function freeDictionaryCard(candidate: string, signal?: AbortSignal): Prom
       term: candidate,
       phonetic: (entry.phonetic || entry.phonetics?.find((item) => item.text)?.text || "").slice(0, 80),
       audioUrl: audio ? `/api/vocabulary/audio/${encodeURIComponent(candidate)}` : null,
-      partOfSpeech: (sense.partOfSpeech ?? "").slice(0, 40),
+      partOfSpeech: normalizePartOfSpeech(sense.partOfSpeech),
       meaningEn: sense.definition.slice(0, 500),
       meaningVi: "",
       example: (sense.example ?? "").slice(0, 500),
@@ -135,7 +136,7 @@ async function datamuseCard(candidate: string, signal?: AbortSignal): Promise<Di
       term: candidate,
       phonetic: pronunciation ? `/${pronunciation}/` : "",
       audioUrl: null,
-      partOfSpeech: partOfSpeech.slice(0, 40),
+      partOfSpeech: normalizePartOfSpeech(partOfSpeech),
       meaningEn: definitionParts.join(" ").trim().slice(0, 500),
       meaningVi: "",
       example: "",
@@ -144,13 +145,16 @@ async function datamuseCard(candidate: string, signal?: AbortSignal): Promise<Di
   } catch { return null; }
 }
 
-async function externalCard(candidate: string) {
-  const controller = new AbortController();
-  const found = (promise: Promise<DictionaryCard | null>) => promise.then((card) => card ?? Promise.reject(new Error("not_found")));
-  try {
-    return await Promise.any([found(freeDictionaryCard(candidate, controller.signal)), found(datamuseCard(candidate, controller.signal))]);
-  } catch { return null; }
-  finally { controller.abort(); }
+async function externalCard(candidate: string, signal?: AbortSignal) {
+  const [freeDictionary, datamuse] = await Promise.all([
+    freeDictionaryCard(candidate, signal),
+    datamuseCard(candidate, signal),
+  ]);
+  if (!freeDictionary) return datamuse;
+  return {
+    ...freeDictionary,
+    partOfSpeech: freeDictionary.partOfSpeech || datamuse?.partOfSpeech || "",
+  };
 }
 
 export async function lookupDictionaryWord(input: string, context = ""): Promise<DictionaryCard | null> {
@@ -164,7 +168,7 @@ export async function lookupDictionaryWord(input: string, context = ""): Promise
     // Give the richer source a short chance to add IPA/audio, but never let an
     // unreliable upstream hide a word already available in our local catalog.
     const [external, translated, contextVi] = await Promise.all([
-      freeDictionaryCard(localCandidate, AbortSignal.timeout(900)),
+      externalCard(localCandidate, AbortSignal.timeout(1500)),
       foundational ? Promise.resolve("") : translateGloss(localCandidate, local.meaningVi),
       translateContext(context),
     ]);

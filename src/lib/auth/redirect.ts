@@ -34,7 +34,7 @@ export function safeGuestContinuation(value: string | null | undefined) {
   } catch { return null; }
 }
 
-/** Only carry known purchase and guest-result destinations through account creation. */
+/** Carry only known purchase, guest-result, and learner-preview destinations through account creation. */
 export function safeAuthContinuation(value: string | null | undefined) {
   const guest = safeGuestContinuation(value);
   if (guest) return guest;
@@ -42,6 +42,17 @@ export function safeAuthContinuation(value: string | null | undefined) {
   if (!path) return null;
   try {
     const url = new URL(path, "https://toeicgym.internal");
+    if (url.searchParams.size === 0 && (
+      url.pathname === "/dashboard" ||
+      url.pathname === "/practice" ||
+      url.pathname === "/progress" ||
+      url.pathname === "/full-mock" ||
+      url.pathname === "/mistakes" ||
+      url.pathname === "/vocabulary" ||
+      url.pathname === "/listening-lessons" ||
+      url.pathname === "/listening-lessons/dictation" ||
+      /^\/listening-lessons\/talk\/[a-z0-9-]+$/.test(url.pathname)
+    )) return url.pathname;
     const product = url.searchParams.get("product");
     if (url.pathname !== "/billing/confirm" || url.searchParams.size !== 1 || !product || !/^PREMIUM_(30|90|365)_DAYS$/.test(product)) return null;
     return `/billing/confirm?product=${product}`;
