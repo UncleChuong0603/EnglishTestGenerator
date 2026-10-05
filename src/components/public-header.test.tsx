@@ -21,6 +21,18 @@ describe("PublicHeader", () => {
   });
 
   it.each([
+    ["vi", "TOEIC là gì", "Ngữ Pháp", "Luyện nghe", "Thi Thử"],
+    ["en", "What is TOEIC?", "Grammar", "Listening", "Mock Test"],
+  ] as const)("shows the updated %s learning links in the desktop and mobile navigation", (locale, toeicLabel, grammarLabel, listeningLabel, mockLabel) => {
+    const html = renderToStaticMarkup(<PublicHeader locale={locale} />);
+
+    expect(html.match(new RegExp(`href="/toeic"[^>]*>${toeicLabel.replace("?", "\\?")}</a>`, "g"))).toHaveLength(2);
+    expect(html.match(new RegExp(`href="/ngu-phap"[^>]*>${grammarLabel}</a>`, "g"))).toHaveLength(2);
+    expect(html.match(new RegExp(`href="/listening-lessons"[^>]*>${listeningLabel}</a>`, "g"))).toHaveLength(2);
+    expect(html.match(new RegExp(`href="/thi-thu-toeic-online"[^>]*>${mockLabel}</a>`, "g"))).toHaveLength(2);
+  });
+
+  it.each([
     ["vi", "Trang học", "Tiếp tục học"],
     ["en", "Dashboard", "Continue learning"],
   ] as const)("shows one dashboard action per signed-in %s header layout", (locale, dashboardLabel, continueLabel) => {

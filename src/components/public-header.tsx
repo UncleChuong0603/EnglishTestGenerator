@@ -27,10 +27,11 @@ export function PublicHeader({ locale, signedIn = false, showPrimary = true, ton
     <div className="mx-auto flex min-h-[76px] max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
       <Link className={`inline-flex shrink-0 items-center gap-2 text-lg font-black tracking-tight ${dark ? "text-white" : "text-[#183e2b]"}`} href="/" aria-label="TOEIC GYM home"><Image src="/brand/toeic-gym-mark.png" alt="" width={36} height={36} /><span>TOEIC<span className="font-semibold"> GYM</span></span></Link>
       <nav className="hidden items-center gap-1 xl:flex" aria-label="Public navigation">
-        <Link className={navLink} href="/toeic">{locale === "vi" ? "Luyện TOEIC" : "TOEIC practice"}</Link>
-        <Link className={navLink} href="/ngu-phap">{locale === "vi" ? "Ngữ pháp A–Z" : "Grammar A–Z"}</Link>
+        <Link className={navLink} href="/toeic">{locale === "vi" ? "TOEIC là gì" : "What is TOEIC?"}</Link>
+        <Link className={navLink} href="/ngu-phap">{locale === "vi" ? "Ngữ Pháp" : "Grammar"}</Link>
         <Link className={navLink} href="/vocabulary">{locale === "vi" ? "Từ vựng" : "Vocabulary"}</Link>
-        <Link className={navLink} href="/listening-lessons">{locale === "vi" ? "Nghe transcript" : "Audio & transcript"}</Link>
+        <Link className={navLink} href="/listening-lessons">{locale === "vi" ? "Luyện nghe" : "Listening"}</Link>
+        <Link className={navLink} href="/thi-thu-toeic-online">{locale === "vi" ? "Thi Thử" : "Mock Test"}</Link>
         <Link className={navLink} href="/ranking">{locale === "vi" ? "Xếp hạng" : "Rankings"}</Link>
         <Link className={navLink} href="/blog">Blog</Link>
       </nav>
@@ -45,10 +46,11 @@ export function PublicHeader({ locale, signedIn = false, showPrimary = true, ton
           <Link className={mobileLink} href="/#features">{locale === "vi" ? "Tất cả tính năng miễn phí" : "All free features"}</Link>
           <Link className={mobileLink} href={signedIn ? "/practice" : "/try"}>{locale === "vi" ? "Bài luyện ngắn" : "Short practice"}</Link>
           <Link className={mobileLink} href="/diagnostic">{locale === "vi" ? "Đánh giá đầu vào" : "Diagnostic"}</Link>
-          <Link className={mobileLink} href="/toeic">{locale === "vi" ? "Luyện TOEIC theo Part" : "Practice by Part"}</Link>
-          <Link className={mobileLink} href="/ngu-phap">{locale === "vi" ? "Ngữ pháp A–Z" : "Grammar A–Z"}</Link>
+          <Link className={mobileLink} href="/toeic">{locale === "vi" ? "TOEIC là gì" : "What is TOEIC?"}</Link>
+          <Link className={mobileLink} href="/ngu-phap">{locale === "vi" ? "Ngữ Pháp" : "Grammar"}</Link>
           <Link className={mobileLink} href="/vocabulary">{locale === "vi" ? "Từ vựng" : "Vocabulary"}</Link>
-          <Link className={mobileLink} href="/listening-lessons">{locale === "vi" ? "Nghe theo transcript" : "Listen with a transcript"}</Link>
+          <Link className={mobileLink} href="/listening-lessons">{locale === "vi" ? "Luyện nghe" : "Listening"}</Link>
+          <Link className={mobileLink} href="/thi-thu-toeic-online">{locale === "vi" ? "Thi Thử" : "Mock Test"}</Link>
           <Link className={mobileLink} href="/ranking">{locale === "vi" ? "Bảng xếp hạng tuần" : "Weekly leaderboard"}</Link>
           <Link className={mobileLink} href="/ve-toeic-gym">{locale === "vi" ? "Về TOEIC GYM" : "About TOEIC GYM"}</Link>
           <Link className={mobileLink} href="/blog">Blog</Link>
