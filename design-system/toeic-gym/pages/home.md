@@ -10,6 +10,12 @@ Use the global [MASTER.md](../MASTER.md) rules, with these homepage priorities:
 6. Keep the header as the only navigation system on the public homepage. Vocabulary is a direct top-bar destination. Lead with the promise, evidence and action on mobile; supporting product preview follows.
 7. Verify 375px, 768px, 1024px and 1440px, both Vietnamese and English, plus keyboard focus and route destinations.
 
+## Visual direction
+
+The homepage is a deliberate dark marketing surface inspired by immersive editorial product pages, while the learning app keeps the light work-surface system from `MASTER.md`. Use `#071915` for the page, `#0b211b` for raised demonstrations, `#eef9f2` for primary copy, `#a9c0b5` for supporting copy, `#21463b` for rules and `#7be5bd` as the single action accent. Keep the implementation flat: strong type, thin rules, a restrained grid texture and real product examples; no glass panels, gradients, decorative stock art or fabricated social proof.
+
+Tell the page as sequential chapters: promise and real next-session preview → core daily/weekly adaptation → free remediation tools → complete feature directory → Part guides and learning resources. On mobile, preserve that order rather than creating a separate compressed feature pitch.
+
 ## Feature content
 
 Use `src/lib/marketing/features.ts` for the basic Free feature directory. Explain whether a visitor can open the feature now or needs a free account. Diagnostic supports guests. Listening and vocabulary show the real learner interface to guests, including one complete listening sample and one vocabulary quiz question. Request a free sign-in for the remaining library and questions, protected study content, saving words and progress. Saved learning tools require an account. Mock formats and scheduled challenges remain subject to their real availability. Avoid describing Premium targeting or skill analysis as Free. Show authentic library titles and transcript excerpts instead of invented player screenshots or learner results.

@@ -18,6 +18,19 @@
 .readMore { display: flex; min-height: 3.35rem; align-items: center; justify-content: space-between; gap: 1rem; border-top: 1px solid #dce3d9; padding: .75rem 1.15rem; color: #245a43; font-size: .86rem; font-weight: 850; }
 .allGuides { display: inline-flex; min-height: 3.25rem; align-items: center; gap: .55rem; margin-top: .5rem; color: #245a43; font-weight: 800; text-decoration: underline; text-underline-offset: .35rem; }
 .allGuides:hover { color: #173e2c; }
+.dark .status { color: #a9c0b5; }
+.dark .controls button { border-color: #315c4d; background: #0b211b; color: #7be5bd; }
+.dark .controls button:hover:not(:disabled) { border-color: #7be5bd; background: #102d25; }
+.dark .controls button:disabled { border-color: #21463b; background: #0a1c17; color: #557368; }
+.dark .controls button:focus-visible, .dark .card:focus-visible, .dark .allGuides:focus-visible { outline-color: #7be5bd; }
+.dark .viewport { scrollbar-color: #315c4d transparent; }
+.dark .card { border-color: #315c4d; background: #0b211b; color: #eef9f2; }
+.dark .card:hover { border-color: #62cfa8; background: #102d25; }
+.dark .cardTop, .dark .readMore { border-color: #21463b; color: #7be5bd; }
+.dark .cardTop > span:last-child { color: #77968a; }
+.dark .cardBody > span { color: #a9c0b5; }
+.dark .allGuides { color: #7be5bd; }
+.dark .allGuides:hover { color: #a1f0d2; }
 @media (max-width: 1023px) {
   .slide { flex-basis: calc((100% - 1rem) / 2); }
 }

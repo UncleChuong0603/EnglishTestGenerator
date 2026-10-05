@@ -18,6 +18,14 @@
 .iconFrame { display: grid; width: 2.6rem; height: 2.6rem; flex: none; place-items: center; border: 1px solid #bdd0bf; border-radius: .35rem; background: #e9eee5; color: var(--green); }
 .icon { width: 1.4rem; height: 1.4rem; }
 .arrow { margin-left: auto; color: var(--green); font-weight: 800; }
+.dark { --line: #21463b; --green: #7be5bd; --ink: #eef9f2; color: #eef9f2; }
+.dark .group h3 { color: #eef9f2; }
+.dark .feature:hover, .dark .compactFeature:hover { background: #102d25; }
+.dark .feature:focus-visible, .dark .compactFeature:focus-visible { outline-color: #7be5bd; }
+.dark .access, .dark .feature p { color: #a9c0b5; }
+.dark .action, .dark .arrow { color: #7be5bd; }
+.dark .compactGroup .compactList { border-top-color: #315c4d; }
+.dark .iconFrame { border-color: #315c4d; background: #102d25; color: #7be5bd; }
 @media (max-width: 800px) { .feature { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); } .action { grid-column: 2; justify-content: flex-start; } }
 @media (max-width: 700px) { .compactDirectory { grid-template-columns: minmax(0, 1fr); gap: 2rem; } }
 @media (max-width: 550px) { .feature { grid-template-columns: minmax(0, 1fr); gap: .8rem; padding: 1.4rem .25rem; } .action { grid-column: auto; min-height: 2.75rem; } .compactFeature { padding-inline: .25rem; } }

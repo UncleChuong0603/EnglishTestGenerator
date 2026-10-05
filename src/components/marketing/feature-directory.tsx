@@ -26,8 +26,8 @@ function FeatureIcon({ id }: { id: string }) {
   return <svg aria-hidden="true" className={styles.icon} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8">{paths[id]}</svg>;
 }
 
-export function FeatureDirectory({ locale, compact = false }: { locale: InterfaceLanguage; compact?: boolean }) {
-  return <div className={`${styles.directory} ${compact ? styles.compactDirectory : ""}`}>{featureGroups.map(group => <section aria-labelledby={`feature-group-${group.id}`} className={`${styles.group} ${compact ? styles.compactGroup : ""}`} key={group.id}>
+export function FeatureDirectory({ locale, compact = false, tone = "light" }: { locale: InterfaceLanguage; compact?: boolean; tone?: "light" | "dark" }) {
+  return <div className={`${styles.directory} ${compact ? styles.compactDirectory : ""} ${tone === "dark" ? styles.dark : ""}`}>{featureGroups.map(group => <section aria-labelledby={`feature-group-${group.id}`} className={`${styles.group} ${compact ? styles.compactGroup : ""}`} key={group.id}>
     <h3 id={`feature-group-${group.id}`}>{group[locale]}</h3>
     <ul className={compact ? styles.compactList : undefined}>{group.features.map(id => {
       const feature = productFeatures.find(item => item.id === id)!;

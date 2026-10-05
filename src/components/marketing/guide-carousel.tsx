@@ -21,6 +21,7 @@ type Props = {
   nextLabel: string;
   previousLabel: string;
   readLabel: string;
+  tone?: "light" | "dark";
 };
 
 function ArrowIcon({ direction }: { direction: "left" | "right" }) {
@@ -29,7 +30,7 @@ function ArrowIcon({ direction }: { direction: "left" | "right" }) {
   </svg>;
 }
 
-export function GuideCarousel({ allGuidesHref, allGuidesLabel, itemLabel, items, label, locale, nextLabel, previousLabel, readLabel }: Props) {
+export function GuideCarousel({ allGuidesHref, allGuidesLabel, itemLabel, items, label, locale, nextLabel, previousLabel, readLabel, tone = "light" }: Props) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<number | null>(null);
   const [range, setRange] = useState({ start: 1, end: 1 });
@@ -95,7 +96,7 @@ export function GuideCarousel({ allGuidesHref, allGuidesLabel, itemLabel, items,
     ? `${itemLabel} ${range.start} / ${items.length}`
     : `${itemLabel} ${range.start}–${range.end} / ${items.length}`;
 
-  return <div aria-label={label} aria-roledescription="carousel" className={styles.carousel} role="region">
+  return <div aria-label={label} aria-roledescription="carousel" className={`${styles.carousel} ${tone === "dark" ? styles.dark : ""}`} role="region">
     <div className={styles.toolbar}>
       <p aria-atomic="true" aria-live="polite" className={styles.status}>{status}</p>
       <div className={styles.controls}>

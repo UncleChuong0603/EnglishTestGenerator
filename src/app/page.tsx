@@ -21,7 +21,8 @@ export const dynamic = "force-dynamic";
 const copy = {
   vi: {
     eyebrow: "TOEIC GYM / LUYỆN THEO LỖI SAI",
-    title: "Luyện đúng lỗi sai. Mỗi ngày biết nên học gì.",
+    title: "Luyện đúng lỗi sai.",
+    titleAccent: "Mỗi ngày biết nên học gì.",
     lead: "TOEIC GYM dùng kết quả luyện để chọn bài nên học hôm nay, đồng thời đưa lỗi chưa vững và mục tiêu của bạn vào lộ trình được điều chỉnh theo từng tuần.",
     start: "Làm 10 câu để bắt đầu",
     starting: "Đang chuẩn bị bài…",
@@ -78,7 +79,8 @@ const copy = {
   },
   en: {
     eyebrow: "TOEIC GYM / PRACTICE FROM MISTAKES",
-    title: "Practice your real mistakes. Know what to study each day.",
+    title: "Practice your real mistakes.",
+    titleAccent: "Know what to study each day.",
     lead: "TOEIC GYM uses your practice results to choose today's useful session, while unresolved mistakes and goals shape a plan that adjusts week by week.",
     start: "Take 10 questions to begin",
     starting: "Preparing your questions…",
@@ -161,13 +163,13 @@ export default async function Home() {
   return <div className={styles.page}>
     <script dangerouslySetInnerHTML={{ __html: serializeStructuredData(websiteStructuredData) }} type="application/ld+json" />
     <a className={styles.skipLink} href="#main-content">{vi ? "Bỏ qua điều hướng" : "Skip to content"}</a>
-    <PublicHeader locale={locale} signedIn={Boolean(user)} />
+    <PublicHeader locale={locale} signedIn={Boolean(user)} tone="dark" />
     <main id="main-content" lang={locale}>
 
     <section aria-labelledby="home-title" className={styles.hero}>
       <div className={styles.heroCopy}>
         <p className={styles.eyebrow}>{t.eyebrow}</p>
-        <h1 id="home-title">{t.title}</h1>
+        <h1 id="home-title"><span>{t.title}</span>{" "}<span className={styles.titleAccent}>{t.titleAccent}</span></h1>
         <p className={styles.lead}>{t.lead}</p>
         <ul className={styles.promise}>{t.promise.map((item) => <li key={item}>{item}</li>)}</ul>
         <div className={styles.actions}>
@@ -200,6 +202,23 @@ export default async function Home() {
       ].map(item => <Link href={item.href} key={item.href}><strong>{item.marker}</strong><span>{item.label}</span><span aria-hidden="true">↗</span></Link>)}
     </div>
 
+    <section aria-labelledby="roadmap-title" className={styles.roadmapSection} id="roadmap">
+      <div className={styles.roadmapIntro}>
+        <div><p className={styles.eyebrow}>{t.roadmapEyebrow}</p><h2 id="roadmap-title">{t.roadmapTitle}</h2></div>
+        <p>{t.roadmapLead}</p>
+      </div>
+      <ol className={styles.roadmapList}>
+        {t.roadmapItems.map((item, index) => <li key={item.title}>
+          <div className={styles.roadmapMeta}><span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span><span>{item.status}</span></div>
+          <div className={styles.roadmapCopy}><h3>{item.title}</h3><p>{item.description}</p></div>
+        </li>)}
+      </ol>
+      <div className={styles.roadmapFoot}>
+        <p>{t.roadmapNote}</p>
+        <Link className={styles.roadmapAction} href="/ve-toeic-gym#adaptive-plan">{t.roadmapAction}<span aria-hidden="true">↗</span></Link>
+      </div>
+    </section>
+
     <section aria-labelledby="explore-title" className={styles.section} id="explore">
       <div className={styles.sectionIntro}><div><p className={styles.eyebrow}>{t.entryEyebrow}</p><h2 id="explore-title">{t.entryTitle}</h2></div><p>{t.entryLead}</p></div>
       <div className={styles.spotlights}>
@@ -226,24 +245,7 @@ export default async function Home() {
     <section aria-labelledby="features-title" className={styles.directorySection} id="features">
       <div className={styles.section}>
         <div className={styles.sectionIntro}><div><p className={styles.eyebrow}>{t.loopEyebrow}</p><h2 id="features-title">{t.loopTitle}</h2></div></div>
-        <FeatureDirectory compact locale={locale} />
-      </div>
-    </section>
-
-    <section aria-labelledby="roadmap-title" className={styles.roadmapSection} id="roadmap">
-      <div className={styles.roadmapIntro}>
-        <div><p className={styles.eyebrow}>{t.roadmapEyebrow}</p><h2 id="roadmap-title">{t.roadmapTitle}</h2></div>
-        <p>{t.roadmapLead}</p>
-      </div>
-      <ol className={styles.roadmapList}>
-        {t.roadmapItems.map((item, index) => <li key={item.title}>
-          <div className={styles.roadmapMeta}><span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span><span>{item.status}</span></div>
-          <div className={styles.roadmapCopy}><h3>{item.title}</h3><p>{item.description}</p></div>
-        </li>)}
-      </ol>
-      <div className={styles.roadmapFoot}>
-        <p>{t.roadmapNote}</p>
-        <Link className={styles.roadmapAction} href="/ve-toeic-gym#adaptive-plan">{t.roadmapAction}<span aria-hidden="true">↗</span></Link>
+        <FeatureDirectory compact locale={locale} tone="dark" />
       </div>
     </section>
 
@@ -265,11 +267,12 @@ export default async function Home() {
         nextLabel={t.guideNext}
         previousLabel={t.guidePrevious}
         readLabel={t.guideRead}
+        tone="dark"
       />
     </section>
 
     <section aria-labelledby="closing-title" className={styles.closing}><div><p className={styles.eyebrow}>TOEIC GYM</p><h2 id="closing-title">{t.closing}</h2><p>{t.closingBody}</p></div>{user ? <Link className={styles.primaryAction} href="/dashboard">{t.continue}<span aria-hidden="true">↗</span></Link> : <form action={startPart5Challenge}><ChallengeStartButton className={styles.primaryAction} label={t.start} pendingLabel={t.starting} /></form>}</section>
     </main>
-    <PublicFooter locale={locale} />
+    <PublicFooter locale={locale} tone="dark" />
   </div>;
 }

@@ -96,56 +96,57 @@ export default async function AboutToeicGymPage() {
   };
   return <div className={styles.page}>
     <a className={styles.skipLink} href="#main-content">{locale === "vi" ? "Bỏ qua điều hướng" : "Skip to content"}</a>
-    <PublicHeader locale={locale} signedIn={Boolean(user)} />
+    <PublicHeader locale={locale} signedIn={Boolean(user)} tone="dark" />
     <script dangerouslySetInnerHTML={{ __html: serializeStructuredData(aboutStructuredData) }} type="application/ld+json" />
-    <main id="main-content"><article className="mx-auto max-w-7xl px-5 pb-16 pt-10 sm:px-8 sm:pt-14" lang={locale}>
+    <main id="main-content"><article className={styles.aboutArticle} lang={locale}>
       <BreadcrumbTrail items={[{ name: locale === "vi" ? "Trang chủ" : "Home", path: "/" }, { name: t.title, path: "/ve-toeic-gym" }]} />
-      <header className="mt-8 max-w-3xl border-b border-[#dce3d9] pb-10">
-        <p className="text-sm font-bold uppercase tracking-[.16em] text-[#245a43]">{t.eyebrow}</p>
-        <h1 className="mt-4 text-4xl font-black leading-tight sm:text-6xl">{t.title}</h1>
-        <p className="mt-5 text-lg leading-8 text-[#45584d]">{t.intro}</p>
-        <div className="mt-6 flex flex-wrap items-center gap-4"><Link className={styles.primaryAction} href="/challenge/part-5">{locale === "vi" ? "Làm thử 10 câu miễn phí" : "Try 10 questions free"}<span aria-hidden="true">↗</span></Link><Link className={styles.secondaryAction} href="#about-features">{locale === "vi" ? "Xem tất cả tính năng" : "See all features"}<span aria-hidden="true">↓</span></Link></div>
+      <header className={styles.aboutHero}>
+        <p className={styles.eyebrow}>{t.eyebrow}</p>
+        <h1>{t.title}</h1>
+        <p>{t.intro}</p>
+        <div className={styles.actions}><Link className={styles.primaryAction} href="/challenge/part-5">{locale === "vi" ? "Làm thử 10 câu miễn phí" : "Try 10 questions free"}<span aria-hidden="true">↗</span></Link><Link className={styles.secondaryAction} href="#about-features">{locale === "vi" ? "Xem tất cả tính năng" : "See all features"}<span aria-hidden="true">↓</span></Link></div>
       </header>
-      <section aria-labelledby="adaptive-plan-title" className="border-b border-[#dce3d9] py-12" id="adaptive-plan">
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,.85fr)] lg:gap-16">
+      <section aria-labelledby="adaptive-plan-title" className={styles.aboutSection} id="adaptive-plan">
+        <div className={styles.aboutSplit}>
           <div>
-            <p className="text-sm font-bold uppercase tracking-[.16em] text-[#245a43]">{t.adaptiveEyebrow}</p>
-            <h2 className="mt-4 max-w-2xl text-3xl font-black leading-tight sm:text-5xl" id="adaptive-plan-title">{t.adaptiveTitle}</h2>
-            <p className="mt-5 max-w-2xl text-lg leading-8 text-[#45584d]">{t.adaptiveLead}</p>
+            <p className={styles.eyebrow}>{t.adaptiveEyebrow}</p>
+            <h2 className={styles.aboutHeading} id="adaptive-plan-title">{t.adaptiveTitle}</h2>
+            <p className={styles.aboutLead}>{t.adaptiveLead}</p>
           </div>
           <div>
-            <h3 className="text-sm font-black uppercase tracking-[.12em] text-[#245a43]">{t.signalTitle}</h3>
-            <ul className="mt-4 border-t border-[#bdcdbf]">
-              {t.signals.map((signal, index) => <li className="grid min-h-14 grid-cols-[2rem_minmax(0,1fr)] items-center gap-3 border-b border-[#bdcdbf] py-3 text-[#45584d]" key={signal}><span className="text-xs font-black text-[#245a43]">{String(index + 1).padStart(2, "0")}</span><span className="leading-7">{signal}</span></li>)}
+            <h3 className={styles.signalTitle}>{t.signalTitle}</h3>
+            <ul className={styles.signalList}>
+              {t.signals.map((signal, index) => <li key={signal}><span>{String(index + 1).padStart(2, "0")}</span><span>{signal}</span></li>)}
             </ul>
           </div>
         </div>
-        <ol className="mt-10 grid border-y border-[#bdcdbf] md:grid-cols-3">
-          {t.adaptiveSteps.map(([number, title, description], index) => <li className={`py-6 md:px-6 ${index > 0 ? "border-t border-[#bdcdbf] md:border-l md:border-t-0" : ""}`} key={number}><span className="text-xs font-black tracking-[.12em] text-[#af744f]">{number}</span><h3 className="mt-3 text-xl font-black">{title}</h3><p className="mt-2 leading-7 text-[#45584d]">{description}</p></li>)}
+        <ol className={styles.aboutSteps}>
+          {t.adaptiveSteps.map(([number, title, description]) => <li key={number}><span>{number}</span><h3>{title}</h3><p>{description}</p></li>)}
         </ol>
       </section>
-      <section aria-labelledby="about-features-title" className="py-12" id="about-features">
-        <h2 className="text-3xl font-black leading-tight" id="about-features-title">{t.featuresTitle}</h2>
-        <p className="mb-8 mt-4 max-w-3xl leading-8 text-[#45584d]">{t.featuresLead}</p>
-        <FeatureDirectory locale={locale} />
+      <section aria-labelledby="about-features-title" className={styles.aboutSection} id="about-features">
+        <div className={styles.aboutSectionHeader}><h2 id="about-features-title">{t.featuresTitle}</h2><p>{t.featuresLead}</p></div>
+        <FeatureDirectory locale={locale} tone="dark" />
       </section>
-      <section aria-labelledby="workflow-title" className="border-y border-[#dce3d9] py-10">
-        <h2 className="text-2xl font-black" id="workflow-title">{t.workflowTitle}</h2>
-        <ol className="mt-6 grid gap-6 md:grid-cols-3">{t.next.map(([label, href, description]) => <li key={href}><Link className="inline-flex min-h-11 items-center font-black text-[#245a43] underline underline-offset-4" href={href}>{label}<span aria-hidden="true" className="ml-3">↗</span></Link><p className="mt-2 leading-7 text-[#45584d]">{description}</p></li>)}</ol>
+      <section aria-labelledby="workflow-title" className={styles.aboutSection}>
+        <div className={styles.aboutSectionHeader}><h2 id="workflow-title">{t.workflowTitle}</h2></div>
+        <ol className={styles.workflowList}>{t.next.map(([label, href, description]) => <li key={href}><Link href={href}>{label}<span aria-hidden="true">↗</span></Link><p>{description}</p></li>)}</ol>
       </section>
-      <h2 className="mt-12 text-3xl font-black leading-tight">{t.trustTitle}</h2>
-      <div className="grid gap-12 pt-10 lg:grid-cols-[minmax(0,1fr)_18rem]">
-        <div className="space-y-10">
-          {t.sections.map(section => <section key={section.title}><h3 className="text-xl font-black leading-snug">{section.title}</h3><p className="mt-4 leading-8 text-[#45584d]">{section.body}</p></section>)}
+      <section aria-labelledby="trust-title" className={styles.aboutSection}>
+        <div className={styles.aboutSectionHeader}><h2 id="trust-title">{t.trustTitle}</h2></div>
+        <div className={styles.trustGrid}>
+        <div className={styles.trustCopy}>
+          {t.sections.map(section => <section key={section.title}><h3>{section.title}</h3><p>{section.body}</p></section>)}
         </div>
-        <aside className="h-fit rounded-md border border-[#cbd9cd] bg-[#e7eee8] p-6 lg:sticky lg:top-6">
-          <h2 className="text-lg font-black">{locale === "vi" ? "Liên kết chính thức" : "Official links"}</h2>
-          <p className="mt-3 text-sm leading-6 text-[#45584d]">{locale === "vi" ? "Theo dõi thông tin và gửi phản hồi qua các kênh của TOEIC GYM." : "Follow updates and send feedback through TOEIC GYM channels."}</p>
-          <div className="mt-5 grid gap-3 text-sm"><Link className="font-bold text-[#245a43] underline" href="/support">{locale === "vi" ? "Trung tâm hỗ trợ" : "Support Center"}</Link><a className="font-bold text-[#245a43] underline" href="https://www.facebook.com/profile.php?id=61594521208737" rel="noopener noreferrer" target="_blank">Facebook Page</a><a className="font-bold text-[#245a43] underline" href="https://www.facebook.com/groups/1632623558419538" rel="noopener noreferrer" target="_blank">Facebook Group</a></div>
+        <aside className={styles.officialLinks}>
+          <h2>{locale === "vi" ? "Liên kết chính thức" : "Official links"}</h2>
+          <p>{locale === "vi" ? "Theo dõi thông tin và gửi phản hồi qua các kênh của TOEIC GYM." : "Follow updates and send feedback through TOEIC GYM channels."}</p>
+          <div><Link href="/support">{locale === "vi" ? "Trung tâm hỗ trợ" : "Support Center"}</Link><a href="https://www.facebook.com/profile.php?id=61594521208737" rel="noopener noreferrer" target="_blank">Facebook Page</a><a href="https://www.facebook.com/groups/1632623558419538" rel="noopener noreferrer" target="_blank">Facebook Group</a></div>
         </aside>
-      </div>
-      <section className="mt-14 rounded-md bg-[#172821] p-7 text-white sm:p-10"><h2 className="text-2xl font-black">{t.cta}</h2><p className="mt-3 max-w-2xl leading-7 text-[#dce3d9]">{locale === "vi" ? "Bắt đầu với một nhóm câu ngắn, xem lời giải và tạo tín hiệu đầu tiên cho bài học được đề xuất." : "Start with a short set, read the explanations and create the first signal for a recommended next session."}</p><Link className="mt-6 inline-flex min-h-12 items-center rounded-md bg-[#bfe5c9] px-5 font-bold text-[#172821] focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-[#bfe5c9]" href="/try">{t.cta} <span aria-hidden="true" className="ml-3">→</span></Link></section>
+        </div>
+      </section>
+      <section className={styles.aboutCta}><div><h2>{t.cta}</h2><p>{locale === "vi" ? "Bắt đầu với một nhóm câu ngắn, xem lời giải và tạo tín hiệu đầu tiên cho bài học được đề xuất." : "Start with a short set, read the explanations and create the first signal for a recommended next session."}</p></div><Link className={styles.primaryAction} href="/try">{t.cta} <span aria-hidden="true">→</span></Link></section>
     </article></main>
-    <PublicFooter locale={locale} />
+    <PublicFooter locale={locale} tone="dark" />
   </div>;
 }
