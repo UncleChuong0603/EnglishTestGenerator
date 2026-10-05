@@ -36,13 +36,14 @@ function selectedPool(requestedPool: QuestionBankPool): QuestionBankPool {
 
 // A random UUID cursor gives every part of a growing bank a chance to be used
 // while fetching only a bounded window through the published-part index.
-async function samplePublishedQuestions(part: number, limit: number, skill?: string, subSkill?: string, curatedOnly = false, requestedPool: QuestionBankPool = "PRACTICE") {
+async function samplePublishedQuestions(part: number, limit: number, skill?: string, subSkill?: string, curatedOnly = false, requestedPool: QuestionBankPool = "PRACTICE", difficulty?: string) {
   const pivot = randomUUID();
   const conditions = [eq(questions.toeicPart, part), eq(questions.status, "published")];
   const pool = selectedPool(requestedPool);
   if (pool) conditions.push(eq(questions.bankPool, pool));
   if (skill) conditions.push(eq(questions.skill, skill));
   if (subSkill) conditions.push(eq(questions.subSkill, subSkill));
+  if (difficulty) conditions.push(eq(questions.difficulty, difficulty));
   if (curatedOnly) conditions.push(sql`coalesce(${questions.metadata}->>'external_id', '') not like '%BANK%'`);
   const after = await db.select().from(questions).where(and(...conditions, gte(questions.id, pivot))).orderBy(asc(questions.id)).limit(limit);
   if (after.length === limit) return after;
@@ -157,8 +158,8 @@ export async function createRecommendedListeningPracticeSession(userId: string, 
 function partForMode(mode: PracticeConfig["mode"]): ReadingPart | null { return mode === "part_5" ? 5 : mode === "part_6" ? 6 : mode === "part_7" ? 7 : null; }
 export function validatePracticeConfig(config: PracticeConfig) { const part = partForMode(config.mode); if (![10, 15, 20].includes(config.targetQuestionCount)) return false; if (!part && (config.skill || config.subSkill)) return false; if (!part) return true; if (config.skill && !(config.skill in READING_TAXONOMY[part])) return false; return !(config.subSkill && (!config.skill || !READING_TAXONOMY[part][config.skill]?.includes(config.subSkill))); }
 
-export async function loadUnits(part: ReadingPart, skill?: string, subSkill?: string, pool: QuestionBankPool = "PRACTICE"): Promise<SelectionUnit[]> {
-  const matched = await samplePublishedQuestions(part, 500, skill, subSkill, false, pool); const setIds = [...new Set(matched.flatMap((q) => q.passageSetId ?? []))];
+export async function loadUnits(part: ReadingPart, skill?: string, subSkill?: string, pool: QuestionBankPool = "PRACTICE", difficulty?: string): Promise<SelectionUnit[]> {
+  const matched = await samplePublishedQuestions(part, 500, skill, subSkill, false, pool, difficulty); const setIds = [...new Set(matched.flatMap((q) => q.passageSetId ?? []))];
   let candidates = matched;
   if (part !== 5) {
     if (!setIds.length) return []; const [sets, docs] = await Promise.all([db.select().from(passageSets).where(and(inArray(passageSets.id, setIds), eq(passageSets.status, "published"))), db.select().from(passages).where(inArray(passages.passageSetId, setIds))]);

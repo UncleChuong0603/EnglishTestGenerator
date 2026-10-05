@@ -16,6 +16,8 @@ import {
   PremiumRenewalCard,
 } from "@/components/premium/premium-preview";
 import { getPremiumPreview } from "@/lib/premium/preview";
+import { getActiveShortMock, getShortMockReadiness } from "@/lib/short-mock/service";
+import { ShortMockPicker } from "./short-mock-picker";
 
 const copy = {
   vi: {
@@ -35,6 +37,8 @@ const copy = {
       "Đây là bài luyện tập theo định dạng TOEIC, không phải bài thi chính thức của ETS",
     ],
     history: "Lịch sử thi thử",
+    shortTitle: "Đề thi thử ngắn",
+    shortIntro: "Chọn độ khó và kiểm tra nhanh Part 5 trước khi bước vào bài thi dài.",
   },
   en: {
     title: "Mock Tests",
@@ -53,10 +57,14 @@ const copy = {
       "This is TOEIC-style practice, not an official ETS test",
     ],
     history: "Mock test history",
+    shortTitle: "Short mock test",
+    shortIntro: "Choose a difficulty and check your Part 5 readiness before a longer test.",
   },
 } as const;
 
-export default async function FullMockPage() {
+type Props = { searchParams: Promise<{ shortError?: string }> };
+
+export default async function FullMockPage({ searchParams }: Props) {
   const user = await requireUser();
   const [
     ready,
@@ -66,6 +74,9 @@ export default async function FullMockPage() {
     activeDemo,
     capabilities,
     preview,
+    shortReadiness,
+    activeShortMock,
+    query,
   ] = await Promise.all([
     getMockHubReadiness(),
     Promise.all(
@@ -78,6 +89,9 @@ export default async function FullMockPage() {
     getActiveDemoTest(user.id),
     getEffectiveCapabilities(user.id),
     getPremiumPreview(),
+    getShortMockReadiness(),
+    getActiveShortMock(user.id),
+    searchParams,
   ]);
   const locale = preferences.interfaceLanguage === "en" ? "en" : "vi",
     t = copy[locale];
@@ -137,6 +151,38 @@ export default async function FullMockPage() {
           </h1>
           <p className="mt-3 text-base leading-7 text-slate-600">{t.intro}</p>
         </header>
+        <section
+          aria-labelledby="short-mock-title"
+          className="mt-7 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7"
+          id="short-mock"
+        >
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-teal-700">
+            {locale === "vi" ? "12 phút tập trung" : "12-minute focus"}
+          </p>
+          <h2 className="mt-2 text-2xl font-black sm:text-3xl" id="short-mock-title">
+            {t.shortTitle}
+          </h2>
+          <p className="mt-2 max-w-2xl leading-7 text-slate-600">{t.shortIntro}</p>
+          {query.shortError ? (
+            <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950" role="alert">
+              {query.shortError === "usage_limit" ? (
+                <>
+                  {locale === "vi"
+                    ? "Bạn đã dùng hết lượt luyện tập miễn phí trong kỳ này. "
+                    : "You have used all free practice sessions for this period. "}
+                  <Link className="font-bold underline" href="/pricing">
+                    {locale === "vi" ? "Xem bảng giá" : "View pricing"}
+                  </Link>
+                </>
+              ) : query.shortError === "content_not_ready" ? (
+                locale === "vi" ? "Mức này chưa có đủ 20 câu đã được kiểm tra. Hãy chọn mức khác." : "This level does not yet have 20 validated questions. Choose another level."
+              ) : query.shortError === "invalid_level" ? (
+                locale === "vi" ? "Hãy chọn một mức Dễ, Vừa hoặc Khó." : "Choose Easy, Medium, or Hard."
+              ) : locale === "vi" ? "Chưa thể tạo đề ngắn. Vui lòng thử lại." : "Could not build the short mock. Please try again."}
+            </div>
+          ) : null}
+          <ShortMockPicker active={activeShortMock} locale={preferences.interfaceLanguage} readiness={shortReadiness} />
+        </section>
         {quotaReached && preview.visible ? (
           <div className="mt-6">
             <PremiumPreviewCard

@@ -20,35 +20,38 @@ export const dynamic = "force-dynamic";
 
 const copy = {
   vi: {
-    eyebrow: "TOEIC GYM / BẮT ĐẦU MIỄN PHÍ",
-    title: "Luyện đề. Nghe transcript. Tập mỗi ngày.",
-    lead: "Thử 10 câu Part 5 không cần tài khoản. Học thêm bằng audio có transcript, workout gợi ý mỗi ngày, flashcards và bảng xếp hạng tuần với tài khoản miễn phí.",
-    start: "Làm thử 10 câu miễn phí",
+    eyebrow: "TOEIC GYM / LUYỆN THEO LỖI SAI",
+    title: "Luyện đúng lỗi sai. Mỗi ngày biết nên học gì.",
+    lead: "TOEIC GYM dùng kết quả luyện để chọn bài nên học hôm nay, đồng thời đưa lỗi chưa vững và mục tiêu của bạn vào lộ trình được điều chỉnh theo từng tuần.",
+    start: "Làm 10 câu để bắt đầu",
     starting: "Đang chuẩn bị bài…",
-    continue: "Tiếp tục học",
-    how: "Xem các tính năng miễn phí",
-    promise: ["Không cần đăng nhập", "Có lời giải sau khi nộp", "Biết phần cần luyện tiếp"],
-    sample: "Ví dụ về cách TOEIC GYM giải thích đáp án",
-    sampleLabel: "PART 5 / HOÀN THÀNH CÂU",
+    continue: "Mở bài nên học hôm nay",
+    how: "Xem cách hệ thống chọn bài",
+    promise: ["Gợi ý từ kết quả thật", "Ôn lại lỗi chưa vững", "Điều chỉnh theo ngày & tuần"],
+    sample: "Minh họa cách tín hiệu học tập trở thành bài luyện tiếp theo",
+    sampleLabel: "BÀI NÊN HỌC HÔM NAY · 20 PHÚT",
+    sampleFocus: "Part 5 · Giới từ chỉ thời hạn",
+    sampleReason: "Kết quả gần đây đã đủ để xác định “by + thời hạn” là dạng cần ưu tiên. Bài tiếp theo tập trung vào dạng này, đồng thời vẫn giữ câu hỗ trợ và câu duy trì.",
+    sampleSessions: ["Hôm nay / Luyện trọng tâm", "Buổi 2 / Ôn câu sai", "Buổi 3 / Nghe transcript"],
     samplePrompt: "Please submit the report ___ Friday.",
     sampleAnswer: "Đáp án: by",
     sampleWhy: "“By Friday” diễn tả hạn chót: báo cáo cần được nộp trước hoặc chậm nhất vào thứ Sáu.",
-    sampleNext: "Làm bài thật để xem lời giải cho từng câu",
-    entryEyebrow: "KHÔNG CHỈ LÀ LÀM ĐỀ",
-    entryTitle: "Đổi cách tập. Giữ hứng thú học.",
-    entryLead: "Nghe một câu chuyện, làm workout hôm nay hoặc xem thứ hạng tuần. Chọn hoạt động bạn muốn thử ngay bên dưới.",
+    sampleNext: "Làm bài thật để TOEIC GYM bắt đầu hiểu cách bạn học",
+    entryEyebrow: "CÔNG CỤ HỌC MIỄN PHÍ",
+    entryTitle: "Gỡ đúng chỗ vướng, không chỉ làm thêm câu.",
+    entryLead: "Nghe lại với transcript, học từ trong ngữ cảnh hoặc xem bài ngữ pháp liên quan. Mỗi công cụ đều dẫn bạn quay lại luyện tập.",
     loopEyebrow: "CÁC TÍNH NĂNG CỦA TOEIC GYM",
-    loopTitle: "Chọn tính năng để bắt đầu.",
-    roadmapEyebrow: "SẮP RA MẮT",
-    roadmapTitle: "TOEIC GYM đang tiến về phía trước.",
-    roadmapLead: "Những trải nghiệm tiếp theo đang được chuẩn bị cho bản mobile, để việc học không dừng lại khi bạn rời máy tính.",
+    loopTitle: "Từ lỗi sai đến bài học tiếp theo.",
+    roadmapEyebrow: "KHÔNG CẦN TỰ LÊN LỊCH",
+    roadmapTitle: "Một lộ trình biết tự điều chỉnh.",
+    roadmapLead: "Kế hoạch không đứng yên. Mỗi lần bạn làm bài, ôn lỗi hay bỏ dở một buổi, TOEIC GYM có thêm dữ liệu để chọn bước tiếp theo hữu ích hơn.",
     roadmapItems: [
-      { status: "Chuẩn bị thử nghiệm", title: "Ứng dụng TOEIC GYM cho iOS & Android", description: "Tiếp tục workout, bài luyện, sổ câu sai, từ vựng và tiến độ trên điện thoại với cùng một tài khoản." },
-      { status: "Cùng bản mobile", title: "Nhắc học theo lịch bạn chọn", description: "Tự chọn ngày và giờ nhận lời nhắc. Bạn có thể thay đổi hoặc tắt thông báo bất cứ lúc nào." },
-      { status: "Cùng bản mobile", title: "Ôn từ vựng khi không có mạng", description: "Tiếp tục ôn các thẻ từ đã tải về; kết quả sẽ đồng bộ lại khi thiết bị có kết nối." },
+      { status: "Sau mỗi bài", title: "Nhìn ra lỗi cần xử lý", description: "Câu sai, lỗi lặp và kết quả theo Part trở thành tín hiệu để chọn nội dung cần ưu tiên — không quy đổi thành điểm TOEIC chính thức." },
+      { status: "Mỗi ngày", title: "Mở ra là có bài nên học", description: "Workout hôm nay cân bằng phần còn yếu với nội dung hỗ trợ và duy trì, để bạn không phải tự chọn giữa hàng chục bài luyện." },
+      { status: "Mỗi tuần", title: "Sắp lại lộ trình theo tiến độ thật", description: "Kế hoạch tuần kết hợp mục tiêu, thời lượng học, lỗi cần ôn và buổi chưa hoàn thành; sau mỗi tuần, thứ tự ưu tiên được tính lại từ hoạt động thực tế." },
     ],
-    roadmapNote: "Chúng tôi chỉ công bố ngày phát hành sau khi bản cài đặt vượt qua kiểm thử trên thiết bị thật.",
-    roadmapAction: "Góp ý tính năng bạn mong chờ",
+    roadmapNote: "Khi chưa có đủ dữ liệu, TOEIC GYM bắt đầu bằng bài khám phá cân bằng. Đề xuất sẽ cụ thể hơn sau khi có đủ câu trả lời làm bằng chứng.",
+    roadmapAction: "Hiểu rõ cách lộ trình hoạt động",
     bankEyebrow: "KHO LUYỆN TẬP",
     bankTitle: "Đủ 7 Part. Chọn đúng phần cần tập.",
     bankLead: "Chọn dạng bài để đọc chiến lược và làm câu mẫu miễn phí. Muốn tự chọn số câu cho buổi luyện? Mở mục Luyện riêng từng Part ở trên.",
@@ -70,39 +73,42 @@ const copy = {
       { category: "NGỮ PHÁP", href: "/blog/ngu-phap-toeic-part-5-can-hoc", title: "7 chủ điểm ngữ pháp Part 5 cần học trước", description: "Ưu tiên loại từ, động từ, hòa hợp, mệnh đề, liên từ, giới từ và lượng từ." },
       { category: "TỪ VỰNG", href: "/blog/tu-vung-toeic-theo-chu-de-cong-so", title: "Học từ vựng TOEIC theo cụm và ngữ cảnh", description: "Xây vốn từ dùng được ngay trong Listening và Reading thay vì ghi nhớ từ rời rạc." },
     ],
-    closing: "Bắt đầu bằng một bài ngắn. Biết mình cần làm gì tiếp.",
-    closingBody: "10 câu Part 5, kết quả và lời giải ngay sau khi nộp. Không cần tài khoản.",
+    closing: "Bắt đầu bằng 10 câu. TOEIC GYM lo bước tiếp theo.",
+    closingBody: "Làm Part 5 không cần tài khoản, xem lời giải ngay sau khi nộp và bắt đầu tạo tín hiệu cho lộ trình học của bạn.",
   },
   en: {
-    eyebrow: "TOEIC GYM / START FREE",
-    title: "Practice questions. Follow transcripts. Train daily.",
-    lead: "Try 10 Part 5 questions without an account. Add audio with transcripts, suggested daily workouts, flashcards and weekly rankings with a free account.",
-    start: "Try 10 questions free",
+    eyebrow: "TOEIC GYM / PRACTICE FROM MISTAKES",
+    title: "Practice your real mistakes. Know what to study each day.",
+    lead: "TOEIC GYM uses your practice results to choose today's useful session, while unresolved mistakes and goals shape a plan that adjusts week by week.",
+    start: "Take 10 questions to begin",
     starting: "Preparing your questions…",
-    continue: "Continue learning",
-    how: "See the free features",
-    promise: ["No account needed", "Explanations after submission", "A clear next step"],
-    sample: "An example of a TOEIC GYM explanation",
-    sampleLabel: "PART 5 / SENTENCE COMPLETION",
+    continue: "Open today's recommended session",
+    how: "See how recommendations work",
+    promise: ["Based on real results", "Revisits unresolved mistakes", "Adjusts daily and weekly"],
+    sample: "An illustration of how learning evidence becomes the next practice session",
+    sampleLabel: "TODAY'S RECOMMENDED SESSION · 20 MIN",
+    sampleFocus: "Part 5 · Deadline prepositions",
+    sampleReason: "Recent results provide enough evidence to prioritize the “by + deadline” pattern. The next set focuses on it while keeping support and maintenance questions in the mix.",
+    sampleSessions: ["Today / Focused practice", "Session 2 / Mistake review", "Session 3 / Transcript listening"],
     samplePrompt: "Please submit the report ___ Friday.",
     sampleAnswer: "Answer: by",
     sampleWhy: "“By Friday” gives a deadline: the report should be submitted no later than Friday.",
-    sampleNext: "Take a real set to see each explanation",
-    entryEyebrow: "MORE THAN PRACTICE TESTS",
-    entryTitle: "Switch up your practice. Keep it interesting.",
-    entryLead: "Listen to a story, do today’s workout or check the weekly standings. Choose an activity to try below.",
+    sampleNext: "Take a real set so TOEIC GYM can start learning how you study",
+    entryEyebrow: "FREE LEARNING TOOLS",
+    entryTitle: "Fix the sticking point, not just another question.",
+    entryLead: "Replay with a transcript, learn words in context or open the related grammar lesson. Each tool leads back to useful practice.",
     loopEyebrow: "TOEIC GYM FEATURES",
-    loopTitle: "Choose a feature to start.",
-    roadmapEyebrow: "COMING SOON",
-    roadmapTitle: "TOEIC GYM is moving forward.",
-    roadmapLead: "The next experiences are being prepared for mobile, so your learning can continue away from your computer.",
+    loopTitle: "From a mistake to the next useful session.",
+    roadmapEyebrow: "NO MANUAL STUDY PLANNING",
+    roadmapTitle: "A study path that adjusts itself.",
+    roadmapLead: "The plan does not stand still. Every completed set, reviewed mistake or unfinished session gives TOEIC GYM better evidence for the next useful step.",
     roadmapItems: [
-      { status: "Preparing for testing", title: "TOEIC GYM for iOS & Android", description: "Continue workouts, practice, Mistake Bank, vocabulary and progress on your phone with the same account." },
-      { status: "With the mobile app", title: "Study reminders on your schedule", description: "Choose when to receive a reminder. Change the schedule or turn notifications off at any time." },
-      { status: "With the mobile app", title: "Offline vocabulary review", description: "Review downloaded vocabulary cards without a connection; results sync when your device is back online." },
+      { status: "After each set", title: "Find what needs attention", description: "Missed questions, repeated errors and results by Part become recommendation signals — never an unofficial TOEIC score." },
+      { status: "Every day", title: "Open one useful next session", description: "Today's workout balances a current weakness with support and maintenance questions, so you do not have to choose from dozens of sets." },
+      { status: "Every week", title: "Rebuild the path from real progress", description: "The weekly plan combines your goal, available study time, reviewable mistakes and unfinished work, then recalculates priorities from actual activity." },
     ],
-    roadmapNote: "We will only announce a release date after installable builds pass testing on real devices.",
-    roadmapAction: "Tell us what you want next",
+    roadmapNote: "When there is not enough evidence yet, TOEIC GYM starts with balanced exploration. Recommendations become more specific after enough answers support them.",
+    roadmapAction: "Understand how the study path works",
     bankEyebrow: "QUESTION BANK",
     bankTitle: "All 7 Parts. Practice what matters.",
     bankLead: "Choose a task to read strategies and try free sample questions. To configure your own set size, open Practice Parts 1–7 above.",
@@ -124,8 +130,8 @@ const copy = {
       { category: "GRAMMAR", href: "/blog/ngu-phap-toeic-part-5-can-hoc", title: "Seven Part 5 grammar topics to learn first", description: "Prioritize word forms, verbs, agreement, clauses, connectors, prepositions and quantifiers." },
       { category: "VOCABULARY", href: "/blog/tu-vung-toeic-theo-chu-de-cong-so", title: "Learn TOEIC vocabulary in phrases and context", description: "Build vocabulary you can recognize in Listening and Reading instead of memorizing isolated words." },
     ],
-    closing: "Start with a short set. Know what comes next.",
-    closingBody: "Ten Part 5 questions, with results and explanations after submission. No account needed.",
+    closing: "Start with 10 questions. Let TOEIC GYM handle the next step.",
+    closingBody: "Try Part 5 without an account, get explanations after submitting and begin creating signals for your study path.",
   },
 } as const;
 
@@ -166,7 +172,7 @@ export default async function Home() {
         <ul className={styles.promise}>{t.promise.map((item) => <li key={item}>{item}</li>)}</ul>
         <div className={styles.actions}>
           {user ? <Link className={styles.primaryAction} href="/dashboard">{t.continue}<span aria-hidden="true">↗</span></Link> : <form action={startPart5Challenge}><ChallengeStartButton className={styles.primaryAction} label={t.start} pendingLabel={t.starting} /></form>}
-          <Link className={styles.secondaryAction} href="#features">{t.how} <span aria-hidden="true">↓</span></Link>
+          <Link className={styles.secondaryAction} href="#roadmap">{t.how} <span aria-hidden="true">↓</span></Link>
         </div>
       </div>
       <div className={styles.heroVisual}>
@@ -174,11 +180,10 @@ export default async function Home() {
           <div className={styles.sampleTop}><span>TOEIC GYM</span><span>{vi ? "MINH HỌA" : "EXAMPLE"}</span></div>
           <div className={styles.sampleBody}>
             <p className={styles.sampleKicker}>{t.sampleLabel}</p>
-            <p className={styles.sampleQuestion}>{t.samplePrompt}</p>
-            <div className={styles.sampleChoices} aria-label={vi ? "Các lựa chọn minh họa" : "Example choices"}>
-              <span>A <strong>at</strong></span><span className={styles.chosen}>B <strong>by</strong></span><span>C <strong>on</strong></span><span>D <strong>for</strong></span>
-            </div>
-            <div className={styles.explanation}><strong>{t.sampleAnswer}</strong><p>{t.sampleWhy}</p></div>
+            <p className={styles.sampleQuestion}>{t.sampleFocus}</p>
+            <p className={styles.sampleReason}>{t.sampleReason}</p>
+            <ol className={styles.samplePlan}>{t.sampleSessions.map((session, index) => <li className={index === 0 ? styles.currentSession : undefined} key={session}><span>{String(index + 1).padStart(2, "0")}</span><strong>{session}</strong></li>)}</ol>
+            <div className={styles.explanation}><strong>{t.sampleAnswer}</strong><p lang="en">{t.samplePrompt.replace("___", "by")}</p><p>{t.sampleWhy}</p></div>
           </div>
           <div className={styles.sampleFoot}><span>{t.sampleNext}</span>{user ? <Link href="/dashboard">{t.continue} <span aria-hidden="true">↗</span></Link> : <form action={startPart5Challenge}><ChallengeStartButton className={styles.sampleFootAction} label={t.start} pendingLabel={t.starting} /></form>}</div>
         </div>
@@ -188,10 +193,10 @@ export default async function Home() {
 
     <div className={styles.proof} aria-label={vi ? "Điểm mạnh của TOEIC GYM" : "TOEIC GYM highlights"}>
       {[
-        { href: "/listening-lessons", label: vi ? "Nghe theo transcript" : "Audio with transcripts", marker: "01" },
-        { href: "/dashboard", label: vi ? "Workout hằng ngày" : "Daily workouts", marker: "02" },
-        { href: "/ranking", label: vi ? "Bảng xếp hạng tuần" : "Weekly leaderboard", marker: "03" },
-        { href: "/vocabulary", label: vi ? "Từ vựng & flashcards" : "Vocabulary & flashcards", marker: "04" },
+        { href: "/dashboard", label: vi ? "Bài học theo lỗi sai" : "Mistake-led workouts", marker: "01" },
+        { href: "/dashboard#weekly-plan-heading", label: vi ? "Lộ trình ngày & tuần" : "Daily & weekly path", marker: "02" },
+        { href: "/listening-lessons", label: vi ? "Nghe transcript miễn phí" : "Free transcript listening", marker: "03" },
+        { href: "/vocabulary", label: vi ? "Từ vựng miễn phí" : "Free vocabulary", marker: "04" },
       ].map(item => <Link href={item.href} key={item.href}><strong>{item.marker}</strong><span>{item.label}</span><span aria-hidden="true">↗</span></Link>)}
     </div>
 
@@ -211,9 +216,9 @@ export default async function Home() {
           <p className={styles.accessNote}>{featureAccessLabel(listeningFeature.access, locale)}</p>
           <Link className={styles.secondaryAction} href={listeningFeature.href}>{listeningFeature[locale].action}<span aria-hidden="true">↗</span></Link>
         </article>
-        <div className={styles.habitSpotlights}>{["workout", "ranking"].map(id => {
+        <div className={styles.habitSpotlights}>{["vocabulary", "grammar"].map(id => {
           const feature = productFeatures.find(item => item.id === id)!;
-          return <article key={id}><p className={styles.eyebrow}>{id === "workout" ? (vi ? "HÔM NAY TẬP GÌ?" : "WHAT’S TODAY’S PRACTICE?") : (vi ? "LUYỆN CÙNG CỘNG ĐỒNG" : "PRACTICE WITH OTHERS")}</p><h3>{feature[locale].title}</h3><p>{feature[locale].description}</p><p className={styles.accessNote}>{featureAccessLabel(feature.access, locale)}</p><Link className={styles.secondaryAction} href={feature.href}>{feature[locale].action}<span aria-hidden="true">↗</span></Link></article>;
+          return <article key={id}><p className={styles.eyebrow}>{id === "vocabulary" ? (vi ? "HỌC TỪ TRONG NGỮ CẢNH" : "WORDS IN CONTEXT") : (vi ? "HIỂU VÌ SAO MÌNH SAI" : "UNDERSTAND THE RULE")}</p><h3>{feature[locale].title}</h3><p>{feature[locale].description}</p><p className={styles.accessNote}>{featureAccessLabel(feature.access, locale)}</p><Link className={styles.secondaryAction} href={feature.href}>{feature[locale].action}<span aria-hidden="true">↗</span></Link></article>;
         })}</div>
       </div>
     </section>
@@ -238,7 +243,7 @@ export default async function Home() {
       </ol>
       <div className={styles.roadmapFoot}>
         <p>{t.roadmapNote}</p>
-        <Link className={styles.roadmapAction} href="/support">{t.roadmapAction}<span aria-hidden="true">↗</span></Link>
+        <Link className={styles.roadmapAction} href="/ve-toeic-gym#adaptive-plan">{t.roadmapAction}<span aria-hidden="true">↗</span></Link>
       </div>
     </section>
 

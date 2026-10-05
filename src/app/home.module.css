@@ -25,13 +25,16 @@
 .sampleBody { padding: clamp(1.2rem, 2.5vw, 2rem); }
 .sampleKicker { margin: 0; color: #245a43; font-size: .72rem; font-weight: 850; letter-spacing: .08em; }
 .sampleQuestion { max-width: 25ch; margin: 1.15rem 0 1.35rem; color: #172821; font-size: clamp(1.3rem, 2vw, 1.8rem); font-weight: 750; line-height: 1.45; }
-.sampleChoices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
-.sampleChoices span { display: flex; min-height: 2.75rem; align-items: center; gap: .8rem; border: 1px solid #dce3d9; border-radius: .3rem; padding: .55rem .85rem; color: #547064; font-size: .82rem; font-weight: 800; }
-.sampleChoices strong { color: #172821; font-size: .92rem; font-weight: 650; }
-.sampleChoices .chosen { border-color: #7aaa83; background: #e9f3e6; color: #245a43; }
+.sampleReason { max-width: 38rem; margin: -.6rem 0 1.25rem; color: #45584d; font-size: .9rem; line-height: 1.65; }
+.samplePlan { display: grid; gap: .5rem; margin: 0; padding: 0; list-style: none; }
+.samplePlan li { display: grid; grid-template-columns: 2rem minmax(0, 1fr); align-items: center; gap: .75rem; min-height: 2.9rem; border: 1px solid #dce3d9; border-radius: .3rem; padding: .55rem .8rem; color: #52675a; }
+.samplePlan li > span { font-size: .7rem; font-weight: 900; letter-spacing: .08em; }
+.samplePlan li > strong { font-size: .83rem; line-height: 1.45; }
+.samplePlan .currentSession { border-color: #7aaa83; background: #e9f3e6; color: #245a43; }
 .explanation { margin-top: 1rem; border-left: 3px solid #245a43; background: #f3f7f0; padding: .9rem 1.15rem; }
 .explanation strong { color: #245a43; font-size: .88rem; }
 .explanation p { margin: .35rem 0 0; color: #3b5444; font-size: .85rem; line-height: 1.6; }
+.explanation p[lang="en"] { color: #172821; font-weight: 750; }
 .sampleFoot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; border-top: 1px solid #dce3d9; padding: 1rem 1.3rem; color: #607066; font-size: .72rem; }
 .sampleFoot :is(a, button) { display: inline-flex; min-height: 2.75rem; align-items: center; color: #245a43; font-weight: 850; text-decoration: underline; text-underline-offset: .2rem; }
 .sampleFootAction { display: inline-flex; align-items: center; gap: .25rem; border: 0; background: transparent; padding: 0; font: inherit; cursor: pointer; }
@@ -122,8 +125,6 @@
   .closing { align-items: flex-start; flex-direction: column; padding: 3rem 1.25rem; }
 }
 @media (max-width: 400px) {
-  .sampleChoices { gap: .4rem; }
-  .sampleChoices span { gap: .5rem; padding: .5rem; }
   .sampleTop, .sampleFoot { padding-inline: .9rem; }
   .partGroups a { grid-template-columns: 1.6rem 3.7rem minmax(0, 1fr) 1rem; gap: .4rem; }
 }

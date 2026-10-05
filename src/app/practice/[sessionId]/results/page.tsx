@@ -30,6 +30,8 @@ import { getVocabularyCards } from "@/lib/vocabulary/service";
 import { ResultVocabularySuggestions } from "@/components/vocabulary/result-suggestions";
 import { ResultReview } from "@/components/practice/result-review";
 import { submitQuestionReportAction } from "@/app/question-reports/actions";
+import { startShortMock } from "@/app/full-mock/actions";
+import { shortMockDifficultyFromSource } from "@/lib/short-mock/config";
 
 export default async function PracticeResultsPage({
   params,
@@ -133,7 +135,16 @@ export default async function PracticeResultsPage({
       },
     ];
   });
+  const shortMockDifficulty = shortMockDifficultyFromSource(result.source);
+  const shortMockLabel = shortMockDifficulty
+    ? `${locale === "vi" ? "Đề ngắn" : "Short mock"} · ${{
+        easy: locale === "vi" ? "Dễ" : "Easy",
+        medium: locale === "vi" ? "Vừa" : "Medium",
+        hard: locale === "vi" ? "Khó" : "Hard",
+      }[shortMockDifficulty]}`
+    : null;
   const resultFocus =
+    shortMockLabel ??
     result.requestedSubSkill ??
     result.requestedSkill ??
     (result.source === "mastery_review"
@@ -159,8 +170,8 @@ export default async function PracticeResultsPage({
           </p>
           {resultFocus ? (
             <p className="mt-2 font-bold text-slate-300">
-              {parts.length === 1 ? `Part ${parts[0].part} — ` : ""}
-              {taxonomyLabel(resultFocus, locale)}
+              {parts.length === 1 && !shortMockLabel ? `Part ${parts[0].part} — ` : ""}
+              {shortMockLabel ?? taxonomyLabel(resultFocus, locale)}
             </p>
           ) : null}
           <div className="mt-3 flex flex-wrap items-end gap-x-8 gap-y-2">
@@ -182,24 +193,18 @@ export default async function PracticeResultsPage({
             })}
           </p>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <form action={startReadingPractice}>
-              <input name="mode" type="hidden" value={result.mode} />
-              <input
-                name="skill"
-                type="hidden"
-                value={result.requestedSkill ?? ""}
-              />
-              <input
-                name="subSkill"
-                type="hidden"
-                value={result.requestedSubSkill ?? ""}
-              />
-              <input
-                name="questionCount"
-                type="hidden"
-                value={result.requestedQuestionCount}
-              />
-              <input name="source" type="hidden" value={result.source} />
+            <form action={shortMockDifficulty ? startShortMock : startReadingPractice}>
+              {shortMockDifficulty ? (
+                <input name="difficulty" type="hidden" value={shortMockDifficulty} />
+              ) : (
+                <>
+                  <input name="mode" type="hidden" value={result.mode} />
+                  <input name="skill" type="hidden" value={result.requestedSkill ?? ""} />
+                  <input name="subSkill" type="hidden" value={result.requestedSubSkill ?? ""} />
+                  <input name="questionCount" type="hidden" value={result.requestedQuestionCount} />
+                  <input name="source" type="hidden" value={result.source} />
+                </>
+              )}
               <button
                 className="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-teal-400 px-5 py-3 font-bold text-slate-950 hover:bg-teal-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-300"
                 type="submit"

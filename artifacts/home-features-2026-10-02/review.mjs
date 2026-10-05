@@ -7,7 +7,7 @@ const root = path.resolve('artifacts/home-features-2026-10-02');
 await mkdir(root, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const records = [];
-const routes = ['/challenge/part-5', '/practice', '/diagnostic', '/full-mock', '/listening-lessons', '/vocabulary', '/mistakes', '/blog/ngu-phap', '/dashboard', '/progress', '/ranking', '/toeic/checklist-hoc-tuan', '/settings?section=goal', '/dashboard#weekly-plan-heading', '/dashboard#weekly-review', '/ranking?tab=READING_100'];
+const routes = ['/dashboard', '/mistakes', '/dashboard#weekly-plan-heading', '/dashboard#weekly-review', '/listening-lessons', '/vocabulary', '/ngu-phap', '/challenge/part-5', '/practice', '/diagnostic', '/full-mock', '/settings?section=goal', '/progress', '/toeic/checklist-hoc-tuan', '/ranking', '/ranking?tab=READING_100'];
 try {
   for (const locale of ['vi', 'en']) {
     const context = await browser.newContext();
@@ -30,6 +30,7 @@ try {
         const overflow = await page.evaluate(() => ({ width: innerWidth, scroll: document.documentElement.scrollWidth }));
         assert.ok(overflow.scroll <= width, `${locale} ${route} overflow: ${JSON.stringify(overflow)}`);
         const clipped = await page.locator('main a, main button, main h1, main h2, main h3, main h4').evaluateAll(nodes => nodes.filter(el => {
+          if (el.closest('[aria-roledescription="slide"]')) return false;
           const rect = el.getBoundingClientRect();
           return rect.width > 0 && (rect.left < -1 || rect.right > innerWidth + 1);
         }).map(el => el.textContent));
@@ -61,12 +62,13 @@ try {
     await page.waitForURL('**/#features');
     assert.ok(page.url().endsWith('/#features'));
     await page.locator('#features a[href="/listening-lessons"]').click();
-    await page.waitForURL(url => url.pathname === '/sign-in' && url.searchParams.get('next') === '/listening-lessons');
+    await page.waitForURL(url => url.pathname === '/listening-lessons');
+    assert.ok(await page.locator('main').getByText(locale === 'vi' ? /transcript/i : /transcript/i).count() > 0, 'Listening preview mentions transcripts');
     assert.deepEqual(errors, [], `${locale}: browser runtime errors`);
     await context.close();
   }
   await writeFile(path.join(root, 'review.json'), JSON.stringify({ passed: true, records }, null, 2));
-  console.log(`PASS: ${records.length} responsive/language reviews, feature destinations, keyboard focus, mobile menu and listening sign-in redirect.`);
+  console.log(`PASS: ${records.length} responsive/language reviews, feature destinations, keyboard focus, mobile menu and listening preview.`);
 } finally {
   await browser.close();
 }
