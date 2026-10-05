@@ -2,6 +2,7 @@ import "server-only";
 import { sql } from "drizzle-orm";
 import { db } from "@/db";
 import type { AnalyticsPeriod, ProductAnalyticsSnapshot } from "./calculate";
+import type { ActivityTrendPoint } from "@/components/analytics/activity-line-chart";
 
 export type ChallengeFunnelCounts = { viewed: number; started: number; completed: number; signup: number; firstWorkout: number };
 export async function getChallengeFunnel(period: AnalyticsPeriod): Promise<ChallengeFunnelCounts> {
@@ -43,6 +44,60 @@ export async function getChallengeFunnel(period: AnalyticsPeriod): Promise<Chall
 }
 
 const daysFor = (period: AnalyticsPeriod) => period === "today" ? 1 : period === "30d" ? 30 : 7;
+
+export async function getProductActivityTrend(period: AnalyticsPeriod): Promise<ActivityTrendPoint[]> {
+  const hourly = period === "today";
+  const days = daysFor(period);
+  const result = hourly ? await db.execute(sql`
+    with buckets as (
+      select generate_series(
+        date_trunc('day', timezone('Asia/Ho_Chi_Minh', now())),
+        date_trunc('hour', timezone('Asia/Ho_Chi_Minh', now())),
+        interval '1 hour'
+      ) bucket
+    ), sessions as (
+      select date_trunc('hour', timezone('Asia/Ho_Chi_Minh', submitted_at)) bucket,
+        count(*)::int sessions, count(distinct user_id)::int learners
+      from practice_sessions
+      where status='submitted' and submitted_at >= date_trunc('day', timezone('Asia/Ho_Chi_Minh', now())) at time zone 'Asia/Ho_Chi_Minh'
+      group by 1
+    ), signups as (
+      select date_trunc('hour', timezone('Asia/Ho_Chi_Minh', created_at)) bucket, count(*)::int signups
+      from users
+      where created_at >= date_trunc('day', timezone('Asia/Ho_Chi_Minh', now())) at time zone 'Asia/Ho_Chi_Minh'
+      group by 1
+    )
+    select to_char(b.bucket, 'HH24:00') label, coalesce(s.sessions,0)::int sessions,
+      coalesce(s.learners,0)::int learners, coalesce(u.signups,0)::int signups
+    from buckets b left join sessions s using(bucket) left join signups u using(bucket) order by b.bucket
+  `) : await db.execute(sql`
+    with buckets as (
+      select generate_series(
+        (timezone('Asia/Ho_Chi_Minh', now())::date - (${days - 1} * interval '1 day'))::date,
+        timezone('Asia/Ho_Chi_Minh', now())::date,
+        interval '1 day'
+      ) bucket
+    ), sessions as (
+      select timezone('Asia/Ho_Chi_Minh', submitted_at)::date bucket,
+        count(*)::int sessions, count(distinct user_id)::int learners
+      from practice_sessions
+      where status='submitted' and submitted_at >= now() - (${days} * interval '1 day')
+      group by 1
+    ), signups as (
+      select timezone('Asia/Ho_Chi_Minh', created_at)::date bucket, count(*)::int signups
+      from users where created_at >= now() - (${days} * interval '1 day') group by 1
+    )
+    select to_char(b.bucket, 'DD/MM') label, coalesce(s.sessions,0)::int sessions,
+      coalesce(s.learners,0)::int learners, coalesce(u.signups,0)::int signups
+    from buckets b left join sessions s on s.bucket=b.bucket::date left join signups u on u.bucket=b.bucket::date order by b.bucket
+  `);
+  return result.rows.map((row) => ({
+    label: String(row.label),
+    sessions: Number(row.sessions),
+    activeLearners: Number(row.learners),
+    signups: Number(row.signups),
+  }));
+}
 
 export async function getProductAnalytics(period: AnalyticsPeriod) {
   try { await db.execute(sql`

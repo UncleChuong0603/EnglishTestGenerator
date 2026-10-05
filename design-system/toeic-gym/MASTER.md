@@ -40,6 +40,20 @@ Use flat borders, modest corner radius and purposeful whitespace. Avoid gradient
 - Body text needs at least 4.5:1 contrast. Aim for touch targets of at least 44px and gaps that prevent accidental taps.
 - Respect `prefers-reduced-motion`; use motion only to clarify state changes.
 
+## Mascot and data storytelling
+
+Milo is TOEIC GYM's chibi owl study coach. Use the transparent production asset at `public/mascot/milo-coach.webp`. Milo wears the established forest/cream palette and represents calm coaching, useful next steps and careful review—not points, streak pressure or fabricated achievement.
+
+- Public pages may show Milo as a welcoming guide near real product evidence and first practice actions.
+- Learner pages use short contextual coaching tied to the current task. During active practice, diagnostics and timed tests, Milo stays compact and never covers questions, audio, timers, navigation or submit controls.
+- Admin pages frame Milo as an operations coach: prioritize pending work and interpret trends carefully. Do not use celebratory poses for routine operational metrics.
+- Keep text in HTML, never baked into the mascot image. The mascot is decorative when adjacent copy already names its role; contextual advice remains readable without the image.
+- Do not recolor, distort, mirror inconsistently or combine Milo with unrelated emoji/icon styles.
+
+Use line charts when a time relationship matters. Charts must render real first-party data, name their time period and timezone where relevant, expose an equivalent screen-reader summary/list, and provide an honest empty state. A chart must not imply an official TOEIC score or trend when the sample is absent.
+
+Motion follows three levels: rich but calm on marketing pages, restrained on learner tools, and minimal on active assessments/admin work surfaces. Shared durations, easing and reduced-motion behavior live in `src/app/globals.css`; avoid per-page animation values unless the interaction genuinely differs.
+
 ## Responsive review
 
 Check 375px, 768px, 1024px and 1440px. The primary action and core message must appear before supporting art on mobile. No horizontal overflow, clipped Vietnamese text or tiny controls. Use a content width near 1280px for public sections; reading text should stay much narrower.

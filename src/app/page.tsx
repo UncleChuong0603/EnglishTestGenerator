@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { startPart5Challenge } from "@/app/challenge/actions";
 import { ChallengeStartButton } from "@/components/challenge-start-button";
 import { PublicFooter } from "@/components/public-footer";
@@ -178,6 +179,10 @@ export default async function Home() {
         </div>
       </div>
       <div className={styles.heroVisual}>
+        <div className={styles.heroMascot} aria-label={vi ? "Milo, huấn luyện viên học tập của TOEIC GYM" : "Milo, TOEIC GYM's study coach"}>
+          <Image src="/mascot/milo-coach.webp" alt="" width={170} height={184} priority />
+          <p><strong>Milo</strong><span>{vi ? "Coach học cùng bạn" : "Your study coach"}</span></p>
+        </div>
         <div className={styles.sample}>
           <div className={styles.sampleTop}><span>TOEIC GYM</span><span>{vi ? "MINH HỌA" : "EXAMPLE"}</span></div>
           <div className={styles.sampleBody}>

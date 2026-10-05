@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ActivityLineChart } from "@/components/analytics/activity-line-chart";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { requireAdmin } from "@/lib/admin/authorization";
 import { getRetentionDiagnostics } from "@/lib/admin/user-activity";
@@ -12,6 +13,7 @@ import {
 } from "@/lib/product-analytics/calculate";
 import {
   getChallengeFunnel,
+  getProductActivityTrend,
   getProductAnalytics,
 } from "@/lib/product-analytics/queries";
 
@@ -31,10 +33,11 @@ export default async function AnalyticsPage({
     period = periodDays(
       typeof query.period === "string" ? query.period : undefined,
     );
-  const [data, retentionDiagnostics, challengeCounts] = await Promise.all([
+  const [data, retentionDiagnostics, challengeCounts, activityTrend] = await Promise.all([
     getProductAnalytics(period),
     getRetentionDiagnostics(),
     getChallengeFunnel(period),
+    getProductActivityTrend(period),
   ]);
   const challengeFunnel = challengeFunnelRows(challengeCounts);
   const funnel = funnelRows(data.events, data.activated);
@@ -126,6 +129,17 @@ export default async function AnalyticsPage({
               <p className="mt-2 text-3xl font-black">{value}</p>
             </article>
           ))}
+        </section>
+        <section className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 sm:p-7" aria-labelledby="activity-trend-title">
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[.16em] text-teal-700">{vi ? "Dữ liệu theo thời gian" : "Time series"}</p>
+              <h2 className="mt-2 text-xl font-black" id="activity-trend-title">{vi ? "Nhịp học và tăng trưởng" : "Learning and growth rhythm"}</h2>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{vi ? "Số buổi hoàn thành, người học duy nhất và tài khoản mới trong đúng khoảng thời gian đã chọn." : "Completed sessions, unique learners, and new accounts in the selected period."}</p>
+            </div>
+            <span className="rounded-full bg-teal-50 px-3 py-1.5 text-xs font-black text-teal-800">Asia/Ho_Chi_Minh</span>
+          </div>
+          <ActivityLineChart points={activityTrend} locale={vi ? "vi" : "en"} title={vi ? "Xu hướng hoạt động sản phẩm" : "Product activity trend"} />
         </section>
         <section
           className="mt-6 rounded-3xl border border-teal-200 bg-white p-5 sm:p-7"

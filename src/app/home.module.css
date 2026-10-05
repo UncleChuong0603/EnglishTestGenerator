@@ -181,6 +181,23 @@
   background: rgba(4, 17, 14, .68);
 }
 
+.heroMascot {
+  position: absolute;
+  top: 1.3rem;
+  right: clamp(.75rem, 2vw, 2rem);
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  gap: .4rem;
+  pointer-events: none;
+}
+.heroMascot img { width: clamp(6.5rem, 10vw, 9rem); height: auto; filter: drop-shadow(0 16px 24px rgba(0,0,0,.22)); animation: mascot-breathe 4.8s ease-in-out infinite; }
+.heroMascot p { margin: 0 0 1rem -.8rem; border: 1px solid var(--line-strong); border-radius: .35rem; background: rgba(7,25,21,.94); padding: .55rem .7rem; }
+.heroMascot strong, .heroMascot span { display: block; }
+.heroMascot strong { color: var(--mint); font-size: .78rem; }
+.heroMascot span { margin-top: .1rem; color: var(--muted); font-size: .65rem; font-weight: 700; }
+@keyframes mascot-breathe { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
 .sample {
   width: min(100%, 570px);
   border: 1px solid var(--line-strong);
@@ -431,6 +448,8 @@
   .actions .primaryAction { width: 100%; }
   .secondaryAction { justify-content: center; }
   .heroVisual { padding: 2.5rem 1.25rem; }
+  .heroMascot { position: relative; top: auto; right: auto; align-self: flex-end; margin-bottom: -2rem; }
+  .heroMascot img { width: 6.5rem; }
   .sampleTop,
   .sampleFoot { padding-inline: .9rem; }
   .proof { grid-template-columns: 1fr; border-inline: 0; }
@@ -451,4 +470,5 @@
 @media (prefers-reduced-motion: reduce) {
   .page :is(a, button) { scroll-behavior: auto; transition-duration: .01ms; }
   .primaryAction:hover { transform: none; }
+  .heroMascot img { animation: none; }
 }

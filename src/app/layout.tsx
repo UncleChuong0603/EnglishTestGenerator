@@ -3,6 +3,8 @@ import { Be_Vietnam_Pro } from "next/font/google";
 import { LocaleProvider } from "@/components/locale-provider";
 import { ProductEvent } from "@/components/product-event";
 import { FeedbackWidget } from "@/components/feedback-widget";
+import { MascotCoach } from "@/components/mascot/mascot-coach";
+import { MotionOrchestrator } from "@/components/motion/motion-orchestrator";
 import { getCookieLanguage } from "@/lib/i18n/get-translations";
 import { getTranslations } from "@/lib/i18n/runtime";
 import { getSiteUrl } from "@/lib/seo/site-url";
@@ -40,7 +42,7 @@ export default async function RootLayout({
   const locale = await getCookieLanguage();
   return (
     <html className={beVietnamPro.variable} lang={locale}>
-      <body><ProductEvent/><LocaleProvider locale={locale}>{children}<FeedbackWidget /></LocaleProvider></body>
+      <body><ProductEvent/><LocaleProvider locale={locale}>{children}<MotionOrchestrator /><MascotCoach /><FeedbackWidget /></LocaleProvider></body>
     </html>
   );
 }
