@@ -14,6 +14,8 @@ describe("audio shadowing", () => {
     expect(html.indexOf("transcript-heading")).toBeLessThan(html.indexOf("player-heading"));
     expect(html.indexOf("player-heading")).toBeLessThan(html.indexOf("topic-picker-heading"));
     expect(html).not.toContain("type=\"radio\"");
+    expect(html.match(/<audio/g)).toHaveLength(1);
+    expect(html).not.toContain("<progress");
     expect(html).not.toContain("Kiểm tra đáp án");
   });
 

@@ -14,11 +14,6 @@ export type ShadowingClip = {
   transcript: string;
 };
 
-function clock(seconds: number) {
-  const whole = Math.floor(seconds);
-  return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`;
-}
-
 export function ShadowingPlayer({ clips, locale, signedIn = true }: { clips: readonly ShadowingClip[]; locale: InterfaceLanguage; signedIn?: boolean }) {
   const vi = locale === "vi";
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -102,11 +97,7 @@ export function ShadowingPlayer({ clips, locale, signedIn = true }: { clips: rea
         src={clip.audioUrl}
       />
 
-      <div className="mt-4 grid gap-4 border-t border-[#dce3d9] pt-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-        <div>
-          <div className="flex items-center justify-between gap-4 text-sm font-semibold tabular-nums text-[#45584d]"><span>{clock(time)} / {duration > 0 && Number.isFinite(duration) ? clock(duration) : `${minutes}:00`}</span><span>{duration > 0 && Number.isFinite(duration) ? `${Math.min(100, Math.round(time / duration * 100))}%` : "0%"}</span></div>
-          <progress aria-label={vi ? "Tiến độ bài nghe" : "Talk progress"} className="mt-2 h-2 w-full accent-[#245a43]" max={duration > 0 && Number.isFinite(duration) ? duration : minutes * 60} value={time} />
-        </div>
+      <div className="mt-4 flex justify-end border-t border-[#dce3d9] pt-4">
         <label className="flex min-h-11 items-center gap-3 text-sm font-bold text-[#172821]">{vi ? "Tốc độ" : "Speed"}<select className="min-h-11 rounded-lg border border-[#9caaa0] bg-white px-3 text-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245a43]" onChange={event => { const value = Number(event.target.value); setSpeed(value); if (audioRef.current) audioRef.current.playbackRate = value; }} value={speed}>{[0.75, 1, 1.25].map(value => <option key={value} value={value}>{value}×</option>)}</select></label>
       </div>
       {error && <p className="mt-4 text-sm font-semibold text-red-700" role="alert">{vi ? "Không phát được audio. Hãy thử tải lại trang." : "The audio could not play. Please reload the page."}</p>}

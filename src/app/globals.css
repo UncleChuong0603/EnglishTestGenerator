@@ -9,6 +9,11 @@
   --tg-ink-900: #172821;
   --tg-rule-200: #dce3d9;
   --tg-warm-500: #af744f;
+  --tg-night-950: #071915;
+  --tg-night-900: #0b211b;
+  --tg-night-rule: #21463b;
+  --tg-mist-100: #eef3eb;
+  --tg-sand-100: #f8eddf;
   --tg-duration-fast: 160ms;
   --tg-duration-normal: 240ms;
   --tg-duration-reveal: 560ms;
@@ -26,6 +31,14 @@
   --color-focus: #0f766e;
   --surface-card: #ffffff;
   --surface-page: var(--tg-paper-50);
+  --surface-subtle: #fbfcf8;
+  --surface-tinted: var(--tg-mist-100);
+  --surface-inverse: var(--tg-night-950);
+  --text-inverse: #eef9f2;
+  --text-inverse-muted: #a9c0b5;
+  --radius-control: .55rem;
+  --radius-card: .8rem;
+  --shadow-raised: 0 16px 36px rgb(23 40 33 / .08);
   /* Component tokens */
   --coach-surface: #ffffff;
   --coach-border: var(--tg-rule-200);
@@ -653,7 +666,8 @@ button, a, input, select, summary {
 }
 @media (max-width: 520px) {
   .mascot-coach { left: .5rem; max-width: calc(100vw - 1rem); }
-  .mascot-coach-trigger img { width: 4.3rem; }
+  .mascot-coach-trigger { min-width: 3.75rem; }
+  .mascot-coach-trigger img { width: 3.65rem; }
   .mascot-coach-bubble { width: min(17rem, calc(100vw - 5.5rem)); padding: .8rem 2rem .8rem .85rem; }
   .mascot-coach-bubble strong { font-size: .75rem; }
 }
@@ -704,6 +718,7 @@ button, a, input, select, summary {
   transform: none;
 }
 .learner-navigation-brand { display: inline-flex; flex: none; align-items: center; gap: .5rem; color: #183e2b; font-size: 1.125rem; font-weight: 900; letter-spacing: -.035em; }
+.learner-sidebar-toggle { display: none; }
 .learner-sidebar-groups, .learner-sidebar-account { display: none; }
 .learner-mobile-account { display: block; }
 .learner-bottom-navigation { position: fixed; right: 0; bottom: 0; left: 0; z-index: 30; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--line); background: rgb(247 246 241 / .95); padding: 0 .25rem env(safe-area-inset-bottom); box-shadow: 0 -8px 24px rgb(15 23 42 / .08); backdrop-filter: blur(10px); }
@@ -713,6 +728,7 @@ button, a, input, select, summary {
 
 @media (min-width: 1024px) {
   main:has(.learner-navigation) { padding-left: calc(15.5rem + 1.5rem) !important; }
+  main:has(.learner-navigation[data-collapsed="true"]) { padding-left: 4rem !important; }
   .learner-navigation {
     position: fixed;
     top: 0;
@@ -732,8 +748,31 @@ button, a, input, select, summary {
     background: #fff;
     box-shadow: 5px 0 24px rgb(23 40 33 / .04);
     transform: none;
+    transition: transform var(--tg-duration-normal) var(--tg-ease-enter);
   }
-  .learner-navigation-brand { min-height: 5rem; padding: 0 1rem; border-bottom: 1px solid var(--line); font-size: .95rem; }
+  .learner-navigation[data-collapsed="true"] { transform: translateX(-100%); }
+  .learner-navigation-brand { min-height: 5rem; padding: 0 3.75rem 0 1rem; border-bottom: 1px solid var(--line); font-size: .95rem; }
+  .learner-sidebar-toggle {
+    position: absolute;
+    top: 1.125rem;
+    right: .75rem;
+    display: inline-flex;
+    width: 2.75rem;
+    height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #cbd7cb;
+    border-radius: 999px;
+    background: #fff;
+    color: var(--green);
+    box-shadow: 0 4px 12px rgb(23 40 33 / .12);
+    cursor: pointer;
+    transform: translateX(0);
+    transition: transform var(--tg-duration-normal) var(--tg-ease-enter), background-color var(--tg-duration-fast) ease, color var(--tg-duration-fast) ease;
+  }
+  .learner-sidebar-toggle:hover { background: var(--green); color: #fff; }
+  .learner-navigation[data-collapsed="true"] .learner-sidebar-toggle { transform: translateX(4rem); }
+  .learner-navigation[data-collapsed="true"] :is(.learner-navigation-brand, .learner-sidebar-groups, .learner-sidebar-account) { display: none; }
   .learner-sidebar-groups { display: block; min-height: 0; flex: 1; overflow-y: auto; padding: .8rem .65rem; }
   .learner-sidebar-group { display: grid; gap: .15rem; padding: .7rem 0; }
   .learner-sidebar-group + .learner-sidebar-group { border-top: 1px solid #edf1eb; }
@@ -786,3 +825,292 @@ main:has(.admin-navigation) { padding-left: calc(15.5rem + 1.5rem) !important; }
 /* Account erasure controls must not be covered by the floating support widget.
    Account & Data offers an inline support link instead. */
 body:has([data-account-data-page]) .feedback-widget { display: none; }
+
+/* Unified product UI
+   The public story uses a dark editorial canvas. Learner and admin workspaces
+   carry the same night/forest/paper language with calmer, denser surfaces. */
+html[data-ui-surface="product"],
+html[data-ui-surface="admin"],
+html[data-ui-surface="focus"] {
+  color-scheme: light;
+  background: var(--surface-page);
+}
+
+html[data-ui-surface="product"] body,
+html[data-ui-surface="admin"] body,
+html[data-ui-surface="focus"] body {
+  background-color: var(--surface-page);
+  background-image:
+    linear-gradient(rgb(36 90 67 / .035) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(36 90 67 / .035) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+html[data-ui-surface="focus"] body { background-image: none; }
+
+html[data-ui-surface="product"] main,
+html[data-ui-surface="admin"] main,
+html[data-ui-surface="focus"] main,
+main:has(.learner-navigation),
+main:has(.admin-navigation) {
+  background-color: transparent !important;
+  color: var(--ink) !important;
+}
+
+html[data-ui-surface="product"] main > div,
+html[data-ui-surface="admin"] main > div,
+html[data-ui-surface="focus"] main > div {
+  min-width: 0;
+}
+
+html[data-ui-surface="product"] main :is(h1, h2),
+html[data-ui-surface="admin"] main :is(h1, h2),
+html[data-ui-surface="focus"] main :is(h1, h2) {
+  color: var(--ink);
+  letter-spacing: -.035em;
+  text-wrap: balance;
+}
+
+html[data-ui-surface="product"] main h1,
+html[data-ui-surface="admin"] main h1 {
+  font-weight: 900;
+  line-height: 1.12;
+}
+
+html[data-ui-surface="product"] main :is(.text-slate-500, .text-slate-600, .text-slate-700),
+html[data-ui-surface="admin"] main :is(.text-slate-500, .text-slate-600, .text-slate-700),
+html[data-ui-surface="focus"] main :is(.text-slate-500, .text-slate-600, .text-slate-700) {
+  color: var(--muted);
+}
+
+html[data-ui-surface="product"] main :is(.text-teal-600, .text-teal-700, .text-teal-800, .text-teal-900),
+html[data-ui-surface="admin"] main :is(.text-teal-600, .text-teal-700, .text-teal-800, .text-teal-900),
+html[data-ui-surface="focus"] main :is(.text-teal-600, .text-teal-700, .text-teal-800, .text-teal-900) {
+  color: var(--green);
+}
+
+html[data-ui-surface="product"] main :is(section, article, form, details).bg-white,
+html[data-ui-surface="admin"] main :is(section, article, form, details).bg-white,
+html[data-ui-surface="focus"] main :is(section, article, form, details).bg-white {
+  border-color: var(--line);
+  background-color: var(--surface-card);
+  box-shadow: none;
+}
+
+html[data-ui-surface="product"] main :is(section, article, form, details):is([class*="rounded-2xl"], [class*="rounded-3xl"]),
+html[data-ui-surface="admin"] main :is(section, article, form, details):is([class*="rounded-2xl"], [class*="rounded-3xl"]),
+html[data-ui-surface="focus"] main :is(section, article, form, details):is([class*="rounded-2xl"], [class*="rounded-3xl"]) {
+  border-radius: var(--radius-card);
+}
+
+html[data-ui-surface="product"] main :is(section, article, form, details)[class*="shadow-"],
+html[data-ui-surface="admin"] main :is(section, article, form, details)[class*="shadow-"],
+html[data-ui-surface="focus"] main :is(section, article, form, details)[class*="shadow-"] {
+  box-shadow: none;
+}
+
+html[data-ui-surface="product"] main :is(.bg-slate-50, .bg-slate-100),
+html[data-ui-surface="admin"] main :is(.bg-slate-50, .bg-slate-100),
+html[data-ui-surface="focus"] main :is(.bg-slate-50, .bg-slate-100) {
+  background-color: var(--surface-subtle);
+}
+
+html[data-ui-surface="product"] main :is(.bg-teal-50, .bg-emerald-50),
+html[data-ui-surface="admin"] main :is(.bg-teal-50, .bg-emerald-50),
+html[data-ui-surface="focus"] main :is(.bg-teal-50, .bg-emerald-50) {
+  background-color: var(--surface-tinted);
+}
+
+html[data-ui-surface="product"] main :is(.bg-slate-900, .bg-teal-900),
+html[data-ui-surface="admin"] main :is(.bg-slate-900, .bg-teal-900) {
+  border-color: var(--tg-night-rule);
+  background-color: var(--surface-inverse);
+  color: var(--text-inverse);
+}
+
+html[data-ui-surface="product"] main :is(.bg-slate-900, .bg-teal-900) :is(h1, h2, h3),
+html[data-ui-surface="admin"] main :is(.bg-slate-900, .bg-teal-900) :is(h1, h2, h3) {
+  color: var(--text-inverse);
+}
+
+html[data-ui-surface="product"] main :is(.bg-slate-900, .bg-teal-900) :is(.text-slate-200, .text-slate-300, .text-slate-400),
+html[data-ui-surface="admin"] main :is(.bg-slate-900, .bg-teal-900) :is(.text-slate-200, .text-slate-300, .text-slate-400) {
+  color: var(--text-inverse-muted);
+}
+
+html[data-ui-surface="product"] main :is(a, button).bg-teal-700,
+html[data-ui-surface="product"] main :is(a, button).bg-teal-800,
+html[data-ui-surface="product"] main :is(a, button).bg-slate-900,
+html[data-ui-surface="admin"] main :is(a, button).bg-teal-700,
+html[data-ui-surface="admin"] main :is(a, button).bg-teal-800,
+html[data-ui-surface="admin"] main :is(a, button).bg-slate-900,
+html[data-ui-surface="focus"] main :is(a, button).bg-teal-700,
+html[data-ui-surface="focus"] main :is(a, button).bg-teal-800,
+html[data-ui-surface="focus"] main :is(a, button).bg-slate-900 {
+  background-color: var(--color-action);
+  color: white;
+}
+
+html[data-ui-surface="product"] main :is(a, button).bg-teal-700:hover,
+html[data-ui-surface="product"] main :is(a, button).bg-teal-800:hover,
+html[data-ui-surface="product"] main :is(a, button).bg-slate-900:hover,
+html[data-ui-surface="admin"] main :is(a, button).bg-teal-700:hover,
+html[data-ui-surface="admin"] main :is(a, button).bg-teal-800:hover,
+html[data-ui-surface="admin"] main :is(a, button).bg-slate-900:hover,
+html[data-ui-surface="focus"] main :is(a, button).bg-teal-700:hover,
+html[data-ui-surface="focus"] main :is(a, button).bg-teal-800:hover,
+html[data-ui-surface="focus"] main :is(a, button).bg-slate-900:hover {
+  background-color: var(--color-action-hover);
+}
+
+html[data-ui-surface="product"] main :is(button, a, summary),
+html[data-ui-surface="admin"] main :is(button, a, summary),
+html[data-ui-surface="focus"] main :is(button, a, summary) {
+  transition: background-color var(--tg-duration-fast) ease, border-color var(--tg-duration-fast) ease, color var(--tg-duration-fast) ease, box-shadow var(--tg-duration-fast) ease;
+}
+
+html[data-ui-surface="product"] main :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea),
+html[data-ui-surface="admin"] main :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) {
+  min-height: 2.75rem;
+  border-color: #c8d5c9;
+  border-radius: var(--radius-control);
+  background-color: var(--surface-card);
+  color: var(--ink);
+}
+
+html[data-ui-surface="product"] main :is(input, select, textarea):focus,
+html[data-ui-surface="admin"] main :is(input, select, textarea):focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgb(36 90 67 / .12);
+  outline: none;
+}
+
+html[data-ui-surface="admin"] main table,
+html[data-ui-surface="product"] main table {
+  border-color: var(--line);
+  background: var(--surface-card);
+}
+
+html[data-ui-surface="admin"] main :is(thead, th),
+html[data-ui-surface="product"] main :is(thead, th) {
+  background: var(--surface-tinted);
+  color: var(--ink);
+}
+
+html[data-ui-surface="admin"] main :is(td, th),
+html[data-ui-surface="product"] main :is(td, th) {
+  border-color: var(--line);
+}
+
+html[data-ui-surface="admin"] main tbody tr:hover,
+html[data-ui-surface="product"] main tbody tr:hover {
+  background: var(--surface-subtle);
+}
+
+/* Dark editorial navigation ties the workspaces back to the public story. */
+.learner-navigation,
+.admin-navigation {
+  border-color: var(--tg-night-rule);
+  background: var(--surface-inverse);
+  color: var(--text-inverse);
+  box-shadow: 8px 0 32px rgb(7 25 21 / .14);
+}
+
+.learner-navigation-brand,
+.admin-navigation-brand a {
+  color: var(--text-inverse);
+}
+
+.learner-navigation-brand,
+.admin-navigation-brand {
+  border-color: var(--tg-night-rule);
+}
+
+.learner-sidebar-group + .learner-sidebar-group,
+.admin-navigation-group + .admin-navigation-group,
+.learner-sidebar-account,
+.admin-navigation-actions {
+  border-color: var(--tg-night-rule);
+}
+
+.learner-sidebar-group > p,
+.admin-navigation-group h2 {
+  color: var(--text-inverse-muted);
+}
+
+.learner-sidebar-group > a,
+.admin-navigation-group a,
+.admin-learner-link {
+  color: #c9dad2;
+}
+
+.learner-sidebar-group > a:hover,
+.learner-sidebar-group > a[aria-current="page"],
+.admin-navigation-group a:hover,
+.admin-navigation-group a[aria-current="page"] {
+  background: rgb(123 229 189 / .12);
+  color: var(--tg-mint-400);
+}
+
+.learner-sidebar-group > a[aria-current="page"],
+.admin-navigation-group a[aria-current="page"] {
+  box-shadow: inset 3px 0 var(--tg-mint-400);
+}
+
+.admin-identity {
+  border-color: var(--tg-night-rule);
+  color: var(--tg-mint-400);
+}
+
+.learner-account-copy strong { color: var(--text-inverse); }
+.learner-account-copy small { color: var(--text-inverse-muted); }
+
+@media (min-width: 1024px) {
+  .learner-sidebar-toggle {
+    border-color: var(--tg-night-rule);
+    background: var(--tg-night-900);
+    color: var(--tg-mint-400);
+    box-shadow: none;
+  }
+  .learner-sidebar-toggle:hover { background: var(--tg-mint-400); color: var(--tg-night-950); }
+}
+
+@media (max-width: 1023px) {
+  .learner-navigation {
+    border-color: var(--line);
+    background: var(--surface-page);
+    color: var(--ink);
+    box-shadow: none;
+  }
+  .learner-navigation-brand { color: var(--green); }
+  .learner-bottom-navigation {
+    border-color: var(--tg-night-rule);
+    background: rgb(7 25 21 / .97);
+    box-shadow: 0 -10px 30px rgb(7 25 21 / .2);
+  }
+  .learner-bottom-navigation > a,
+  .learner-bottom-navigation > details > summary { color: #b9ccc3; }
+  .learner-bottom-navigation > a[aria-current="page"],
+  .learner-bottom-navigation > details:has([aria-current="page"]) > summary { color: var(--tg-mint-400); }
+}
+
+@media (max-width: 900px) {
+  .admin-mobile-bar {
+    border-color: var(--tg-night-rule);
+    background: var(--surface-inverse);
+    color: var(--text-inverse);
+    padding-inline: .75rem;
+  }
+  .admin-mobile-bar a { color: var(--text-inverse); }
+  .admin-mobile-bar button {
+    border-color: var(--tg-night-rule);
+    color: var(--tg-mint-400);
+  }
+}
+
+@media (max-width: 520px) {
+  html[data-ui-surface="product"] main,
+  html[data-ui-surface="admin"] main { background-image: none; }
+  html[data-ui-surface="product"] main h1,
+  html[data-ui-surface="admin"] main h1 { font-size: clamp(1.8rem, 9vw, 2.4rem); }
+}

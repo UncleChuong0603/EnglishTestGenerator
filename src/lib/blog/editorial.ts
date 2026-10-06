@@ -9,6 +9,7 @@ import { GRAMMAR_COMPLETE_POSTS } from "./grammar-complete-editorial";
 import { ETS_2025_REVIEW_POST } from "./ets-2025-review";
 import { PART5_REVIEW_GUIDE } from "./part5-review-guide";
 import { SCORE_ROADMAP_POST } from "./score-roadmap-editorial";
+import { SEO_GROWTH_POSTS } from "./seo-growth-editorial";
 import { MINI_PRACTICE } from "@/lib/seo/mini-practice";
 
 export type EditorialPost = {
@@ -54,6 +55,7 @@ export const EDITORIAL_POSTS: EditorialPost[] = [
   ETS_2025_REVIEW_POST,
   ...TOEIC_TIP_POSTS,
   SCORE_ROADMAP_POST,
+  ...SEO_GROWTH_POSTS,
   post({
     id: "editorial-listening", category: "LISTENING", slug: "cach-luyen-nghe-toeic-part-3-4",
     revisedAt: new Date("2026-10-02T00:00:00.000Z"),

@@ -43,23 +43,23 @@ export function AccountDataPanel({ email, locale }: { email: string; locale: Int
           ? (vi ? "Chưa thể xác nhận việc xóa tài khoản. Hãy kiểm tra trạng thái đăng nhập hoặc liên hệ hỗ trợ trước khi thử lại." : "We could not confirm deletion. Check your sign-in status or contact support before retrying.")
           : null;
 
-  return <div data-account-data-page className="mt-6 space-y-8">
-    <section aria-labelledby="export-learning-data">
+  return <div data-account-data-page className="space-y-6">
+    <section aria-labelledby="export-learning-data" className="rounded-2xl border border-[#dce3d9] bg-[#fbfcfa] p-5 sm:p-6">
       <h3 className="font-bold" id="export-learning-data">{vi ? "Xuất dữ liệu học tập" : "Export learning data"}</h3>
-      <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+      <p className="mt-2 max-w-2xl text-sm leading-6 text-[#52645a]">
         {vi ? "Tải một tệp JSON có thể đọc bằng máy gồm hồ sơ, mục tiêu, lịch sử luyện tập, tiến độ, lỗi sai, từ vựng, kế hoạch và dữ liệu gói của bạn. Tệp không chứa mật khẩu, token phiên hay khóa nội bộ." : "Download a machine-readable JSON file containing your profile, goals, practice history, progress, mistakes, vocabulary, plans and plan data. Passwords, session tokens and internal keys are excluded."}
       </p>
-      <button type="button" disabled={exportPending} onClick={downloadExport} className="mt-4 inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 py-2 font-semibold hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 disabled:opacity-60">
+      <button type="button" disabled={exportPending} onClick={downloadExport} className="mt-5 inline-flex min-h-11 items-center rounded-xl border border-[#aebcb2] bg-white px-4 py-2 font-semibold text-[#294838] transition-colors hover:border-[#708c79] hover:bg-[#f3f8f1] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245a43] disabled:cursor-not-allowed disabled:opacity-50">
         {exportPending ? (vi ? "Đang chuẩn bị dữ liệu…" : "Preparing your data…") : (vi ? "Tải dữ liệu JSON" : "Download JSON data")}
       </button>
       {exportError ? <p className="mt-3 text-sm text-red-800" role="alert">{vi ? "Chưa tải được dữ liệu. Vui lòng thử lại hoặc liên hệ hỗ trợ." : "The data could not be downloaded. Please retry or contact support."}</p> : null}
     </section>
 
-    <Link href="/support" className="inline-flex min-h-11 items-center font-semibold text-teal-800 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700">
+    <Link href="/support" className="inline-flex min-h-11 items-center font-semibold text-[#245a43] underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245a43]">
       {vi ? "Cần hỗ trợ về dữ liệu tài khoản?" : "Need help with your account data?"}
     </Link>
-    <section aria-labelledby="delete-account" className="border-t border-slate-200 pt-8">
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-5 sm:p-6">
+    <section aria-labelledby="delete-account" className="border-t border-[#edf1eb] pt-6">
+      <div className="rounded-2xl border border-red-200 bg-red-50/70 p-5 sm:p-6">
         <h3 className="text-lg font-black text-red-950" id="delete-account">{vi ? "Xóa tài khoản" : "Delete account"}</h3>
         <p className="mt-2 text-sm leading-6 text-red-950">
           {vi ? "Hành động này đăng xuất mọi thiết bị và xóa vĩnh viễn hồ sơ, lịch sử học, tiến độ, lỗi sai, từ vựng, lựa chọn, liên kết Google và email vòng đời. Hồ sơ thanh toán bắt buộc phải lưu sẽ được giữ dưới danh tính ẩn danh." : "This signs out every device and permanently removes your profile, learning history, progress, mistakes, vocabulary, preferences, Google link and lifecycle email data. Required payment records are retained under a pseudonymous account reference."}

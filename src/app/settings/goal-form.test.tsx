@@ -20,4 +20,11 @@ describe("GoalForm", () => {
     expect(html).toContain("Lưu mục tiêu");
     expect(html).not.toContain("Bỏ qua lúc này");
   });
+  it("reveals the custom score field only for a custom target", () => {
+    const unset = renderToStaticMarkup(<GoalForm goal={null} locale="en" />);
+    const custom = renderToStaticMarkup(<GoalForm goal={{ targetScore: 725, examDate: null, dailyStudyMinutes: null, studyDaysPerWeek: null, updatedAt: "2026-09-20T00:00:00.000Z" }} locale="en" />);
+    expect(unset).not.toContain('id="customTarget"');
+    expect(custom).toContain('id="customTarget"');
+    expect(custom).toContain('value="725"');
+  });
 });

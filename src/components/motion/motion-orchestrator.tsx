@@ -4,12 +4,20 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 
 const focusRoute = /^\/(practice|diagnostic|demo-test|full-mock|ranking\/challenges\/run|challenge\/part-5)\/[^/]+/;
+const marketingRoute = /^\/(?:$|ve-toeic-gym(?:\/|$)|pricing(?:\/|$)|toeic(?:\/|$)|blog(?:\/|$)|luyen-thi-toeic-online(?:\/|$)|thi-thu-toeic-online(?:\/|$))/;
 
 export function MotionOrchestrator() {
   const pathname = usePathname();
 
   useEffect(() => {
     const root = document.documentElement;
+    const surface = pathname.startsWith("/admin")
+      ? "admin"
+      : focusRoute.test(pathname)
+        ? "focus"
+        : marketingRoute.test(pathname)
+          ? "marketing"
+          : "product";
     const level = pathname.startsWith("/admin")
       ? "minimal"
       : focusRoute.test(pathname)
@@ -17,6 +25,7 @@ export function MotionOrchestrator() {
         : pathname === "/" || pathname === "/ve-toeic-gym" || pathname === "/pricing" || pathname.startsWith("/toeic") || pathname.startsWith("/blog")
           ? "rich"
           : "product";
+    root.dataset.uiSurface = surface;
     root.dataset.motionLevel = level;
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -25,11 +34,19 @@ export function MotionOrchestrator() {
       return () => {
         delete root.dataset.motionLevel;
         delete root.dataset.motionReady;
+        delete root.dataset.uiSurface;
       };
     }
 
     const main = document.querySelector("main");
-    if (!main) return;
+    if (!main) {
+      root.dataset.motionReady = "true";
+      return () => {
+        delete root.dataset.motionLevel;
+        delete root.dataset.motionReady;
+        delete root.dataset.uiSurface;
+      };
+    }
     const selector = level === "rich"
       ? ":scope > section, :scope > article > section, [data-motion-reveal]"
       : ":scope > div > header, :scope > div > section, [data-motion-reveal]";
@@ -45,7 +62,9 @@ export function MotionOrchestrator() {
         entry.target.classList.add("motion-reveal-visible");
         observer.unobserve(entry.target);
       });
-    }, { rootMargin: "0px 0px -12% 0px", threshold: 0.08 });
+    }, level === "rich"
+      ? { rootMargin: "0px 0px -12% 0px", threshold: 0.08 }
+      : { rootMargin: "0px 0px -5% 0px", threshold: 0.01 });
     targets.forEach((element) => observer.observe(element));
     requestAnimationFrame(() => { root.dataset.motionReady = "true"; });
 
@@ -68,6 +87,7 @@ export function MotionOrchestrator() {
       });
       delete root.dataset.motionLevel;
       delete root.dataset.motionReady;
+      delete root.dataset.uiSurface;
     };
   }, [pathname]);
 

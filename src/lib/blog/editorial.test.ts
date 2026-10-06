@@ -24,6 +24,25 @@ describe("editorial TOEIC library", () => {
     expect(review?.content).toContain("toeic-listening-reading-sample-test.pdf");
     expect(review?.editorialCover).toBe("/blog/ets-2025-reading-sample-review.webp");
     expect(existsSync("public/blog/ets-2025-reading-sample-review.webp")).toBe(true);
+    expect(review?.content).toContain("Câu 101–130");
+    expect(review?.content).toContain("Câu 176–200");
+    expect(review?.content.trim().split(/\s+/).length).toBeGreaterThan(1400);
+  });
+
+  it("ships substantial intent-led growth articles instead of thin placeholder posts", () => {
+    const growthSlugs = [
+      "toeic-la-gi-cau-truc-thang-diem",
+      "lo-trinh-hoc-toeic-cho-nguoi-mat-goc",
+      "toeic-650-can-dung-bao-nhieu-cau",
+      "cach-hoc-tu-vung-tieng-anh-nho-lau-theo-cum",
+    ];
+    for (const slug of growthSlugs) {
+      const post = getEditorialPost(slug);
+      expect(post, slug).toBeDefined();
+      expect(post?.content.trim().split(/\s+/).length, slug).toBeGreaterThan(650);
+      expect(post?.content.match(/^## /gm)?.length ?? 0, slug).toBeGreaterThanOrEqual(5);
+      expect(post?.content.match(/\]\(\//g)?.length ?? 0, slug).toBeGreaterThanOrEqual(3);
+    }
   });
 
   it("resolves bundled articles by slug", () => {
@@ -65,7 +84,7 @@ describe("editorial TOEIC library", () => {
   });
 
   it("answers the observed grammar and Listening searches on their existing canonical pages", () => {
-    expect(getEditorialPost("sua-de-mau-ets-toeic-2025-reading-part-5-6-7")?.content).toContain("Có PDF ETS TOEIC 2025 chính thức không?");
+    expect(getEditorialPost("sua-de-mau-ets-toeic-2025-reading-part-5-6-7")?.content).toContain("ETS TOEIC 2025” có phải tên một đề mẫu chính thức?");
     expect(getEditorialPost("hien-tai-hoan-thanh-va-qua-khu-don")?.content).toContain("Yesterday dùng since hay for?");
     expect(getEditorialPost("cau-tuong-thuat-tieng-anh-said-told-asked")?.content).toContain("Said và told khác nhau thế nào?");
     expect(getEditorialPost("used-to-be-used-to-get-used-to")?.content).toContain("Bảng chọn nhanh used to");

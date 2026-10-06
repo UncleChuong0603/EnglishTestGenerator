@@ -65,4 +65,13 @@ Check 375px, 768px, 1024px and 1440px. The primary action and core message must 
 3. Practice: question and passage readability, audio controls, clear progress, safe submission and useful explanations.
 4. Admin: pending work first, compact metrics as context, dense but readable controls.
 
+## Workspace inheritance
+
+Learner and admin workspaces inherit the public story's visual identity without copying its marketing density. Shared shells use the night surface (`#071915`) for persistent navigation, paper for the page canvas, white or lightly tinted work surfaces, forest for primary actions and mint for compact active emphasis. Forms, tables, cards, focus rings and status surfaces must resolve through the shared tokens in `src/app/globals.css` rather than introduce a second slate/teal theme.
+
+- Learner pages may use a subtle 32px paper grid behind content. Active practice and timed assessment routes remove the grid and decorative motion.
+- Admin pages use the same navigation and surface palette at higher information density. Operational status colors remain semantic and must not be recolored as brand decoration.
+- Desktop navigation may use the dark editorial shell. Mobile content headers stay light; the learner bottom navigation and admin drawer carry the dark shell for continuity.
+- New pages should use semantic HTML (`main`, `header`, `section`, `article`, `form`, `table`) so the shared product layer can style them consistently before page-specific overrides are added.
+
 Review actual screenshots and interaction states after each surface change. Run the relevant lint, typecheck and browser checks for the modified flow.

@@ -8,6 +8,12 @@ import { LanguageSwitcher } from "@/components/language-switcher";
 import { TableSortEnhancer } from "@/components/admin/table-sort-enhancer";
 import type { InterfaceLanguage } from "@/lib/i18n/config";
 
+function AdminMenuIcon({ open }: { open: boolean }) {
+  return <svg aria-hidden="true" fill="none" height="20" stroke="currentColor" strokeLinecap="round" strokeWidth="2" viewBox="0 0 24 24" width="20">
+    {open ? <><path d="M6 6l12 12" /><path d="M18 6 6 18" /></> : <><path d="M4 7h16" /><path d="M4 12h16" /><path d="M4 17h16" /></>}
+  </svg>;
+}
+
 export function AdminNav({ locale }: { locale: InterfaceLanguage }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -23,7 +29,7 @@ export function AdminNav({ locale }: { locale: InterfaceLanguage }) {
 
   return <>
     <TableSortEnhancer locale={locale} />
-    <header className="admin-mobile-bar"><Link href="/admin"><Image src="/brand/toeic-gym-mark.png" alt="" width={28} height={28} />TOEIC GYM <span>ADMIN</span></Link><button aria-controls="admin-sidebar" aria-expanded={open} aria-label={open ? (vi ? "Đóng menu quản trị" : "Close admin menu") : (vi ? "Mở menu quản trị" : "Open admin menu")} onClick={() => setOpen(!open)} type="button">{open ? "×" : "☰"}</button></header>
+    <header className="admin-mobile-bar"><Link href="/admin"><Image src="/brand/toeic-gym-mark.png" alt="" width={28} height={28} />TOEIC GYM <span>ADMIN</span></Link><button aria-controls="admin-sidebar" aria-expanded={open} aria-label={open ? (vi ? "Đóng menu quản trị" : "Close admin menu") : (vi ? "Mở menu quản trị" : "Open admin menu")} onClick={() => setOpen(!open)} type="button"><AdminMenuIcon open={open} /></button></header>
     {open && <button aria-label={vi ? "Đóng menu quản trị" : "Close admin menu"} className="admin-sidebar-scrim" onClick={() => setOpen(false)} type="button" />}
     <aside className="admin-navigation" data-open={open} id="admin-sidebar">
       <div className="admin-navigation-brand"><Link href="/admin"><Image src="/brand/toeic-gym-mark.png" alt="" width={32} height={32} />TOEIC GYM</Link><span className="admin-identity">ADMIN</span></div>

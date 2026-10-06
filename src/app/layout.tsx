@@ -19,6 +19,7 @@ const beVietnamPro = Be_Vietnam_Pro({
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getTranslations(await getCookieLanguage());
+  const googleVerification = process.env.GOOGLE_SITE_VERIFICATION?.trim();
   return {
     metadataBase: new URL(getSiteUrl()),
     title: { default: t.metadata.title, template: `%s | ${t.common.brand}` },
@@ -31,6 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
       images: [{ url: "/brand/toeic-gym-social.png", width: 1200, height: 630, alt: "TOEIC GYM: luyện tập, theo dõi tiến bộ và tập trung vào điểm yếu" }],
     },
     twitter: { card: "summary_large_image", images: ["/brand/toeic-gym-social.png"] },
+    verification: googleVerification ? { google: googleVerification } : undefined,
   };
 }
 

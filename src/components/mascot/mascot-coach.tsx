@@ -56,7 +56,7 @@ export function MascotCoach() {
       {message.href && message.action ? <Link href={message.href} onClick={() => setOpen(false)}>{message.action}<span aria-hidden="true"> →</span></Link> : null}
     </div> : null}
     <button className="mascot-coach-trigger" type="button" aria-expanded={open} aria-label={open ? (vi ? "Thu gọn Milo" : "Minimize Milo") : (vi ? "Hỏi Milo" : "Ask Milo")} onClick={() => setOpen((value) => !value)}>
-      <Image src="/mascot/milo-coach.webp" alt="" width={88} height={96} priority={pathname === "/"} />
+      <Image src="/mascot/milo-coach.webp" alt="" width={88} height={96} loading="eager" />
       {!open ? <span>{vi ? "Hỏi Milo" : "Ask Milo"}</span> : null}
     </button>
   </aside>;
