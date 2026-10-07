@@ -10,6 +10,8 @@ import { ETS_2025_REVIEW_POST } from "./ets-2025-review";
 import { PART5_REVIEW_GUIDE } from "./part5-review-guide";
 import { SCORE_ROADMAP_POST } from "./score-roadmap-editorial";
 import { SEO_GROWTH_POSTS } from "./seo-growth-editorial";
+import { EXAM_DECISION_POSTS } from "./exam-decision-editorial";
+import { LISTENING_GROWTH_POSTS } from "./listening-growth-editorial";
 import { MINI_PRACTICE } from "@/lib/seo/mini-practice";
 
 export type EditorialPost = {
@@ -56,9 +58,11 @@ export const EDITORIAL_POSTS: EditorialPost[] = [
   ...TOEIC_TIP_POSTS,
   SCORE_ROADMAP_POST,
   ...SEO_GROWTH_POSTS,
+  ...EXAM_DECISION_POSTS,
+  ...LISTENING_GROWTH_POSTS,
   post({
     id: "editorial-listening", category: "LISTENING", slug: "cach-luyen-nghe-toeic-part-3-4",
-    revisedAt: new Date("2026-10-02T00:00:00.000Z"),
+    revisedAt: new Date("2026-10-07T10:00:00.000Z"),
     title: "Cách luyện nghe TOEIC Part 3 và 4 không cần nghe từng từ",
     excerpt: "Kỹ thuật đọc trước câu hỏi, dự đoán bối cảnh và bắt cụm thông tin giúp bạn theo kịp hội thoại dài.",
     seoTitle: "Cách luyện nghe TOEIC Part 3, 4 hiệu quả", seoDescription: "Hướng dẫn luyện nghe TOEIC Part 3 và 4: đọc trước câu hỏi, bắt từ khóa, nhận diện paraphrase và sửa lỗi bằng transcript.", canonicalPath: "/blog/cach-luyen-nghe-toeic-part-3-4", coverAlt: "Tai nghe và dạng sóng minh họa luyện nghe TOEIC Part 3 và 4", socialTitle: "Nghe Part 3–4 mà không cần hiểu từng từ", socialDescription: "Một quy trình nghe chủ động, dễ áp dụng trong mỗi buổi luyện.", authorName: "TOEIC GYM Editorial", targetTopic: "cách luyện nghe TOEIC Part 3 4", searchIntent: "informational", tags: [tag("TOEIC Listening", "toeic-listening"), tag("Part 3", "part-3"), tag("Part 4", "part-4")],
@@ -109,7 +113,11 @@ Theo dõi riêng ba loại lỗi: không nhận ra âm, không biết từ và b
 
 Trong câu hỏi tự luyện “What will the woman do next?”, bạn nghe “I’ll send the revised schedule this afternoon.” Đáp án đúng có thể viết “Email an updated timetable”. *Send* tương ứng với *email*, còn *revised schedule* tương ứng với *updated timetable*. Ví dụ này do TOEIC GYM biên soạn để minh họa kỹ thuật, không phải câu hỏi ETS.
 
-Sau khi chọn đáp án, gạch dưới cụm trong transcript tạo ra suy luận. Nếu không tìm được bằng chứng, đánh dấu là câu đoán đúng và ôn lại. Với câu suy luận, bằng chứng có thể nằm ở cả ngữ cảnh thay vì một cụm từ duy nhất. Hãy thử [một hội thoại Part 3 có audio, transcript và ba câu hỏi](/toeic/part-3) để áp dụng ngay. Nếu hay mất nhịp trước khi vào đoạn hội thoại, luyện [Part 2 hỏi đáp ngắn](/blog/meo-lam-toeic-part-2-hoi-dap); nếu Reading chậm, xem [khung luyện 75 phút](/blog/quan-ly-thoi-gian-toeic-reading-75-phut).`
+Sau khi chọn đáp án, gạch dưới cụm trong transcript tạo ra suy luận. Nếu không tìm được bằng chứng, đánh dấu là câu đoán đúng và ôn lại. Với câu suy luận, bằng chứng có thể nằm ở cả ngữ cảnh thay vì một cụm từ duy nhất. Hãy thử [một hội thoại Part 3 có audio, transcript và ba câu hỏi](/toeic/part-3) để áp dụng ngay. Nếu hay mất nhịp trước khi vào đoạn hội thoại, luyện [Part 2 hỏi đáp ngắn](/blog/meo-lam-toeic-part-2-hoi-dap); nếu Reading chậm, xem [khung luyện 75 phút](/blog/quan-ly-thoi-gian-toeic-reading-75-phut).
+
+## Chọn bài bổ trợ theo đúng lỗi nghe
+
+Nếu nhìn transcript mới nhận ra toàn từ quen, học [nối âm và connected speech](/blog/noi-am-tieng-anh-cach-nghe-connected-speech). Nếu cần tìm chính xác âm hoặc từ bị bỏ lỡ, dùng [dictation với đoạn ngắn](/blog/dictation-la-gi-cach-nghe-chep-chinh-ta-tieng-anh). Nếu đã hiểu câu nhưng chưa theo được nhịp, đi từ echo đến [shadowing](/blog/shadowing-la-gi-cach-luyen-tieng-anh). Người mới chưa phân loại được lỗi có thể bắt đầu bằng [lộ trình luyện nghe cho người mất gốc](/blog/cach-luyen-nghe-tieng-anh-cho-nguoi-mat-goc).`
   }),
   post({
     id: "editorial-reading", category: "READING", slug: "quan-ly-thoi-gian-toeic-reading-75-phut",

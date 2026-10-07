@@ -7,6 +7,13 @@ import {
 import { getCurrentUser } from "@/lib/auth/session";
 import { getPreferences } from "@/lib/i18n/get-translations";
 import { listeningTalks } from "@/lib/listening-lessons/talks";
+import { publicPageMetadata } from "@/lib/seo/public-metadata";
+
+export const metadata = publicPageMetadata({
+  title: "Luyện nghe tiếng Anh online với audio và transcript",
+  description: "Nghe các bài nói tiếng Anh tự nhiên, theo dõi transcript từng câu và luyện shadowing miễn phí theo thời lượng, chủ đề.",
+  canonical: "/listening-lessons",
+});
 
 export default async function ListeningLessonsPage() {
   const user = await getCurrentUser();

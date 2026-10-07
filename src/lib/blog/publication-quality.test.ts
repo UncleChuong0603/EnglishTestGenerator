@@ -13,6 +13,9 @@ describe("publication quality gate", () => {
   it("accepts a useful article with a valid internal next step", () => {
     expect(checkPublication(article, []).errors).toEqual([]);
   });
+  it("accepts links to code-managed SEO landing pages", () => {
+    expect(checkPublication({ ...article, content: "## Bắt đầu\n[Xem cấu trúc TOEIC](/toeic)" }, []).errors).toEqual([]);
+  });
   it("blocks duplicate intent and canonical collisions", () => {
     const peer = { slug: "gioi-tu", title: "Giới từ TOEIC", canonicalPath: "/blog/sua-loi-gioi-tu-part-5", targetTopic: article.targetTopic, searchIntent: article.searchIntent };
     expect(checkPublication(article, [peer]).errors).toEqual(expect.arrayContaining(["CANONICAL_COLLISION", "SEARCH_INTENT_DUPLICATE"]));

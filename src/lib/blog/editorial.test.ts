@@ -45,6 +45,40 @@ describe("editorial TOEIC library", () => {
     }
   });
 
+  it("covers high-intent exam decisions with sourced, substantial guides", () => {
+    const decisionSlugs = [
+      "bang-toeic-co-thoi-han-bao-lau",
+      "toeic-2-ky-nang-va-4-ky-nang",
+      "dang-ky-thi-toeic-online-iig",
+      "toeic-va-ielts-nen-hoc-chung-chi-nao",
+    ];
+    for (const slug of decisionSlugs) {
+      const post = getEditorialPost(slug);
+      expect(post, slug).toBeDefined();
+      expect(post?.content.trim().split(/\s+/).length, slug).toBeGreaterThan(650);
+      expect(post?.content.match(/^## /gm)?.length ?? 0, slug).toBeGreaterThanOrEqual(6);
+      expect(post?.content.match(/\]\(\//g)?.length ?? 0, slug).toBeGreaterThanOrEqual(3);
+      expect(post?.content).toMatch(/https:\/\/(?:www\.)?(?:ets\.org|ielts\.org|online\.iigvietnam\.com|iigvietnam\.com)/);
+    }
+  });
+
+  it("builds a deep general-English listening cluster with a real practice path", () => {
+    const listeningSlugs = [
+      "cach-luyen-nghe-tieng-anh-cho-nguoi-mat-goc",
+      "shadowing-la-gi-cach-luyen-tieng-anh",
+      "dictation-la-gi-cach-nghe-chep-chinh-ta-tieng-anh",
+      "noi-am-tieng-anh-cach-nghe-connected-speech",
+    ];
+    for (const slug of listeningSlugs) {
+      const post = getEditorialPost(slug);
+      expect(post, slug).toBeDefined();
+      expect(post?.content.trim().split(/\s+/).length, slug).toBeGreaterThan(800);
+      expect(post?.content.match(/^## /gm)?.length ?? 0, slug).toBeGreaterThanOrEqual(7);
+      expect(post?.content.match(/\]\(\//g)?.length ?? 0, slug).toBeGreaterThanOrEqual(5);
+      expect(post?.content).toContain("/listening-lessons");
+    }
+  });
+
   it("resolves bundled articles by slug", () => {
     const first = EDITORIAL_POSTS[0];
     expect(getEditorialPost(first.slug)?.id).toBe(first.id);

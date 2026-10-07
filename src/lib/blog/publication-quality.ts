@@ -1,5 +1,5 @@
 import { isValidSlug, safeHref, validatePost, type PostInput } from "./core";
-import { contentPath, STATIC_PUBLIC_PATHS } from "@/lib/seo/routes";
+import { contentPath, MANAGED_SEO_ROUTES, STATIC_PUBLIC_PATHS } from "@/lib/seo/routes";
 import { practiceForSlug } from "@/lib/seo/mini-practice";
 
 export type PublicationPeer = {
@@ -14,6 +14,13 @@ export type PublicationPeer = {
 export type PublicationQuality = { errors: string[]; warnings: string[] };
 
 const publicRoutes = new Set<string>(STATIC_PUBLIC_PATHS);
+const linkableRoutes = new Set<string>([
+  ...STATIC_PUBLIC_PATHS,
+  ...Object.values(MANAGED_SEO_ROUTES),
+  // This authenticated practice destination is intentionally noindex, but it
+  // is still a valid next step from the public TOEIC landing page.
+  "/full-mock",
+]);
 
 const normalize = (value: string) => value.normalize("NFKC").trim().toLocaleLowerCase("vi-VN").replace(/\s+/g, " ");
 const canonicalOf = (post: PublicationPeer) => post.canonicalPath || contentPath(post.slug);
@@ -48,7 +55,7 @@ export function checkPublication(input: PostInput, peers: PublicationPeer[]): Pu
   if (/(?:tăng|đạt|cam kết|đảm bảo|improve|guarantee)[^.!?\n]{0,70}(?:\d{2,4}\s*(?:điểm|points)|\d+\s*%)/i.test(`${input.title} ${input.excerpt} ${input.content}`)) errors.push("UNSUPPORTED_SCORE_CLAIM");
   if (/(?:full\s*mock|thi\s*thử\s*đầy\s*đủ)[^.!?\n]{0,40}(?:miễn\s*phí|không\s*cần\s*đăng\s*nhập)/i.test(`${input.title} ${input.excerpt} ${input.content}`)) errors.push("UNAVAILABLE_FEATURE_CLAIM");
 
-  const known = new Set([...publicRoutes, ...peers.map((peer) => contentPath(peer.slug)), self]);
+  const known = new Set([...linkableRoutes, ...peers.map((peer) => contentPath(peer.slug)), self]);
   const links = [...input.content.matchAll(/(?<!!)\[[^\]]+\]\(([^)]+)\)/g)].map((match) => match[1].trim().split(/\s+['"]/)[0]);
   for (const [, alt, source] of input.content.matchAll(/!\[([^\]]*)\]\(([^)]+)\)/g)) {
     if (!alt.trim() || !source.startsWith("/") || source.startsWith("//") || /[?#]/.test(source) || !safeHref(source)) {

@@ -1,7 +1,7 @@
 // Read-only release check for the public sitemap and representative app routes.
 // Usage: node scripts/seo-smoke.mjs [https://toeicgym.net]
 const origin = new URL(process.argv[2] ?? "https://toeicgym.net").origin;
-const privatePaths = ["/demo-test", "/practice", "/continue-learning", "/billing", "/admin", "/api/health", "/auth/callback"];
+const privatePaths = ["/demo-test", "/practice", "/continue-learning", "/billing", "/admin", "/api/health", "/auth/callback", "/listening-lessons/dictation"];
 const breadcrumbPaths = new Set(["/toeic", "/luyen-thi-toeic-online", "/toeic/listening", "/toeic/part-1", "/toeic/part-2", "/toeic/part-3", "/toeic/part-4", "/thi-thu-toeic-online", "/toeic/part-5", "/toeic/part-5/word-form", "/toeic/part-5/thi-dong-tu", "/toeic/part-5/practice", "/toeic/part-6", "/toeic/part-6/dien-cau-vao-doan-van", "/toeic/part-6/dien-tu-va-cum-tu", "/toeic/part-7", "/toeic/part-7/cau-hoi-suy-luan", "/toeic/part-7/doan-tin-nhan", "/toeic/part-7/paraphrase-tu-dong-nghia", "/toeic/part-7/doc-hieu-mot-doan-van", "/toeic/part-7/doc-hieu-hai-doan-van", "/toeic/part-7/doc-hieu-ba-van-ban", "/toeic/flashcards-tu-vung-cong-so", "/toeic/tu-vung", "/toeic/thang-diem", "/ve-toeic-gym", "/ngu-phap"]);
 const failures = [];
 breadcrumbPaths.add("/toeic/checklist-hoc-tuan");
@@ -92,7 +92,7 @@ try {
   const samplePaths = [
     "/", "/toeic", "/toeic/listening", "/toeic/part-1", "/toeic/part-2", "/toeic/part-3", "/toeic/part-4", "/thi-thu-toeic-online", "/toeic/part-5", "/toeic/part-5/practice",
     "/toeic/part-5/word-form", "/toeic/part-5/thi-dong-tu",
-    "/toeic/part-6", "/toeic/part-6/dien-cau-vao-doan-van", "/toeic/part-6/dien-tu-va-cum-tu", "/toeic/part-7", "/toeic/part-7/cau-hoi-suy-luan", "/toeic/part-7/doan-tin-nhan", "/toeic/part-7/paraphrase-tu-dong-nghia", "/toeic/part-7/doc-hieu-mot-doan-van", "/toeic/part-7/doc-hieu-hai-doan-van", "/toeic/part-7/doc-hieu-ba-van-ban", "/toeic/flashcards-tu-vung-cong-so", "/toeic/tu-vung", "/toeic/thang-diem", "/ve-toeic-gym", "/blog", "/ngu-phap",
+    "/toeic/part-6", "/toeic/part-6/dien-cau-vao-doan-van", "/toeic/part-6/dien-tu-va-cum-tu", "/toeic/part-7", "/toeic/part-7/cau-hoi-suy-luan", "/toeic/part-7/doan-tin-nhan", "/toeic/part-7/paraphrase-tu-dong-nghia", "/toeic/part-7/doc-hieu-mot-doan-van", "/toeic/part-7/doc-hieu-hai-doan-van", "/toeic/part-7/doc-hieu-ba-van-ban", "/toeic/flashcards-tu-vung-cong-so", "/toeic/tu-vung", "/toeic/thang-diem", "/ve-toeic-gym", "/blog", "/ngu-phap", "/listening-lessons",
     "/blog/cach-review-loi-sai-toeic", "/blog/chien-luoc-tang-diem-toeic-450-den-700",
     "/blog/sua-de-mau-ets-toeic-2025-reading-part-5-6-7",
     "/blog/toeic-la-gi-cau-truc-thang-diem", "/blog/lo-trinh-hoc-toeic-cho-nguoi-mat-goc",

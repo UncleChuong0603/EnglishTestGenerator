@@ -26,7 +26,9 @@ const noindexPaths = [
   "/billing/:path*",
   "/vocabulary/:path*",
   "/mistakes/:path*",
-  "/listening-lessons/:path*",
+  // The listening library itself is a public acquisition page. Only lesson,
+  // talk and dictation descendants are learner/session surfaces.
+  "/listening-lessons/:path+",
   "/onboarding/:path*",
   "/continue-learning/:path*",
   "/activate-account",

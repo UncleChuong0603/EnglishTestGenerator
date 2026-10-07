@@ -88,6 +88,9 @@ Every new indexed article must:
 
 - Expanded the ETS/Reading article into a complete 100-question correction workflow with current 30/16/29/25 ranges, original examples, a mistake-log template, timing diagnosis and a seven-day next plan.
 - Added deep pages for “TOEIC là gì”, “lộ trình TOEIC cho người mất gốc”, “TOEIC 650 cần đúng bao nhiêu câu” and the adjacent general-English intent “cách học từ vựng nhớ lâu”.
+- Added the sourced exam-decision cluster: score validity, TOEIC 2 vs 4 skills, current IIG online registration workflow, and TOEIC vs IELTS selection.
+- Added the general-English listening cluster: listening for beginners, shadowing, dictation and connected speech. Each page routes learners to public first-party audio/transcripts and back to the relevant TOEIC Listening task.
+- Expanded the Part 3–4 guide into an internal-link router that recommends the right supporting method from the learner's observed error instead of sending every learner to generic listening practice.
 - Added automated depth assertions for those growth pages so they cannot regress to placeholders.
 - Added optional Google Search Console HTML-tag verification through `GOOGLE_SITE_VERIFICATION`.
 - Kept every new page in the existing dynamic sitemap and article schema pipeline.
