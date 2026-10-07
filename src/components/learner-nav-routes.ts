@@ -24,6 +24,11 @@ export function getLearnerPrimaryNavigation(
 ): readonly LearnerNavItem[] {
   return [
     {
+      href: learnerHref("/dashboard", signedIn),
+      label: labels.today,
+      icon: "today",
+    },
+    {
       href: learnerHref("/progress", signedIn),
       label: labels.progress,
       icon: "progress",
@@ -32,11 +37,6 @@ export function getLearnerPrimaryNavigation(
       href: learnerHref("/practice", signedIn),
       label: labels.practice,
       icon: "practice",
-    },
-    {
-      href: learnerHref("/dashboard", signedIn),
-      label: labels.today,
-      icon: "today",
     },
     {
       href: learnerHref("/full-mock", signedIn),

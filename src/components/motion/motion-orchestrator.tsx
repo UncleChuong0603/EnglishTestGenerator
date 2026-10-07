@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 
 const focusRoute = /^\/(practice|diagnostic|demo-test|full-mock|ranking\/challenges\/run|challenge\/part-5)\/[^/]+/;
-const marketingRoute = /^\/(?:$|ve-toeic-gym(?:\/|$)|pricing(?:\/|$)|toeic(?:\/|$)|blog(?:\/|$)|luyen-thi-toeic-online(?:\/|$)|thi-thu-toeic-online(?:\/|$))/;
+const marketingRoute = /^\/(?:$|ve-toeic-gym(?:\/|$)|pricing(?:\/|$)|toeic(?:\/|$)|luyen-thi-toeic-online(?:\/|$)|thi-thu-toeic-online(?:\/|$))/;
 
 export function MotionOrchestrator() {
   const pathname = usePathname();
@@ -22,7 +22,7 @@ export function MotionOrchestrator() {
       ? "minimal"
       : focusRoute.test(pathname)
         ? "focus"
-        : pathname === "/" || pathname === "/ve-toeic-gym" || pathname === "/pricing" || pathname.startsWith("/toeic") || pathname.startsWith("/blog")
+        : pathname === "/" || pathname === "/ve-toeic-gym" || pathname === "/pricing" || pathname.startsWith("/toeic")
           ? "rich"
           : "product";
     root.dataset.uiSurface = surface;

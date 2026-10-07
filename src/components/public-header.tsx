@@ -9,16 +9,18 @@ import { getMarketingTranslations } from "@/lib/i18n/marketing";
 type PublicHeaderProps = {
   locale: InterfaceLanguage;
   signedIn?: boolean;
+  signedInPrimaryHref?: string;
+  signedInPrimaryLabel?: string;
   showPrimary?: boolean;
   tone?: "light" | "dark";
 };
 
-export function PublicHeader({ locale, signedIn = false, showPrimary = true, tone = "light" }: PublicHeaderProps) {
+export function PublicHeader({ locale, signedIn = false, signedInPrimaryHref = "/progress", signedInPrimaryLabel, showPrimary = true, tone = "light" }: PublicHeaderProps) {
   const t = getMarketingTranslations(locale);
   const dark = tone === "dark";
   const accountHref = signedIn ? "/progress" : "/sign-in";
   const showAccountLink = !signedIn || !showPrimary;
-  const primaryLabel = signedIn ? t.nav.continue : locale === "vi" ? "Thử 10 câu miễn phí" : "Try 10 free questions";
+  const primaryLabel = signedIn ? (signedInPrimaryLabel ?? t.nav.continue) : locale === "vi" ? "Thử 10 câu miễn phí" : "Try 10 free questions";
   const pendingLabel = locale === "vi" ? "Đang chuẩn bị bài…" : "Preparing your questions…";
   const navLink = `inline-flex min-h-11 shrink-0 items-center whitespace-nowrap px-3 py-2 text-sm font-semibold transition focus-visible:outline-2 ${dark ? "text-[#b7c9c0] hover:text-[#7be5bd]" : "text-[#42584b] hover:text-[#245a43]"}`;
   const mobileLink = `block min-h-11 border-b px-2 py-3 text-sm font-semibold ${dark ? "border-[#21463b] text-[#d9e9e1] hover:text-[#7be5bd]" : "border-[#e2e9df]"}`;
@@ -38,7 +40,7 @@ export function PublicHeader({ locale, signedIn = false, showPrimary = true, ton
       <div className="hidden items-center gap-2 xl:flex">
         <LanguageSwitcher locale={locale} />
         {showAccountLink ? <Link className={navLink} href={accountHref}>{signedIn ? t.nav.dashboard : t.nav.signIn}</Link> : null}
-        {showPrimary && (signedIn ? <Link className={headerAction} href="/progress">{primaryLabel} <span className="ml-3" aria-hidden="true">↗</span></Link> : <form action={startPart5Challenge}><ChallengeStartButton className={`${headerAction} gap-3`} label={primaryLabel} pendingLabel={pendingLabel} /></form>)}
+        {showPrimary && (signedIn ? <Link className={headerAction} href={signedInPrimaryHref}>{primaryLabel} <span className="ml-3" aria-hidden="true">↗</span></Link> : <form action={startPart5Challenge}><ChallengeStartButton className={`${headerAction} gap-3`} label={primaryLabel} pendingLabel={pendingLabel} /></form>)}
       </div>
       <details className="group relative xl:hidden">
         <summary className={`flex min-h-11 min-w-11 cursor-pointer list-none items-center justify-center rounded-md border ${dark ? "border-[#315c4d] text-[#7be5bd]" : "border-[#cbd7cb] text-[#245a43]"}`} aria-label={locale === "vi" ? "Mở menu" : "Open menu"}><svg aria-hidden="true" fill="none" height="22" viewBox="0 0 24 24" width="22"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeLinecap="round" strokeWidth="1.8" /></svg></summary>
@@ -56,7 +58,7 @@ export function PublicHeader({ locale, signedIn = false, showPrimary = true, ton
           <Link className={mobileLink} href="/blog">Blog</Link>
           {showAccountLink ? <Link className={mobileLink} href={accountHref}>{signedIn ? t.nav.dashboard : t.nav.signIn}</Link> : null}
           <div className="px-2 py-3"><LanguageSwitcher locale={locale} /></div>
-          {showPrimary && (signedIn ? <Link className={headerAction} href="/progress">{primaryLabel}</Link> : <form action={startPart5Challenge}><ChallengeStartButton className={`${headerAction} w-full justify-center gap-3`} label={primaryLabel} pendingLabel={pendingLabel} /></form>)}
+          {showPrimary && (signedIn ? <Link className={headerAction} href={signedInPrimaryHref}>{primaryLabel}</Link> : <form action={startPart5Challenge}><ChallengeStartButton className={`${headerAction} w-full justify-center gap-3`} label={primaryLabel} pendingLabel={pendingLabel} /></form>)}
         </nav>
       </details>
     </div>

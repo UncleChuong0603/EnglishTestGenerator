@@ -7,33 +7,34 @@ import {
 
 describe("Learner navigation information architecture", () => {
   it.each([
-    ["vi", ["Tiến độ", "Luyện tập", "Bài hôm nay", "Thi thử"]],
-    ["en", ["Progress", "Practice", "Today's plan", "Mock Tests"]],
-  ] as const)("uses progress as the %s learner home", (locale, labels) => {
+    ["vi", ["Bài hôm nay", "Tiến độ", "Luyện tập", "Thi thử"]],
+    ["en", ["Today's plan", "Progress", "Practice", "Mock Tests"]],
+  ] as const)("puts today's plan first in the %s learner navigation", (locale, labels) => {
     const items = getLearnerPrimaryNavigation(true, {
-      progress: labels[0],
-      practice: labels[1],
-      today: labels[2],
+      today: labels[0],
+      progress: labels[1],
+      practice: labels[2],
       mockTests: labels[3],
     });
 
     expect(items.map(({ href, label }) => ({ href, label }))).toEqual([
-      { href: "/progress", label: labels[0] },
-      { href: "/practice", label: labels[1] },
-      { href: "/dashboard", label: labels[2] },
+      { href: "/dashboard", label: labels[0] },
+      { href: "/progress", label: labels[1] },
+      { href: "/practice", label: labels[2] },
       { href: "/full-mock", label: labels[3] },
     ]);
     expect(getLearnerSecondaryNavigation(locale).map((item) => item.href)).not.toContain("/");
   });
 
   it("keeps the selected destination through sign-in for guests", () => {
-    const [progress] = getLearnerPrimaryNavigation(false, {
+    const [today, progress] = getLearnerPrimaryNavigation(false, {
       progress: "Progress",
       practice: "Practice",
       today: "Today's plan",
       mockTests: "Mock Tests",
     });
 
+    expect(today.href).toBe("/sign-in?next=%2Fdashboard");
     expect(progress.href).toBe("/sign-in?next=%2Fprogress");
   });
 });

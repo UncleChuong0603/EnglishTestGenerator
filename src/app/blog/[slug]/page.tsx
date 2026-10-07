@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
-import { PublicHeader } from "@/components/public-header";
-import { PublicFooter } from "@/components/public-footer";
 import { ArticleView } from "@/components/blog/article-view";
+import { LearnerNav } from "@/components/learner-nav";
 import { getPublishedPost, getPostRedirect, listPublishedPosts, coverUrl } from "@/lib/blog/service";
 import { isManagedSeoSlug } from "@/lib/seo/routes";
 import { grammarImageForSlug } from "@/lib/blog/editorial";
@@ -77,5 +76,13 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
       { name: post.title, url },
     ],
   });
-  return <main className="min-h-screen bg-white text-slate-900"><PublicHeader locale={prefs.interfaceLanguage} signedIn={Boolean(user)} /><script dangerouslySetInnerHTML={{ __html: serializeStructuredData(jsonLd) }} type="application/ld+json" /><ArticleView coverUrl={image} locale={prefs.interfaceLanguage} post={post} related={related} signedIn={Boolean(user)} /><PublicFooter locale={prefs.interfaceLanguage} /></main>;
+  const locale = prefs.interfaceLanguage;
+  return <main className="learner-page min-h-screen pb-20 text-slate-900 lg:pb-0">
+    <a className="sr-only z-[60] rounded-md bg-white px-4 py-3 font-bold text-teal-800 focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:outline-2 focus:outline-offset-2 focus:outline-teal-700" href="#article-content">{locale === "vi" ? "Bỏ qua điều hướng" : "Skip to content"}</a>
+    <LearnerNav locale={locale} />
+    <div id="article-content">
+      <script dangerouslySetInnerHTML={{ __html: serializeStructuredData(jsonLd) }} type="application/ld+json" />
+      <ArticleView coverUrl={image} locale={locale} post={post} related={related} signedIn={Boolean(user)} />
+    </div>
+  </main>;
 }

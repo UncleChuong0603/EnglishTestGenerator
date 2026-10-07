@@ -27,7 +27,7 @@ const copy = {
     lead: "TOEIC GYM dùng kết quả luyện để chọn bài nên học hôm nay, đồng thời đưa lỗi chưa vững và mục tiêu của bạn vào lộ trình được điều chỉnh theo từng tuần.",
     start: "Làm 10 câu để bắt đầu",
     starting: "Đang chuẩn bị bài…",
-    continue: "Mở bài nên học hôm nay",
+    continue: "Bài hôm nay",
     how: "Xem cách hệ thống chọn bài",
     promise: ["Gợi ý từ kết quả thật", "Ôn lại lỗi chưa vững", "Điều chỉnh theo ngày & tuần"],
     sample: "Minh họa cách tín hiệu học tập trở thành bài luyện tiếp theo",
@@ -85,7 +85,7 @@ const copy = {
     lead: "TOEIC GYM uses your practice results to choose today's useful session, while unresolved mistakes and goals shape a plan that adjusts week by week.",
     start: "Take 10 questions to begin",
     starting: "Preparing your questions…",
-    continue: "Open today's recommended session",
+    continue: "Today's workout",
     how: "See how recommendations work",
     promise: ["Based on real results", "Revisits unresolved mistakes", "Adjusts daily and weekly"],
     sample: "An illustration of how learning evidence becomes the next practice session",
@@ -164,7 +164,7 @@ export default async function Home() {
   return <div className={styles.page}>
     <script dangerouslySetInnerHTML={{ __html: serializeStructuredData(websiteStructuredData) }} type="application/ld+json" />
     <a className={styles.skipLink} href="#main-content">{vi ? "Bỏ qua điều hướng" : "Skip to content"}</a>
-    <PublicHeader locale={locale} signedIn={Boolean(user)} tone="dark" />
+    <PublicHeader locale={locale} signedIn={Boolean(user)} signedInPrimaryHref="/dashboard" signedInPrimaryLabel={t.continue} tone="dark" />
     <main id="main-content" lang={locale}>
 
     <section aria-labelledby="home-title" className={styles.hero}>

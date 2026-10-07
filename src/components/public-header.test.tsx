@@ -53,4 +53,19 @@ describe("PublicHeader", () => {
     expect(html.match(/href="\/progress"/g)).toHaveLength(2);
     expect(html).not.toContain(continueLabel);
   });
+
+  it("supports the homepage's signed-in today action", () => {
+    const html = renderToStaticMarkup(
+      <PublicHeader
+        locale="vi"
+        signedIn
+        signedInPrimaryHref="/dashboard"
+        signedInPrimaryLabel="Bài hôm nay"
+      />,
+    );
+
+    expect(html.match(/href="\/dashboard"/g)).toHaveLength(2);
+    expect(html.match(/>Bài hôm nay(?: <!-- -->)?/g)).toHaveLength(2);
+    expect(html).not.toContain('href="/progress"');
+  });
 });

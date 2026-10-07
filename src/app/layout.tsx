@@ -19,7 +19,7 @@ const beVietnamPro = Be_Vietnam_Pro({
 
 // Set the route surface before first paint so dark product/admin pages do not
 // flash the light public theme while the client orchestrator hydrates.
-const initialSurfaceScript = `(function(){var p=location.pathname;var f=/^\\/(practice|diagnostic|demo-test|full-mock|ranking\\/challenges\\/run|challenge\\/part-5)\\/[^/]+/;var m=/^\\/(?:$|ve-toeic-gym(?:\\/|$)|pricing(?:\\/|$)|toeic(?:\\/|$)|blog(?:\\/|$)|luyen-thi-toeic-online(?:\\/|$)|thi-thu-toeic-online(?:\\/|$))/;document.documentElement.dataset.uiSurface=p.indexOf('/admin')===0?'admin':f.test(p)?'focus':m.test(p)?'marketing':'product'})()`;
+const initialSurfaceScript = `(function(){var p=location.pathname;var f=/^\\/(practice|diagnostic|demo-test|full-mock|ranking\\/challenges\\/run|challenge\\/part-5)\\/[^/]+/;var m=/^\\/(?:$|ve-toeic-gym(?:\\/|$)|pricing(?:\\/|$)|toeic(?:\\/|$)|luyen-thi-toeic-online(?:\\/|$)|thi-thu-toeic-online(?:\\/|$))/;document.documentElement.dataset.uiSurface=p.indexOf('/admin')===0?'admin':f.test(p)?'focus':m.test(p)?'marketing':'product'})()`;
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = getTranslations(await getCookieLanguage());
