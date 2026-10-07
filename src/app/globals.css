@@ -834,12 +834,37 @@ main:has(.admin-navigation) { padding-left: calc(15.5rem + 1.5rem) !important; }
 body:has([data-account-data-page]) .feedback-widget { display: none; }
 
 /* Unified product UI
-   The public story uses a dark editorial canvas. Learner and admin workspaces
-   carry the same night/forest/paper language with calmer, denser surfaces. */
+   Learner, assessment and admin routes use the homepage's dark editorial
+   language. Work surfaces stay quiet and dense; mint is reserved for action. */
 html[data-ui-surface="product"],
 html[data-ui-surface="admin"],
 html[data-ui-surface="focus"] {
-  color-scheme: light;
+  --background: var(--tg-night-950);
+  --foreground: #eef9f2;
+  --paper: var(--tg-night-950);
+  --ink: #eef9f2;
+  --muted: #a9c0b5;
+  --green: var(--tg-mint-400);
+  --line: var(--tg-night-rule);
+  --color-action: var(--tg-mint-400);
+  --color-action-hover: #bff4dc;
+  --color-focus: var(--tg-mint-400);
+  --surface-card: var(--tg-night-900);
+  --surface-page: var(--tg-night-950);
+  --surface-subtle: #0e2922;
+  --surface-tinted: #12362c;
+  --surface-inverse: #04110e;
+  --text-inverse: #eef9f2;
+  --text-inverse-muted: #a9c0b5;
+  --coach-surface: var(--tg-night-900);
+  --coach-border: var(--tg-night-rule);
+  --coach-accent: var(--tg-mint-400);
+  --chart-line: var(--tg-mint-400);
+  --chart-line-warm: #efb58e;
+  --chart-line-neutral: #9fb8ad;
+  --chart-grid: var(--tg-night-rule);
+  --chart-axis: #8fa99d;
+  color-scheme: dark;
   background: var(--surface-page);
 }
 
@@ -848,9 +873,9 @@ html[data-ui-surface="admin"] body,
 html[data-ui-surface="focus"] body {
   background-color: var(--surface-page);
   background-image:
-    linear-gradient(rgb(36 90 67 / .035) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(36 90 67 / .035) 1px, transparent 1px);
-  background-size: 32px 32px;
+    linear-gradient(rgb(123 229 189 / .035) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(123 229 189 / .035) 1px, transparent 1px);
+  background-size: 56px 56px;
 }
 
 html[data-ui-surface="focus"] body { background-image: none; }
@@ -884,25 +909,99 @@ html[data-ui-surface="admin"] main h1 {
   line-height: 1.12;
 }
 
-html[data-ui-surface="product"] main :is(.text-slate-500, .text-slate-600, .text-slate-700),
-html[data-ui-surface="admin"] main :is(.text-slate-500, .text-slate-600, .text-slate-700),
-html[data-ui-surface="focus"] main :is(.text-slate-500, .text-slate-600, .text-slate-700) {
+html[data-ui-surface="product"] body :is(.text-slate-400, .text-slate-500, .text-slate-600, .text-slate-700),
+html[data-ui-surface="admin"] body :is(.text-slate-400, .text-slate-500, .text-slate-600, .text-slate-700),
+html[data-ui-surface="focus"] body :is(.text-slate-400, .text-slate-500, .text-slate-600, .text-slate-700) {
   color: var(--muted);
 }
 
-html[data-ui-surface="product"] main :is(.text-teal-600, .text-teal-700, .text-teal-800, .text-teal-900),
-html[data-ui-surface="admin"] main :is(.text-teal-600, .text-teal-700, .text-teal-800, .text-teal-900),
-html[data-ui-surface="focus"] main :is(.text-teal-600, .text-teal-700, .text-teal-800, .text-teal-900) {
+html[data-ui-surface="product"] body :is(.text-slate-800, .text-slate-900, .text-slate-950),
+html[data-ui-surface="admin"] body :is(.text-slate-800, .text-slate-900, .text-slate-950),
+html[data-ui-surface="focus"] body :is(.text-slate-800, .text-slate-900, .text-slate-950) {
+  color: var(--ink);
+}
+
+html[data-ui-surface="product"] body :is(.text-slate-200, .text-slate-300),
+html[data-ui-surface="admin"] body :is(.text-slate-200, .text-slate-300),
+html[data-ui-surface="focus"] body :is(.text-slate-200, .text-slate-300) {
+  color: #c9dad2;
+}
+
+html[data-ui-surface="product"] body :is(.text-teal-100, .text-teal-200, .text-teal-300, .text-teal-600, .text-teal-700, .text-teal-800, .text-teal-900, .text-teal-950),
+html[data-ui-surface="admin"] body :is(.text-teal-100, .text-teal-200, .text-teal-300, .text-teal-600, .text-teal-700, .text-teal-800, .text-teal-900, .text-teal-950),
+html[data-ui-surface="focus"] body :is(.text-teal-100, .text-teal-200, .text-teal-300, .text-teal-600, .text-teal-700, .text-teal-800, .text-teal-900, .text-teal-950) {
   color: var(--green);
 }
 
-html[data-ui-surface="product"] main :is(section, article, form, details).bg-white,
-html[data-ui-surface="admin"] main :is(section, article, form, details).bg-white,
-html[data-ui-surface="focus"] main :is(section, article, form, details).bg-white {
+html[data-ui-surface="product"] body :is(.text-emerald-200, .text-emerald-300, .text-emerald-700, .text-emerald-800, .text-emerald-900),
+html[data-ui-surface="admin"] body :is(.text-emerald-200, .text-emerald-300, .text-emerald-700, .text-emerald-800, .text-emerald-900),
+html[data-ui-surface="focus"] body :is(.text-emerald-200, .text-emerald-300, .text-emerald-700, .text-emerald-800, .text-emerald-900) {
+  color: #8ee9c4;
+}
+
+html[data-ui-surface="product"] body :is(.bg-white, [class~="bg-white/95"], [class~="bg-white/90"], [class~="bg-white/80"]),
+html[data-ui-surface="admin"] body :is(.bg-white, [class~="bg-white/95"], [class~="bg-white/90"], [class~="bg-white/80"]),
+html[data-ui-surface="focus"] body :is(.bg-white, [class~="bg-white/95"], [class~="bg-white/90"], [class~="bg-white/80"]) {
   border-color: var(--line);
   background-color: var(--surface-card);
-  box-shadow: none;
 }
+
+html[data-ui-surface="product"] body :is([class~="bg-[#f7f6f1]"], [class~="bg-[#f6f8f8]"], [class~="bg-[#f7f9f8]"], [class~="bg-[#f3f7f5]"], [class~="bg-[#f3f8f1]"], [class~="bg-[#fbfcfa]"]),
+html[data-ui-surface="admin"] body :is([class~="bg-[#f7f6f1]"], [class~="bg-[#f6f8f8]"], [class~="bg-[#f7f9f8]"], [class~="bg-[#f3f7f5]"], [class~="bg-[#f3f8f1]"], [class~="bg-[#fbfcfa]"]),
+html[data-ui-surface="focus"] body :is([class~="bg-[#f7f6f1]"], [class~="bg-[#f6f8f8]"], [class~="bg-[#f7f9f8]"], [class~="bg-[#f3f7f5]"], [class~="bg-[#f3f8f1]"], [class~="bg-[#fbfcfa]"]) {
+  background-color: var(--surface-card);
+}
+
+html[data-ui-surface="product"] body :is([class~="bg-[#eef3eb]"], [class~="bg-[#e7eee8]"], [class~="bg-[#edf5ef]"], [class~="bg-[#f1f2ef]"], [class~="bg-[#f7faf6]"], [class~="bg-[#f7fbf9]"], [class~="bg-[#eff8f6]"]),
+html[data-ui-surface="admin"] body :is([class~="bg-[#eef3eb]"], [class~="bg-[#e7eee8]"], [class~="bg-[#edf5ef]"], [class~="bg-[#f1f2ef]"], [class~="bg-[#f7faf6]"], [class~="bg-[#f7fbf9]"], [class~="bg-[#eff8f6]"]),
+html[data-ui-surface="focus"] body :is([class~="bg-[#eef3eb]"], [class~="bg-[#e7eee8]"], [class~="bg-[#edf5ef]"], [class~="bg-[#f1f2ef]"], [class~="bg-[#f7faf6]"], [class~="bg-[#f7fbf9]"], [class~="bg-[#eff8f6]"]) {
+  background-color: var(--surface-tinted);
+}
+
+html[data-ui-surface="product"] body [class~="bg-[#fffaf0]"],
+html[data-ui-surface="admin"] body [class~="bg-[#fffaf0]"],
+html[data-ui-surface="focus"] body [class~="bg-[#fffaf0]"] { background-color: #342719; }
+
+html[data-ui-surface="product"] body :is([class~="text-[#172821]"], [class~="text-[#183e2b]"]),
+html[data-ui-surface="admin"] body :is([class~="text-[#172821]"], [class~="text-[#183e2b]"]),
+html[data-ui-surface="focus"] body :is([class~="text-[#172821]"], [class~="text-[#183e2b]"]) { color: var(--ink); }
+html[data-ui-surface="product"] body :is([class~="text-[#45584d]"], [class~="text-[#52645a]"], [class~="text-[#526558]"], [class~="text-[#6d7d73]"], [class~="text-[#66776d]"], [class~="text-[#294838]"]),
+html[data-ui-surface="admin"] body :is([class~="text-[#45584d]"], [class~="text-[#52645a]"], [class~="text-[#526558]"], [class~="text-[#6d7d73]"], [class~="text-[#66776d]"], [class~="text-[#294838]"]),
+html[data-ui-surface="focus"] body :is([class~="text-[#45584d]"], [class~="text-[#52645a]"], [class~="text-[#526558]"], [class~="text-[#6d7d73]"], [class~="text-[#66776d]"], [class~="text-[#294838]"]) { color: var(--muted); }
+html[data-ui-surface="product"] body [class~="text-[#245a43]"],
+html[data-ui-surface="admin"] body [class~="text-[#245a43]"],
+html[data-ui-surface="focus"] body [class~="text-[#245a43]"] { color: var(--green); }
+
+html[data-ui-surface="product"] body :is([class~="border-[#cbd7cb]"], [class~="border-[#dce3d9]"], [class~="border-[#edf1eb]"], [class~="border-[#aebcb2]"], [class~="border-[#9caaa0]"], [class~="border-[#b9d7c2]"]),
+html[data-ui-surface="admin"] body :is([class~="border-[#cbd7cb]"], [class~="border-[#dce3d9]"], [class~="border-[#edf1eb]"], [class~="border-[#aebcb2]"], [class~="border-[#9caaa0]"], [class~="border-[#b9d7c2]"]),
+html[data-ui-surface="focus"] body :is([class~="border-[#cbd7cb]"], [class~="border-[#dce3d9]"], [class~="border-[#edf1eb]"], [class~="border-[#aebcb2]"], [class~="border-[#9caaa0]"], [class~="border-[#b9d7c2]"]) { border-color: var(--line); }
+html[data-ui-surface="product"] body [class~="border-[#245a43]"],
+html[data-ui-surface="admin"] body [class~="border-[#245a43]"],
+html[data-ui-surface="focus"] body [class~="border-[#245a43]"] { border-color: var(--green); }
+
+html[data-ui-surface="product"] body :is(a, button)[class~="bg-[#245a43]"],
+html[data-ui-surface="admin"] body :is(a, button)[class~="bg-[#245a43]"],
+html[data-ui-surface="focus"] body :is(a, button)[class~="bg-[#245a43]"],
+html[data-ui-surface="product"] body :is(a, button)[class~="bg-[#9dd6b8]"],
+html[data-ui-surface="admin"] body :is(a, button)[class~="bg-[#9dd6b8]"],
+html[data-ui-surface="focus"] body :is(a, button)[class~="bg-[#9dd6b8]"] {
+  border-color: var(--color-action);
+  background-color: var(--color-action);
+  color: #04110e;
+}
+
+html[data-ui-surface="product"] body [class~="hover:bg-[#eef3eb]"]:hover,
+html[data-ui-surface="admin"] body [class~="hover:bg-[#eef3eb]"]:hover,
+html[data-ui-surface="focus"] body [class~="hover:bg-[#eef3eb]"]:hover,
+html[data-ui-surface="product"] body [class~="hover:bg-[#f3f8f1]"]:hover,
+html[data-ui-surface="admin"] body [class~="hover:bg-[#f3f8f1]"]:hover,
+html[data-ui-surface="focus"] body [class~="hover:bg-[#f3f8f1]"]:hover,
+html[data-ui-surface="product"] body [class~="hover:bg-[#f7faf6]"]:hover,
+html[data-ui-surface="admin"] body [class~="hover:bg-[#f7faf6]"]:hover,
+html[data-ui-surface="focus"] body [class~="hover:bg-[#f7faf6]"]:hover { background-color: var(--surface-tinted); }
+html[data-ui-surface="product"] body [class~="hover:bg-[#184631]"]:hover,
+html[data-ui-surface="admin"] body [class~="hover:bg-[#184631]"]:hover,
+html[data-ui-surface="focus"] body [class~="hover:bg-[#184631]"]:hover { background-color: var(--color-action-hover); color: #04110e; }
 
 html[data-ui-surface="product"] main :is(section, article, form, details):is([class*="rounded-2xl"], [class*="rounded-3xl"]),
 html[data-ui-surface="admin"] main :is(section, article, form, details):is([class*="rounded-2xl"], [class*="rounded-3xl"]),
@@ -916,34 +1015,86 @@ html[data-ui-surface="focus"] main :is(section, article, form, details)[class*="
   box-shadow: none;
 }
 
-html[data-ui-surface="product"] main :is(.bg-slate-50, .bg-slate-100),
-html[data-ui-surface="admin"] main :is(.bg-slate-50, .bg-slate-100),
-html[data-ui-surface="focus"] main :is(.bg-slate-50, .bg-slate-100) {
+html[data-ui-surface="product"] body :is(.bg-slate-50, .bg-slate-100, .bg-slate-200),
+html[data-ui-surface="admin"] body :is(.bg-slate-50, .bg-slate-100, .bg-slate-200),
+html[data-ui-surface="focus"] body :is(.bg-slate-50, .bg-slate-100, .bg-slate-200) {
   background-color: var(--surface-subtle);
 }
 
-html[data-ui-surface="product"] main :is(.bg-teal-50, .bg-emerald-50),
-html[data-ui-surface="admin"] main :is(.bg-teal-50, .bg-emerald-50),
-html[data-ui-surface="focus"] main :is(.bg-teal-50, .bg-emerald-50) {
+html[data-ui-surface="product"] body :is(.bg-teal-50, .bg-teal-100, .bg-teal-200, .bg-emerald-50, .bg-emerald-100),
+html[data-ui-surface="admin"] body :is(.bg-teal-50, .bg-teal-100, .bg-teal-200, .bg-emerald-50, .bg-emerald-100),
+html[data-ui-surface="focus"] body :is(.bg-teal-50, .bg-teal-100, .bg-teal-200, .bg-emerald-50, .bg-emerald-100) {
   background-color: var(--surface-tinted);
 }
 
-html[data-ui-surface="product"] main :is(.bg-slate-900, .bg-teal-900),
-html[data-ui-surface="admin"] main :is(.bg-slate-900, .bg-teal-900) {
+html[data-ui-surface="product"] body :is(.bg-slate-700, .bg-slate-800, .bg-slate-900, .bg-slate-950, .bg-teal-900, .bg-teal-950),
+html[data-ui-surface="admin"] body :is(.bg-slate-700, .bg-slate-800, .bg-slate-900, .bg-slate-950, .bg-teal-900, .bg-teal-950),
+html[data-ui-surface="focus"] body :is(.bg-slate-700, .bg-slate-800, .bg-slate-900, .bg-slate-950, .bg-teal-900, .bg-teal-950) {
   border-color: var(--tg-night-rule);
   background-color: var(--surface-inverse);
   color: var(--text-inverse);
 }
 
-html[data-ui-surface="product"] main :is(.bg-slate-900, .bg-teal-900) :is(h1, h2, h3),
-html[data-ui-surface="admin"] main :is(.bg-slate-900, .bg-teal-900) :is(h1, h2, h3) {
+html[data-ui-surface="product"] body :is(.bg-slate-900, .bg-slate-950, .bg-teal-900, .bg-teal-950) :is(h1, h2, h3),
+html[data-ui-surface="admin"] body :is(.bg-slate-900, .bg-slate-950, .bg-teal-900, .bg-teal-950) :is(h1, h2, h3),
+html[data-ui-surface="focus"] body :is(.bg-slate-900, .bg-slate-950, .bg-teal-900, .bg-teal-950) :is(h1, h2, h3) {
   color: var(--text-inverse);
 }
 
-html[data-ui-surface="product"] main :is(.bg-slate-900, .bg-teal-900) :is(.text-slate-200, .text-slate-300, .text-slate-400),
-html[data-ui-surface="admin"] main :is(.bg-slate-900, .bg-teal-900) :is(.text-slate-200, .text-slate-300, .text-slate-400) {
+html[data-ui-surface="product"] body :is(.bg-slate-900, .bg-slate-950, .bg-teal-900, .bg-teal-950) :is(.text-slate-200, .text-slate-300, .text-slate-400),
+html[data-ui-surface="admin"] body :is(.bg-slate-900, .bg-slate-950, .bg-teal-900, .bg-teal-950) :is(.text-slate-200, .text-slate-300, .text-slate-400),
+html[data-ui-surface="focus"] body :is(.bg-slate-900, .bg-slate-950, .bg-teal-900, .bg-teal-950) :is(.text-slate-200, .text-slate-300, .text-slate-400) {
   color: var(--text-inverse-muted);
 }
+
+html[data-ui-surface="product"] body :is(.border-slate-100, .border-slate-200, .border-slate-300, .border-slate-400, .border-slate-600, .border-slate-700, .border-slate-900),
+html[data-ui-surface="admin"] body :is(.border-slate-100, .border-slate-200, .border-slate-300, .border-slate-400, .border-slate-600, .border-slate-700, .border-slate-900),
+html[data-ui-surface="focus"] body :is(.border-slate-100, .border-slate-200, .border-slate-300, .border-slate-400, .border-slate-600, .border-slate-700, .border-slate-900) {
+  border-color: var(--line);
+}
+
+html[data-ui-surface="product"] body :is(.border-teal-100, .border-teal-200, .border-teal-300, .border-emerald-100, .border-emerald-200, .border-emerald-300),
+html[data-ui-surface="admin"] body :is(.border-teal-100, .border-teal-200, .border-teal-300, .border-emerald-100, .border-emerald-200, .border-emerald-300),
+html[data-ui-surface="focus"] body :is(.border-teal-100, .border-teal-200, .border-teal-300, .border-emerald-100, .border-emerald-200, .border-emerald-300) {
+  border-color: #315c4d;
+}
+
+html[data-ui-surface="product"] body :is(.divide-slate-100, .divide-slate-200, .divide-slate-300) > :not(:last-child),
+html[data-ui-surface="admin"] body :is(.divide-slate-100, .divide-slate-200, .divide-slate-300) > :not(:last-child),
+html[data-ui-surface="focus"] body :is(.divide-slate-100, .divide-slate-200, .divide-slate-300) > :not(:last-child) {
+  border-color: var(--line);
+}
+
+/* Status surfaces remain semantic, but their light fills become dark-theme tints. */
+html[data-ui-surface="product"] body :is(.bg-red-50, .bg-red-100, .bg-rose-50, .bg-rose-100),
+html[data-ui-surface="admin"] body :is(.bg-red-50, .bg-red-100, .bg-rose-50, .bg-rose-100),
+html[data-ui-surface="focus"] body :is(.bg-red-50, .bg-red-100, .bg-rose-50, .bg-rose-100) { background-color: #32191c; }
+html[data-ui-surface="product"] body :is(.text-red-700, .text-red-800, .text-red-900, .text-red-950, .text-rose-800, .text-rose-900),
+html[data-ui-surface="admin"] body :is(.text-red-700, .text-red-800, .text-red-900, .text-red-950, .text-rose-800, .text-rose-900),
+html[data-ui-surface="focus"] body :is(.text-red-700, .text-red-800, .text-red-900, .text-red-950, .text-rose-800, .text-rose-900) { color: #ffb4b8; }
+html[data-ui-surface="product"] body :is(.border-red-100, .border-red-200, .border-red-300, .border-rose-200, .border-rose-300),
+html[data-ui-surface="admin"] body :is(.border-red-100, .border-red-200, .border-red-300, .border-rose-200, .border-rose-300),
+html[data-ui-surface="focus"] body :is(.border-red-100, .border-red-200, .border-red-300, .border-rose-200, .border-rose-300) { border-color: #804148; }
+
+html[data-ui-surface="product"] body :is(.bg-amber-50, .bg-amber-100, .bg-amber-200, .bg-orange-50, .bg-orange-100),
+html[data-ui-surface="admin"] body :is(.bg-amber-50, .bg-amber-100, .bg-amber-200, .bg-orange-50, .bg-orange-100),
+html[data-ui-surface="focus"] body :is(.bg-amber-50, .bg-amber-100, .bg-amber-200, .bg-orange-50, .bg-orange-100) { background-color: #342719; }
+html[data-ui-surface="product"] body :is(.text-amber-700, .text-amber-800, .text-amber-900, .text-amber-950, .text-orange-700, .text-orange-800, .text-orange-900),
+html[data-ui-surface="admin"] body :is(.text-amber-700, .text-amber-800, .text-amber-900, .text-amber-950, .text-orange-700, .text-orange-800, .text-orange-900),
+html[data-ui-surface="focus"] body :is(.text-amber-700, .text-amber-800, .text-amber-900, .text-amber-950, .text-orange-700, .text-orange-800, .text-orange-900) { color: #f5c98f; }
+html[data-ui-surface="product"] body :is(.border-amber-100, .border-amber-200, .border-amber-300, .border-orange-200, .border-orange-300),
+html[data-ui-surface="admin"] body :is(.border-amber-100, .border-amber-200, .border-amber-300, .border-orange-200, .border-orange-300),
+html[data-ui-surface="focus"] body :is(.border-amber-100, .border-amber-200, .border-amber-300, .border-orange-200, .border-orange-300) { border-color: #775d38; }
+
+html[data-ui-surface="product"] body :is(.bg-blue-50, .bg-blue-100, .bg-sky-50, .bg-violet-50),
+html[data-ui-surface="admin"] body :is(.bg-blue-50, .bg-blue-100, .bg-sky-50, .bg-violet-50),
+html[data-ui-surface="focus"] body :is(.bg-blue-50, .bg-blue-100, .bg-sky-50, .bg-violet-50) { background-color: #142a31; }
+html[data-ui-surface="product"] body :is(.text-blue-700, .text-blue-800, .text-sky-700, .text-sky-800, .text-sky-900),
+html[data-ui-surface="admin"] body :is(.text-blue-700, .text-blue-800, .text-sky-700, .text-sky-800, .text-sky-900),
+html[data-ui-surface="focus"] body :is(.text-blue-700, .text-blue-800, .text-sky-700, .text-sky-800, .text-sky-900) { color: #a9dcee; }
+html[data-ui-surface="product"] body .border-sky-200,
+html[data-ui-surface="admin"] body .border-sky-200,
+html[data-ui-surface="focus"] body .border-sky-200 { border-color: #356274; }
 
 html[data-ui-surface="product"] main :is(a, button).bg-teal-700,
 html[data-ui-surface="product"] main :is(a, button).bg-teal-800,
@@ -955,7 +1106,8 @@ html[data-ui-surface="focus"] main :is(a, button).bg-teal-700,
 html[data-ui-surface="focus"] main :is(a, button).bg-teal-800,
 html[data-ui-surface="focus"] main :is(a, button).bg-slate-900 {
   background-color: var(--color-action);
-  color: white;
+  border-color: var(--color-action);
+  color: #04110e;
 }
 
 html[data-ui-surface="product"] main :is(a, button).bg-teal-700:hover,
@@ -968,6 +1120,21 @@ html[data-ui-surface="focus"] main :is(a, button).bg-teal-700:hover,
 html[data-ui-surface="focus"] main :is(a, button).bg-teal-800:hover,
 html[data-ui-surface="focus"] main :is(a, button).bg-slate-900:hover {
   background-color: var(--color-action-hover);
+  border-color: var(--color-action-hover);
+}
+
+html[data-ui-surface="product"] body :is(a, button):is(.bg-teal-300, .bg-teal-400, .bg-teal-500, .bg-teal-600, .bg-teal-700, .bg-teal-800, .bg-emerald-500, .bg-emerald-700),
+html[data-ui-surface="admin"] body :is(a, button):is(.bg-teal-300, .bg-teal-400, .bg-teal-500, .bg-teal-600, .bg-teal-700, .bg-teal-800, .bg-emerald-500, .bg-emerald-700),
+html[data-ui-surface="focus"] body :is(a, button):is(.bg-teal-300, .bg-teal-400, .bg-teal-500, .bg-teal-600, .bg-teal-700, .bg-teal-800, .bg-emerald-500, .bg-emerald-700) {
+  border-color: var(--color-action);
+  background-color: var(--color-action);
+  color: #04110e;
+}
+
+html[data-ui-surface="product"] body :is(a, button):is(.bg-teal-300, .bg-teal-400, .bg-teal-500, .bg-teal-600, .bg-teal-700, .bg-teal-800, .bg-emerald-500, .bg-emerald-700):hover,
+html[data-ui-surface="admin"] body :is(a, button):is(.bg-teal-300, .bg-teal-400, .bg-teal-500, .bg-teal-600, .bg-teal-700, .bg-teal-800, .bg-emerald-500, .bg-emerald-700):hover,
+html[data-ui-surface="focus"] body :is(a, button):is(.bg-teal-300, .bg-teal-400, .bg-teal-500, .bg-teal-600, .bg-teal-700, .bg-teal-800, .bg-emerald-500, .bg-emerald-700):hover {
+  background-color: var(--color-action-hover);
 }
 
 html[data-ui-surface="product"] main :is(button, a, summary),
@@ -976,20 +1143,61 @@ html[data-ui-surface="focus"] main :is(button, a, summary) {
   transition: background-color var(--tg-duration-fast) ease, border-color var(--tg-duration-fast) ease, color var(--tg-duration-fast) ease, box-shadow var(--tg-duration-fast) ease;
 }
 
-html[data-ui-surface="product"] main :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea),
-html[data-ui-surface="admin"] main :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) {
+html[data-ui-surface="product"] body :is(a, button, summary, input, select, textarea):focus-visible,
+html[data-ui-surface="admin"] body :is(a, button, summary, input, select, textarea):focus-visible,
+html[data-ui-surface="focus"] body :is(a, button, summary, input, select, textarea):focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+html[data-ui-surface="product"] body :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea),
+html[data-ui-surface="admin"] body :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea),
+html[data-ui-surface="focus"] body :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) {
   min-height: 2.75rem;
-  border-color: #c8d5c9;
+  border-color: #315c4d;
   border-radius: var(--radius-control);
   background-color: var(--surface-card);
   color: var(--ink);
 }
 
-html[data-ui-surface="product"] main :is(input, select, textarea):focus,
-html[data-ui-surface="admin"] main :is(input, select, textarea):focus {
+html[data-ui-surface="product"] body :is(input, select, textarea)::placeholder,
+html[data-ui-surface="admin"] body :is(input, select, textarea)::placeholder,
+html[data-ui-surface="focus"] body :is(input, select, textarea)::placeholder { color: #789286; }
+
+html[data-ui-surface="product"] body :is(input, select, textarea):focus,
+html[data-ui-surface="admin"] body :is(input, select, textarea):focus,
+html[data-ui-surface="focus"] body :is(input, select, textarea):focus {
   border-color: var(--green);
-  box-shadow: 0 0 0 3px rgb(36 90 67 / .12);
+  box-shadow: 0 0 0 3px rgb(123 229 189 / .16);
   outline: none;
+}
+
+html[data-ui-surface="product"] .mascot-coach-bubble,
+html[data-ui-surface="admin"] .mascot-coach-bubble,
+html[data-ui-surface="focus"] .mascot-coach-bubble { color: var(--ink); }
+html[data-ui-surface="product"] .mascot-coach-trigger span,
+html[data-ui-surface="admin"] .mascot-coach-trigger span,
+html[data-ui-surface="focus"] .mascot-coach-trigger span {
+  border-color: var(--line);
+  background: var(--surface-card);
+  color: var(--green);
+}
+html[data-ui-surface="product"] .mascot-coach-close,
+html[data-ui-surface="product"] .mascot-coach-hide,
+html[data-ui-surface="admin"] .mascot-coach-close,
+html[data-ui-surface="admin"] .mascot-coach-hide,
+html[data-ui-surface="focus"] .mascot-coach-close,
+html[data-ui-surface="focus"] .mascot-coach-hide { color: var(--muted); }
+
+html[data-ui-surface="product"] body:has(audio) .feedback-widget,
+html[data-ui-surface="focus"] body:has(audio) .feedback-widget { display: none; }
+
+@media (min-width: 1024px) {
+  html[data-ui-surface="product"] body:has(audio) .mascot-coach,
+  html[data-ui-surface="focus"] body:has(audio) .mascot-coach {
+    bottom: calc(8rem + env(safe-area-inset-bottom));
+    transform: none;
+  }
 }
 
 html[data-ui-surface="admin"] main table,
@@ -1014,7 +1222,43 @@ html[data-ui-surface="product"] main tbody tr:hover {
   background: var(--surface-subtle);
 }
 
-/* Dark editorial navigation ties the workspaces back to the public story. */
+html[data-ui-surface="admin"] :is(.admin-work-link, .admin-content-priority) {
+  border-color: var(--line);
+  background: var(--surface-card);
+}
+html[data-ui-surface="product"] .daily-goal-card,
+html[data-ui-surface="product"] .practice-listening form.bg-slate-50,
+html[data-ui-surface="admin"] :is(.admin-empty, .admin-stats-grid, .admin-panel, .admin-audit ul),
+html[data-ui-surface="admin"] .admin-retention .grid > div {
+  border-color: var(--line);
+  background: var(--surface-card);
+}
+html[data-ui-surface="admin"] .admin-work-link:hover {
+  border-color: #5e8c79;
+  background: var(--surface-tinted);
+}
+html[data-ui-surface="admin"] .admin-work-count { color: #efb58e; }
+html[data-ui-surface="admin"] .admin-create-link {
+  background: var(--color-action);
+  color: #04110e;
+}
+html[data-ui-surface="admin"] .admin-create-link:hover { background: var(--color-action-hover); }
+html[data-ui-surface="admin"] .admin-retention {
+  border-color: var(--line);
+  background: var(--surface-tinted);
+  color: var(--ink);
+}
+
+html[data-ui-surface="product"] .mobile-sticky-actions,
+html[data-ui-surface="admin"] .mobile-sticky-actions,
+html[data-ui-surface="focus"] .mobile-sticky-actions,
+html[data-ui-surface="focus"] main:has(> div > header + [role="progressbar"]) > div > .mt-6.grid.grid-cols-2,
+html[data-ui-surface="focus"] main:has(> div > header + section) > div > .mt-5.flex.gap-3 {
+  border-color: var(--line);
+  background: rgb(11 33 27 / .97);
+}
+
+/* The navigation and mobile chrome are part of the same continuous night shell. */
 .learner-navigation,
 .admin-navigation {
   border-color: var(--tg-night-rule);
@@ -1084,12 +1328,12 @@ html[data-ui-surface="product"] main tbody tr:hover {
 
 @media (max-width: 1023px) {
   .learner-navigation {
-    border-color: var(--line);
-    background: var(--surface-page);
-    color: var(--ink);
+    border-color: var(--tg-night-rule);
+    background: rgb(7 25 21 / .97);
+    color: var(--text-inverse);
     box-shadow: none;
   }
-  .learner-navigation-brand { color: var(--green); }
+  .learner-navigation-brand { color: var(--text-inverse); }
   .learner-bottom-navigation {
     border-color: var(--tg-night-rule);
     background: rgb(7 25 21 / .97);
@@ -1120,4 +1364,18 @@ html[data-ui-surface="product"] main tbody tr:hover {
   html[data-ui-surface="admin"] main { background-image: none; }
   html[data-ui-surface="product"] main h1,
   html[data-ui-surface="admin"] main h1 { font-size: clamp(1.8rem, 9vw, 2.4rem); }
+  html[data-ui-surface="product"] .feedback-widget,
+  html[data-ui-surface="admin"] .feedback-widget,
+  html[data-ui-surface="focus"] .feedback-widget { display: none; }
+  .mascot-coach-trigger { min-width: 3rem; }
+  .mascot-coach-trigger img { width: 3rem; }
+  .mascot-coach-trigger > span { display: none; }
+  body:has(.learner-bottom-navigation) .mascot-coach {
+    position: absolute;
+    top: calc(4.75rem + env(safe-area-inset-top));
+    right: .5rem;
+    bottom: auto !important;
+    left: auto;
+    transform: none;
+  }
 }

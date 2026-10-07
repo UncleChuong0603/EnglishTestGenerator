@@ -13,7 +13,7 @@ export default async function SupportPage() {
   const { interfaceLanguage: locale } = await getPreferences(user?.id);
   const vi = locale === "vi";
   return <div className="min-h-screen bg-[#f7f6f1] text-slate-900">
-    <PublicHeader locale={locale} signedIn={Boolean(user)} />
+    <PublicHeader locale={locale} signedIn={Boolean(user)} tone="dark" />
     <main className="px-4 py-10 sm:py-14">
       <section id="feedback" aria-labelledby="support-title" className="mx-auto max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
         <h1 id="support-title" className="text-2xl font-bold">{vi ? "Góp ý & hỗ trợ" : "Feedback & support"}</h1>
@@ -22,6 +22,6 @@ export default async function SupportPage() {
         <RestoreFeedbackButton locale={locale} />
       </section>
     </main>
-    <PublicFooter locale={locale} />
+    <PublicFooter locale={locale} tone="dark" />
   </div>;
 }

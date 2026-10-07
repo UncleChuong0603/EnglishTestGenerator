@@ -72,7 +72,7 @@ export default async function GrammarPage() {
 
   return <div className="min-h-screen bg-[#f7f6f1] text-[#172821]">
     <a className="sr-only z-[60] rounded-md bg-white px-4 py-3 font-bold text-[#245a43] focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:outline-2 focus:outline-offset-2 focus:outline-[#245a43]" href="#grammar-content">{vi ? "Bỏ qua điều hướng" : "Skip to content"}</a>
-    {!user ? <PublicHeader locale={locale} signedIn={false} /> : null}
+    {!user ? <PublicHeader locale={locale} signedIn={false} tone="dark" /> : null}
     <main className={user ? "learner-page min-h-screen px-4 py-6 pb-24 sm:px-6 sm:py-8 lg:pb-8" : undefined} id="grammar-content" lang={locale}>
       <script dangerouslySetInnerHTML={{ __html: serializeStructuredData(structuredData) }} type="application/ld+json" />
       <div className={user ? "mx-auto max-w-6xl" : "mx-auto max-w-6xl px-5 pb-16 pt-8 sm:px-6 sm:pt-10"}>
@@ -152,6 +152,6 @@ export default async function GrammarPage() {
         </aside>
       </div>
     </main>
-    {!user ? <PublicFooter locale={locale} /> : null}
+    {!user ? <PublicFooter locale={locale} tone="dark" /> : null}
   </div>;
 }

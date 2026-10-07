@@ -16,7 +16,7 @@ export default async function ChallengePage() {
   const locale = (await getPreferences(user?.id)).interfaceLanguage;
   const vi = locale === "vi";
   return <main className="min-h-screen bg-[#f7f6f1] text-slate-900">
-    <PublicHeader locale={locale} signedIn={Boolean(user)} />
+    <PublicHeader locale={locale} signedIn={Boolean(user)} tone="dark" />
     <section className="mx-auto max-w-5xl px-5 py-12 sm:px-6 sm:py-20">
       <p className="text-sm font-black uppercase tracking-[.18em] text-teal-800">TOEIC GYM / CHALLENGE</p>
       <h1 className="mt-4 max-w-3xl text-4xl font-black leading-tight sm:text-6xl">{vi ? "Thử sức với TOEIC trong 10 câu" : "Test yourself with 10 TOEIC questions"}</h1>
@@ -28,6 +28,6 @@ export default async function ChallengePage() {
         <Link className="mt-6 inline-flex min-h-12 items-center justify-center rounded-xl bg-teal-700 px-6 font-bold text-white" href="/challenge/part-5">{vi ? "Khám phá thử thách" : "Explore the challenge"}</Link>
       </div>
     </section>
-    <PublicFooter locale={locale} />
+    <PublicFooter locale={locale} tone="dark" />
   </main>;
 }

@@ -12,7 +12,7 @@ Use the global [MASTER.md](../MASTER.md) rules, with these homepage priorities:
 
 ## Visual direction
 
-The homepage is a deliberate dark marketing surface inspired by immersive editorial product pages, while the learning app keeps the light work-surface system from `MASTER.md`. Use `#071915` for the page, `#0b211b` for raised demonstrations, `#eef9f2` for primary copy, `#a9c0b5` for supporting copy, `#21463b` for rules and `#7be5bd` as the single action accent. Keep the implementation flat: strong type, thin rules, a restrained grid texture and real product examples; no glass panels, gradients, decorative stock art or fabricated social proof.
+The homepage establishes the dark editorial surface inherited by learner and admin UI. Use `#071915` for the page, `#0b211b` for raised demonstrations and work surfaces, `#eef9f2` for primary copy, `#a9c0b5` for supporting copy, `#21463b` for rules and `#7be5bd` as the single action accent. Keep the implementation flat: strong type, thin rules, a restrained grid texture and real product examples; no glass panels, gradients, decorative stock art or fabricated social proof.
 
 Tell the page as sequential chapters: promise and real next-session preview → core daily/weekly adaptation → free remediation tools → complete feature directory → Part guides and learning resources. On mobile, preserve that order rather than creating a separate compressed feature pitch.
 

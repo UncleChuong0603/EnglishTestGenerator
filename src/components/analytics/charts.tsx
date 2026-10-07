@@ -9,7 +9,7 @@ export function UsageProgress({ label, used, limit, period }: { label: string; u
 export function AccuracyDonut({ correct, total, label }: { correct: number; total: number; label: string }) {
   const accuracy = total ? Math.round(correct / total * 100) : null;
   if (accuracy === null) return <ChartEmptyState />;
-  return <div className="flex items-center gap-5" role="img" aria-label={`${label}: ${accuracy}%, ${correct}/${total}`}><div className="grid size-28 shrink-0 place-items-center rounded-full" style={{ background: `conic-gradient(#0d9488 ${accuracy}%, #e2e8f0 0)` }}><div className="grid size-20 place-items-center rounded-full bg-white text-xl font-black">{accuracy}%</div></div><div><p className="font-black">{label}</p><p className="mt-1 text-sm text-slate-600">{correct}/{total}</p></div></div>;
+  return <div className="flex items-center gap-5" role="img" aria-label={`${label}: ${accuracy}%, ${correct}/${total}`}><div className="grid size-28 shrink-0 place-items-center rounded-full" style={{ background: `conic-gradient(var(--chart-line) ${accuracy}%, var(--chart-grid) 0)` }}><div className="grid size-20 place-items-center rounded-full bg-white text-xl font-black">{accuracy}%</div></div><div><p className="font-black">{label}</p><p className="mt-1 text-sm text-slate-600">{correct}/{total}</p></div></div>;
 }
 
 export type ComparisonItem = { label: string; accuracy: number | null; answered: number; correct?: number };
@@ -58,17 +58,17 @@ export function TrendChart({ points, title, emptyText, locale = "en" }: { points
       <svg className="h-52 min-w-[34rem] w-full" role="img" viewBox={`0 0 ${width} ${height}`}>
         <title>{title}</title>
         {[100, 75, 50, 25, 0].map((tick) => <g key={tick}>
-          <line x1={plot.left} x2={width - plot.right} y1={y(tick)} y2={y(tick)} stroke={tick === 0 ? "#cbd5e1" : "#e2e8f0"} strokeDasharray={tick === 0 ? undefined : "4 5"} />
-          <text x={plot.left - 8} y={y(tick) + 4} fill="#64748b" fontSize="11" textAnchor="end">{tick}%</text>
+          <line x1={plot.left} x2={width - plot.right} y1={y(tick)} y2={y(tick)} stroke={tick === 0 ? "var(--coach-border)" : "var(--chart-grid)"} strokeDasharray={tick === 0 ? undefined : "4 5"} />
+          <text x={plot.left - 8} y={y(tick) + 4} fill="var(--chart-axis)" fontSize="11" textAnchor="end">{tick}%</text>
         </g>)}
         {points.map((point, index) => {
           if (!point.answeredCount) return null;
           const barHeight = Math.max(5, (point.answeredCount / maxAnswered) * (plotHeight * 0.42));
-          return <rect key={`bar-${point.day}`} x={x(index) - barWidth / 2} y={plot.top + plotHeight - barHeight} width={barWidth} height={barHeight} rx="3" fill="#ccfbf1" stroke="#99f6e4"><title>{`${formatChartDay(point.day, locale, true)}: ${point.answeredCount} ${copy.questions}`}</title></rect>;
+          return <rect key={`bar-${point.day}`} x={x(index) - barWidth / 2} y={plot.top + plotHeight - barHeight} width={barWidth} height={barHeight} rx="3" fill="var(--surface-tinted)" stroke="var(--tg-night-rule)"><title>{`${formatChartDay(point.day, locale, true)}: ${point.answeredCount} ${copy.questions}`}</title></rect>;
         })}
-        {segments.filter((segment) => segment.length > 1).map((segment) => <polyline key={segment[0].day} fill="none" points={segment.map((point) => `${x(points.indexOf(point))},${y(point.accuracy!)}`).join(" ")} stroke="#0d9488" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />)}
-        {active.map((point) => <circle key={point.day} cx={x(points.indexOf(point))} cy={y(point.accuracy!)} fill="#ffffff" stroke="#0f766e" strokeWidth="3" r="5"><title>{`${formatChartDay(point.day, locale, true)}: ${point.accuracy}% · ${point.answeredCount} ${copy.questions}`}</title></circle>)}
-        {labelIndexes.map((index) => <text key={points[index].day} x={x(index)} y={height - 7} fill="#64748b" fontSize="11" textAnchor={index === 0 ? "start" : index === points.length - 1 ? "end" : "middle"}>{formatChartDay(points[index].day, locale)}</text>)}
+        {segments.filter((segment) => segment.length > 1).map((segment) => <polyline key={segment[0].day} fill="none" points={segment.map((point) => `${x(points.indexOf(point))},${y(point.accuracy!)}`).join(" ")} stroke="var(--chart-line)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />)}
+        {active.map((point) => <circle key={point.day} cx={x(points.indexOf(point))} cy={y(point.accuracy!)} fill="var(--surface-card)" stroke="var(--chart-line)" strokeWidth="3" r="5"><title>{`${formatChartDay(point.day, locale, true)}: ${point.accuracy}% · ${point.answeredCount} ${copy.questions}`}</title></circle>)}
+        {labelIndexes.map((index) => <text key={points[index].day} x={x(index)} y={height - 7} fill="var(--chart-axis)" fontSize="11" textAnchor={index === 0 ? "start" : index === points.length - 1 ? "end" : "middle"}>{formatChartDay(points[index].day, locale)}</text>)}
       </svg>
     </div>
     <figcaption className="mt-1 text-xs leading-5 text-slate-500">

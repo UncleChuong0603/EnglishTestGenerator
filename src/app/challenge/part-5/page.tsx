@@ -32,7 +32,7 @@ export default async function Part5ChallengePage({ searchParams }: PageProps<"/c
 
   return <div className={styles.page}>
     <a className={styles.skipLink} href="#main-content">{vi ? "Bỏ qua điều hướng" : "Skip to content"}</a>
-    <PublicHeader locale={locale} showPrimary={false} signedIn={Boolean(user)} />
+    <PublicHeader locale={locale} showPrimary={false} signedIn={Boolean(user)} tone="dark" />
     <main id="main-content">
     <div className={styles.wrap}>
       <nav aria-label={vi ? "Điều hướng thử thách" : "Challenge navigation"} className={styles.breadcrumb}><Link href="/">{vi ? "Trang chủ" : "Home"}</Link><span aria-hidden="true">/</span><span>Part 5</span></nav>
@@ -54,6 +54,6 @@ export default async function Part5ChallengePage({ searchParams }: PageProps<"/c
       <div className={styles.followup}><p>{vi ? "Muốn xem cách làm trước khi bắt đầu?" : "Want a quick guide before you start?"}</p><Link href="/toeic/part-5">{vi ? "Đọc hướng dẫn Part 5" : "Read the Part 5 guide"} <span aria-hidden="true">↗</span></Link></div>
     </div>
     </main>
-    <PublicFooter locale={locale} />
+    <PublicFooter locale={locale} tone="dark" />
   </div>;
 }

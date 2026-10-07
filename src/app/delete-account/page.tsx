@@ -20,7 +20,7 @@ export default async function DeleteAccountPage() {
 
   return (
     <div className="min-h-screen bg-[#f7f6f1] text-slate-900">
-      <PublicHeader locale={locale} signedIn={Boolean(user)} />
+      <PublicHeader locale={locale} signedIn={Boolean(user)} tone="dark" />
       <main className="px-4 py-10 sm:py-14">
         <article className="mx-auto max-w-2xl rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
           <p className="text-sm font-black uppercase tracking-wider text-teal-700">
@@ -81,7 +81,7 @@ export default async function DeleteAccountPage() {
           </p>
         </article>
       </main>
-      <PublicFooter locale={locale} />
+      <PublicFooter locale={locale} tone="dark" />
     </div>
   );
 }

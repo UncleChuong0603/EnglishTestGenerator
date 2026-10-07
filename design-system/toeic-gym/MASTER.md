@@ -16,14 +16,15 @@ For first-time visitors, lead with a short practice that works without an accoun
 
 | Token | Value | Use |
 | --- | --- | --- |
-| Paper | `#f7f6f1` | Page background |
-| White | `#ffffff` | Work surfaces |
-| Ink | `#172821` | Primary text |
-| Muted ink | `#45584d` | Supporting text |
-| Forest | `#245a43` | Primary actions and active states |
-| Forest dark | `#184631` | Hover state |
-| Rule | `#dce3d9` | Dividers and borders |
-| Warm accent | `#af744f` | Small emphasis only |
+| Night | `#071915` | Homepage/About and shared learner/admin page background |
+| Raised night | `#0b211b` | Cards, forms, tables and work surfaces |
+| Deep night | `#04110e` | Strong inset sections and dark-on-mint copy |
+| Paper text | `#eef9f2` | Primary copy on dark surfaces |
+| Muted sage | `#a9c0b5` | Supporting copy |
+| Mint | `#7be5bd` | Primary actions and active states |
+| Mint soft | `#bff4dc` | Primary action hover |
+| Night rule | `#21463b` | Dividers and borders |
+| Warm accent | `#efb58e` | Small semantic emphasis only |
 
 Use the existing Be Vietnam Pro font from `src/app/layout.tsx`. Keep body text readable in Vietnamese and English. Use a restrained type scale: 16px body, 20–28px card headings, 32–60px page headings according to space. Prefer weight, spacing and contrast to decoration.
 
@@ -67,11 +68,11 @@ Check 375px, 768px, 1024px and 1440px. The primary action and core message must 
 
 ## Workspace inheritance
 
-Learner and admin workspaces inherit the public story's visual identity without copying its marketing density. Shared shells use the night surface (`#071915`) for persistent navigation, paper for the page canvas, white or lightly tinted work surfaces, forest for primary actions and mint for compact active emphasis. Forms, tables, cards, focus rings and status surfaces must resolve through the shared tokens in `src/app/globals.css` rather than introduce a second slate/teal theme.
+Learner and admin workspaces inherit the public story's visual identity without copying its marketing density. The page canvas is night (`#071915`), cards/forms/tables use raised night (`#0b211b`), primary copy uses paper (`#eef9f2`) and mint (`#7be5bd`) is the single action accent. Forms, tables, cards, focus rings and status surfaces must resolve through the shared tokens in `src/app/globals.css` rather than introduce a second light slate/teal theme.
 
-- Learner pages may use a subtle 32px paper grid behind content. Active practice and timed assessment routes remove the grid and decorative motion.
+- Learner pages may use the homepage's restrained 56px mint-on-night grid behind content. Active practice and timed assessment routes remove the grid and decorative motion.
 - Admin pages use the same navigation and surface palette at higher information density. Operational status colors remain semantic and must not be recolored as brand decoration.
-- Desktop navigation may use the dark editorial shell. Mobile content headers stay light; the learner bottom navigation and admin drawer carry the dark shell for continuity.
+- Desktop and mobile navigation use the same dark editorial shell. Work surfaces remain distinct through borders and tone, not white cards or heavy shadows.
 - New pages should use semantic HTML (`main`, `header`, `section`, `article`, `form`, `table`) so the shared product layer can style them consistently before page-specific overrides are added.
 
 Review actual screenshots and interaction states after each surface change. Run the relevant lint, typecheck and browser checks for the modified flow.
