@@ -1,13 +1,14 @@
 import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import { Readable } from "node:stream";
-import { and, eq } from "drizzle-orm";
+import { and, eq, gt, inArray, or } from "drizzle-orm";
 import { db } from "@/db";
 import { mediaAssets, practiceSessionQuestions, practiceSessions, questionGroupMedia } from "@/db/schema";
 import { uuidSchema } from "@/lib/api-v1/contracts";
 import { ApiV1Error } from "@/lib/api-v1/errors";
-import { apiHandler, requireApiActor } from "@/lib/api-v1/http";
+import { apiHandler, getOptionalApiActor } from "@/lib/api-v1/http";
 import { getServerEnv } from "@/lib/env";
+import { getGuestOwnerHash } from "@/lib/guest/identity";
 import { safeMediaPath } from "@/lib/media/local-storage";
 
 export const runtime = "nodejs";
@@ -15,7 +16,33 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   return apiHandler(async () => {
-    const actor = await requireApiActor(request);
+    const [actor, guestOwnerHash] = await Promise.all([
+      getOptionalApiActor(request),
+      getGuestOwnerHash(),
+    ]);
+    const ownerScope = actor && guestOwnerHash
+      ? or(
+          eq(practiceSessions.userId, actor.user.id),
+          and(
+            eq(practiceSessions.guestOwnerHash, guestOwnerHash),
+            gt(practiceSessions.expiresAt, new Date()),
+          ),
+        )
+      : actor
+        ? eq(practiceSessions.userId, actor.user.id)
+        : guestOwnerHash
+          ? and(
+              eq(practiceSessions.guestOwnerHash, guestOwnerHash),
+              gt(practiceSessions.expiresAt, new Date()),
+            )
+          : null;
+    if (!ownerScope) {
+      throw new ApiV1Error(
+        401,
+        "UNAUTHENTICATED",
+        "Your session is invalid or has expired.",
+      );
+    }
     const mediaId = uuidSchema.safeParse((await params).id);
     const sessionId = uuidSchema.safeParse(new URL(request.url).searchParams.get("session"));
     if (!mediaId.success || !sessionId.success) throw new ApiV1Error(404, "NOT_FOUND", "Media not found.");
@@ -24,7 +51,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       .innerJoin(questionGroupMedia, eq(questionGroupMedia.mediaAssetId, mediaAssets.id))
       .innerJoin(practiceSessionQuestions, eq(practiceSessionQuestions.passageSetId, questionGroupMedia.questionGroupId))
       .innerJoin(practiceSessions, eq(practiceSessions.id, practiceSessionQuestions.sessionId))
-      .where(and(eq(mediaAssets.id, mediaId.data), eq(mediaAssets.status, "READY"), eq(mediaAssets.accessScope, "CONTENT"), eq(practiceSessions.id, sessionId.data), eq(practiceSessions.userId, actor.user.id), eq(practiceSessions.status, "in_progress")))
+      .where(and(eq(mediaAssets.id, mediaId.data), eq(mediaAssets.status, "READY"), eq(mediaAssets.accessScope, "CONTENT"), eq(practiceSessions.id, sessionId.data), ownerScope, inArray(practiceSessions.status, ["in_progress", "submitted"])))
       .limit(1);
     const root = getServerEnv().LOCAL_MEDIA_ROOT;
     if (!asset || !root) throw new ApiV1Error(404, "NOT_FOUND", "Media not found.");

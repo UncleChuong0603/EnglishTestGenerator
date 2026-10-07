@@ -29,6 +29,7 @@ describe("Part 5 challenge result", () => {
       ["vocabulary", 0, 5, "needs_work"], ["grammar", 5, 5, "strong"],
     ]);
     expect(insight.mistakes).toHaveLength(5);
+    expect(insight.nextFocus).toMatchObject({ name: "vocabulary", correct: 0, answered: 5, answeredAccuracy: 0 });
     expect(insight.mistakes[0].explanationVi).toBe("Giải thích đầy đủ.");
     expect(insight.subskills.every((item) => item.signal === "early")).toBe(true);
   });
@@ -45,6 +46,7 @@ describe("Part 5 challenge result", () => {
     const insight = part5ChallengeResult(partial);
     expect([insight.correct, insight.total, insight.accuracy]).toEqual([5, 10, 50]);
     expect(insight.skills.find((skill) => skill.name === "vocabulary")?.signal).toBe("early");
+    expect(insight.nextFocus).toBeNull();
     expect(insight.subskills.every((item) => item.answered < 5)).toBe(true);
   });
 });

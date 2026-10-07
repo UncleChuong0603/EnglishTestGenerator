@@ -47,10 +47,10 @@ test("guest challenge has a real result, explanations and safe ownership at ever
   await expect(page.getByRole("heading", { name: /1\/10/ })).toBeVisible();
   await expect(page.getByText(/Độ chính xác: 10%|Accuracy: 10%/)).toBeVisible();
   await expect(page.getByRole("heading", { name: /Xem lại 9 câu sai|Review 9 missed questions/ })).toBeVisible();
-  await expect(page.getByText(/Gợi ý chung: Reading · Part 5 · 10 câu|General suggestion: Reading · Part 5 · 10 questions/)).toBeVisible();
+  await expect(page.getByText(/Nên kiểm tra tiếp:|Check next:/)).toBeVisible();
   await expect(page.getByText("Ngôi thứ ba số ít dùng -s.").first()).toBeVisible();
-  await expect(page.getByRole("link", { name: /Tiếp tục luyện miễn phí|Continue practicing free/ })).toHaveAttribute("href", /\/sign-up\?from=guest-result&next=/);
-  for (const width of [360, 390, 430, 1024, 1440]) {
+  await expect(page.getByRole("link", { name: /Lưu kết quả và luyện tiếp|Save result and keep practicing/ })).toHaveAttribute("href", /\/sign-up\?from=guest-result&next=/);
+  for (const width of [360, 375, 390, 430, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: width < 500 ? 844 : 1000 });
     await noOverflow(page);
     if (process.env.TASK30_CAPTURE === "1") await page.screenshot({ path: `test-results/task30-result-${width}.png` });
@@ -59,6 +59,19 @@ test("guest challenge has a real result, explanations and safe ownership at ever
     if (process.env.TASK30_CAPTURE === "1") await page.screenshot({ path: `test-results/task30-landing-${width}.png` });
     await page.goto(`${base}/challenge/part-5/${sessionId}`);
     await expect(page).toHaveURL(new RegExp(`/challenge/part-5/${sessionId}/result$`));
+  }
+  await context.addCookies([{ name: "toeic_interface_language", value: "en", url: base }]);
+  await page.reload();
+  const englishCta = page.getByRole("link", { name: "Save result and keep practicing" });
+  await expect(page.getByText(/Check next:/)).toBeVisible();
+  await expect(englishCta).toBeVisible();
+  await englishCta.focus();
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Shift+Tab");
+  expect(await englishCta.evaluate((element) => getComputedStyle(element).outlineStyle)).not.toBe("none");
+  for (const width of [375, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: width < 500 ? 844 : 1000 });
+    await noOverflow(page);
   }
   const stranger = await browser.newContext();
   const other = await stranger.newPage();
@@ -73,7 +86,7 @@ test("guest signs up, claims result, and continues with server recommendation", 
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await context.newPage();
   const { sessionId } = await startAndSubmit(page);
-  await page.getByRole("link", { name: /Tiếp tục luyện miễn phí|Continue practicing free/ }).click();
+  await page.getByRole("link", { name: /Lưu kết quả và luyện tiếp|Save result and keep practicing/ }).click();
   await expect(page).toHaveURL(/\/sign-up\?from=guest-result/);
   const email = `task30-new-${Date.now()}@qa.invalid`;
   await page.getByLabel("Email").fill(email);

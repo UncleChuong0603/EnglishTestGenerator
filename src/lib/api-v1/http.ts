@@ -71,7 +71,9 @@ export function clientIp(request: Request) {
   );
 }
 
-export async function requireApiActor(request: Request): Promise<ApiActor> {
+export async function getOptionalApiActor(
+  request: Request,
+): Promise<ApiActor | null> {
   const authorization = request.headers.get("authorization");
   const cookie = request.headers.get("cookie") ?? "";
   if (authorization && /(?:^|;\s*)etg_session=/.test(cookie)) {
@@ -87,7 +89,11 @@ export async function requireApiActor(request: Request): Promise<ApiActor> {
     .map((part) => part.trim())
     .find((part) => part.startsWith(`${SESSION_COOKIE}=`))
     ?.slice(SESSION_COOKIE.length + 1);
-  const session = await getSessionByToken(match?.[1] ?? cookieToken);
+  return getSessionByToken(match?.[1] ?? cookieToken);
+}
+
+export async function requireApiActor(request: Request): Promise<ApiActor> {
+  const session = await getOptionalApiActor(request);
   if (!session)
     throw new ApiV1Error(
       401,

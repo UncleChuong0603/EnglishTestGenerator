@@ -31,6 +31,7 @@ export default async function Part5ChallengeResultPage({ params }: PageProps<"/c
   const locale = preferences.interfaceLanguage;
   const vi = locale === "vi";
   const insight = part5ChallengeResult(result);
+  const nextFocusLabel = insight.nextFocus ? taxonomyLabel(insight.nextFocus.name, locale) : null;
   const continuation = guestContinuationPath(sessionId);
   const primaryHref = user ? continuation : `/sign-up?from=guest-result&next=${encodeURIComponent(continuation)}`;
   const badge = (signal: "early" | "strong" | "needs_work" | "neutral") => signal === "strong" ? "Strong" : signal === "needs_work" ? "Needs work" : signal === "early" ? (vi ? "Dữ liệu ban đầu" : "Early data") : (vi ? "Đang theo dõi" : "Developing");
@@ -47,9 +48,9 @@ export default async function Part5ChallengeResultPage({ params }: PageProps<"/c
       <ShareResult score={insight.correct} locale={locale} />
       <section className="mt-6 rounded-3xl border border-teal-200 bg-teal-50 p-6 sm:p-8">
         <h2 className="text-2xl font-black">{vi ? "Bài luyện nên làm tiếp" : "Your next workout"}</h2>
-        {!user ? <p className="mt-3 font-bold text-teal-900">{vi ? "Gợi ý chung: Reading · Part 5 · 10 câu" : "General suggestion: Reading · Part 5 · 10 questions"}</p> : null}
+        {!user && insight.nextFocus && nextFocusLabel ? <p className="mt-3 font-bold text-teal-900">{vi ? `Nên kiểm tra tiếp: ${nextFocusLabel} · đúng ${insight.nextFocus.correct}/${insight.nextFocus.answered} câu đã trả lời` : `Check next: ${nextFocusLabel} · ${insight.nextFocus.correct}/${insight.nextFocus.answered} answered correctly`}</p> : null}
         <p className="mt-2 leading-7 text-slate-700">{user ? (vi ? "Đề xuất được tính từ lịch sử học của bạn. Hệ thống sẽ tính lại khi bạn tiếp tục." : "This recommendation uses your learning history and will be recalculated when you continue.") : (vi ? "Lưu kết quả để nhận bài luyện tiếp theo. Hệ thống sẽ tính lại đề xuất sau khi gắn kết quả vào tài khoản của bạn." : "Save this result to get your next workout. The recommendation is recalculated after your result joins your account.")}</p>
-        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center"><Link className="inline-flex min-h-12 items-center justify-center rounded-xl bg-teal-700 px-6 text-center font-black text-white" href={primaryHref}>{vi ? "Tiếp tục luyện miễn phí" : "Continue practicing free"}</Link>{!user ? <Link className="inline-flex min-h-12 items-center justify-center rounded-xl border border-teal-700 px-5 text-center font-bold text-teal-800" href={`/sign-in?next=${encodeURIComponent(continuation)}`}>{vi ? "Đã có tài khoản? Đăng nhập" : "Already have an account? Sign in"}</Link> : null}</div>
+        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center"><Link className="inline-flex min-h-12 items-center justify-center rounded-xl bg-teal-700 px-6 text-center font-black text-white focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-teal-700" href={primaryHref}>{user ? (vi ? "Luyện bài tiếp theo" : "Start the next workout") : (vi ? "Lưu kết quả và luyện tiếp" : "Save result and keep practicing")}</Link>{!user ? <Link className="inline-flex min-h-12 items-center justify-center rounded-xl border border-teal-700 px-5 text-center font-bold text-teal-800 focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-teal-700" href={`/sign-in?next=${encodeURIComponent(continuation)}`}>{vi ? "Đã có tài khoản? Đăng nhập" : "Already have an account? Sign in"}</Link> : null}</div>
       </section>
       {recommendation ? <div className="mt-6"><UnifiedRecommendationCard compact locale={locale} recommendation={recommendation} /></div> : null}
       <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-5 sm:p-7">

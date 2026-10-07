@@ -5,7 +5,7 @@ const route = (name: string) => readFileSync(`src/app/api/v1/${name}/route.ts`, 
 
 describe("Task 43 API architecture", () => {
   it("authenticates protected handlers from bearer sessions", () => {
-    for (const name of ["me", "account/data-export", "account/delete", "me/preferences", "notifications/preferences", "notifications/devices", "notifications/devices/[id]", "media/[id]", "dashboard", "plan", "entitlements", "progress", "mistakes", "vocabulary", "vocabulary/[id]/review", "practice"]) expect(route(name)).toContain("requireApiActor");
+    for (const name of ["me", "account/data-export", "account/delete", "me/preferences", "notifications/preferences", "notifications/devices", "notifications/devices/[id]", "dashboard", "plan", "entitlements", "progress", "mistakes", "vocabulary", "vocabulary/[id]/review", "practice"]) expect(route(name)).toContain("requireApiActor");
   });
   it("requires durable idempotency on every practice mutation", () => {
     expect(route("practice")).toContain("idempotent(");
@@ -38,8 +38,12 @@ describe("Task 43 API architecture", () => {
     expect(route("notifications/devices/[id]")).toContain("revokePushDevice(actor.user.id, id.data)");
     expect(readFileSync("src/lib/mobile-retention/service.ts", "utf8")).toContain("eq(mobilePushDevices.userId, userId)");
     const media = route("media/[id]");
+    expect(media).toContain("getOptionalApiActor(request)");
+    expect(media).toContain("getGuestOwnerHash()");
     expect(media).toContain("eq(practiceSessions.userId, actor.user.id)");
-    expect(media).toContain('eq(practiceSessions.status, "in_progress")');
+    expect(media).toContain("eq(practiceSessions.guestOwnerHash, guestOwnerHash)");
+    expect(media).toContain("gt(practiceSessions.expiresAt, new Date())");
+    expect(media).toContain('inArray(practiceSessions.status, ["in_progress", "submitted"])');
     expect(readFileSync("mobile/src/app/_layout.tsx", "utf8")).toContain("<Stack.Protected guard={Boolean(auth.token)}>");
   });
   it("keeps native export and deletion on the existing account-data boundary", () => {

@@ -12,6 +12,7 @@ import { SCORE_ROADMAP_POST } from "./score-roadmap-editorial";
 import { SEO_GROWTH_POSTS } from "./seo-growth-editorial";
 import { EXAM_DECISION_POSTS } from "./exam-decision-editorial";
 import { LISTENING_GROWTH_POSTS } from "./listening-growth-editorial";
+import { VOCABULARY_GROWTH_POSTS } from "./vocabulary-growth-editorial";
 import { MINI_PRACTICE } from "@/lib/seo/mini-practice";
 
 export type EditorialPost = {
@@ -60,6 +61,7 @@ export const EDITORIAL_POSTS: EditorialPost[] = [
   ...SEO_GROWTH_POSTS,
   ...EXAM_DECISION_POSTS,
   ...LISTENING_GROWTH_POSTS,
+  ...VOCABULARY_GROWTH_POSTS,
   post({
     id: "editorial-listening", category: "LISTENING", slug: "cach-luyen-nghe-toeic-part-3-4",
     revisedAt: new Date("2026-10-07T10:00:00.000Z"),
@@ -310,7 +312,16 @@ Trong tuần, kiểm tra từ đã học qua một đoạn email ngắn. Nếu c
 
 ## Bài kiểm tra nhớ lại sau bảy ngày
 
-Che phần giải thích và viết một câu mới cho ba cụm: *issue an invoice*, *extend a deadline* và *track a shipment*. Sau đó làm [bài Part 5 hỗn hợp](/toeic/part-5/practice) mà không chọn trước chủ điểm. Nếu vẫn nhầm, quay lại tình huống cụ thể và giảm số cụm mới trong buổi tiếp theo; thêm danh sách dài hơn chỉ làm khó việc review.`
+Che phần giải thích và viết một câu mới cho ba cụm: *issue an invoice*, *extend a deadline* và *track a shipment*. Sau đó làm [bài Part 5 hỗn hợp](/toeic/part-5/practice) mà không chọn trước chủ điểm. Nếu vẫn nhầm, quay lại tình huống cụ thể và giảm số cụm mới trong buổi tiếp theo; thêm danh sách dài hơn chỉ làm khó việc review.
+
+## Chọn bài mở rộng theo đúng loại lỗi
+
+- Nếu bạn biết từng từ nhưng vẫn ghép sai, học [44 collocation TOEIC theo tình huống](/blog/collocation-la-gi-cum-tu-toeic-thong-dung).
+- Nếu câu có động từ đi cùng particle như *out*, *off* hoặc *into*, dùng [30 phrasal verbs công việc](/blog/phrasal-verbs-toeic-theo-chu-de-cong-viec).
+- Nếu hai từ gần giống nhau khiến bạn chọn sai Part 5, đối chiếu [20 cặp từ tiếng Anh dễ nhầm](/blog/tu-de-nham-trong-tieng-anh-toeic-part-5).
+- Nếu cần biến vốn từ thành kỹ năng đọc và viết thực tế, dùng [cấu trúc cùng 5 mẫu email công việc](/blog/cach-viet-email-tieng-anh-cong-viec-mau).
+
+Mỗi bài có câu kiểm tra tự biên soạn ở đầu trang. Hãy làm trước khi đọc danh sách để xác định đúng lỗ hổng, rồi lưu những cụm sai vào [flashcards từ vựng công sở](/toeic/flashcards-tu-vung-cong-so).`
   }),
   post({
     id: "editorial-study-plan", category: "STUDY_PLAN", slug: "lo-trinh-hoc-toeic-30-ngay-cho-nguoi-ban-ron",
@@ -403,9 +414,20 @@ Khi mất tập trung, dừng vài giây, thở chậm và quay lại từ câu 
 export { grammarImageForSlug };
 
 // Only these materially expanded pages receive a new modification date.
+const vocabularyGrowthSlugs = new Set(VOCABULARY_GROWTH_POSTS.map(article => article.slug));
 for (const article of EDITORIAL_POSTS) {
   if (MINI_PRACTICE[article.slug]) {
-    article.updatedAt = new Date(["menh-de-quan-he-toeic", "cau-bi-dong-toeic-part-5", "ving-va-to-infinitive-toeic"].includes(article.slug) ? "2026-10-02T00:00:00.000Z" : article.slug === "lien-tu-va-tu-noi-toeic" || article.slug === "tu-vung-toeic-theo-chu-de-cong-so" ? "2026-10-01T14:00:00.000Z" : "2026-09-26T18:00:00.000Z");
+    if (!vocabularyGrowthSlugs.has(article.slug)) {
+      article.updatedAt = new Date(
+        ["menh-de-quan-he-toeic", "cau-bi-dong-toeic-part-5", "ving-va-to-infinitive-toeic"].includes(article.slug)
+          ? "2026-10-02T00:00:00.000Z"
+          : article.slug === "tu-vung-toeic-theo-chu-de-cong-so"
+            ? "2026-10-07T14:00:00.000Z"
+            : article.slug === "lien-tu-va-tu-noi-toeic"
+              ? "2026-10-01T14:00:00.000Z"
+              : "2026-09-26T18:00:00.000Z",
+      );
+    }
     article.contentOrigin = "AI_ASSISTED";
     article.content += "\n\n## Từ lỗi sai đến bài luyện tiếp\n\nSau khi thử các câu đầu bài, ghi lại tín hiệu đã bỏ qua và lý do đáp án bạn chọn sai. Đọc [cách review lỗi sai TOEIC](/blog/cach-review-loi-sai-toeic), rồi chuyển sang [bài Part 5 hỗn hợp](/toeic/part-5/practice) để kiểm tra khi không biết trước dạng câu.";
   }

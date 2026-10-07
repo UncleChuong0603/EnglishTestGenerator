@@ -17,13 +17,30 @@ export function part5ChallengeResult(result: PracticeResult) {
   const answeredSkillCount = (skill: string) => answered.filter((question) => question.skill === skill).length;
   const answeredSubskillCount = (skill: string, subSkill: string) => answered.filter((question) => question.skill === skill && question.subSkill === subSkill).length;
   const signal = (accuracy: number, attempted: number) => attempted < MIN_ATTEMPTS_FOR_CLASSIFICATION ? "early" as const : accuracy >= 85 ? "strong" as const : accuracy < 70 ? "needs_work" as const : "neutral" as const;
+  const enrichedSkills = skills.map((metric) => ({
+    ...metric,
+    answered: answeredSkillCount(metric.name),
+    signal: signal(metric.accuracy, answeredSkillCount(metric.name)),
+  }));
+  const nextFocus = enrichedSkills
+    .filter((metric) => metric.answered > 0 && metric.correct < metric.answered)
+    .map((metric) => ({
+      ...metric,
+      answeredAccuracy: percentage(metric.correct, metric.answered),
+    }))
+    .sort((left, right) =>
+      left.answeredAccuracy - right.answeredAccuracy
+      || right.answered - left.answered
+      || left.name.localeCompare(right.name),
+    )[0] ?? null;
   return {
     correct: result.scoreCorrect,
     total: result.scoreTotal,
     accuracy: percentage(result.scoreCorrect, result.scoreTotal),
-    skills: skills.map((metric) => ({ ...metric, answered: answeredSkillCount(metric.name), signal: signal(metric.accuracy, answeredSkillCount(metric.name)) })),
+    skills: enrichedSkills,
     subskills: subskills.map((metric) => ({ ...metric, answered: answeredSubskillCount(metric.skill!, metric.name), signal: signal(metric.accuracy, answeredSubskillCount(metric.skill!, metric.name)) })),
     mistakes: result.questions.filter((question) => !question.isCorrect),
+    nextFocus,
     signal,
   };
 }

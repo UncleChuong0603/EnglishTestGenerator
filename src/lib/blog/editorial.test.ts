@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { existsSync } from "node:fs";
 import { POST_CATEGORIES } from "./core";
 import { EDITORIAL_POSTS, getEditorialPost, grammarImageForSlug } from "./editorial";
+import { practiceForSlug } from "@/lib/seo/mini-practice";
+import { checkPublication } from "./publication-quality";
 
 describe("editorial TOEIC library", () => {
   it("ships at least one SEO-ready article for every public category", () => {
@@ -77,6 +79,43 @@ describe("editorial TOEIC library", () => {
       expect(post?.content.match(/\]\(\//g)?.length ?? 0, slug).toBeGreaterThanOrEqual(5);
       expect(post?.content).toContain("/listening-lessons");
     }
+  });
+
+  it("ships a practice-led workplace vocabulary cluster", () => {
+    const vocabularySlugs = [
+      "collocation-la-gi-cum-tu-toeic-thong-dung",
+      "phrasal-verbs-toeic-theo-chu-de-cong-viec",
+      "tu-de-nham-trong-tieng-anh-toeic-part-5",
+      "cach-viet-email-tieng-anh-cong-viec-mau",
+    ];
+    for (const slug of vocabularySlugs) {
+      const post = getEditorialPost(slug);
+      expect(post, slug).toBeDefined();
+      expect(post?.content.trim().split(/\s+/).length, slug).toBeGreaterThan(850);
+      expect(post?.content.match(/^## /gm)?.length ?? 0, slug).toBeGreaterThanOrEqual(7);
+      expect(post?.content.match(/\]\(\//g)?.length ?? 0, slug).toBeGreaterThanOrEqual(4);
+      expect(post?.content).toMatch(/(?:Ví dụ|Mẫu|Checklist|Quy trình)/i);
+      expect(practiceForSlug(slug), slug).toHaveLength(4);
+      expect(post!.updatedAt.getTime(), slug).toBeGreaterThanOrEqual(post!.publishedAt.getTime());
+      const publicationInput = { ...post!, coverMediaId: undefined, tags: post!.tags.map(tag => tag.name) };
+      expect(checkPublication(publicationInput, EDITORIAL_POSTS.filter(peer => peer.slug !== slug)).errors, slug).toEqual([]);
+    }
+
+    const collocations = getEditorialPost(vocabularySlugs[0])!.content
+      .split("## Cách nhận ra câu collocation", 1)[0]
+      .matchAll(/^- \*\*([^*]+):\*\*/gm);
+    expect([...collocations].flatMap(match => match[1].split(" / "))).toHaveLength(44);
+
+    const phrasalVerbs = getEditorialPost(vocabularySlugs[1])!.content
+      .split("## Cụm tách được", 1)[0]
+      .match(/^- \*\*[^*]+:\*\*/gm);
+    expect(phrasalVerbs).toHaveLength(30);
+
+    const confusingPairs = getEditorialPost(vocabularySlugs[2])!.content.match(/^### /gm);
+    expect(confusingPairs).toHaveLength(20);
+
+    const emailTemplates = getEditorialPost(vocabularySlugs[3])!.content.match(/^## Mẫu \d+:/gm);
+    expect(emailTemplates).toHaveLength(5);
   });
 
   it("resolves bundled articles by slug", () => {
