@@ -13,6 +13,7 @@ describe("audio shadowing", () => {
     expect(html).toContain("/sample.mp3");
     expect(html.indexOf("transcript-heading")).toBeLessThan(html.indexOf("player-heading"));
     expect(html.indexOf("player-heading")).toBeLessThan(html.indexOf("topic-picker-heading"));
+    expect(html.indexOf("Tốc độ")).toBeLessThan(html.indexOf("<audio"));
     expect(html).not.toContain("type=\"radio\"");
     expect(html.match(/<audio/g)).toHaveLength(1);
     expect(html).not.toContain("<progress");

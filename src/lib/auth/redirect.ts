@@ -1,4 +1,4 @@
-const DEFAULT_RETURN_TO = "/dashboard";
+const DEFAULT_RETURN_TO = "/progress";
 
 export function safeInternalReturnTo(
   value: string | null | undefined,

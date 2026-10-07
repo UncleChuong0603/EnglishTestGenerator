@@ -157,7 +157,7 @@ export default async function PracticePage({ searchParams }: Props) {
           </h2>
           <PracticeConfigurator locale={locale} />
         </section>
-        <section className="practice-listening mt-8 rounded-3xl border border-slate-200 bg-white p-6 sm:p-9">
+        <section className="practice-listening mt-8 scroll-mt-4 rounded-3xl border border-slate-200 bg-white p-6 sm:p-9" id="listening-practice">
           <p className="text-sm font-bold uppercase tracking-wider text-teal-700">
             {t.listening.title}
           </p>

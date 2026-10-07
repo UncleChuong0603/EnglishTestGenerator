@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assembleFullMock, assembleListeningMock, assembleReadingMock, deadlineFrom, FULL_MOCK_BLUEPRINT, type MockUnit } from "./blueprint";
+import { assembleFullMock, assembleListeningMock, assembleReadingMock, deadlineFrom, FULL_MOCK_BANK_FORMS, FULL_MOCK_BANK_QUESTIONS, FULL_MOCK_BLUEPRINT, type MockUnit } from "./blueprint";
 
 function fixtures(): MockUnit[] {
   const result: MockUnit[] = [];
@@ -13,6 +13,10 @@ function fixtures(): MockUnit[] {
 }
 
 describe("full mock blueprint", () => {
+  it("keeps the published bank size explicit for sequencing and UI", () => {
+    expect(FULL_MOCK_BANK_FORMS).toBe(25);
+    expect(FULL_MOCK_BANK_QUESTIONS).toBe(5_000);
+  });
   it("assembles exactly 200 unique questions and all official part counts", () => {
     const form = assembleFullMock(fixtures()); expect(form).not.toBeNull(); expect(form!.questionIds).toHaveLength(200);
     for (const part of [1,2,3,4,5,6,7]) expect(form!.byPart[part].flatMap((u) => u.questionIds)).toHaveLength(FULL_MOCK_BLUEPRINT[part as keyof typeof FULL_MOCK_BLUEPRINT].questions);

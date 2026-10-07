@@ -7,8 +7,8 @@ const en = {
     pricing: "Pricing",
     faq: "FAQ",
     signIn: "Sign in",
-    dashboard: "Dashboard",
-    continue: "Continue learning",
+    dashboard: "Progress",
+    continue: "Open progress",
     start: "Start practicing free",
   },
   hero: {
@@ -241,8 +241,8 @@ const vi: MarketingTranslations = {
     pricing: "Bảng giá",
     faq: "Câu hỏi",
     signIn: "Đăng nhập",
-    dashboard: "Trang học",
-    continue: "Tiếp tục học",
+    dashboard: "Tiến độ",
+    continue: "Mở tiến độ",
     start: "Luyện tập miễn phí",
   },
   hero: {

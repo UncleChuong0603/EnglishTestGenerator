@@ -1,0 +1,3 @@
+.page ~ :global(.mascot-coach) {
+  display: none;
+}

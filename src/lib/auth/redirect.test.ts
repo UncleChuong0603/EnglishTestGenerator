@@ -18,7 +18,7 @@ describe("authentication return destinations", () => {
     "/%2F%2Fevil.example",
     "/%5Cevil.example",
   ])("rejects unsafe destination %s", (value) => {
-    expect(safeInternalReturnTo(value)).toBe("/dashboard");
+    expect(safeInternalReturnTo(value)).toBe("/progress");
   });
 
   it("encodes the result reference", () => {

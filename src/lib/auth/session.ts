@@ -20,7 +20,7 @@ export async function getCurrentSession() {
 
 export async function getCurrentUser() { return (await getCurrentSession())?.user ?? null; }
 export async function requireUser() { const user = await getCurrentUser(); if (!user) redirect("/sign-in"); return user; }
-export async function requireAnonymous() { if (await getCurrentUser()) redirect("/dashboard"); }
+export async function requireAnonymous() { if (await getCurrentUser()) redirect("/progress"); }
 export async function revokeCurrentSession() {
   const current = await getCurrentSession();
   if (current) await db.transaction(async (tx) => { await tx.update(userSessions).set({ revokedAt: new Date() }).where(eq(userSessions.id, current.sessionId)); await tx.insert(securityEvents).values({ userId: current.user.id, eventType: "session_revoked", metadata: { scope: "current" } }); });

@@ -33,22 +33,24 @@ describe("PublicHeader", () => {
   });
 
   it.each([
-    ["vi", "Trang học", "Tiếp tục học"],
-    ["en", "Dashboard", "Continue learning"],
-  ] as const)("shows one dashboard action per signed-in %s header layout", (locale, dashboardLabel, continueLabel) => {
+    ["vi", "Tiến độ", "Mở tiến độ"],
+    ["en", "Progress", "Open progress"],
+  ] as const)("shows one learner-home action per signed-in %s header layout", (locale, dashboardLabel, continueLabel) => {
     const html = renderToStaticMarkup(<PublicHeader locale={locale} signedIn />);
 
     expect(html).not.toContain(`>${dashboardLabel}</a>`);
     expect(html.match(new RegExp(`>${continueLabel}(?: <!-- -->)?`, "g"))).toHaveLength(2);
+    expect(html.match(/href="\/progress"/g)).toHaveLength(2);
   });
 
   it.each([
-    ["vi", "Trang học", "Tiếp tục học"],
-    ["en", "Dashboard", "Continue learning"],
-  ] as const)("keeps the signed-in %s dashboard link when the primary action is hidden", (locale, dashboardLabel, continueLabel) => {
+    ["vi", "Tiến độ", "Mở tiến độ"],
+    ["en", "Progress", "Open progress"],
+  ] as const)("keeps the signed-in %s learner-home link when the primary action is hidden", (locale, dashboardLabel, continueLabel) => {
     const html = renderToStaticMarkup(<PublicHeader locale={locale} showPrimary={false} signedIn />);
 
     expect(html.match(new RegExp(`>${dashboardLabel}</a>`, "g"))).toHaveLength(2);
+    expect(html.match(/href="\/progress"/g)).toHaveLength(2);
     expect(html).not.toContain(continueLabel);
   });
 });

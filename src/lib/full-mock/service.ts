@@ -8,7 +8,7 @@ import { awardCompletedLearning } from "@/lib/gamification/award";
 import { reconcileMasteryAnswers } from "@/lib/mastery/persistence";
 import { getSafeSessionContent } from "@/lib/practice/queries";
 import { loadUnits, selectListeningPractice, type QuestionBankPool } from "@/lib/practice/selector";
-import { assembleFullMock, assembleListeningMock, assembleReadingMock, deadlineFrom, type MockForm, type MockMode, type MockUnit } from "./blueprint";
+import { assembleFullMock, assembleListeningMock, assembleReadingMock, deadlineFrom, FULL_MOCK_BANK_FORMS, type MockForm, type MockMode, type MockUnit } from "./blueprint";
 import type { MockHistoryEntry } from "./history";
 import { getEffectiveCapabilities } from "@/lib/entitlements/service";
 
@@ -102,7 +102,7 @@ export async function createMockRun(userId: string, mode: MockMode): Promise<{ o
       const [previous] = await tx.select({ formNumber: fullMockRuns.formNumber }).from(fullMockRuns)
         .where(and(eq(fullMockRuns.userId, userId), eq(fullMockRuns.mode, "FULL")))
         .orderBy(desc(fullMockRuns.createdAt)).limit(1);
-      const next = ((previous?.formNumber ?? 0) % 25) + 1;
+      const next = ((previous?.formNumber ?? 0) % FULL_MOCK_BANK_FORMS) + 1;
       const planned = await loadPlannedFullMock(tx, next);
       if (planned.configured && !planned.form) return { ok: false as const, reason: "CONTENT_NOT_READY" as const };
       if (planned.form) { form = planned.form; formNumber = next; }

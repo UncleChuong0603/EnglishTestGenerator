@@ -73,9 +73,23 @@ export function ShadowingPlayer({ clips, locale, signedIn = true }: { clips: rea
           <h2 className="mt-1 text-xl font-black text-[#172821]" id="player-heading">{clip.title}</h2>
           <p className="mt-2 text-sm leading-6 text-[#45584d]">{vi ? "Nghe, tạm dừng hoặc tua lại; câu tương ứng trong script phía trên sẽ được tô sáng." : "Listen, pause, or replay; the matching sentence in the script above will be highlighted."}</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2 text-sm font-bold text-[#45584d]">
-          <span className="rounded-full bg-[#eef3eb] px-3 py-1.5">{clip.topic}</span>
-          <span className="rounded-full border border-[#dce3d9] px-3 py-1.5">{minutes} {vi ? "phút" : minutes === 1 ? "minute" : "minutes"}</span>
+        <div className="flex flex-wrap items-center gap-1.5 text-sm font-bold text-[#45584d] sm:gap-2">
+          <span className="inline-flex min-h-10 items-center rounded-full bg-[#eef3eb] px-2 sm:px-2.5">{clip.topic}</span>
+          <span className="inline-flex min-h-10 items-center rounded-full border border-[#dce3d9] px-2 sm:px-2.5">{minutes} {vi ? "phút" : minutes === 1 ? "minute" : "minutes"}</span>
+          <label className="inline-flex min-h-11 items-center gap-1 text-[#172821] sm:gap-1.5">
+            <span>{vi ? "Tốc độ" : "Speed"}</span>
+            <select
+              className="min-h-11 w-20 rounded-full border border-[#9caaa0] bg-white px-2 text-base font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245a43]"
+              onChange={event => {
+                const value = Number(event.target.value);
+                setSpeed(value);
+                if (audioRef.current) audioRef.current.playbackRate = value;
+              }}
+              value={speed}
+            >
+              {[0.75, 1, 1.25].map(value => <option key={value} value={value}>{value}×</option>)}
+            </select>
+          </label>
         </div>
       </div>
 
@@ -97,9 +111,6 @@ export function ShadowingPlayer({ clips, locale, signedIn = true }: { clips: rea
         src={clip.audioUrl}
       />
 
-      <div className="mt-4 flex justify-end border-t border-[#dce3d9] pt-4">
-        <label className="flex min-h-11 items-center gap-3 text-sm font-bold text-[#172821]">{vi ? "Tốc độ" : "Speed"}<select className="min-h-11 rounded-lg border border-[#9caaa0] bg-white px-3 text-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#245a43]" onChange={event => { const value = Number(event.target.value); setSpeed(value); if (audioRef.current) audioRef.current.playbackRate = value; }} value={speed}>{[0.75, 1, 1.25].map(value => <option key={value} value={value}>{value}×</option>)}</select></label>
-      </div>
       {error && <p className="mt-4 text-sm font-semibold text-red-700" role="alert">{vi ? "Không phát được audio. Hãy thử tải lại trang." : "The audio could not play. Please reload the page."}</p>}
     </section>
 

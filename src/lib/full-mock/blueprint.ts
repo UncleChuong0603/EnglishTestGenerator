@@ -8,6 +8,9 @@ export const FULL_MOCK_BLUEPRINT = {
   7: { questions: 54, groups: 15 },
 } as const;
 
+export const FULL_MOCK_BANK_FORMS = 25;
+export const FULL_MOCK_BANK_QUESTIONS = FULL_MOCK_BANK_FORMS * 200;
+
 export const LISTENING_DURATION_MS = 45 * 60 * 1_000;
 export const READING_DURATION_MS = 75 * 60 * 1_000;
 

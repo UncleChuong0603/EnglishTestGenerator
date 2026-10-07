@@ -84,8 +84,8 @@ export function LearnerNavigationShell({
       <Link
         aria-label={
           vi
-            ? "Về trang giới thiệu TOEIC GYM"
-            : "Go to TOEIC GYM public home"
+            ? "Về trang chủ TOEIC GYM"
+            : "Go to the TOEIC GYM homepage"
         }
         className="learner-navigation-brand"
         href="/"

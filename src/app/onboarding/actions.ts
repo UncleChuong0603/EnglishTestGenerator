@@ -9,5 +9,5 @@ export async function saveProfile(formData: FormData) {
   const fullName = String(formData.get("fullName") ?? "").trim(); if (fullName.length < 2 || fullName.length > 100) redirect("/onboarding?error=invalid_name");
   const user = await requireUser(); const interfaceLanguage = await getCookieLanguage();
   await db.insert(profiles).values({ id: user.id, fullName, interfaceLanguage, explanationLanguage: "both" }).onConflictDoUpdate({ target: profiles.id, set: { fullName, interfaceLanguage, updatedAt: new Date() } });
-  redirect("/dashboard");
+  redirect("/progress");
 }
