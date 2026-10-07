@@ -29,7 +29,18 @@ describe("PublicHeader", () => {
     expect(html.match(new RegExp(`href="/toeic"[^>]*>${toeicLabel.replace("?", "\\?")}</a>`, "g"))).toHaveLength(2);
     expect(html.match(new RegExp(`href="/ngu-phap"[^>]*>${grammarLabel}</a>`, "g"))).toHaveLength(2);
     expect(html.match(new RegExp(`href="/listening-lessons"[^>]*>${listeningLabel}</a>`, "g"))).toHaveLength(2);
-    expect(html.match(new RegExp(`href="/thi-thu-toeic-online"[^>]*>${mockLabel}</a>`, "g"))).toHaveLength(2);
+    expect(html.match(new RegExp(`href="/full-mock"[^>]*>${mockLabel}</a>`, "g"))).toHaveLength(2);
+    expect(html).not.toContain('href="/thi-thu-toeic-online"');
+  });
+
+  it.each([
+    ["vi", "Thi Thử"],
+    ["en", "Mock Test"],
+  ] as const)("sends signed-in %s learners to the same mock hub", (locale, label) => {
+    const html = renderToStaticMarkup(<PublicHeader locale={locale} signedIn />);
+
+    expect(html.match(new RegExp(`href="/full-mock"[^>]*>${label}</a>`, "g"))).toHaveLength(2);
+    expect(html).not.toContain('href="/thi-thu-toeic-online"');
   });
 
   it.each([

@@ -33,7 +33,7 @@ export function PublicHeader({ locale, signedIn = false, signedInPrimaryHref = "
         <Link className={navLink} href="/ngu-phap">{locale === "vi" ? "Ngữ Pháp" : "Grammar"}</Link>
         <Link className={navLink} href="/vocabulary">{locale === "vi" ? "Từ vựng" : "Vocabulary"}</Link>
         <Link className={navLink} href="/listening-lessons">{locale === "vi" ? "Luyện nghe" : "Listening"}</Link>
-        <Link className={navLink} href="/thi-thu-toeic-online">{locale === "vi" ? "Thi Thử" : "Mock Test"}</Link>
+        <Link className={navLink} href="/full-mock">{locale === "vi" ? "Thi Thử" : "Mock Test"}</Link>
         <Link className={navLink} href="/ranking">{locale === "vi" ? "Xếp hạng" : "Rankings"}</Link>
         <Link className={navLink} href="/blog">Blog</Link>
       </nav>
@@ -52,7 +52,7 @@ export function PublicHeader({ locale, signedIn = false, signedInPrimaryHref = "
           <Link className={mobileLink} href="/ngu-phap">{locale === "vi" ? "Ngữ Pháp" : "Grammar"}</Link>
           <Link className={mobileLink} href="/vocabulary">{locale === "vi" ? "Từ vựng" : "Vocabulary"}</Link>
           <Link className={mobileLink} href="/listening-lessons">{locale === "vi" ? "Luyện nghe" : "Listening"}</Link>
-          <Link className={mobileLink} href="/thi-thu-toeic-online">{locale === "vi" ? "Thi Thử" : "Mock Test"}</Link>
+          <Link className={mobileLink} href="/full-mock">{locale === "vi" ? "Thi Thử" : "Mock Test"}</Link>
           <Link className={mobileLink} href="/ranking">{locale === "vi" ? "Bảng xếp hạng tuần" : "Weekly leaderboard"}</Link>
           <Link className={mobileLink} href="/ve-toeic-gym">{locale === "vi" ? "Về TOEIC GYM" : "About TOEIC GYM"}</Link>
           <Link className={mobileLink} href="/blog">Blog</Link>

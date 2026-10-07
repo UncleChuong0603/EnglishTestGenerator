@@ -11,4 +11,15 @@ describe("TOEIC format table", () => {
     expect(html).toContain('href="/toeic/thang-diem"');
     expect(html).toContain("overflow-x-auto");
   });
+
+  it("supports the homepage dark surface without changing the default variant", () => {
+    const dark = renderToStaticMarkup(<ToeicFormatTable id="toeic-format" tone="dark" />);
+    const light = renderToStaticMarkup(<ToeicFormatTable />);
+
+    expect(dark).toContain('id="toeic-format"');
+    expect(dark).toContain("bg-[#0b211b]");
+    expect(dark).toContain("text-[#7be5bd]");
+    expect(light).toContain("bg-white");
+    expect(light).not.toContain("bg-[#0b211b]");
+  });
 });

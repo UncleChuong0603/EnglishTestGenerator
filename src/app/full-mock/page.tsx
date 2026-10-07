@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LearnerNav } from "@/components/learner-nav";
-import { requireUser } from "@/lib/auth/session";
+import { getCurrentUser } from "@/lib/auth/session";
 import {
   getActiveMock,
   getFullMockHistory,
@@ -181,6 +181,28 @@ function CheckIcon() {
   );
 }
 
+function signInFor(path: string) {
+  return `/sign-in?next=${encodeURIComponent(path)}`;
+}
+
+function SignInToStart({
+  featured = false,
+  locale,
+}: {
+  featured?: boolean;
+  locale: "vi" | "en";
+}) {
+  return (
+    <Link
+      className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-teal-700 px-6 py-3 font-black text-white hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 ${featured ? "w-full focus-visible:outline-white sm:w-auto" : "w-full focus-visible:outline-teal-700"}`}
+      href={signInFor("/full-mock")}
+    >
+      {locale === "vi" ? "Đăng nhập để bắt đầu" : "Sign in to start"}
+      <ArrowIcon />
+    </Link>
+  );
+}
+
 type Props = {
   searchParams: Promise<{
     shortError?: string;
@@ -190,7 +212,7 @@ type Props = {
 };
 
 export default async function FullMockPage({ searchParams }: Props) {
-  const user = await requireUser();
+  const user = await getCurrentUser();
   const [
     ready,
     actives,
@@ -204,29 +226,32 @@ export default async function FullMockPage({ searchParams }: Props) {
     query,
   ] = await Promise.all([
     getMockHubReadiness(),
-    Promise.all(
-      (["LISTENING", "READING", "FULL"] as MockMode[]).map((mode) =>
-        getActiveMock(user.id, mode),
-      ),
-    ),
-    getFullMockHistory(user.id, 3),
-    getPreferences(user.id),
-    getActiveDemoTest(user.id),
-    getEffectiveCapabilities(user.id),
-    getPremiumPreview(),
+    user
+      ? Promise.all(
+          (["LISTENING", "READING", "FULL"] as MockMode[]).map((mode) =>
+            getActiveMock(user.id, mode),
+          ),
+        )
+      : Promise.resolve([null, null, null] as const),
+    user ? getFullMockHistory(user.id, 3) : Promise.resolve([]),
+    getPreferences(user?.id),
+    user ? getActiveDemoTest(user.id) : Promise.resolve(null),
+    user ? getEffectiveCapabilities(user.id) : Promise.resolve(null),
+    user ? getPremiumPreview() : Promise.resolve(null),
     getShortMockReadiness(),
-    getActiveShortMock(user.id),
+    user ? getActiveShortMock(user.id) : Promise.resolve(null),
     searchParams,
   ]);
   const locale = preferences.interfaceLanguage === "en" ? "en" : "vi";
   const t = copy[locale];
   const fullActive = actives[2];
-  const mockUsage = preview.usage.FULL_MOCK;
-  const quotaReached =
-    mockUsage.type === "LIMITED" &&
+  const mockUsage = preview?.usage.FULL_MOCK;
+  const quotaReached = Boolean(
+    mockUsage?.type === "LIMITED" &&
     mockUsage.limit > 0 &&
     mockUsage.remaining === 0 &&
-    (ready.listening.ready || ready.full.ready);
+    (ready.listening.ready || ready.full.ready),
+  );
   const bankStats = [
     FULL_MOCK_BANK_FORMS.toLocaleString(locale === "vi" ? "vi-VN" : "en-US"),
     FULL_MOCK_BANK_QUESTIONS.toLocaleString(locale === "vi" ? "vi-VN" : "en-US"),
@@ -319,7 +344,7 @@ export default async function FullMockPage({ searchParams }: Props) {
           </div>
         ) : null}
 
-        {quotaReached && preview.visible ? (
+        {quotaReached && preview?.visible && mockUsage?.type === "LIMITED" ? (
           <div className="mt-6">
             <PremiumPreviewCard
               body={locale === "vi" ? "Premium mở thi thử không giới hạn cho các chế độ đã sẵn sàng." : "Premium unlocks unlimited mock tests for modes that are ready."}
@@ -327,7 +352,7 @@ export default async function FullMockPage({ searchParams }: Props) {
               title={locale === "vi" ? `Bạn đã dùng ${mockUsage.used}/${mockUsage.limit} lượt Mock tháng này` : `You used ${mockUsage.used}/${mockUsage.limit} mocks this month`}
             />
           </div>
-        ) : quotaReached && preview.lifecycle === "EXPIRED" ? (
+        ) : quotaReached && preview?.lifecycle === "EXPIRED" ? (
           <div className="mt-6">
             <PremiumRenewalCard
               body={locale === "vi" ? "Lịch sử thi thử vẫn được giữ nguyên; khôi phục Premium để tiếp tục các chế độ đã sẵn sàng." : "Your mock history is intact; restore Premium to continue modes that are ready."}
@@ -381,10 +406,12 @@ export default async function FullMockPage({ searchParams }: Props) {
                   <Link className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-teal-700 px-6 py-3 font-black text-white hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto" href={`/full-mock/${fullActive.id}`}>
                     {t.resumeFull}<ArrowIcon />
                   </Link>
-                ) : ready.full.ready ? (
+                ) : ready.full.ready && user ? (
                   <form action={startMock.bind(null, "FULL")}>
                     <MockStartButton featured label={t.startFull} pendingLabel={t.building} />
                   </form>
+                ) : ready.full.ready ? (
+                  <SignInToStart featured locale={locale} />
                 ) : (
                   <div className="rounded-xl border border-amber-300/25 bg-amber-200/10 p-4 text-sm leading-6 text-amber-100">
                     <strong className="block">{t.soon}</strong>
@@ -413,6 +440,8 @@ export default async function FullMockPage({ searchParams }: Props) {
                       <Link className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-teal-700 px-5 py-3 font-black text-white hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700" href={`/full-mock/${card.active.id}`}>
                         {t.resume}<ArrowIcon />
                       </Link>
+                    ) : !user && (card.mode === "READING" || card.readiness.ready) ? (
+                      <SignInToStart locale={locale} />
                     ) : card.mode === "READING" ? (
                       <Link className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-teal-700 px-5 py-3 font-black text-white hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700" href={activeDemo ? `/demo-test/${activeDemo.id}` : "/demo-test"}>
                         {locale === "vi" ? "Bắt đầu Reading Mock" : "Start Reading Mock"}<ArrowIcon />
@@ -446,7 +475,7 @@ export default async function FullMockPage({ searchParams }: Props) {
                 </div>
                 <h3 className="mt-4 text-lg font-black">Part {part} · {name}</h3>
                 <p className="mt-2 text-sm leading-6 text-slate-600">{detail}</p>
-                <Link className="mt-auto inline-flex min-h-11 items-center gap-2 pt-4 font-black text-teal-700 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700" href={href}>
+                <Link className="mt-auto inline-flex min-h-11 items-center gap-2 pt-4 font-black text-teal-700 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700" href={user ? href : signInFor(href)}>
                   {t.practicePart} {part}<ArrowIcon />
                 </Link>
               </article>
@@ -473,7 +502,7 @@ export default async function FullMockPage({ searchParams }: Props) {
                   ) : locale === "vi" ? "Chưa thể tạo đề ngắn. Vui lòng thử lại." : "Could not build the short mock. Please try again."}
                 </div>
               ) : null}
-              <ShortMockPicker active={activeShortMock} locale={preferences.interfaceLanguage} readiness={shortReadiness} />
+              <ShortMockPicker active={activeShortMock} locale={preferences.interfaceLanguage} readiness={shortReadiness} signedIn={Boolean(user)} />
             </div>
           </div>
         </section>
@@ -502,7 +531,7 @@ export default async function FullMockPage({ searchParams }: Props) {
                 <h2 className="text-2xl font-black sm:text-3xl" id="recent-tests-title">{t.history}</h2>
                 <p className="mt-2 text-sm leading-6 text-slate-600">{t.historyIntro}</p>
               </div>
-              {capabilities.canUseAdvancedMockHistory ? (
+              {capabilities?.canUseAdvancedMockHistory ? (
                 <Link className="inline-flex min-h-11 items-center gap-2 font-bold text-teal-700 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700" href="/full-mock/history">{t.historyLink}<ArrowIcon /></Link>
               ) : null}
             </div>
@@ -518,7 +547,7 @@ export default async function FullMockPage({ searchParams }: Props) {
           </section>
         ) : null}
 
-        {!capabilities.canUseAdvancedMockHistory && preview.visible && preview.mock.hasComparableHistory ? (
+        {capabilities && preview && !capabilities.canUseAdvancedMockHistory && preview.visible && preview.mock.hasComparableHistory ? (
           <div className="pb-14">
             <PremiumPreviewCard
               body={locale === "vi" ? "Premium mở so sánh các lần thi cùng chế độ, xu hướng kết quả và phân tích Part theo thời gian." : "Premium unlocks same-mode comparisons, result trends, and Part breakdowns over time."}

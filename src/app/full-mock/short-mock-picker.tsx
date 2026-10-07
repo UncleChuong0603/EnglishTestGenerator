@@ -13,6 +13,7 @@ type Props = {
   active: { id: string; difficulty: ShortMockDifficulty } | null;
   locale: InterfaceLanguage;
   readiness: Record<ShortMockDifficulty, boolean>;
+  signedIn: boolean;
 };
 
 const levels = {
@@ -52,7 +53,7 @@ function SubmitButton({ locale, disabled }: { locale: InterfaceLanguage; disable
   );
 }
 
-export function ShortMockPicker({ active, locale, readiness }: Props) {
+export function ShortMockPicker({ active, locale, readiness, signedIn }: Props) {
   const vi = locale === "vi";
   const firstReady = SHORT_MOCK_DIFFICULTIES.find((difficulty) => readiness[difficulty]);
   if (active) {
@@ -77,8 +78,8 @@ export function ShortMockPicker({ active, locale, readiness }: Props) {
     );
   }
 
-  return (
-    <form action={startShortMock} className="mt-6">
+  const picker = (
+    <>
       <fieldset>
         <legend className="sr-only">{vi ? "Chọn độ khó" : "Choose difficulty"}</legend>
         <div className="grid gap-3 md:grid-cols-3">
@@ -129,8 +130,25 @@ export function ShortMockPicker({ active, locale, readiness }: Props) {
             ? "20 câu Part 5 · khoảng 12 phút · xem kết quả và lời giải sau khi nộp."
             : "20 Part 5 questions · about 12 minutes · results and explanations after submission."}
         </p>
-        <SubmitButton disabled={!firstReady} locale={locale} />
+        {signedIn ? (
+          <SubmitButton disabled={!firstReady} locale={locale} />
+        ) : (
+          <Link
+            className="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-teal-700 px-6 py-3 font-black text-white hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 sm:w-auto"
+            href="/sign-in?next=%2Ffull-mock"
+          >
+            {vi ? "Đăng nhập để bắt đầu" : "Sign in to start"}
+          </Link>
+        )}
       </div>
+    </>
+  );
+
+  return signedIn ? (
+    <form action={startShortMock} className="mt-6">
+      {picker}
     </form>
+  ) : (
+    <div className="mt-6">{picker}</div>
   );
 }

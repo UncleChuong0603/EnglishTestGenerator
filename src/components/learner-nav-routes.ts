@@ -39,7 +39,7 @@ export function getLearnerPrimaryNavigation(
       icon: "practice",
     },
     {
-      href: learnerHref("/full-mock", signedIn),
+      href: "/full-mock",
       label: labels.mockTests,
       icon: "practice",
     },

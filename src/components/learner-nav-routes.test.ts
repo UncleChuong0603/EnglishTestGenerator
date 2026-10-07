@@ -27,7 +27,7 @@ describe("Learner navigation information architecture", () => {
   });
 
   it("keeps the selected destination through sign-in for guests", () => {
-    const [today, progress] = getLearnerPrimaryNavigation(false, {
+    const [today, progress, practice, mockTests] = getLearnerPrimaryNavigation(false, {
       progress: "Progress",
       practice: "Practice",
       today: "Today's plan",
@@ -36,6 +36,8 @@ describe("Learner navigation information architecture", () => {
 
     expect(today.href).toBe("/sign-in?next=%2Fdashboard");
     expect(progress.href).toBe("/sign-in?next=%2Fprogress");
+    expect(practice.href).toBe("/sign-in?next=%2Fpractice");
+    expect(mockTests.href).toBe("/full-mock");
   });
 });
 
