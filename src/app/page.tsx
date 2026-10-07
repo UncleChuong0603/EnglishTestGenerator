@@ -7,6 +7,7 @@ import { PublicFooter } from "@/components/public-footer";
 import { PublicHeader } from "@/components/public-header";
 import { FeatureDirectory } from "@/components/marketing/feature-directory";
 import { GuideCarousel } from "@/components/marketing/guide-carousel";
+import { HomeScrollEffects } from "@/components/marketing/home-scroll-effects";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getPreferences } from "@/lib/i18n/get-translations";
 import { getSiteUrl } from "@/lib/seo/site-url";
@@ -161,14 +162,16 @@ export default async function Home() {
     toeicGymOrganizationStructuredData(siteUrl),
   ] };
 
-  return <div className={styles.page}>
+  return <div className={styles.page} data-home-page>
     <script dangerouslySetInnerHTML={{ __html: serializeStructuredData(websiteStructuredData) }} type="application/ld+json" />
+    <HomeScrollEffects locale={locale} />
+    <div aria-hidden="true" className={styles.scrollProgress}><span data-home-progress-value /></div>
     <a className={styles.skipLink} href="#main-content">{vi ? "Bỏ qua điều hướng" : "Skip to content"}</a>
     <PublicHeader locale={locale} signedIn={Boolean(user)} signedInPrimaryHref="/dashboard" signedInPrimaryLabel={t.continue} tone="dark" />
     <main id="main-content" lang={locale}>
 
-    <section aria-labelledby="home-title" className={styles.hero}>
-      <div className={styles.heroCopy}>
+    <section aria-labelledby="home-title" className={styles.hero} data-home-hero>
+      <div className={styles.heroCopy} data-home-reveal="hero-copy">
         <p className={styles.eyebrow}>{t.eyebrow}</p>
         <h1 id="home-title"><span>{t.title}</span>{" "}<span className={styles.titleAccent}>{t.titleAccent}</span></h1>
         <p className={styles.lead}>{t.lead}</p>
@@ -178,7 +181,7 @@ export default async function Home() {
           <Link className={styles.secondaryAction} href="#roadmap">{t.how} <span aria-hidden="true">↓</span></Link>
         </div>
       </div>
-      <div className={styles.heroVisual}>
+      <div className={styles.heroVisual} data-home-hero-visual data-home-reveal="hero-visual">
         <div className={styles.heroMascot} aria-label={vi ? "Milo, huấn luyện viên học tập của TOEIC GYM" : "Milo, TOEIC GYM's study coach"}>
           <Image src="/mascot/milo-coach.webp" alt="" width={170} height={184} priority />
           <p><strong>Milo</strong><span>{vi ? "Coach học cùng bạn" : "Your study coach"}</span></p>
@@ -204,29 +207,29 @@ export default async function Home() {
         { href: "/dashboard#weekly-plan-heading", label: vi ? "Lộ trình ngày & tuần" : "Daily & weekly path", marker: "02" },
         { href: "/listening-lessons", label: vi ? "Nghe transcript miễn phí" : "Free transcript listening", marker: "03" },
         { href: "/vocabulary", label: vi ? "Từ vựng miễn phí" : "Free vocabulary", marker: "04" },
-      ].map(item => <Link href={item.href} key={item.href}><strong>{item.marker}</strong><span>{item.label}</span><span aria-hidden="true">↗</span></Link>)}
+      ].map(item => <Link data-home-reveal="proof" href={item.href} key={item.href}><strong>{item.marker}</strong><span>{item.label}</span><span aria-hidden="true">↗</span></Link>)}
     </div>
 
-    <section aria-labelledby="roadmap-title" className={styles.roadmapSection} id="roadmap">
-      <div className={styles.roadmapIntro}>
+    <section aria-labelledby="roadmap-title" className={styles.roadmapSection} data-home-roadmap id="roadmap">
+      <div className={styles.roadmapIntro} data-home-reveal="heading">
         <div><p className={styles.eyebrow}>{t.roadmapEyebrow}</p><h2 id="roadmap-title">{t.roadmapTitle}</h2></div>
         <p>{t.roadmapLead}</p>
       </div>
       <ol className={styles.roadmapList}>
-        {t.roadmapItems.map((item, index) => <li key={item.title}>
+        {t.roadmapItems.map((item, index) => <li data-home-roadmap-item key={item.title}>
           <div className={styles.roadmapMeta}><span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span><span>{item.status}</span></div>
           <div className={styles.roadmapCopy}><h3>{item.title}</h3><p>{item.description}</p></div>
         </li>)}
       </ol>
-      <div className={styles.roadmapFoot}>
+      <div className={styles.roadmapFoot} data-home-reveal="rise">
         <p>{t.roadmapNote}</p>
         <Link className={styles.roadmapAction} href="/ve-toeic-gym#adaptive-plan">{t.roadmapAction}<span aria-hidden="true">↗</span></Link>
       </div>
     </section>
 
     <section aria-labelledby="explore-title" className={styles.section} id="explore">
-      <div className={styles.sectionIntro}><div><p className={styles.eyebrow}>{t.entryEyebrow}</p><h2 id="explore-title">{t.entryTitle}</h2></div><p>{t.entryLead}</p></div>
-      <div className={styles.spotlights}>
+      <div className={styles.sectionIntro} data-home-reveal="heading"><div><p className={styles.eyebrow}>{t.entryEyebrow}</p><h2 id="explore-title">{t.entryTitle}</h2></div><p>{t.entryLead}</p></div>
+      <div className={styles.spotlights} data-home-reveal="rise">
         <article className={styles.listeningSpotlight}>
           <p className={styles.eyebrow}>{vi ? "NGHE & NÓI THEO" : "LISTEN & SHADOW"}</p>
           <h3>{listeningFeature[locale].title}</h3>
@@ -249,19 +252,19 @@ export default async function Home() {
 
     <section aria-labelledby="features-title" className={styles.directorySection} id="features">
       <div className={styles.section}>
-        <div className={styles.sectionIntro}><div><p className={styles.eyebrow}>{t.loopEyebrow}</p><h2 id="features-title">{t.loopTitle}</h2></div></div>
+        <div className={styles.sectionIntro} data-home-reveal="heading"><div><p className={styles.eyebrow}>{t.loopEyebrow}</p><h2 id="features-title">{t.loopTitle}</h2></div></div>
         <FeatureDirectory compact locale={locale} tone="dark" />
       </div>
     </section>
 
     <section aria-labelledby="bank-title" className={styles.section} id="question-bank">
-      <div className={styles.sectionIntro}><div><p className={styles.eyebrow}>{t.bankEyebrow}</p><h2 id="bank-title">{t.bankTitle}</h2></div><p>{t.bankLead}</p></div>
-      <div className={styles.partGroups}><div><h3>{t.listening}</h3><div>{parts.slice(0, 4).map((part) => <Link href={`/toeic/part-${part.number}`} key={part.number}><span>0{part.number}</span><strong>Part {part.number}</strong><small>{vi ? part.vi : part.en}</small><span aria-hidden="true">↗</span></Link>)}</div></div><div><h3>{t.reading}</h3><div>{parts.slice(4).map((part) => <Link href={`/toeic/part-${part.number}`} key={part.number}><span>0{part.number}</span><strong>Part {part.number}</strong><small>{vi ? part.vi : part.en}</small><span aria-hidden="true">↗</span></Link>)}</div></div></div>
+      <div className={styles.sectionIntro} data-home-reveal="heading"><div><p className={styles.eyebrow}>{t.bankEyebrow}</p><h2 id="bank-title">{t.bankTitle}</h2></div><p>{t.bankLead}</p></div>
+      <div className={styles.partGroups} data-home-reveal="rise"><div><h3>{t.listening}</h3><div>{parts.slice(0, 4).map((part) => <Link href={`/toeic/part-${part.number}`} key={part.number}><span>0{part.number}</span><strong>Part {part.number}</strong><small>{vi ? part.vi : part.en}</small><span aria-hidden="true">↗</span></Link>)}</div></div><div><h3>{t.reading}</h3><div>{parts.slice(4).map((part) => <Link href={`/toeic/part-${part.number}`} key={part.number}><span>0{part.number}</span><strong>Part {part.number}</strong><small>{vi ? part.vi : part.en}</small><span aria-hidden="true">↗</span></Link>)}</div></div></div>
     </section>
 
     <section aria-labelledby="method-title" className={styles.method} id="how-it-works">
-      <p className={styles.eyebrow}>{t.guideEyebrow}</p>
-      <h2 id="method-title">{t.guideTitle}</h2>
+      <div data-home-reveal="heading"><p className={styles.eyebrow}>{t.guideEyebrow}</p>
+      <h2 id="method-title">{t.guideTitle}</h2></div>
       <GuideCarousel
         allGuidesHref="/blog"
         allGuidesLabel={t.guideAll}
@@ -276,7 +279,7 @@ export default async function Home() {
       />
     </section>
 
-    <section aria-labelledby="closing-title" className={styles.closing}><div><p className={styles.eyebrow}>TOEIC GYM</p><h2 id="closing-title">{t.closing}</h2><p>{t.closingBody}</p></div>{user ? <Link className={styles.primaryAction} href="/dashboard">{t.continue}<span aria-hidden="true">↗</span></Link> : <form action={startPart5Challenge}><ChallengeStartButton className={styles.primaryAction} label={t.start} pendingLabel={t.starting} /></form>}</section>
+    <section aria-labelledby="closing-title" className={styles.closing} data-home-reveal="rise"><div><p className={styles.eyebrow}>TOEIC GYM</p><h2 id="closing-title">{t.closing}</h2><p>{t.closingBody}</p></div>{user ? <Link className={styles.primaryAction} href="/dashboard">{t.continue}<span aria-hidden="true">↗</span></Link> : <form action={startPart5Challenge}><ChallengeStartButton className={styles.primaryAction} label={t.start} pendingLabel={t.starting} /></form>}</section>
     </main>
     <PublicFooter locale={locale} tone="dark" />
   </div>;
