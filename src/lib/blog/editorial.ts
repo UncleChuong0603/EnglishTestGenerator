@@ -13,6 +13,7 @@ import { SEO_GROWTH_POSTS } from "./seo-growth-editorial";
 import { EXAM_DECISION_POSTS } from "./exam-decision-editorial";
 import { LISTENING_GROWTH_POSTS } from "./listening-growth-editorial";
 import { VOCABULARY_GROWTH_POSTS } from "./vocabulary-growth-editorial";
+import { PRONUNCIATION_GROWTH_POSTS } from "./pronunciation-growth-editorial";
 import { MINI_PRACTICE } from "@/lib/seo/mini-practice";
 
 export type EditorialPost = {
@@ -62,9 +63,10 @@ export const EDITORIAL_POSTS: EditorialPost[] = [
   ...EXAM_DECISION_POSTS,
   ...LISTENING_GROWTH_POSTS,
   ...VOCABULARY_GROWTH_POSTS,
+  ...PRONUNCIATION_GROWTH_POSTS,
   post({
     id: "editorial-listening", category: "LISTENING", slug: "cach-luyen-nghe-toeic-part-3-4",
-    revisedAt: new Date("2026-10-07T10:00:00.000Z"),
+    revisedAt: new Date("2026-10-08T03:00:00.000Z"),
     title: "Cách luyện nghe TOEIC Part 3 và 4 không cần nghe từng từ",
     excerpt: "Kỹ thuật đọc trước câu hỏi, dự đoán bối cảnh và bắt cụm thông tin giúp bạn theo kịp hội thoại dài.",
     seoTitle: "Cách luyện nghe TOEIC Part 3, 4 hiệu quả", seoDescription: "Hướng dẫn luyện nghe TOEIC Part 3 và 4: đọc trước câu hỏi, bắt từ khóa, nhận diện paraphrase và sửa lỗi bằng transcript.", canonicalPath: "/blog/cach-luyen-nghe-toeic-part-3-4", coverAlt: "Tai nghe và dạng sóng minh họa luyện nghe TOEIC Part 3 và 4", socialTitle: "Nghe Part 3–4 mà không cần hiểu từng từ", socialDescription: "Một quy trình nghe chủ động, dễ áp dụng trong mỗi buổi luyện.", authorName: "TOEIC GYM Editorial", targetTopic: "cách luyện nghe TOEIC Part 3 4", searchIntent: "informational", tags: [tag("TOEIC Listening", "toeic-listening"), tag("Part 3", "part-3"), tag("Part 4", "part-4")],
@@ -119,7 +121,15 @@ Sau khi chọn đáp án, gạch dưới cụm trong transcript tạo ra suy lu�
 
 ## Chọn bài bổ trợ theo đúng lỗi nghe
 
-Nếu nhìn transcript mới nhận ra toàn từ quen, học [nối âm và connected speech](/blog/noi-am-tieng-anh-cach-nghe-connected-speech). Nếu cần tìm chính xác âm hoặc từ bị bỏ lỡ, dùng [dictation với đoạn ngắn](/blog/dictation-la-gi-cach-nghe-chep-chinh-ta-tieng-anh). Nếu đã hiểu câu nhưng chưa theo được nhịp, đi từ echo đến [shadowing](/blog/shadowing-la-gi-cach-luyen-tieng-anh). Người mới chưa phân loại được lỗi có thể bắt đầu bằng [lộ trình luyện nghe cho người mất gốc](/blog/cach-luyen-nghe-tieng-anh-cho-nguoi-mat-goc).`
+- Nếu nhìn transcript mới nhận ra toàn từ quen, học [nối âm và connected speech](/blog/noi-am-tieng-anh-cach-nghe-connected-speech).
+- Nếu thường mất phần kết thúc của từ, sửa từ nền bằng [âm cuối tiếng Anh](/blog/am-cuoi-tieng-anh-cach-phat-am-khong-them-am).
+- Nếu không nghe rõ số nhiều hoặc động từ ngôi thứ ba, phân loại [ba cách phát âm -s/-es](/blog/cach-phat-am-s-es-tieng-anh).
+- Nếu bỏ lỡ dấu hiệu quá khứ và bị động, luyện [ba cách phát âm -ed](/blog/cach-phat-am-ed-tieng-anh).
+- Nếu từ dài quen mặt nhưng nghe không ra, học [cách tra và ghi trọng âm từ](/blog/trong-am-tu-tieng-anh-quy-tac-cach-tra).
+- Nếu cần tìm chính xác âm hoặc từ bị bỏ lỡ, dùng [dictation với đoạn ngắn](/blog/dictation-la-gi-cach-nghe-chep-chinh-ta-tieng-anh).
+- Nếu đã hiểu câu nhưng chưa theo được nhịp, đi từ echo đến [shadowing](/blog/shadowing-la-gi-cach-luyen-tieng-anh).
+
+Người mới chưa phân loại được lỗi có thể bắt đầu bằng [lộ trình luyện nghe cho người mất gốc](/blog/cach-luyen-nghe-tieng-anh-cho-nguoi-mat-goc), sau đó chỉ chọn một lỗi âm trong mỗi buổi thay vì cố sửa toàn bộ cùng lúc.`
   }),
   post({
     id: "editorial-reading", category: "READING", slug: "quan-ly-thoi-gian-toeic-reading-75-phut",
@@ -414,10 +424,10 @@ Khi mất tập trung, dừng vài giây, thở chậm và quay lại từ câu 
 export { grammarImageForSlug };
 
 // Only these materially expanded pages receive a new modification date.
-const vocabularyGrowthSlugs = new Set(VOCABULARY_GROWTH_POSTS.map(article => article.slug));
+const currentGrowthSlugs = new Set([...VOCABULARY_GROWTH_POSTS, ...PRONUNCIATION_GROWTH_POSTS].map(article => article.slug));
 for (const article of EDITORIAL_POSTS) {
   if (MINI_PRACTICE[article.slug]) {
-    if (!vocabularyGrowthSlugs.has(article.slug)) {
+    if (!currentGrowthSlugs.has(article.slug)) {
       article.updatedAt = new Date(
         ["menh-de-quan-he-toeic", "cau-bi-dong-toeic-part-5", "ving-va-to-infinitive-toeic"].includes(article.slug)
           ? "2026-10-02T00:00:00.000Z"
@@ -427,9 +437,9 @@ for (const article of EDITORIAL_POSTS) {
               ? "2026-10-01T14:00:00.000Z"
               : "2026-09-26T18:00:00.000Z",
       );
+      article.contentOrigin = "AI_ASSISTED";
+      article.content += "\n\n## Từ lỗi sai đến bài luyện tiếp\n\nSau khi thử các câu đầu bài, ghi lại tín hiệu đã bỏ qua và lý do đáp án bạn chọn sai. Đọc [cách review lỗi sai TOEIC](/blog/cach-review-loi-sai-toeic), rồi chuyển sang [bài Part 5 hỗn hợp](/toeic/part-5/practice) để kiểm tra khi không biết trước dạng câu.";
     }
-    article.contentOrigin = "AI_ASSISTED";
-    article.content += "\n\n## Từ lỗi sai đến bài luyện tiếp\n\nSau khi thử các câu đầu bài, ghi lại tín hiệu đã bỏ qua và lý do đáp án bạn chọn sai. Đọc [cách review lỗi sai TOEIC](/blog/cach-review-loi-sai-toeic), rồi chuyển sang [bài Part 5 hỗn hợp](/toeic/part-5/practice) để kiểm tra khi không biết trước dạng câu.";
   }
 }
 export const CORRECTED_EXERCISE_SLUGS = [

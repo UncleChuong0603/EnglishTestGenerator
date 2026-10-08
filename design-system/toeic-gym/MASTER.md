@@ -47,7 +47,7 @@ Milo is TOEIC GYM's chibi owl study coach. Use the transparent production asset 
 
 - Public pages may show Milo as a welcoming guide near real product evidence and first practice actions.
 - Learner pages use short contextual coaching tied to the current task. During active practice, diagnostics and timed tests, Milo stays compact and never covers questions, audio, timers, navigation or submit controls.
-- Admin pages frame Milo as an operations coach: prioritize pending work and interpret trends carefully. Do not use celebratory poses for routine operational metrics.
+- Admin pages do not show Milo. Keep operational work surfaces focused on pending work, dense controls and direct interpretation of real data.
 - Keep text in HTML, never baked into the mascot image. The mascot is decorative when adjacent copy already names its role; contextual advice remains readable without the image.
 - Do not recolor, distort, mirror inconsistently or combine Milo with unrelated emoji/icon styles.
 

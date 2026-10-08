@@ -14,6 +14,7 @@ const COACH_HIDDEN_UNTIL_KEY = "toeic-gym:milo-hidden-until";
 const INTRO_DELAY_MS = 6_000;
 const ADVICE_SNOOZE_MS = 5 * 60_000;
 const COACH_HIDE_MS = 30 * 60_000;
+const ADMIN_ROUTE = /^\/admin(?:\/|$)/;
 const FOCUS_ROUTE = /^\/(?:practice|diagnostic|demo-test|full-mock|ranking\/challenges\/run|challenge\/part-5)\//;
 
 function readTimestamp(key: string) {
@@ -35,9 +36,6 @@ function storeTimestamp(key: string, value: number | null) {
 }
 
 function routeMessage(pathname: string, vi: boolean): CoachMessage {
-  if (pathname.startsWith("/admin")) return vi
-    ? { eyebrow: "Milo · trợ lý vận hành", text: "Ưu tiên hàng chờ trước, rồi dùng biểu đồ để kiểm tra xu hướng thay vì nhìn một con số riêng lẻ.", action: "Mở phân tích", href: "/admin/analytics" }
-    : { eyebrow: "Milo · operations coach", text: "Clear the queue first, then use trends—not a single metric—to understand the product.", action: "Open analytics", href: "/admin/analytics" };
   if (FOCUS_ROUTE.test(pathname)) return vi
     ? { eyebrow: "Milo · chế độ tập trung", text: "Đọc hết câu và loại từng đáp án. Mình sẽ ở gọn tại đây, không làm gián đoạn bài của bạn." }
     : { eyebrow: "Milo · focus mode", text: "Read the whole prompt and eliminate options one by one. I’ll stay out of your way." };
@@ -53,9 +51,16 @@ function routeMessage(pathname: string, vi: boolean): CoachMessage {
 }
 
 export function MascotCoach() {
+  const pathname = usePathname();
+
+  if (ADMIN_ROUTE.test(pathname)) return null;
+
+  return <MascotCoachContent pathname={pathname} />;
+}
+
+function MascotCoachContent({ pathname }: { pathname: string }) {
   const locale = useLocale();
   const vi = locale === "vi";
-  const pathname = usePathname();
   const base = useMemo(() => routeMessage(pathname, vi), [pathname, vi]);
   const focused = FOCUS_ROUTE.test(pathname);
   const [ready, setReady] = useState(false);

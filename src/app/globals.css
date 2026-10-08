@@ -121,8 +121,7 @@ html[data-motion-level="product"][data-motion-ready="true"] .motion-reveal { tra
 @keyframes coach-in { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
 @media (min-width: 1024px) {
-  body:has(.learner-navigation:not([data-collapsed="true"])) .mascot-coach,
-  body:has(.admin-navigation) .mascot-coach { transform: translateX(15.5rem); }
+  body:has(.learner-navigation:not([data-collapsed="true"])) .mascot-coach { transform: translateX(15.5rem); }
   body:has(.home-sidebar[data-expanded="true"]) .mascot-coach { transform: translateX(17rem); }
 }
 
@@ -1173,10 +1172,8 @@ html[data-ui-surface="focus"] body :is(input, select, textarea):focus {
 }
 
 html[data-ui-surface="product"] .mascot-coach-bubble,
-html[data-ui-surface="admin"] .mascot-coach-bubble,
 html[data-ui-surface="focus"] .mascot-coach-bubble { color: var(--ink); }
 html[data-ui-surface="product"] .mascot-coach-trigger span,
-html[data-ui-surface="admin"] .mascot-coach-trigger span,
 html[data-ui-surface="focus"] .mascot-coach-trigger span {
   border-color: var(--line);
   background: var(--surface-card);
@@ -1184,8 +1181,6 @@ html[data-ui-surface="focus"] .mascot-coach-trigger span {
 }
 html[data-ui-surface="product"] .mascot-coach-close,
 html[data-ui-surface="product"] .mascot-coach-hide,
-html[data-ui-surface="admin"] .mascot-coach-close,
-html[data-ui-surface="admin"] .mascot-coach-hide,
 html[data-ui-surface="focus"] .mascot-coach-close,
 html[data-ui-surface="focus"] .mascot-coach-hide { color: var(--muted); }
 

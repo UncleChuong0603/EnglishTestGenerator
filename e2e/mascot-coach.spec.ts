@@ -52,6 +52,27 @@ test("Milo proactively suggests, snoozes, hides, and checks back in", async ({ p
   await expect(bubble).toContainText("Milo · ghé lại nè");
 });
 
+test("Milo is not mounted on admin routes at supported widths or locales", async ({ page }) => {
+  test.setTimeout(90_000);
+  for (const locale of ["vi", "en"] as const) {
+    await page.context().addCookies([{
+      name: "toeic_interface_language",
+      value: locale,
+      domain: "127.0.0.1",
+      path: "/",
+    }]);
+    for (const width of [375, 768, 1024, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      await resetMilo(page, true);
+      await expect(page.locator(".mascot-coach")).toBeVisible();
+
+      await page.evaluate(() => window.history.pushState({}, "", "/admin/content"));
+
+      await expect(page.locator(".mascot-coach")).toHaveCount(0);
+    }
+  }
+});
+
 for (const locale of ["vi", "en"] as const) {
   for (const width of [375, 768, 1024, 1440]) {
     test(`Milo stays operable at ${width}px in ${locale}`, async ({ page }) => {

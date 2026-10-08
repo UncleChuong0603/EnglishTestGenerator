@@ -118,6 +118,27 @@ describe("editorial TOEIC library", () => {
     expect(emailTemplates).toHaveLength(5);
   });
 
+  it("builds a listening-led pronunciation cluster instead of a static rule dump", () => {
+    const pronunciationSlugs = [
+      "am-cuoi-tieng-anh-cach-phat-am-khong-them-am",
+      "cach-phat-am-s-es-tieng-anh",
+      "cach-phat-am-ed-tieng-anh",
+      "trong-am-tu-tieng-anh-quy-tac-cach-tra",
+    ];
+    for (const slug of pronunciationSlugs) {
+      const post = getEditorialPost(slug);
+      expect(post, slug).toBeDefined();
+      expect(post?.content.trim().split(/\s+/).length, slug).toBeGreaterThan(800);
+      expect(post?.content.match(/^## /gm)?.length ?? 0, slug).toBeGreaterThanOrEqual(7);
+      expect(post?.content.match(/\]\(\//g)?.length ?? 0, slug).toBeGreaterThanOrEqual(5);
+      expect(post?.content).toMatch(/(?:Quy trình|Checklist|Bài luyện|Lộ trình)/i);
+      expect(practiceForSlug(slug), slug).toHaveLength(4);
+      expect(post!.updatedAt.getTime(), slug).toBeGreaterThanOrEqual(post!.publishedAt.getTime());
+      const publicationInput = { ...post!, coverMediaId: undefined, tags: post!.tags.map(tag => tag.name) };
+      expect(checkPublication(publicationInput, EDITORIAL_POSTS.filter(peer => peer.slug !== slug)).errors, slug).toEqual([]);
+    }
+  });
+
   it("resolves bundled articles by slug", () => {
     const first = EDITORIAL_POSTS[0];
     expect(getEditorialPost(first.slug)?.id).toBe(first.id);
