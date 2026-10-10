@@ -35,6 +35,7 @@ import { getWeeklyReview } from "@/lib/weekly-review/service";
 import { WeeklyReviewCard } from "@/components/weekly-plan/weekly-review";
 import { getTrialEligibility } from "@/lib/premium/trial";
 import { TrialCta } from "@/components/premium/trial-cta";
+import styles from "./dashboard.module.css";
 
 function ProgressCard({
   area,
@@ -776,7 +777,7 @@ export default async function DashboardPage() {
               </Link>
             </div>
             <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-50 to-white p-4">
+              <div className={`${styles.snapshotMetricAccent} rounded-2xl border p-4`}>
                 <p className="text-sm text-slate-500">
                   {locale === "vi" ? "Độ chính xác gần đây" : "Recent accuracy"}
                 </p>
@@ -789,7 +790,7 @@ export default async function DashboardPage() {
                     : `${recentCorrect}/${recentAnswered} correct`}
                 </p>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+              <div className={`${styles.snapshotMetricNeutral} rounded-2xl border p-4`}>
                 <p className="text-sm text-slate-500">
                   {locale === "vi" ? "Câu trong 7 ngày" : "7-day answers"}
                 </p>
@@ -798,7 +799,7 @@ export default async function DashboardPage() {
                   {locale === "vi" ? "Tổng lượt trả lời" : "Total responses"}
                 </p>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+              <div className={`${styles.snapshotMetricNeutral} rounded-2xl border p-4`}>
                 <p className="text-sm text-slate-500">
                   {locale === "vi" ? "Ngày có học" : "Learning days"}
                 </p>
@@ -809,7 +810,7 @@ export default async function DashboardPage() {
                     : "Within the last 7 days"}
                 </p>
               </div>
-              <div className="rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50 to-white p-4">
+              <div className={`${styles.snapshotMetricWarning} rounded-2xl border p-4`}>
                 <p className="text-sm text-slate-500">
                   {locale === "vi" ? "Lỗi chưa xử lý" : "Unresolved mistakes"}
                 </p>
@@ -822,7 +823,7 @@ export default async function DashboardPage() {
               </div>
             </div>
             {trend ? (
-              <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50/50 p-4 sm:p-5">
+              <div className={`${styles.snapshotChart} mt-6 rounded-2xl border p-4 sm:p-5`}>
                 <div className="mb-5">
                   <h3 className="font-black">
                     {locale === "vi"

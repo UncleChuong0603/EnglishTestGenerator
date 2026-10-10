@@ -1,0 +1,22 @@
+.snapshotMetricAccent,
+.snapshotMetricNeutral,
+.snapshotMetricWarning,
+.snapshotChart {
+  color: var(--ink);
+}
+
+.snapshotMetricAccent {
+  border-color: #315c4d;
+  background: var(--surface-tinted);
+}
+
+.snapshotMetricNeutral,
+.snapshotChart {
+  border-color: var(--line);
+  background: var(--surface-subtle);
+}
+
+.snapshotMetricWarning {
+  border-color: #775d38;
+  background: #342719;
+}
