@@ -101,13 +101,14 @@ export default async function SettingsPage({
     plan: vi ? "Xem trạng thái Premium và lịch sử thanh toán." : "Review Premium status and payment history.",
   };
   const name = profile?.fullName?.trim() || user.email.split("@")[0];
+  const rankingVisibility = profile?.visibility ?? "PUBLIC";
   const summary: Record<Section, string> = {
     profile: `${name} · ${user.email}`,
     goal: goal?.targetScore ? `${vi ? "TOEIC mục tiêu" : "TOEIC target"} ${goal.targetScore}` : vi ? "Chưa thiết lập" : "Not set",
     language: `${preferences.interfaceLanguage === "vi" ? "Tiếng Việt" : "English"} · ${preferences.explanationLanguage === "both" ? "EN + VI" : preferences.explanationLanguage.toUpperCase()}`,
     email: profile?.learningEmailEnabled ? (vi ? "Đang bật" : "On") : (vi ? "Đang tắt" : "Off"),
     security: methods.google && methods.password ? (vi ? "Google và mật khẩu" : "Google and password") : methods.google ? "Google" : vi ? "Mật khẩu" : "Password",
-    privacy: profile?.visibility === "PUBLIC" ? (vi ? "Công khai" : "Public") : profile?.visibility === "HIDDEN" ? (vi ? "Không tham gia" : "Hidden") : (vi ? "Ẩn danh" : "Anonymous"),
+    privacy: rankingVisibility === "PUBLIC" ? (vi ? "Công khai" : "Public") : rankingVisibility === "HIDDEN" ? (vi ? "Không tham gia" : "Hidden") : (vi ? "Ẩn danh" : "Anonymous"),
     data: vi ? "Xuất hoặc xóa dữ liệu" : "Export or delete data",
     plan: account.isTrial ? (vi ? "Premium dùng thử" : "Premium trial") : account.isPremium ? "Premium" : "Free",
   };
@@ -261,7 +262,7 @@ export default async function SettingsPage({
                             ["HIDDEN", vi ? "Không tham gia" : "Hidden", vi ? "Không xuất hiện trên bảng xếp hạng công khai." : "Do not appear on public rankings."],
                           ] as const).map(([value, label, help]) => (
                             <label className="group flex min-h-16 cursor-pointer items-start gap-3 rounded-xl border border-[#cbd7cb] p-4 transition-colors hover:bg-[#f7faf6] focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[#245a43] has-checked:border-[#245a43] has-checked:bg-[#edf5ef]" key={value}>
-                              <input className="mt-0.5 size-5 shrink-0 accent-[#245a43]" defaultChecked={(profile?.visibility ?? "ANONYMOUS") === value} name="visibility" type="radio" value={value} />
+                              <input className="mt-0.5 size-5 shrink-0 accent-[#245a43]" defaultChecked={rankingVisibility === value} name="visibility" type="radio" value={value} />
                               <span><span className="block font-semibold">{label}</span><span className="mt-1 block text-sm leading-5 text-[#52645a]">{help}</span></span>
                             </label>
                           ))}

@@ -227,6 +227,82 @@ describe("editorial TOEIC library", () => {
     expect(getEditorialPost(logisticsSlugs[2])!.content).toContain(`/blog/${logisticsSlugs[0]}`);
   });
 
+  it("turns advanced Listening search intents into original evidence-led practice", () => {
+    const listeningSlugs = [
+      "toeic-part-2-cau-tra-loi-gian-tiep",
+      "toeic-part-3-hoi-thoai-ba-nguoi",
+      "toeic-part-4-cau-hoi-bang-bieu",
+      "toeic-part-3-4-cau-hoi-ham-y-ngu-y",
+    ];
+    for (const slug of listeningSlugs) {
+      const post = getEditorialPost(slug);
+      expect(post, slug).toBeDefined();
+      expect(post?.content.trim().split(/\s+/).length, slug).toBeGreaterThan(900);
+      expect(post?.content.match(/^## /gm)?.length ?? 0, slug).toBeGreaterThanOrEqual(9);
+      expect(post?.content.match(/\]\(\//g)?.length ?? 0, slug).toBeGreaterThanOrEqual(5);
+      expect(post?.content).toMatch(/tự biên soạn/i);
+      expect(post?.content).toContain("https://www.ets.org/");
+      expect(practiceForSlug(slug), slug).toHaveLength(4);
+      const publicationInput = { ...post!, coverMediaId: undefined, tags: post!.tags.map(tag => tag.name) };
+      expect(checkPublication(publicationInput, EDITORIAL_POSTS.filter(peer => peer.slug !== slug)).errors, slug).toEqual([]);
+    }
+
+    expect(getEditorialPost(listeningSlugs[0])!.content).toContain(`/blog/${listeningSlugs[1]}`);
+    expect(getEditorialPost(listeningSlugs[1])!.content).toContain(`/blog/${listeningSlugs[2]}`);
+    expect(getEditorialPost(listeningSlugs[2])!.content).toContain(`/blog/${listeningSlugs[1]}`);
+    expect(getEditorialPost(listeningSlugs[3])!.content).toContain(`/blog/${listeningSlugs[0]}`);
+  });
+
+  it("upgrades the existing Part 1 guide instead of publishing a competing thin page", () => {
+    const slug = "meo-lam-toeic-part-1-mo-ta-tranh";
+    const post = getEditorialPost(slug)!;
+    expect(post.content.trim().split(/\s+/).length).toBeGreaterThan(1_300);
+    expect(post.content.match(/^## /gm)?.length ?? 0).toBeGreaterThanOrEqual(10);
+    expect(post.content.match(/\]\(\//g)?.length ?? 0).toBeGreaterThanOrEqual(7);
+    expect(post.content).toMatch(/Tranh có người/i);
+    expect(post.content).toMatch(/Tranh không có người/i);
+    expect(post.content).toMatch(/are being arranged/i);
+    expect(post.content.match(/Ví dụ .*tự biên soạn/g)?.length ?? 0).toBeGreaterThanOrEqual(2);
+    expect(practiceForSlug(slug)).toHaveLength(4);
+    expect(post.updatedAt.toISOString()).toBe("2026-10-10T10:00:00.000Z");
+    const publicationInput = { ...post, coverMediaId: undefined, tags: post.tags.map(tag => tag.name) };
+    expect(checkPublication(publicationInput, EDITORIAL_POSTS.filter(peer => peer.slug !== slug)).errors).toEqual([]);
+    expect(EDITORIAL_POSTS.filter(candidate => candidate.targetTopic === post.targetTopic)).toHaveLength(1);
+  });
+
+  it("turns the existing Part 6 and Part 7 URLs into evidence-led Reading pillars", () => {
+    const readingPillars = [
+      {
+        slug: "meo-lam-toeic-part-6-dien-doan-van",
+        minWords: 1_300,
+        patterns: [/Bản đồ bốn nhóm/i, /phép kiểm tra hai phía/i, /Đoạn mẫu bốn chỗ trống/i],
+      },
+      {
+        slug: "meo-lam-toeic-part-7-doc-hieu-nhieu-van-ban",
+        minWords: 1_500,
+        patterns: [/Bản đồ sáu dạng/i, /kết luận tối thiểu/i, /Bài đôi và ba văn bản/i],
+      },
+    ];
+
+    for (const { slug, minWords, patterns } of readingPillars) {
+      const post = getEditorialPost(slug)!;
+      expect(post.content.trim().split(/\s+/).length, slug).toBeGreaterThan(minWords);
+      expect(post.content.match(/^## /gm)?.length ?? 0, slug).toBeGreaterThanOrEqual(11);
+      expect(post.content.match(/\]\(\//g)?.length ?? 0, slug).toBeGreaterThanOrEqual(7);
+      expect(post.content).toMatch(/tự biên soạn/i);
+      expect(post.content).toContain("https://www.ets.org/");
+      for (const pattern of patterns) expect(post.content, slug).toMatch(pattern);
+      expect(practiceForSlug(slug), slug).toHaveLength(4);
+      expect(post.updatedAt.toISOString(), slug).toBe("2026-10-10T14:00:00.000Z");
+      const publicationInput = { ...post, coverMediaId: undefined, tags: post.tags.map(tag => tag.name) };
+      expect(checkPublication(publicationInput, EDITORIAL_POSTS.filter(peer => peer.slug !== slug)).errors, slug).toEqual([]);
+      expect(EDITORIAL_POSTS.filter(candidate => candidate.targetTopic === post.targetTopic), slug).toHaveLength(1);
+    }
+
+    expect(getEditorialPost(readingPillars[0].slug)!.content).toContain(`/blog/${readingPillars[1].slug}`);
+    expect(getEditorialPost(readingPillars[1].slug)!.content).toContain(`/blog/${readingPillars[0].slug}`);
+  });
+
   it("resolves bundled articles by slug", () => {
     const first = EDITORIAL_POSTS[0];
     expect(getEditorialPost(first.slug)?.id).toBe(first.id);

@@ -185,7 +185,7 @@ export const profiles = pgTable("profiles", {
   avatarUrl: text("avatar_url"),
   interfaceLanguage: text("interface_language").notNull().default("vi"),
   explanationLanguage: text("explanation_language").notNull().default("both"),
-  rankingVisibility: text("ranking_visibility").notNull().default("ANONYMOUS"),
+  rankingVisibility: text("ranking_visibility").notNull().default("PUBLIC"),
   learningEmailEnabled: boolean("learning_email_enabled").notNull().default(false),
   publicProfileId: uuid("public_profile_id").notNull().defaultRandom(),
   ...timestamps,
