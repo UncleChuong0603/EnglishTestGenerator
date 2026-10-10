@@ -8,3 +8,17 @@ export function getWeeklyRankingWindow(now = new Date()) {
   return { startDate, endDate, start: new Date(`${startDate}T00:00:00+07:00`), end: new Date(`${endDate}T00:00:00+07:00`) };
 }
 export function previousWeeklyRankingWindow(now = new Date()) { const current = getWeeklyRankingWindow(now); return getWeeklyRankingWindow(new Date(current.start.getTime() - 1)); }
+
+export function getMonthlyRankingWindow(now = new Date()) {
+  const localDate = getVietnamLocalDate(now);
+  const [year, month] = localDate.split("-").map(Number);
+  const startDate = `${year}-${String(month).padStart(2, "0")}-01`;
+  const nextMonth = new Date(Date.UTC(year, month, 1));
+  const endDate = nextMonth.toISOString().slice(0, 10);
+  return {
+    startDate,
+    endDate,
+    start: new Date(`${startDate}T00:00:00+07:00`),
+    end: new Date(`${endDate}T00:00:00+07:00`),
+  };
+}

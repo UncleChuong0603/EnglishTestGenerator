@@ -6,10 +6,12 @@ const dates = {
   updatedAt: new Date("2026-10-07T03:00:00.000Z"),
 };
 
-function decisionPost(input: Omit<EditorialPost, "status" | "coverMediaId" | "noindex" | "createdBy" | "updatedBy" | "contentOrigin" | "publishedAt" | "createdAt" | "updatedAt">): EditorialPost {
+function decisionPost(input: Omit<EditorialPost, "status" | "coverMediaId" | "noindex" | "createdBy" | "updatedBy" | "contentOrigin" | "publishedAt" | "createdAt" | "updatedAt"> & { revisedAt?: Date }): EditorialPost {
+  const { revisedAt, ...content } = input;
   return {
-    ...input,
+    ...content,
     ...dates,
+    updatedAt: revisedAt ?? dates.updatedAt,
     status: "PUBLISHED",
     coverMediaId: null,
     noindex: false,
@@ -59,6 +61,8 @@ Người học thường gọi chung mọi giấy tờ là “bằng TOEIC”, n
 
 Đừng chỉ hỏi “TOEIC còn hạn không”. Hãy gửi tên bài thi, ngày thi, từng điểm thành phần và ảnh yêu cầu đầu ra cho bộ phận tiếp nhận xác nhận. Nếu trường yêu cầu bốn kỹ năng, một phiếu Listening & Reading còn hạn vẫn chưa chắc đủ. Xem [TOEIC 2 kỹ năng và 4 kỹ năng khác nhau thế nào](/blog/toeic-2-ky-nang-va-4-ky-nang) trước khi đăng ký.
 
+Khi chọn ngày thi, tính cả [thời gian trả kết quả và chuyển phát](/blog/thi-toeic-bao-lau-co-ket-qua), không chỉ thời hạn hai năm. Nếu chưa chốt ca, dùng [hướng dẫn tra lịch và tính ngược từ deadline](/blog/lich-thi-toeic-cach-tra-cuu-chon-ngay).
+
 ## Cách tự tính hạn mà không nhầm
 
 1. Tìm đúng **test date** trên phiếu điểm hoặc tài khoản đăng ký.
@@ -98,6 +102,7 @@ Kết luận an toàn là: **điểm TOEIC có giá trị hai năm từ ngày th
   decisionPost({
     id: "editorial-toeic-two-four-skills",
     slug: "toeic-2-ky-nang-va-4-ky-nang",
+    revisedAt: new Date("2026-10-08T10:00:00.000Z"),
     title: "TOEIC 2 kỹ năng và 4 kỹ năng khác nhau thế nào? Chọn đúng bài thi",
     excerpt: "So sánh Listening & Reading với Speaking & Writing theo nhiệm vụ, thang điểm và yêu cầu đầu ra để tránh ôn hoặc đăng ký nhầm bài thi.",
     category: "TOEIC_STRATEGY",
@@ -157,6 +162,8 @@ Tương tự, không có công thức đơn giản để đổi một tổng L&R
 Giữ nền từ vựng và ngữ pháp dùng chung, nhưng thêm đầu ra mỗi ngày. Với Speaking, thu âm câu trả lời, kiểm tra phát âm, độ đầy đủ và việc có trả lời đúng yêu cầu hay không. Với Writing, bắt đầu từ câu đúng rồi chuyển sang email rõ mục đích và đoạn văn có luận điểm–lý do–ví dụ.
 
 Luyện bằng giới hạn thời gian của từng dạng, không chỉ chuẩn bị một bài nói thuộc lòng. Nhiệm vụ thay đổi nên kỹ năng hữu ích là tổ chức ý nhanh, dùng ngôn ngữ đủ chính xác và hoàn thành đúng yêu cầu.
+
+Bắt đầu bằng [cấu trúc TOEIC Speaking 11 câu](/blog/toeic-speaking-la-gi-cau-truc-11-cau), rồi luyện riêng [task mô tả tranh 30 giây](/blog/toeic-speaking-mo-ta-tranh-khung-tra-loi). Với Writing, đi từ [email câu 6–7](/blog/toeic-writing-email-cach-viet-bai-mau) sang [opinion essay câu 8](/blog/toeic-writing-opinion-essay-cach-viet) để tăng độ dài và độ phức tạp có kiểm soát.
 
 ## Kết luận chọn bài thi
 

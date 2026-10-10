@@ -663,7 +663,7 @@ export const fullMockRuns = pgTable("full_mock_runs", {
   check("full_mock_runs_mode_check", sql`${table.mode} in ('LISTENING','READING','FULL')`),
   check("full_mock_runs_mode_sections_check", sql`(${table.mode}='LISTENING' and ${table.listeningStartedAt} is not null and ${table.listeningDeadline} is not null and ${table.readingStartedAt} is null and ${table.readingDeadline} is null) or (${table.mode}='READING' and ${table.listeningStartedAt} is null and ${table.listeningDeadline} is null and ${table.readingStartedAt} is not null and ${table.readingDeadline} is not null) or (${table.mode}='FULL' and ${table.listeningStartedAt} is not null and ${table.listeningDeadline} is not null)`),
   check("full_mock_runs_status_check", sql`${table.status} in ('LISTENING','READING','COMPLETED','EXPIRED')`),
-  check("full_mock_runs_form_number_check", sql`${table.formNumber} is null or (${table.mode}='FULL' and ${table.formNumber} between 1 and 25)`),
+  check("full_mock_runs_form_number_check", sql`${table.formNumber} is null or ${table.formNumber} between 1 and 25`),
 ]);
 
 export const fullMockFormQuestions = pgTable("full_mock_form_questions", {

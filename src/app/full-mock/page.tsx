@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/auth/session";
 import {
   getActiveMock,
   getFullMockHistory,
+  getMockFormCatalog,
   getMockHubReadiness,
 } from "@/lib/full-mock/service";
 import {
@@ -13,8 +14,6 @@ import {
   type MockMode,
 } from "@/lib/full-mock/blueprint";
 import { getCookieLanguage, getPreferences } from "@/lib/i18n/get-translations";
-import { startMock } from "./actions";
-import { getActiveDemoTest } from "@/lib/demo-test/queries";
 import { getEffectiveCapabilities } from "@/lib/entitlements/service";
 import {
   PremiumPreviewCard,
@@ -26,7 +25,7 @@ import {
   getShortMockReadiness,
 } from "@/lib/short-mock/service";
 import { ShortMockPicker } from "./short-mock-picker";
-import { MockStartButton } from "./mock-start-button";
+import { MockFormPicker } from "./mock-form-picker";
 import styles from "./full-mock.module.css";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -50,23 +49,7 @@ const copy = {
     fullEyebrow: "Thi như ngày thi thật",
     fullTitle: "Kho đề thi đầy đủ",
     fullIntro:
-      "25 bộ đề riêng biệt được luân phiên tự động, đúng cấu trúc 200 câu và đủ 7 Part.",
-    fullCardTitle: "Full Mock · Listening & Reading",
-    fullCardBody:
-      "Làm trọn bài trong 120 phút. Đồng hồ chạy liên tục, đáp án được giữ kín đến khi bạn hoàn thành.",
-    fullSequence: "Lộ trình 25 đề",
-    fullSequenceHint: "Mỗi lần bắt đầu, hệ thống chuyển sang đề kế tiếp.",
-    currentForm: "Đề đang làm",
-    ready: "Sẵn sàng",
-    active: "Đang làm",
-    soon: "Đang bổ sung",
-    unavailable:
-      "Chế độ này cần thêm nội dung đã được kiểm tra trước khi có thể bắt đầu.",
-    startFull: "Bắt đầu Full Mock",
-    resumeFull: "Tiếp tục Full Mock",
-    building: "Đang tạo đề…",
-    sectionModes: "Chưa có 120 phút?",
-    sectionModesIntro: "Thi riêng một kỹ năng, vẫn giữ đúng số câu và thời gian chuẩn.",
+      "Tự chọn một trong 25 bộ đề cho Full Mock, Listening Mock hoặc Reading Mock. Mỗi bộ đều có nhãn độ khó tương đối để bạn chọn đúng sức.",
     partEyebrow: "7 Part · 7 trọng tâm",
     partTitle: "Luyện riêng phần bạn muốn cải thiện",
     partIntro:
@@ -102,23 +85,7 @@ const copy = {
     fullEyebrow: "Test-day conditions",
     fullTitle: "Complete mock test bank",
     fullIntro:
-      "25 distinct forms rotate automatically, each following the full 200-question, seven-Part structure.",
-    fullCardTitle: "Full Mock · Listening & Reading",
-    fullCardBody:
-      "Complete the entire test in 120 minutes. The timer runs continuously and answers stay hidden until you finish.",
-    fullSequence: "25-test sequence",
-    fullSequenceHint: "Each new attempt advances to the next form.",
-    currentForm: "Active test",
-    ready: "Ready",
-    active: "In progress",
-    soon: "More content coming",
-    unavailable:
-      "This mode needs more reviewed content before it can be started.",
-    startFull: "Start Full Mock",
-    resumeFull: "Continue Full Mock",
-    building: "Building test…",
-    sectionModes: "Short on 120 minutes?",
-    sectionModesIntro: "Test one skill with the standard question count and time limit.",
+      "Choose any of 25 forms for a Full, Listening, or Reading Mock. Relative difficulty labels help you find the right challenge.",
     partEyebrow: "7 Parts · 7 focus areas",
     partTitle: "Practice the section you want to improve",
     partIntro:
@@ -185,24 +152,6 @@ function signInFor(path: string) {
   return `/sign-in?next=${encodeURIComponent(path)}`;
 }
 
-function SignInToStart({
-  featured = false,
-  locale,
-}: {
-  featured?: boolean;
-  locale: "vi" | "en";
-}) {
-  return (
-    <Link
-      className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-teal-700 px-6 py-3 font-black text-white hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 ${featured ? "w-full focus-visible:outline-white sm:w-auto" : "w-full focus-visible:outline-teal-700"}`}
-      href={signInFor("/full-mock")}
-    >
-      {locale === "vi" ? "Đăng nhập để bắt đầu" : "Sign in to start"}
-      <ArrowIcon />
-    </Link>
-  );
-}
-
 type Props = {
   searchParams: Promise<{
     shortError?: string;
@@ -218,11 +167,11 @@ export default async function FullMockPage({ searchParams }: Props) {
     actives,
     history,
     preferences,
-    activeDemo,
     capabilities,
     preview,
     shortReadiness,
     activeShortMock,
+    formCatalog,
     query,
   ] = await Promise.all([
     getMockHubReadiness(),
@@ -235,11 +184,11 @@ export default async function FullMockPage({ searchParams }: Props) {
       : Promise.resolve([null, null, null] as const),
     user ? getFullMockHistory(user.id, 3) : Promise.resolve([]),
     getPreferences(user?.id),
-    user ? getActiveDemoTest(user.id) : Promise.resolve(null),
     user ? getEffectiveCapabilities(user.id) : Promise.resolve(null),
     user ? getPremiumPreview() : Promise.resolve(null),
     getShortMockReadiness(),
     user ? getActiveShortMock(user.id) : Promise.resolve(null),
+    getMockFormCatalog(),
     searchParams,
   ]);
   const locale = preferences.interfaceLanguage === "en" ? "en" : "vi";
@@ -257,25 +206,6 @@ export default async function FullMockPage({ searchParams }: Props) {
     FULL_MOCK_BANK_QUESTIONS.toLocaleString(locale === "vi" ? "vi-VN" : "en-US"),
     "7",
   ];
-  const sectionModes = [
-    {
-      mode: "LISTENING" as const,
-      title: "Listening Mock",
-      meta: locale === "vi" ? "100 câu · 45 phút · Part 1–4" : "100 questions · 45 minutes · Parts 1–4",
-      body: locale === "vi" ? "Rèn nhịp nghe liên tục với đủ bốn dạng bài." : "Build sustained listening pace across all four formats.",
-      active: actives[0],
-      readiness: ready.listening,
-    },
-    {
-      mode: "READING" as const,
-      title: "Reading Mock",
-      meta: locale === "vi" ? "100 câu · 75 phút · Part 5–7" : "100 questions · 75 minutes · Parts 5–7",
-      body: locale === "vi" ? "Kiểm tra tốc độ xử lý ngữ pháp và đọc hiểu." : "Test your pace across grammar and reading comprehension.",
-      active: actives[1],
-      readiness: ready.reading,
-    },
-  ];
-
   return (
     <main className={`${styles.page} min-h-screen overflow-x-hidden bg-slate-50 px-4 py-5 text-slate-900 sm:px-6 sm:py-7`}>
       <div className="mx-auto max-w-7xl">
@@ -369,94 +299,13 @@ export default async function FullMockPage({ searchParams }: Props) {
             <p className="mt-3 text-base leading-7 text-slate-600">{t.fullIntro}</p>
           </div>
 
-          <div className="mt-7 grid gap-5 lg:grid-cols-[minmax(0,1.45fr)_minmax(20rem,.55fr)]">
-            <article className="flex min-w-0 flex-col rounded-3xl border border-slate-900 bg-slate-900 p-5 text-white sm:p-8">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <span className="rounded-full border border-emerald-300/30 bg-emerald-300/10 px-3 py-1.5 text-xs font-black uppercase tracking-[0.14em] text-emerald-200">
-                  {fullActive ? t.active : ready.full.ready ? t.ready : t.soon}
-                </span>
-                <span className="text-sm font-bold text-slate-300">200 {locale === "vi" ? "câu" : "questions"} · 120 {locale === "vi" ? "phút" : "minutes"}</span>
-              </div>
-              <h3 className="mt-6 text-2xl font-black text-white sm:text-3xl">{t.fullCardTitle}</h3>
-              <p className="mt-3 max-w-2xl leading-7 text-slate-300">{t.fullCardBody}</p>
-
-              <div className="mt-7 border-t border-slate-700 pt-6">
-                <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between sm:gap-5">
-                  <p className="font-black text-white">{t.fullSequence}</p>
-                  <p className="text-sm text-slate-400">{t.fullSequenceHint}</p>
-                </div>
-                <ol className="mt-4 grid grid-cols-5 gap-2 sm:grid-cols-10 lg:grid-cols-5 xl:grid-cols-10">
-                  {Array.from({ length: FULL_MOCK_BANK_FORMS }, (_, index) => index + 1).map((formNumber) => {
-                    const isActive = fullActive?.formNumber === formNumber;
-                    return (
-                      <li
-                        aria-label={isActive ? `${t.currentForm}: ${formNumber}` : `${locale === "vi" ? "Đề" : "Test"} ${formNumber}`}
-                        className={isActive ? "grid min-h-10 place-items-center rounded-lg border border-emerald-300 bg-emerald-300 font-black text-slate-950" : "grid min-h-10 place-items-center rounded-lg border border-slate-700 bg-slate-800 text-sm font-bold tabular-nums text-slate-300"}
-                        key={formNumber}
-                      >
-                        {String(formNumber).padStart(2, "0")}
-                      </li>
-                    );
-                  })}
-                </ol>
-              </div>
-
-              <div className="mt-auto pt-7">
-                {fullActive ? (
-                  <Link className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-teal-700 px-6 py-3 font-black text-white hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto" href={`/full-mock/${fullActive.id}`}>
-                    {t.resumeFull}<ArrowIcon />
-                  </Link>
-                ) : ready.full.ready && user ? (
-                  <form action={startMock.bind(null, "FULL")}>
-                    <MockStartButton featured label={t.startFull} pendingLabel={t.building} />
-                  </form>
-                ) : ready.full.ready ? (
-                  <SignInToStart featured locale={locale} />
-                ) : (
-                  <div className="rounded-xl border border-amber-300/25 bg-amber-200/10 p-4 text-sm leading-6 text-amber-100">
-                    <strong className="block">{t.soon}</strong>
-                    {t.unavailable}
-                  </div>
-                )}
-              </div>
-            </article>
-
-            <div className="grid gap-4">
-              <div className="px-1">
-                <h3 className="text-xl font-black">{t.sectionModes}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-600">{t.sectionModesIntro}</p>
-              </div>
-              {sectionModes.map((card) => (
-                <article className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5" key={card.mode}>
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-xs font-black uppercase tracking-[0.16em] text-teal-700">{card.mode}</p>
-                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700">{card.active ? t.active : card.readiness.ready || card.mode === "READING" ? t.ready : t.soon}</span>
-                  </div>
-                  <h3 className="mt-3 text-xl font-black">{card.title}</h3>
-                  <p className="mt-2 text-sm font-bold text-slate-700">{card.meta}</p>
-                  <p className="mt-3 text-sm leading-6 text-slate-600">{card.body}</p>
-                  <div className="mt-auto pt-5">
-                    {card.active ? (
-                      <Link className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-teal-700 px-5 py-3 font-black text-white hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700" href={`/full-mock/${card.active.id}`}>
-                        {t.resume}<ArrowIcon />
-                      </Link>
-                    ) : !user && (card.mode === "READING" || card.readiness.ready) ? (
-                      <SignInToStart locale={locale} />
-                    ) : card.mode === "READING" ? (
-                      <Link className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-teal-700 px-5 py-3 font-black text-white hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700" href={activeDemo ? `/demo-test/${activeDemo.id}` : "/demo-test"}>
-                        {locale === "vi" ? "Bắt đầu Reading Mock" : "Start Reading Mock"}<ArrowIcon />
-                      </Link>
-                    ) : card.readiness.ready ? (
-                      <form action={startMock.bind(null, card.mode)}>
-                        <MockStartButton label={locale === "vi" ? "Bắt đầu Listening Mock" : "Start Listening Mock"} pendingLabel={t.building} />
-                      </form>
-                    ) : (
-                      <p className="rounded-xl bg-amber-50 p-3 text-sm leading-6 text-amber-900">{t.unavailable}</p>
-                    )}
-                  </div>
-                </article>
-              ))}
-            </div>
+          <div className="mt-7 rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 lg:p-8">
+            <MockFormPicker
+              actives={{ FULL: actives[2], LISTENING: actives[0], READING: actives[1] }}
+              catalog={formCatalog}
+              locale={preferences.interfaceLanguage}
+              signedIn={Boolean(user)}
+            />
           </div>
         </section>
 

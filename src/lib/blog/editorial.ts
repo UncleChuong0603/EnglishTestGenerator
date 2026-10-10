@@ -14,6 +14,9 @@ import { EXAM_DECISION_POSTS } from "./exam-decision-editorial";
 import { LISTENING_GROWTH_POSTS } from "./listening-growth-editorial";
 import { VOCABULARY_GROWTH_POSTS } from "./vocabulary-growth-editorial";
 import { PRONUNCIATION_GROWTH_POSTS } from "./pronunciation-growth-editorial";
+import { PRODUCTIVE_SKILLS_POSTS } from "./productive-skills-editorial";
+import { SCORE_BAND_GROWTH_POSTS } from "./score-band-growth-editorial";
+import { EXAM_LOGISTICS_POSTS } from "./exam-logistics-editorial";
 import { MINI_PRACTICE } from "@/lib/seo/mini-practice";
 
 export type EditorialPost = {
@@ -64,6 +67,9 @@ export const EDITORIAL_POSTS: EditorialPost[] = [
   ...LISTENING_GROWTH_POSTS,
   ...VOCABULARY_GROWTH_POSTS,
   ...PRONUNCIATION_GROWTH_POSTS,
+  ...PRODUCTIVE_SKILLS_POSTS,
+  ...SCORE_BAND_GROWTH_POSTS,
+  ...EXAM_LOGISTICS_POSTS,
   post({
     id: "editorial-listening", category: "LISTENING", slug: "cach-luyen-nghe-toeic-part-3-4",
     revisedAt: new Date("2026-10-08T03:00:00.000Z"),
@@ -424,7 +430,7 @@ Khi mất tập trung, dừng vài giây, thở chậm và quay lại từ câu 
 export { grammarImageForSlug };
 
 // Only these materially expanded pages receive a new modification date.
-const currentGrowthSlugs = new Set([...VOCABULARY_GROWTH_POSTS, ...PRONUNCIATION_GROWTH_POSTS].map(article => article.slug));
+const currentGrowthSlugs = new Set([...VOCABULARY_GROWTH_POSTS, ...PRONUNCIATION_GROWTH_POSTS, ...PRODUCTIVE_SKILLS_POSTS, ...SCORE_BAND_GROWTH_POSTS, ...EXAM_LOGISTICS_POSTS].map(article => article.slug));
 for (const article of EDITORIAL_POSTS) {
   if (MINI_PRACTICE[article.slug]) {
     if (!currentGrowthSlugs.has(article.slug)) {

@@ -8,7 +8,7 @@ Mục tiêu của danh sách này là tách phần đang dùng trong cấu trúc
 
 | Hạng mục | Hiện trạng | Xử lý trong batch này | Bước quyết định tiếp theo |
 | --- | --- | --- | --- |
-| Dữ liệu BXH cộng đồng giả | `src/lib/gamification/community-leaderboard.ts` tạo 12 tên và điểm mô phỏng | `getWeeklyLeaderboard` chỉ trả người học và RP thật; trạng thái rỗng của trang được giữ nguyên | Nếu không còn dùng cho story/demo riêng, xóa module và test tương ứng |
+| Dữ liệu BXH cộng đồng giả | `src/lib/gamification/community-leaderboard.ts` tạo 12 tên và điểm mô phỏng | `getLeaderboard` chỉ trả người học và RP thật theo tuần, tháng hoặc tất cả; trạng thái rỗng của trang được giữ nguyên | Nếu không còn dùng cho story/demo riêng, xóa module và test tương ứng |
 | Link nội bộ `/practice/part-5` trong kho đề | URL này chỉ chuyển hướng về `/practice` | Link trong `/full-mock` đã trỏ thẳng tới `/practice` | Giữ redirect cũ cho bookmark trong thời gian theo dõi log |
 
 ## 2. URL có dấu hiệu legacy hoặc thiếu vai trò rõ ràng

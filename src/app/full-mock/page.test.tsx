@@ -15,6 +15,13 @@ vi.mock("@/lib/auth/session", () => ({ getCurrentUser: mocks.getCurrentUser }));
 vi.mock("@/lib/full-mock/service", () => ({
   getActiveMock: mocks.getActiveMock,
   getFullMockHistory: mocks.getFullMockHistory,
+  getMockFormCatalog: vi.fn().mockResolvedValue(
+    Array.from({ length: 25 }, (_, index) => ({
+      formNumber: index + 1,
+      ready: true,
+      difficulty: { FULL: "medium", LISTENING: "medium", READING: "medium" },
+    })),
+  ),
   getMockHubReadiness: vi.fn().mockResolvedValue({
     full: { ready: true },
     listening: { ready: true },
@@ -57,9 +64,6 @@ vi.mock("./short-mock-picker", () => ({
     <div data-signed-in={String(signedIn)}>Short mock picker</div>
   ),
 }));
-vi.mock("./mock-start-button", () => ({
-  MockStartButton: () => <button type="submit">Start</button>,
-}));
 vi.mock("./actions", () => ({ startMock: vi.fn() }));
 
 import FullMockPage from "./page";
@@ -72,7 +76,7 @@ describe("FullMockPage guest preview", () => {
     expect(html).toContain("Learner sidebar");
     expect(html).toContain("Complete mock test bank");
     expect(html).toContain('data-signed-in="false"');
-    expect(html.match(/href="\/sign-in\?next=%2Ffull-mock"/g)?.length).toBeGreaterThanOrEqual(3);
+    expect(html.match(/href="\/sign-in\?next=%2Ffull-mock"/g)?.length).toBeGreaterThanOrEqual(1);
     expect(html).not.toContain('type="submit"');
     expect(mocks.getActiveMock).not.toHaveBeenCalled();
     expect(mocks.getFullMockHistory).not.toHaveBeenCalled();

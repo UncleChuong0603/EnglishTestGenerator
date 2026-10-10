@@ -19,7 +19,7 @@ export function PublicFooter({ locale, tone = "light" }: { locale: InterfaceLang
   ];
   const productLinks = [
     ["/dashboard", vi ? "Workout hôm nay" : "Today’s workout"],
-    ["/ranking", vi ? "Bảng xếp hạng tuần" : "Weekly leaderboard"],
+    ["/ranking", vi ? "Bảng xếp hạng" : "Leaderboard"],
     ["/mistakes", vi ? "Ôn câu sai" : "Mistake review"],
     ["/#features", vi ? "Tất cả tính năng" : "All features"],
     ["/ve-toeic-gym", vi ? "Về TOEIC GYM" : "About TOEIC GYM"],

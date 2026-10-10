@@ -13,6 +13,12 @@ import type { MockHistoryEntry } from "./history";
 import { getEffectiveCapabilities } from "@/lib/entitlements/service";
 
 export type MockReadiness = { ready: boolean; form?: MockForm };
+export type MockDifficulty = "easy" | "medium" | "hard";
+export type MockFormCatalogEntry = {
+  formNumber: number;
+  ready: boolean;
+  difficulty: Record<MockMode, MockDifficulty>;
+};
 export type MockHubReadiness = {
   listening: MockReadiness & { coverage: { p1: number; p2: number; p3Groups: number; p4Groups: number } };
   reading: MockReadiness & { coverage: { p5: number; p6Groups: number; p6Questions: number; p7SingleGroups: number; p7SingleQuestions: number; p7MultipleGroups: number; p7MultipleQuestions: number } };
@@ -39,10 +45,86 @@ async function loadEligibleUnits(pool: QuestionBankPool) {
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
+type PlannedMockRow = {
+  position: number;
+  part: number;
+  questionId: string;
+  questionPart: number;
+  questionStatus: string;
+  difficulty: string;
+  bankPool: string;
+  setId: string | null;
+  setType: string | null;
+  setStatus: string | null;
+};
+
+function plannedFormFromRows(rows: PlannedMockRow[]): MockForm | null {
+  if (rows.length !== 200 || rows.some((row, index) => row.position !== index + 1 || row.part !== row.questionPart || row.questionStatus !== "published" || row.bankPool !== "MOCK" || (row.part !== 5 && row.setStatus !== "published"))) return null;
+  const units = new Map<string, MockUnit>();
+  for (const row of rows) {
+    const id = row.part === 5 ? row.questionId : row.setId;
+    const setType = row.part === 1 ? "photographs" : row.part === 2 ? "question_response" : row.part === 5 ? "standalone" : row.setType;
+    if (!id || !setType || row.part < 1 || row.part > 7) return null;
+    const unit = units.get(id) ?? { id, part: row.part as MockUnit["part"], setType: setType as MockUnit["setType"], questionIds: [] };
+    unit.questionIds.push(row.questionId);
+    units.set(id, unit);
+  }
+  const form = assembleFullMock([...units.values()]);
+  return form?.questionIds.length === 200 ? form : null;
+}
+
+function relativeDifficulties(entries: Array<{ formNumber: number; score: number }>): Map<number, MockDifficulty> {
+  const sorted = [...entries].sort((a, b) => a.score - b.score || a.formNumber - b.formNumber);
+  const result = new Map<number, MockDifficulty>();
+  sorted.forEach((entry, index) => {
+    const percentile = (index + 0.5) / sorted.length;
+    result.set(entry.formNumber, percentile <= 1 / 3 ? "easy" : percentile <= 2 / 3 ? "medium" : "hard");
+  });
+  return result;
+}
+
+/** Returns only validated, published planned forms and labels their difficulty relative to this bank. */
+export async function getMockFormCatalog(): Promise<MockFormCatalogEntry[]> {
+  const rows = await db.select({
+    formNumber: fullMockFormQuestions.formNumber,
+    position: fullMockFormQuestions.position, part: fullMockFormQuestions.part, questionId: fullMockFormQuestions.questionId,
+    questionPart: questions.toeicPart, questionStatus: questions.status, difficulty: questions.difficulty, bankPool: questions.bankPool,
+    setId: questions.passageSetId, setType: passageSets.setType, setStatus: passageSets.status,
+  }).from(fullMockFormQuestions).innerJoin(questions, eq(questions.id, fullMockFormQuestions.questionId))
+    .leftJoin(passageSets, eq(passageSets.id, questions.passageSetId))
+    .orderBy(asc(fullMockFormQuestions.formNumber), asc(fullMockFormQuestions.position));
+  const grouped = new Map<number, PlannedMockRow[]>();
+  for (const row of rows) grouped.set(row.formNumber, [...(grouped.get(row.formNumber) ?? []), row]);
+  const scores = (parts: readonly number[]) => [...grouped].flatMap(([formNumber, formRows]) => {
+    if (!plannedFormFromRows(formRows)) return [];
+    const selected = formRows.filter((row) => parts.includes(row.part));
+    const score = selected.reduce((sum, row) => sum + (row.difficulty === "hard" ? 3 : row.difficulty === "easy" ? 1 : 2), 0) / selected.length;
+    return [{ formNumber, score }];
+  });
+  const byMode = {
+    FULL: relativeDifficulties(scores([1, 2, 3, 4, 5, 6, 7])),
+    LISTENING: relativeDifficulties(scores([1, 2, 3, 4])),
+    READING: relativeDifficulties(scores([5, 6, 7])),
+  } satisfies Record<MockMode, Map<number, MockDifficulty>>;
+  return Array.from({ length: FULL_MOCK_BANK_FORMS }, (_, index) => {
+    const formNumber = index + 1;
+    const ready = byMode.FULL.has(formNumber);
+    return {
+      formNumber,
+      ready,
+      difficulty: {
+        FULL: byMode.FULL.get(formNumber) ?? "medium",
+        LISTENING: byMode.LISTENING.get(formNumber) ?? "medium",
+        READING: byMode.READING.get(formNumber) ?? "medium",
+      },
+    };
+  });
+}
+
 async function loadPlannedFullMock(tx: Tx, formNumber: number): Promise<{ configured: boolean; form: MockForm | null }> {
   const rows = await tx.select({
     position: fullMockFormQuestions.position, part: fullMockFormQuestions.part, questionId: fullMockFormQuestions.questionId,
-    questionPart: questions.toeicPart, questionStatus: questions.status, bankPool: questions.bankPool, setId: questions.passageSetId,
+    questionPart: questions.toeicPart, questionStatus: questions.status, difficulty: questions.difficulty, bankPool: questions.bankPool, setId: questions.passageSetId,
     setType: passageSets.setType, setStatus: passageSets.status,
   }).from(fullMockFormQuestions).innerJoin(questions, eq(questions.id, fullMockFormQuestions.questionId))
     .leftJoin(passageSets, eq(passageSets.id, questions.passageSetId))
@@ -51,18 +133,7 @@ async function loadPlannedFullMock(tx: Tx, formNumber: number): Promise<{ config
     const any = await tx.select({ number: fullMockFormQuestions.formNumber }).from(fullMockFormQuestions).limit(1);
     return { configured: any.length > 0, form: null };
   }
-  if (rows.length !== 200 || rows.some((row, index) => row.position !== index + 1 || row.part !== row.questionPart || row.questionStatus !== "published" || row.bankPool !== "MOCK" || (row.part !== 5 && row.setStatus !== "published"))) return { configured: true, form: null };
-  const units = new Map<string, MockUnit>();
-  for (const row of rows) {
-    const id = row.part === 5 ? row.questionId : row.setId;
-    const setType = row.part === 1 ? "photographs" : row.part === 2 ? "question_response" : row.part === 5 ? "standalone" : row.setType;
-    if (!id || !setType || row.part < 1 || row.part > 7) return { configured: true, form: null };
-    const unit = units.get(id) ?? { id, part: row.part as MockUnit["part"], setType: setType as MockUnit["setType"], questionIds: [] };
-    unit.questionIds.push(row.questionId);
-    units.set(id, unit);
-  }
-  const form = assembleFullMock([...units.values()]);
-  return { configured: true, form: form?.questionIds.length === 200 ? form : null };
+  return { configured: true, form: plannedFormFromRows(rows) };
 }
 
 export async function getMockHubReadiness(): Promise<MockHubReadiness> {
@@ -88,17 +159,26 @@ export async function getActiveMock(userId: string, mode: MockMode) { return (aw
 export const getActiveFullMock = (userId: string) => getActiveMock(userId, "FULL");
 const modeParts = (mode: MockMode) => mode === "LISTENING" ? [1,2,3,4] as const : mode === "READING" ? [5,6,7] as const : [1,2,3,4,5,6,7] as const;
 
-export async function createMockRun(userId: string, mode: MockMode): Promise<{ ok: true; runId: string; resumed: boolean } | { ok: false; reason: "CONTENT_NOT_READY" }> {
+export async function createMockRun(userId: string, mode: MockMode, requestedFormNumber?: number): Promise<{ ok: true; runId: string; resumed: boolean } | { ok: false; reason: "CONTENT_NOT_READY" }> {
   const active = await getActiveMock(userId, mode); if (active) return { ok: true, runId: active.id, resumed: true };
-  const readiness = await getMockHubReadiness(); const selected = mode === "LISTENING" ? readiness.listening : mode === "READING" ? readiness.reading : readiness.full;
-  if (!selected.ready || !selected.form) return { ok: false, reason: "CONTENT_NOT_READY" }; const fallbackForm = selected.form;
+  let fallbackForm: MockForm | null = null;
+  if (requestedFormNumber === undefined) {
+    const readiness = await getMockHubReadiness(); const selected = mode === "LISTENING" ? readiness.listening : mode === "READING" ? readiness.reading : readiness.full;
+    if (!selected.ready || !selected.form) return { ok: false, reason: "CONTENT_NOT_READY" }; fallbackForm = selected.form;
+  }
   const now = new Date(), runId = randomUUID(), section = mode === "READING" ? "READING" : "LISTENING";
   return db.transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${userId}:mock:${mode}`}, 0))`);
     const [old] = await tx.select().from(fullMockRuns).where(and(eq(fullMockRuns.userId, userId), eq(fullMockRuns.mode, mode), inArray(fullMockRuns.status, ["LISTENING", "READING"]))).limit(1); if (old) return { ok: true as const, runId: old.id, resumed: true };
     let form = fallbackForm;
     let formNumber: number | null = null;
-    if (mode === "FULL") {
+    if (requestedFormNumber !== undefined) {
+      if (!Number.isInteger(requestedFormNumber) || requestedFormNumber < 1 || requestedFormNumber > FULL_MOCK_BANK_FORMS) return { ok: false as const, reason: "CONTENT_NOT_READY" as const };
+      const planned = await loadPlannedFullMock(tx, requestedFormNumber);
+      if (!planned.form) return { ok: false as const, reason: "CONTENT_NOT_READY" as const };
+      form = planned.form;
+      formNumber = requestedFormNumber;
+    } else if (mode === "FULL") {
       const [previous] = await tx.select({ formNumber: fullMockRuns.formNumber }).from(fullMockRuns)
         .where(and(eq(fullMockRuns.userId, userId), eq(fullMockRuns.mode, "FULL")))
         .orderBy(desc(fullMockRuns.createdAt)).limit(1);
@@ -107,6 +187,7 @@ export async function createMockRun(userId: string, mode: MockMode): Promise<{ o
       if (planned.configured && !planned.form) return { ok: false as const, reason: "CONTENT_NOT_READY" as const };
       if (planned.form) { form = planned.form; formNumber = next; }
     }
+    if (!form) return { ok: false as const, reason: "CONTENT_NOT_READY" as const };
     await consumeUsage(tx, { userId, entitlement: "FULL_MOCK", sourceType: "FULL_MOCK_RUN", sourceId: runId, now });
     const [run] = await tx.insert(fullMockRuns).values({ id: runId, userId, mode, formNumber, status: section, listeningStartedAt: section === "LISTENING" ? now : null, listeningDeadline: section === "LISTENING" ? deadlineFrom(now, "LISTENING") : null, readingStartedAt: section === "READING" ? now : null, readingDeadline: section === "READING" ? deadlineFrom(now, "READING") : null }).returning({ id: fullMockRuns.id });
     for (const part of modeParts(mode)) { const units = form.byPart[part], questionIds = units.flatMap((u) => u.questionIds); const [session] = await tx.insert(practiceSessions).values({ userId, skillArea: part <= 4 ? "LISTENING" : "READING", practiceType: `full_mock_part_${part}`, part, status: "in_progress", questionCount: questionIds.length, requestedQuestionCount: questionIds.length, source: "full_mock", fullMockRunId: run.id, fullMockOrder: part }).returning({ id: practiceSessions.id }); const setByQuestion = new Map(units.flatMap((u) => u.questionIds.map((id) => [id, part === 5 ? null : u.id] as const))); await tx.insert(practiceSessionQuestions).values(questionIds.map((questionId, i) => ({ sessionId: session.id, questionId, displayOrder: i + 1, passageSetId: setByQuestion.get(questionId) ?? null }))); }

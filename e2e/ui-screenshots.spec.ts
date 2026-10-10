@@ -88,7 +88,7 @@ test("export complete user-facing UI", async ({ browser, page }) => {
   await shot(free.page, "diagnostic", "diagnostic-start-desktop", "/diagnostic", "FREE", false, "Giới thiệu diagnostic");
   await shot(free.page, "mistakes", "mistake-bank-desktop", "/mistakes", "FREE with unresolved/mastered fixtures", false, "Mistake Bank và mastery");
   await shot(free.page, "learner-free", "progress-desktop", "/progress", "FREE with progress", false, "Tiến độ học tập");
-  await shot(free.page, "ranking", "ranking-desktop", "/ranking", "FREE ranked fixture", false, "Bảng xếp hạng tuần");
+  await shot(free.page, "ranking", "ranking-desktop", "/ranking", "FREE ranked fixture", false, "Bảng xếp hạng");
   await shot(free.page, "mobile", "ranking-mobile", "/ranking", "FREE ranked fixture", true, "Ranking mobile");
   await shot(free.page, "ranking", "ranked-challenge-empty-desktop", "/ranking?tab=READING_100", "No active challenge", false, "Trạng thái challenge trống");
   await shot(free.page, "billing", "free-billing-desktop", "/billing", "FREE", false, "Billing FREE");

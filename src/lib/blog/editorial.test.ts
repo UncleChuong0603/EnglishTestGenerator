@@ -139,6 +139,94 @@ describe("editorial TOEIC library", () => {
     }
   });
 
+  it("covers productive TOEIC skills with original prompts and model responses", () => {
+    const productiveSlugs = [
+      "toeic-speaking-la-gi-cau-truc-11-cau",
+      "toeic-speaking-mo-ta-tranh-khung-tra-loi",
+      "toeic-writing-email-cach-viet-bai-mau",
+      "toeic-writing-opinion-essay-cach-viet",
+    ];
+    for (const slug of productiveSlugs) {
+      const post = getEditorialPost(slug);
+      expect(post, slug).toBeDefined();
+      expect(post?.content.trim().split(/\s+/).length, slug).toBeGreaterThan(850);
+      expect(post?.content.match(/^## /gm)?.length ?? 0, slug).toBeGreaterThanOrEqual(7);
+      expect(post?.content.match(/\]\(\//g)?.length ?? 0, slug).toBeGreaterThanOrEqual(4);
+      expect(post?.content).toMatch(/(?:tự biên soạn|Bài mẫu|Prompt)/i);
+      expect(post?.content).toContain("https://www.ets.org/");
+      expect(practiceForSlug(slug), slug).toHaveLength(4);
+      const publicationInput = { ...post!, coverMediaId: undefined, tags: post!.tags.map(tag => tag.name) };
+      expect(checkPublication(publicationInput, EDITORIAL_POSTS.filter(peer => peer.slug !== slug)).errors, slug).toEqual([]);
+    }
+
+    const pictureModels = getEditorialPost(productiveSlugs[1])!.content.match(/^## Bài mẫu \d+:/gm);
+    expect(pictureModels).toHaveLength(3);
+
+    const emailModels = getEditorialPost(productiveSlugs[2])!.content.match(/^## Bài mẫu \d+:/gm);
+    expect(emailModels).toHaveLength(3);
+
+    const essaySection = getEditorialPost(productiveSlugs[3])!.content
+      .split("## Bài mẫu tự biên soạn", 2)[1]
+      .split("## Vì sao bài mẫu", 1)[0];
+    const essayWords = [...essaySection.matchAll(/^\*(.+)\*$/gm)]
+      .map(match => match[1])
+      .join(" ")
+      .split(/\s+/)
+      .filter(Boolean);
+    expect(essayWords.length).toBeGreaterThanOrEqual(300);
+  });
+
+  it("splits score-roadmap intent into evidence-led plans for three learner bands", () => {
+    const scoreBandSlugs = [
+      "lo-trinh-toeic-450-len-550",
+      "lo-trinh-toeic-550-len-650",
+      "lo-trinh-toeic-650-len-800",
+    ];
+    for (const slug of scoreBandSlugs) {
+      const post = getEditorialPost(slug);
+      expect(post, slug).toBeDefined();
+      expect(post?.content.trim().split(/\s+/).length, slug).toBeGreaterThan(950);
+      expect(post?.content.match(/^## /gm)?.length ?? 0, slug).toBeGreaterThanOrEqual(8);
+      expect(post?.content.match(/\]\(\//g)?.length ?? 0, slug).toBeGreaterThanOrEqual(7);
+      expect(post?.content).toMatch(/(?:bằng chứng|dữ liệu|audit|chẩn đoán)/i);
+      expect(post?.content).toMatch(/(?:tuần|chu kỳ)/i);
+      expect(post?.content).toContain("https://www.ets.org/");
+      expect(practiceForSlug(slug), slug).toHaveLength(4);
+      expect(post!.updatedAt.getTime(), slug).toBe(post!.publishedAt.getTime());
+      const publicationInput = { ...post!, coverMediaId: undefined, tags: post!.tags.map(tag => tag.name) };
+      expect(checkPublication(publicationInput, EDITORIAL_POSTS.filter(peer => peer.slug !== slug)).errors, slug).toEqual([]);
+    }
+
+    const pillar = getEditorialPost("chien-luoc-tang-diem-toeic-450-den-700")!;
+    for (const slug of scoreBandSlugs) expect(pillar.content).toContain(`/blog/${slug}`);
+    expect(pillar.updatedAt.toISOString()).toBe("2026-10-08T13:00:00.000Z");
+  });
+
+  it("covers current TOEIC exam logistics without freezing live schedules", () => {
+    const logisticsSlugs = [
+      "thi-toeic-tren-may-tinh-hay-tren-giay",
+      "thi-toeic-bao-lau-co-ket-qua",
+      "lich-thi-toeic-cach-tra-cuu-chon-ngay",
+    ];
+    for (const slug of logisticsSlugs) {
+      const post = getEditorialPost(slug);
+      expect(post, slug).toBeDefined();
+      expect(post?.content.trim().split(/\s+/).length, slug).toBeGreaterThan(900);
+      expect(post?.content.match(/^## /gm)?.length ?? 0, slug).toBeGreaterThanOrEqual(8);
+      expect(post?.content.match(/\]\(\//g)?.length ?? 0, slug).toBeGreaterThanOrEqual(6);
+      expect(post?.content).toContain("10/10/2026");
+      expect(post?.content).toContain("https://");
+      expect(practiceForSlug(slug), slug).toHaveLength(4);
+      expect(post!.updatedAt.getTime(), slug).toBe(post!.publishedAt.getTime());
+      const publicationInput = { ...post!, coverMediaId: undefined, tags: post!.tags.map(tag => tag.name) };
+      expect(checkPublication(publicationInput, EDITORIAL_POSTS.filter(peer => peer.slug !== slug)).errors, slug).toEqual([]);
+    }
+
+    expect(getEditorialPost(logisticsSlugs[0])!.content).toContain(`/blog/${logisticsSlugs[1]}`);
+    expect(getEditorialPost(logisticsSlugs[1])!.content).toContain(`/blog/${logisticsSlugs[2]}`);
+    expect(getEditorialPost(logisticsSlugs[2])!.content).toContain(`/blog/${logisticsSlugs[0]}`);
+  });
+
   it("resolves bundled articles by slug", () => {
     const first = EDITORIAL_POSTS[0];
     expect(getEditorialPost(first.slug)?.id).toBe(first.id);
