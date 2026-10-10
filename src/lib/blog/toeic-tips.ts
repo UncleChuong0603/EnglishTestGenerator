@@ -222,7 +222,9 @@ Với **Where**, đừng chỉ chờ một giới từ địa điểm. “Where 
 
 Với **When**, đáp án có thể là giờ, ngày, một mốc sự kiện hoặc thông tin chưa được xác nhận: “After the inspection,” “By Friday,” “The supplier hasn't decided yet.” Lựa chọn lặp từ trong câu hỏi nhưng mô tả vật thể thường là nhiễu.
 
-Ví dụ tự biên soạn: “When will the replacement parts arrive?” (A) The parts are made of steel (B) By Thursday afternoon (C) I replaced the handle. Chọn **B** vì nó cung cấp mốc thời gian; A và C chỉ bám theo *parts/replaced*.
+Ví dụ tự biên soạn: “When will the replacement parts arrive?” (A) The parts are made of steel (B) By Thursday afternoon (C) I replaced the handle.
+
+Chọn **B** vì nó cung cấp mốc thời gian; A và C chỉ bám theo *parts/replaced*.
 
 ## Dạng 2: What, why và how
 
@@ -375,7 +377,9 @@ Luyện thêm ở [bài Word Form Part 5](/toeic/part-5/word-form) và [hướng
 
 Với câu động từ, kiểm tra lần lượt: **chủ ngữ chính**, **mốc hoặc quan hệ thời gian**, **chủ động hay bị động**.
 
-Ví dụ: “The maintenance team ___ the air filters every month.” (A) inspect (B) inspects (C) is inspected (D) inspecting. Chủ ngữ chính *team* số ít, thực hiện hành động theo lịch *every month*, nên chọn **B. inspects**.
+Ví dụ: “The maintenance team ___ the air filters every month.” (A) inspect (B) inspects (C) is inspected (D) inspecting.
+
+Chủ ngữ chính *team* số ít, thực hiện hành động theo lịch *every month*, nên chọn **B. inspects**.
 
 So sánh: “The air filters ___ every month.” Lúc này filters nhận hành động, cần **are inspected**. Việc thấy V3 chưa đủ; phải có dạng *be* phù hợp với thì và chủ ngữ.
 
@@ -387,7 +391,9 @@ Làm [bài thì và dạng động từ Part 5](/toeic/part-5/thi-dong-tu), rồ
 
 Đừng chọn *because/because of* chỉ theo nghĩa “bởi vì”. **Because + mệnh đề**; **because of + danh từ/cụm danh từ**. Tương tự, **although + mệnh đề** trong khi **despite + danh từ/V-ing**.
 
-Ví dụ tự biên soạn: “The finance team will send the budget ___ the director approves it.” (A) because of (B) once (C) despite (D) during. Sau chỗ trống là mệnh đề đầy đủ *the director approves it* và ý nghĩa là gửi khi phê duyệt xong, nên chọn **B. once**.
+Ví dụ tự biên soạn: “The finance team will send the budget ___ the director approves it.” (A) because of (B) once (C) despite (D) during.
+
+Sau chỗ trống là mệnh đề đầy đủ *the director approves it* và ý nghĩa là gửi khi phê duyệt xong, nên chọn **B. once**.
 
 Với giới từ thời gian, tách rõ *by* và *until*. “Submit the form by Friday” đặt hạn chót không muộn hơn thứ Sáu; “The office is closed until Friday” mô tả trạng thái kéo dài tới thứ Sáu. *During* cần một khoảng hoặc sự kiện, như *during the meeting*.
 
@@ -409,7 +415,9 @@ Một số động từ đi với to-infinitive như *agree to revise, decide to
 
 Đừng thấy *to* rồi luôn chọn nguyên mẫu. Trong *look forward to receiving*, *to* là giới từ nên theo sau bằng V-ing. Ngược lại, *plan to receive* dùng to-infinitive.
 
-Ví dụ: “The manager reminded all visitors ___ their badges.” (A) wear (B) wearing (C) to wear (D) worn. Mẫu **remind + người + to V** cho đáp án **C. to wear**.
+Ví dụ: “The manager reminded all visitors ___ their badges.” (A) wear (B) wearing (C) to wear (D) worn.
+
+Mẫu **remind + người + to V** cho đáp án **C. to wear**.
 
 Hãy lưu cả cụm, một câu mẫu mới và nghĩa giao tiếp. [Bài V-ing và to-infinitive](/blog/ving-va-to-infinitive-toeic) có thêm câu luyện giải thích từng lựa chọn.
 

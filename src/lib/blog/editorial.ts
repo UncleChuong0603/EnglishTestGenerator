@@ -435,6 +435,8 @@ export { grammarImageForSlug };
 const currentGrowthSlugs = new Set([
   ...[...VOCABULARY_GROWTH_POSTS, ...PRONUNCIATION_GROWTH_POSTS, ...PRODUCTIVE_SKILLS_POSTS, ...SCORE_BAND_GROWTH_POSTS, ...EXAM_LOGISTICS_POSTS, ...ADVANCED_LISTENING_POSTS].map(article => article.slug),
   "meo-lam-toeic-part-1-mo-ta-tranh",
+  "meo-lam-toeic-part-2-hoi-dap",
+  "meo-lam-toeic-part-5-trong-thoi-gian-gioi-han",
   "meo-lam-toeic-part-6-dien-doan-van",
   "meo-lam-toeic-part-7-doc-hieu-nhieu-van-ban",
 ]);

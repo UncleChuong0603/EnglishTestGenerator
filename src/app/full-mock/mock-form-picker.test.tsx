@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { MockFormPicker } from "./mock-form-picker";
 
 vi.mock("./actions", () => ({ startMock: vi.fn() }));
+vi.mock("@/app/auth/actions", () => ({ signInAction: vi.fn() }));
 
 const catalog = Array.from({ length: 25 }, (_, index) => ({
   formNumber: index + 1,
@@ -22,13 +23,13 @@ describe("MockFormPicker", () => {
       <MockFormPicker actives={emptyActives} catalog={catalog} locale="vi" signedIn={false} />,
     );
 
-    expect(html).toContain("Full Mock");
-    expect(html).toContain("Bộ đề");
+    expect(html).toContain("Thi thử Full TOEIC");
+    expect(html).toContain("Danh sách đề");
     expect(html).toContain("Dễ");
     expect(html).toContain("Vừa");
     expect(html).toContain("Khó");
-    expect(html).toContain("Đăng nhập để thi thử");
-    expect(html).toContain('href="/sign-in?next=%2Ffull-mock"');
+    expect(html).toContain("Thi thử");
+    expect(html).not.toContain('href="/sign-in?next=%2Ffull-mock"');
     expect(html).not.toContain("<form");
   });
 
@@ -39,7 +40,7 @@ describe("MockFormPicker", () => {
 
     expect(html).toContain("<form");
     expect(html).toContain('name="formNumber"');
-    expect(html).toContain("Start this form");
+    expect(html).toContain("Take test");
     expect(html).not.toContain("Sign in to take a mock");
   });
 

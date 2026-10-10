@@ -1,8 +1,11 @@
 import type { NextConfig } from "next";
 import { getSiteUrl } from "./src/lib/seo/site-url";
 
+const developmentCsp = process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : "";
+const developmentConnectSrc = process.env.NODE_ENV === "development" ? " ws: wss:" : "";
+
 const securityHeaders = [
-  { key: "Content-Security-Policy", value: "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; font-src 'self' data:; media-src 'self' blob:; connect-src 'self' https://accounts.google.com https://oauth2.googleapis.com; upgrade-insecure-requests" },
+  { key: "Content-Security-Policy", value: `default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; script-src 'self' 'unsafe-inline'${developmentCsp}; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; font-src 'self' data:; media-src 'self' blob:; connect-src 'self' https://accounts.google.com https://oauth2.googleapis.com${developmentConnectSrc}; upgrade-insecure-requests` },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },

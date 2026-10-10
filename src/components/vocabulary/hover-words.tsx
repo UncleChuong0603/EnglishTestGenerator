@@ -10,6 +10,29 @@ import { DictionaryAttribution } from "./dictionary-attribution";
 
 const wordPattern = /([A-Za-z]+(?:['’-][A-Za-z]+)*)/g;
 const cardCache = new Map<string, DictionaryCard | null>();
+const popoverGap = 8;
+const popoverMargin = 8;
+const popoverMaxHeight = 400;
+const popoverMinUsefulHeight = 240;
+const popoverWidth = 320;
+
+type PopoverPosition = {
+  x: number;
+  placement: "above" | "below";
+  offset: number;
+  maxHeight: number;
+};
+
+export function positionVocabularyPopover(rect: Pick<DOMRect, "left" | "top" | "bottom">, viewport: { width: number; height: number }): PopoverPosition {
+  const renderedWidth = Math.min(popoverWidth, viewport.width - popoverMargin * 2);
+  const x = Math.max(popoverMargin, Math.min(rect.left, viewport.width - renderedWidth - popoverMargin));
+  const availableBelow = Math.max(0, viewport.height - rect.bottom - popoverGap - popoverMargin);
+  const availableAbove = Math.max(0, rect.top - popoverGap - popoverMargin);
+  const placement = availableBelow >= Math.min(popoverMinUsefulHeight, popoverMaxHeight) || availableBelow >= availableAbove ? "below" : "above";
+  const availableHeight = placement === "below" ? availableBelow : availableAbove;
+  const offset = placement === "below" ? rect.bottom + popoverGap : viewport.height - rect.top + popoverGap;
+  return { x, placement, offset, maxHeight: Math.min(popoverMaxHeight, availableHeight) };
+}
 
 function contextAround(text: string, word: string) {
   const index = text.toLowerCase().indexOf(word.toLowerCase());
@@ -32,7 +55,7 @@ export function HoverWords({ text, locale, part = 5 }: { text: string; locale: I
   const panel = useRef<HTMLElement>(null);
   const trigger = useRef<HTMLElement>(null);
   const currentAudio = useRef<HTMLAudioElement | null>(null);
-  const [active, setActive] = useState<{ word: string; x: number; y: number } | null>(null);
+  const [active, setActive] = useState<({ word: string } & PopoverPosition) | null>(null);
   const [card, setCard] = useState<DictionaryCard | null>(null);
   const [loading, setLoading] = useState(false);
   const [missing, setMissing] = useState(false);
@@ -52,9 +75,8 @@ export function HoverWords({ text, locale, part = 5 }: { text: string; locale: I
     if (word === activeWord) return;
     if (word !== activeWord) { setCard(null); setLoading(true); setMissing(false); }
     const rect = target.getBoundingClientRect();
-    const x = Math.max(8, Math.min(rect.left, window.innerWidth - 336));
-    const y = Math.max(8, Math.min(rect.bottom + 8, window.innerHeight - 410));
-    setActive({ word, x, y });
+    const position = positionVocabularyPopover(rect, { width: window.innerWidth, height: window.innerHeight });
+    setActive({ word, ...position });
     setSaveState("idle");
   }
   useEffect(() => {
@@ -135,8 +157,8 @@ export function HoverWords({ text, locale, part = 5 }: { text: string; locale: I
   const chunks = text.split(wordPattern);
   return <>
     {chunks.map((chunk, index) => index % 2 === 0 || !/^[A-Za-z]+(?:['’-][A-Za-z]+)*$/.test(chunk) ? chunk :
-      <span aria-haspopup="dialog" className="cursor-help rounded-sm decoration-teal-600 decoration-dotted underline-offset-4 hover:bg-teal-50 hover:underline focus-visible:bg-teal-50 focus-visible:underline focus-visible:outline-2 focus-visible:outline-teal-700" key={index} lang="en" onClick={(event) => { event.preventDefault(); event.stopPropagation(); open(chunk, event.currentTarget); }} onFocus={(event) => open(chunk, event.currentTarget)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); open(chunk, event.currentTarget); setTimeout(() => panel.current?.querySelector<HTMLButtonElement>("button")?.focus(), 0); } }} onMouseEnter={(event) => open(chunk, event.currentTarget)} onMouseLeave={closeSoon} role="button" tabIndex={0}>{chunk}</span>)}
-    {active && typeof document !== "undefined" ? createPortal(<aside aria-label={vi ? `Từ vựng ${active.word}` : `Vocabulary ${active.word}`} className="fixed z-[100] w-[min(20rem,calc(100vw-1rem))] max-h-[min(25rem,calc(100vh-1rem))] overflow-y-auto rounded-2xl border border-teal-200 bg-white p-4 text-left text-slate-900 shadow-2xl" onMouseEnter={cancelClose} onMouseLeave={closeSoon} ref={panel} role="dialog" style={{ left: active.x, top: active.y }}>
+      <span aria-haspopup="dialog" className="vocabulary-lookup-trigger cursor-help rounded-sm decoration-dotted underline-offset-4" key={index} lang="en" onClick={(event) => { event.preventDefault(); event.stopPropagation(); open(chunk, event.currentTarget); }} onFocus={(event) => open(chunk, event.currentTarget)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); open(chunk, event.currentTarget); setTimeout(() => panel.current?.querySelector<HTMLButtonElement>("button")?.focus(), 0); } }} onMouseEnter={(event) => open(chunk, event.currentTarget)} onMouseLeave={closeSoon} role="button" tabIndex={0}>{chunk}</span>)}
+    {active && typeof document !== "undefined" ? createPortal(<aside aria-label={vi ? `Từ vựng ${active.word}` : `Vocabulary ${active.word}`} className="fixed z-[100] w-[min(20rem,calc(100vw-1rem))] overflow-y-auto rounded-2xl border border-teal-200 bg-white p-4 text-left text-slate-900 shadow-2xl" data-placement={active.placement} onMouseEnter={cancelClose} onMouseLeave={closeSoon} ref={panel} role="dialog" style={{ left: active.x, maxHeight: active.maxHeight, ...(active.placement === "below" ? { top: active.offset } : { bottom: active.offset }) }}>
       <button aria-label={vi ? "Đóng thẻ" : "Close card"} className="mb-1 ml-auto flex min-h-11 min-w-11 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-teal-700" onClick={() => setActive(null)} type="button"><svg aria-hidden="true" className="size-5" fill="none" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeLinecap="round" strokeWidth="2" /></svg></button>
       {loading ? <p aria-live="polite" className="text-sm text-slate-600">{vi ? "Đang tra từ…" : "Looking up word…"}</p> : missing || !card ? <div><p className="text-sm text-slate-600">{vi ? "Chưa tìm thấy nghĩa phù hợp. Nguồn tra cứu có thể đang bận." : "No suitable meaning was found. The lookup source may be temporarily unavailable."}</p><button className="mt-3 min-h-11 rounded-lg border border-teal-700 px-3 text-sm font-bold text-teal-800 hover:bg-teal-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700" onClick={retryLookup} type="button">{vi ? "Thử lại" : "Try again"}</button></div> : <>
         <div className="flex items-start justify-between gap-2"><div><h3 className="text-xl font-black" lang="en">{card.term}</h3>{card.phonetic ? <p className="text-sm text-slate-600">{card.phonetic}</p> : null}</div><button aria-label={vi ? "Phát âm" : "Pronounce"} className="flex min-h-11 min-w-11 items-center justify-center rounded-full bg-teal-50 text-teal-800 hover:bg-teal-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700" onClick={play} type="button"><svg aria-hidden="true" className="size-5" fill="none" viewBox="0 0 24 24"><path d="M11 5 6.5 9H3v6h3.5l4.5 4V5Z" stroke="currentColor" strokeLinejoin="round" strokeWidth="2"/><path d="M15 9a4 4 0 0 1 0 6M17.8 6.8a7.4 7.4 0 0 1 0 10.4" stroke="currentColor" strokeLinecap="round" strokeWidth="2"/></svg></button></div>

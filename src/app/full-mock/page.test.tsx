@@ -65,6 +65,7 @@ vi.mock("./short-mock-picker", () => ({
   ),
 }));
 vi.mock("./actions", () => ({ startMock: vi.fn() }));
+vi.mock("@/app/auth/actions", () => ({ signInAction: vi.fn() }));
 
 import FullMockPage from "./page";
 
@@ -76,7 +77,7 @@ describe("FullMockPage guest preview", () => {
     expect(html).toContain("Learner sidebar");
     expect(html).toContain("Complete mock test bank");
     expect(html).toContain('data-signed-in="false"');
-    expect(html.match(/href="\/sign-in\?next=%2Ffull-mock"/g)?.length).toBeGreaterThanOrEqual(1);
+    expect(html).toContain("Take test");
     expect(html).not.toContain('type="submit"');
     expect(mocks.getActiveMock).not.toHaveBeenCalled();
     expect(mocks.getFullMockHistory).not.toHaveBeenCalled();

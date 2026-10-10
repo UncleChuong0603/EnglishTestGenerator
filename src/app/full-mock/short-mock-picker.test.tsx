@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { ShortMockPicker } from "./short-mock-picker";
 
 vi.mock("./actions", () => ({ startShortMock: vi.fn() }));
+vi.mock("@/app/auth/actions", () => ({ signInAction: vi.fn() }));
 
 const readiness = { easy: true, hard: true, medium: true } as const;
 
@@ -13,8 +14,8 @@ describe("ShortMockPicker", () => {
     );
 
     expect(html).toContain("Choose difficulty");
-    expect(html).toContain("Sign in to start");
-    expect(html).toContain('href="/sign-in?next=%2Ffull-mock"');
+    expect(html).toContain("Start short mock");
+    expect(html).not.toContain('href="/sign-in?next=%2Ffull-mock"');
     expect(html).not.toContain("<form");
     expect(html).not.toContain('type="submit"');
   });

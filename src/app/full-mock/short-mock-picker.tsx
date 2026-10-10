@@ -8,6 +8,7 @@ import {
   type ShortMockDifficulty,
 } from "@/lib/short-mock/config";
 import { startShortMock } from "./actions";
+import { MockAuthDialog } from "./mock-auth-dialog";
 
 type Props = {
   active: { id: string; difficulty: ShortMockDifficulty } | null;
@@ -133,12 +134,12 @@ export function ShortMockPicker({ active, locale, readiness, signedIn }: Props) 
         {signedIn ? (
           <SubmitButton disabled={!firstReady} locale={locale} />
         ) : (
-          <Link
-            className="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-teal-700 px-6 py-3 font-black text-white hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 sm:w-auto"
-            href="/sign-in?next=%2Ffull-mock"
-          >
-            {vi ? "Đăng nhập để bắt đầu" : "Sign in to start"}
-          </Link>
+          <MockAuthDialog
+            context={vi ? "đề ngắn Part 5" : "the Part 5 short mock"}
+            locale={locale}
+            triggerClassName="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-teal-700 px-6 py-3 font-black text-white hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 sm:w-auto"
+            triggerLabel={vi ? "Bắt đầu đề ngắn" : "Start short mock"}
+          />
         )}
       </div>
     </>

@@ -303,6 +303,41 @@ describe("editorial TOEIC library", () => {
     expect(getEditorialPost(readingPillars[1].slug)!.content).toContain(`/blog/${readingPillars[0].slug}`);
   });
 
+  it("turns the existing Part 2 and Part 5 URLs into complete intent-led pillars", () => {
+    const pillars = [
+      {
+        slug: "meo-lam-toeic-part-2-hoi-dap",
+        minWords: 1_800,
+        minLinks: 6,
+        patterns: [/Mô hình ba bước/i, /Dạng 7: sửa giả định/i, /Sáu bẫy nghe/i, /S\/Q\/L\/A/i],
+      },
+      {
+        slug: "meo-lam-toeic-part-5-trong-thoi-gian-gioi-han",
+        minWords: 2_000,
+        minLinks: 12,
+        patterns: [/Bản đồ năm nhóm/i, /ba lớp bằng chứng/i, /Sáu câu mẫu/i, /tín hiệu quyết định/i],
+      },
+    ];
+
+    for (const { slug, minWords, minLinks, patterns } of pillars) {
+      const post = getEditorialPost(slug)!;
+      expect(post.content.trim().split(/\s+/).length, slug).toBeGreaterThan(minWords);
+      expect(post.content.match(/^## /gm)?.length ?? 0, slug).toBeGreaterThanOrEqual(12);
+      expect(post.content.match(/\]\(\//g)?.length ?? 0, slug).toBeGreaterThanOrEqual(minLinks);
+      expect(post.content).toMatch(/tự biên soạn/i);
+      expect(post.content).toContain("https://www.ets.org/");
+      for (const pattern of patterns) expect(post.content, slug).toMatch(pattern);
+      expect(practiceForSlug(slug), slug).toHaveLength(4);
+      expect(post.updatedAt.toISOString(), slug).toBe("2026-10-10T16:00:00.000Z");
+      const publicationInput = { ...post, coverMediaId: undefined, tags: post.tags.map(tag => tag.name) };
+      expect(checkPublication(publicationInput, EDITORIAL_POSTS.filter(peer => peer.slug !== slug)).errors, slug).toEqual([]);
+      expect(EDITORIAL_POSTS.filter(candidate => candidate.targetTopic === post.targetTopic), slug).toHaveLength(1);
+    }
+
+    expect(getEditorialPost(pillars[0].slug)!.content).toContain("/blog/toeic-part-2-cau-tra-loi-gian-tiep");
+    expect(getEditorialPost(pillars[1].slug)!.content).toContain("/blog/meo-lam-toeic-part-6-dien-doan-van");
+  });
+
   it("resolves bundled articles by slug", () => {
     const first = EDITORIAL_POSTS[0];
     expect(getEditorialPost(first.slug)?.id).toBe(first.id);

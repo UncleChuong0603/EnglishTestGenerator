@@ -167,6 +167,21 @@ html[data-motion-level="product"][data-motion-ready="true"] .motion-reveal { tra
   text-decoration: underline;
   text-underline-offset: .35rem;
 }
+
+.vocabulary-lookup-trigger {
+  text-decoration-color: var(--color-focus);
+  transition: background-color var(--tg-duration-fast) ease, color var(--tg-duration-fast) ease;
+}
+.vocabulary-lookup-trigger:hover,
+.vocabulary-lookup-trigger:focus-visible {
+  background-color: var(--tg-mint-400);
+  color: var(--tg-night-950);
+  text-decoration-line: underline;
+}
+.vocabulary-lookup-trigger:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
 .marketing-hero {
   display: grid;
   grid-template-columns: minmax(0, 1.03fr) minmax(0, .97fr);
