@@ -2,13 +2,14 @@ import type { CreatePracticeRequest, DashboardResponse, EntitlementsResponse, Pr
 
 export function dashboardAction(dashboard: DashboardResponse["data"]) {
   if (dashboard.resumablePractice) return { kind: "RESUME" as const, sessionId: dashboard.resumablePractice.id };
+  if (dashboard.dailyGoal.complete && dashboard.unresolvedMistakes > 0) return { kind: "MISTAKES" as const };
   if (dashboard.dailyGoal.complete) return { kind: "PROGRESS" as const };
   return { kind: "START" as const };
 }
 
 export function workoutBlocked(entitlements: EntitlementsResponse["data"], dashboard: DashboardResponse["data"]) {
   const usage = entitlements.usage.TODAYS_WORKOUT;
-  return !dashboard.resumablePractice && usage.type === "LIMITED" && usage.remaining === 0;
+  return !dashboard.resumablePractice && !dashboard.dailyGoal.complete && usage.type === "LIMITED" && usage.remaining === 0;
 }
 
 export function selectAnswer(session: PracticeSession, questionId: string, selectedOptionId: string): PracticeSession {

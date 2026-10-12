@@ -6,8 +6,17 @@ const dashboard = { progress: { answered: 0, correct: 0, accuracy: null }, compl
 const entitlements = { effectivePlan: "FREE" as const, premiumExpiresAt: null, membershipStatus: "FREE" as const, isTrial: false, capabilities: {}, usage: { TODAYS_WORKOUT: { type: "LIMITED" as const, used: 1, limit: 1, remaining: 0, resetAt: "2026-10-03T17:00:00.000Z" }, MANUAL_PRACTICE: { type: "UNLIMITED" as const, used: 0, resetAt: null }, MASTERY_REVIEW: { type: "UNLIMITED" as const, used: 0, resetAt: null }, FULL_MOCK: { type: "UNLIMITED" as const, used: 0, resetAt: null } } };
 
 describe("mobile view model", () => {
-  it("maps dashboard next actions without recomputing recommendations", () => { expect(dashboardAction(dashboard)).toEqual({ kind: "START" }); expect(dashboardAction({ ...dashboard, resumablePractice: { id: "session", part: 5, questionCount: 10 } })).toEqual({ kind: "RESUME", sessionId: "session" }); });
-  it("blocks a consumed quota but still permits resuming", () => { expect(workoutBlocked(entitlements, dashboard)).toBe(true); expect(workoutBlocked(entitlements, { ...dashboard, resumablePractice: { id: "session", part: 5, questionCount: 10 } })).toBe(false); });
+  it("maps dashboard next actions without recomputing recommendations", () => {
+    expect(dashboardAction(dashboard)).toEqual({ kind: "START" });
+    expect(dashboardAction({ ...dashboard, resumablePractice: { id: "session", part: 5, questionCount: 10 } })).toEqual({ kind: "RESUME", sessionId: "session" });
+    expect(dashboardAction({ ...dashboard, dailyGoal: { ...dashboard.dailyGoal, complete: true }, unresolvedMistakes: 3 })).toEqual({ kind: "MISTAKES" });
+    expect(dashboardAction({ ...dashboard, dailyGoal: { ...dashboard.dailyGoal, complete: true } })).toEqual({ kind: "PROGRESS" });
+  });
+  it("blocks only a new workout, not resume or post-goal review actions", () => {
+    expect(workoutBlocked(entitlements, dashboard)).toBe(true);
+    expect(workoutBlocked(entitlements, { ...dashboard, resumablePractice: { id: "session", part: 5, questionCount: 10 } })).toBe(false);
+    expect(workoutBlocked(entitlements, { ...dashboard, dailyGoal: { ...dashboard.dailyGoal, complete: true }, unresolvedMistakes: 3 })).toBe(false);
+  });
   it("updates only the selected answer", () => { const session = { id: "s", status: "in_progress" as const, source: "custom", skillArea: "READING" as const, part: 5, questionCount: 1, groups: [], questions: [{ id: "q", number: 1, part: 5, text: "Q", skill: "grammar", subSkill: "verbs", passageSetId: null, selectedOptionId: null, options: [{ id: "a", key: "A", text: "A" }, { id: "b", key: "B", text: "B" }] }] }; expect(selectAnswer(session, "q", "b").questions[0].selectedOptionId).toBe("b"); });
   it("maps result, 401 and retry states", () => { expect(resultAccuracy({ id: "s", status: "submitted", scoreCorrect: 7, scoreTotal: 10, submittedAt: "2026-10-02T00:00:00.000Z", results: [] })).toBe(70); expect(shouldClearSession("UNAUTHENTICATED")).toBe(true); expect(shouldRetryNetwork("TIMEOUT")).toBe(true); expect(shouldRetryNetwork("FORBIDDEN")).toBe(false); });
   it("builds valid native Part 1–7 practice commands", () => { expect(partPracticeCommand(1)).toEqual({ kind: "CUSTOM", skillArea: "LISTENING", part: 1, questionCount: 5 }); expect(partPracticeCommand(3)).toMatchObject({ skillArea: "LISTENING", questionCount: 3 }); expect(partPracticeCommand(7)).toEqual({ kind: "CUSTOM", skillArea: "READING", part: 7, questionCount: 10 }); });

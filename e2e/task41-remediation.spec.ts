@@ -103,6 +103,7 @@ test.beforeAll(async () => {
   await createQuestion("source", "The team ____ the report yesterday.", "completed");
   await createQuestion("recent", "The analyst ____ the file last night.", "completed");
   await createQuestion("unseen", "The manager ____ the review last week.", "completed");
+  await createQuestion("replacement", "The office ____ the update this morning.", "completed");
 
   for (const [label, lifecycle] of [
     ["free", "FREE"],
@@ -134,7 +135,7 @@ test.describe.configure({ mode: "serial" });
 test("wrong answer shows real explanation, taxonomy, status, and focused replacement", async ({ browser }) => {
   const { context, page } = await browserPage(browser, learners.free);
   await page.goto(`/practice/${learners.free.sessionId}/results`);
-  await expect(page.getByRole("heading", { name: "Củng cố đúng dạng vừa sai" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Học ngắn rồi làm 3–5 câu cùng dạng" })).toBeVisible();
   await expect(page.getByText("Vì sao đáp án này đúng")).toBeVisible();
   await expect(page.getByText("Cần ôn", { exact: true })).toBeVisible();
   await expect(page.getByText("source: dấu hiệu thời gian quyết định thì của động từ.")).toBeVisible();
@@ -143,11 +144,13 @@ test("wrong answer shows real explanation, taxonomy, status, and focused replace
   await expect(action).toBeFocused();
   await action.click();
   await expect(page).toHaveURL(/\/practice\/[0-9a-f-]+\?remediation=focused/);
-  await expect(page.getByText("The manager ____ the review last week.")).toBeVisible();
-  await expect(page.getByText("The team ____ the report yesterday.")).toHaveCount(0);
-  const completedAnswer = page.getByRole("radio", { name: "B completed" });
-  await completedAnswer.check();
-  await expect(completedAnswer).toBeChecked();
+  for (let index = 0; index < 3; index += 1) {
+    await expect(page.getByText("The team ____ the report yesterday.")).toHaveCount(0);
+    const completedAnswer = page.getByRole("radio", { name: "B completed" });
+    await completedAnswer.check();
+    await expect(completedAnswer).toBeChecked();
+    if (index < 2) await page.getByRole("button", { name: "Câu tiếp" }).click();
+  }
   await page.getByRole("button", { name: "Nộp bài" }).click();
   await expect(page).toHaveURL(/\/practice\/[0-9a-f-]+\/results/);
   await page.goto("/mistakes?tab=strengthening");

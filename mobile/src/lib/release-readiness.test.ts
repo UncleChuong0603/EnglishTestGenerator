@@ -1,6 +1,7 @@
 /// <reference types="node" />
 
-import { readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const read = (path: string) => readFileSync(path, "utf8");
@@ -9,11 +10,12 @@ describe("Task 52 mobile release readiness", () => {
   it("pins store identity and keeps learning audio foreground-only", () => {
     const config = JSON.parse(read("app.json")) as {
       expo: {
+        icon: string;
         ios: { bundleIdentifier: string; buildNumber: string; supportsTablet: boolean };
         android: {
           package: string;
           versionCode: number;
-          adaptiveIcon: { monochromeImage: string };
+          adaptiveIcon: { foregroundImage: string };
         };
         plugins: unknown[];
       };
@@ -27,9 +29,24 @@ describe("Task 52 mobile release readiness", () => {
       package: "net.toeicgym.app",
       versionCode: 1,
     });
-    expect(config.expo.android.adaptiveIcon.monochromeImage).toBe(
-      "./assets/images/android-icon-monochrome.png",
+    expect(config.expo.android.adaptiveIcon.foregroundImage).toBe(
+      "./assets/images/android-icon-foreground.png",
     );
+    for (const configuredPath of [
+      config.expo.icon,
+      config.expo.android.adaptiveIcon.foregroundImage,
+    ]) {
+      const assetPath = configuredPath.replace(/^\.\//, "");
+      expect(existsSync(assetPath)).toBe(true);
+      const repoPath = `mobile/${assetPath}`;
+      expect(
+        execFileSync(
+          "git",
+          ["-C", "..", "ls-files", "--error-unmatch", "--", repoPath],
+          { encoding: "utf8" },
+        ).trim(),
+      ).toBe(repoPath);
+    }
     expect(JSON.stringify(config.expo.plugins)).toContain(
       '"enableBackgroundPlayback":false',
     );
@@ -59,6 +76,17 @@ describe("Task 52 mobile release readiness", () => {
     ]) {
       expect(auth).toContain(boundary);
     }
+  });
+
+  it("shows recoverable audio and image failures instead of indefinite loading", () => {
+    const media = read("src/components/question-media.tsx");
+    const practice = read("src/app/practice/[id].tsx");
+    expect(media).toContain("if (status.error)");
+    expect(media).toContain('accessibilityRole="alert"');
+    expect(media).toContain("onError={() => setFailed(true)}");
+    expect(practice).toContain("onRetry={load}");
+    expect(media).toContain("Retry audio");
+    expect(media).toContain("Retry image");
   });
 });
 

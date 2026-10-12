@@ -48,6 +48,10 @@ export default function Home() {
       router.push(`/practice/${action.sessionId}`);
       return;
     }
+    if (action.kind === "MISTAKES") {
+      router.navigate("/mistakes" as Href);
+      return;
+    }
     if (action.kind === "PROGRESS") {
       router.navigate("/(tabs)/progress");
       return;
@@ -74,6 +78,8 @@ export default function Home() {
   const blocked = data && d ? workoutBlocked(data.entitlements, d) : false;
   const actionLabel = action?.kind === "RESUME"
     ? (vi ? "Tiếp tục bài đang làm" : "Resume practice")
+    : action?.kind === "MISTAKES"
+      ? (vi ? `Ôn ${d?.unresolvedMistakes ?? 0} câu sai` : `Review ${d?.unresolvedMistakes ?? 0} mistakes`)
     : action?.kind === "PROGRESS"
       ? (vi ? "Xem tiến độ" : "View progress")
       : (vi ? "Bắt đầu bài tập" : "Start workout");
@@ -90,10 +96,14 @@ export default function Home() {
           <Card>
             <View style={styles.row}>
               <View style={styles.flex}>
-                <Text style={styles.cardTitle}>{vi ? "Bài tập hôm nay" : "Today’s workout"}</Text>
-                <Muted>{d.recommendation
-                  ? `${d.recommendation.skillArea === "READING" ? "Reading" : "Listening"}${d.recommendation.part ? ` · Part ${d.recommendation.part}` : ""}${d.recommendation.subSkill ? ` · ${d.recommendation.subSkill}` : ""}`
-                  : (vi ? "Máy chủ sẽ chọn bước phù hợp tiếp theo." : "The server will choose your next useful step.")}</Muted>
+                <Text style={styles.cardTitle}>{vi ? "Bước học tiếp theo" : "Your next learning step"}</Text>
+                <Muted>{action?.kind === "MISTAKES"
+                  ? (vi ? "Mục tiêu hôm nay đã xong. Xem lại các câu chưa thành thạo trước khi bắt đầu bài mới." : "Today’s goal is complete. Revisit unmastered mistakes before starting something new.")
+                  : action?.kind === "PROGRESS"
+                    ? (vi ? "Mục tiêu hôm nay đã xong. Lần học tới, lịch sử này sẽ được dùng để chọn bài tiếp theo." : "Today’s goal is complete. Next time, this history will be used to choose your next workout.")
+                    : d.recommendation
+                      ? `${d.recommendation.skillArea === "READING" ? "Reading" : "Listening"}${d.recommendation.part ? ` · Part ${d.recommendation.part}` : ""}${d.recommendation.subSkill ? ` · ${d.recommendation.subSkill}` : ""}`
+                      : (vi ? "Máy chủ sẽ chọn bước phù hợp tiếp theo." : "The server will choose your next useful step.")}</Muted>
               </View>
               <Text style={styles.pill}>{data.entitlements.effectivePlan}{data.entitlements.isTrial ? " · TRIAL" : ""}</Text>
             </View>

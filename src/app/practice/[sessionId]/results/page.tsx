@@ -29,6 +29,7 @@ import { vocabularySuggestions } from "@/lib/vocabulary/catalog";
 import { getVocabularyCards } from "@/lib/vocabulary/service";
 import { ResultVocabularySuggestions } from "@/components/vocabulary/result-suggestions";
 import { ResultReview } from "@/components/practice/result-review";
+import { NextLearningStep } from "@/components/practice/next-learning-step";
 import { submitQuestionReportAction } from "@/app/question-reports/actions";
 import { startShortMock } from "@/app/full-mock/actions";
 import { shortMockDifficultyFromSource } from "@/lib/short-mock/config";
@@ -70,6 +71,7 @@ export default async function PracticeResultsPage({
     return (
       <>
         <ListeningResult
+          explanationLanguage={preferences.explanationLanguage}
           locale={locale}
           navigation={<LearnerNav locale={locale} />}
           premiumPreview={preview}
@@ -111,6 +113,7 @@ export default async function PracticeResultsPage({
     );
   const t = getTranslations(locale);
   const accuracy = percentage(result.scoreCorrect, result.scoreTotal);
+  const wrongCount = result.questions.filter((question) => !question.isCorrect).length;
   const attempts = result.questions
     .filter((question) => question.part >= 5)
     .map((question) => ({
@@ -206,10 +209,14 @@ export default async function PracticeResultsPage({
                 </>
               )}
               <button
-                className="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-teal-400 px-5 py-3 font-bold text-slate-950 hover:bg-teal-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-300"
+                className={`inline-flex min-h-12 w-full items-center justify-center rounded-xl px-5 py-3 font-bold focus-visible:outline-2 focus-visible:outline-offset-2 ${user && recommendation ? "border border-slate-600 text-white hover:bg-slate-800 focus-visible:outline-white" : "bg-teal-400 text-slate-950 hover:bg-teal-300 focus-visible:outline-teal-300"}`}
                 type="submit"
               >
-                {t.results.again}
+                {user && recommendation
+                  ? locale === "vi"
+                    ? "Luyện lại dạng này"
+                    : "Practice this type again"
+                  : t.results.again}
               </button>
             </form>
             <Link
@@ -261,8 +268,15 @@ export default async function PracticeResultsPage({
         {reviewOutcome ? (
           <ReviewOutcome data={reviewOutcome} locale={locale} />
         ) : null}
+        {user ? (
+          <NextLearningStep
+            hasRecommendation={Boolean(recommendation)}
+            locale={locale}
+            wrongCount={wrongCount}
+          />
+        ) : null}
         {recommendation ? (
-          <div className="mt-6">
+          <div className="mt-6 scroll-mt-24" id="next-workout">
             <UnifiedRecommendationCard
               compact
               locale={locale}

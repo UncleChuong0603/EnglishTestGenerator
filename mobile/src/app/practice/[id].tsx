@@ -123,7 +123,7 @@ export default function PracticeScreen() {
       ))}
       <Card>
         <Text style={styles.part}>Part {question.part} · {question.skill}</Text>
-        <QuestionMedia key={question.media?.map((item) => item.id).join(":") ?? question.id} media={question.media} vi={vi} />
+        <QuestionMedia key={question.media?.map((item) => `${item.id}:${item.url}`).join(":") ?? question.id} media={question.media} onRetry={load} vi={vi} />
         <Text selectable style={styles.question}>
           {question.text || (vi ? "Nghe audio và chọn đáp án phù hợp." : "Listen to the audio and choose the best answer.")}
         </Text>

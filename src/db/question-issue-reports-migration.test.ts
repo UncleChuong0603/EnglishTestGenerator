@@ -31,7 +31,12 @@ describe("question issue reports migration", () => {
       .filter((file) => /^\d{4}_.+\.sql$/.test(file))
       .map((file) => file.slice(0, 4));
     expect(new Set(prefixes).size).toBe(prefixes.length);
-    expect(journal.entries.at(-1)?.tag).toBe("0054_dictation_engine");
+    const latestMigration = readdirSync("drizzle")
+      .filter((file) => /^\d{4}_.+\.sql$/.test(file))
+      .sort()
+      .at(-1)
+      ?.replace(/\.sql$/, "");
+    expect(journal.entries.at(-1)?.tag).toBe(latestMigration);
   });
 
   it("stores one durable system report for each detected pair", async () => {

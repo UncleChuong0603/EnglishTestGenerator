@@ -41,6 +41,7 @@ export default function ResultScreen() {
     return <Screen>{error ? <ErrorBanner message={error} retry={() => void load()} retryLabel={vi ? "Thử lại" : "Try again"} /> : <Loading label={vi ? "Đang tải kết quả…" : "Loading result…"} />}</Screen>;
   }
   const accuracy = Math.round((result.scoreCorrect / result.scoreTotal) * 100);
+  const wrongCount = result.results.filter((item) => !item.isCorrect).length;
   const explanationLanguage = auth.me?.profile.explanationLanguage ?? "both";
   const explanation = (item: PracticeResult["results"][number]) => {
     if (explanationLanguage === "en") return item.explanationEn ?? item.explanationVi;
@@ -80,6 +81,14 @@ export default function ResultScreen() {
       </View>
       <Card>
         <Muted>{vi ? "Kết quả đã được lưu vào cùng lịch sử học tập với web. Dashboard và Tiến độ sẽ hiển thị hoạt động này." : "This result is saved to the same learning history as the web app. Dashboard and Progress now include it."}</Muted>
+      </Card>
+      <Card>
+        <Text style={styles.nextEyebrow}>{vi ? "BƯỚC HỌC TIẾP THEO" : "YOUR NEXT LEARNING STEP"}</Text>
+        <Text style={styles.cardTitle}>{wrongCount > 0
+          ? (vi ? `${wrongCount} câu chưa đúng để xem lại` : `${wrongCount} incorrect ${wrongCount === 1 ? "answer" : "answers"} to review`)
+          : (vi ? "Tiếp tục từ kết quả đã lưu" : "Continue from your saved result")}</Text>
+        <Muted>{vi ? "Trang chủ sẽ tiếp tục bài đang dở hoặc yêu cầu máy chủ chọn bước hữu ích nhất từ lịch sử thật của bạn." : "Home will resume unfinished work or ask the server for the most useful step from your real learning history."}</Muted>
+        <PrimaryButton label={vi ? "Mở bước học tiếp theo" : "Open next learning step"} onPress={() => router.replace("/(tabs)")} />
       </Card>
       {result.results.map((item) => (
         <Card key={item.questionId}>
@@ -128,7 +137,6 @@ export default function ResultScreen() {
         </Card>
       ))}
       {error ? <ErrorBanner message={error} /> : reasonError ? <ErrorBanner message={reasonError} /> : null}
-      <PrimaryButton label={vi ? "Về trang chủ" : "Back to home"} onPress={() => router.replace("/(tabs)")} />
     </Screen>
   );
 }
@@ -136,6 +144,8 @@ export default function ResultScreen() {
 const styles = StyleSheet.create({
   eyebrow: { color: colors.forest, fontWeight: "800", letterSpacing: 2, marginBottom: space.sm },
   accuracy: { color: colors.muted, fontSize: 18, marginTop: space.sm },
+  nextEyebrow: { color: colors.forest, fontSize: 12, fontWeight: "800", letterSpacing: 1.5 },
+  cardTitle: { color: colors.ink, fontSize: 20, lineHeight: 27, fontWeight: "800" },
   status: { flexDirection: "row", alignItems: "center", gap: space.sm },
   statusText: { fontWeight: "800", fontSize: 17 },
   question: { color: colors.ink, fontSize: 18, lineHeight: 27, fontWeight: "700" },
