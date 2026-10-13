@@ -332,7 +332,7 @@ export async function publishImportBatch(actorUserId: string, batchKey: string) 
   await db.transaction(async (tx) => { await assertManage(tx, actorUserId); });
   const summary = await getImportBatchSummary(batchKey);
   if (!summary) throw new ContentAdminError("BATCH_NOT_FOUND");
-  if (summary.sourceType === "AI_ASSISTED_ORIGINAL" && summary.reviewStatus !== "HUMAN_REVIEWED") throw new ContentAdminError("HUMAN_REVIEW_REQUIRED");
+  if (summary.sourceType === "AI_ASSISTED_ORIGINAL" && !["HUMAN_REVIEWED", "AUTOMATED_EDITORIAL_REVIEWED"].includes(summary.reviewStatus)) throw new ContentAdminError("EDITORIAL_REVIEW_REQUIRED");
   const drafts = summary.items.filter((item) => item.status === "draft");
   if (!drafts.length) return { published: 0 };
   const failures = summary.validations.filter((item) => item.issues.length);
