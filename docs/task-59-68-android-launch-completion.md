@@ -4,11 +4,13 @@ Date: 2026-10-12
 Repository: `C:\Code Project\EnglishTestGenerator`  
 Decision: **NO-GO until the human/external gates in `docs/android-launch-human-actions.md` are completed.**
 
+> Production update, 2026-10-13: commit `3dce6867764dd494f213270e99798420e43318e1` and migration 0057 were subsequently reviewed and deployed. Database/media restore tests passed, an encrypted off-VPS media copy was verified, disk usage was reduced to 88%, and final operations health passed. Content review found blocking defects and template duplicates, so the launch decision remains NO-GO. See `task-59-content-and-operations-evidence-2026-10-13.md` for the superseding execution record.
+
 ## Outcome
 
 The remaining code-owned launch gaps were implemented locally. Acquisition continuity now binds signup to the exact challenge result. Native Android Google Sign-In uses a one-time server nonce and server-side Google ID-token verification. Google Play purchases are granted only after server verification, and acknowledgement happens only after that verification succeeds. Android FCM configuration can be injected through a private build-time file. The media backup and isolated-restore scripts now produce and verify a real archive instead of piping container progress into it. The admin now has an auditable human-review decision for imported content, and AI-assisted batches cannot be published until that decision exists.
 
-No commit, push, deployment, Play Console submission, production schema migration, content mutation, or store promotion was performed. Local validation is not release approval.
+At the time this original report was written, no commit, push, deployment, Play Console submission, production schema migration, content mutation, or store promotion had been performed. The production update above supersedes that operational state; Play Console submission, content approval and store promotion are still open.
 
 ## Task status
 

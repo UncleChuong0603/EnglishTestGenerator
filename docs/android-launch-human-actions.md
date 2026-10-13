@@ -1,6 +1,6 @@
 # Android launch — human and external actions only
 
-Date checked: 2026-10-12
+Date checked against current Google/Expo documentation: 2026-10-13
 
 This is the remaining owner/editor/device/vendor checklist. Code-owned work is documented in `task-59-68-android-launch-completion.md`. Do not mark an item complete without retaining the listed evidence. Do not paste credentials, service-account JSON, purchase tokens or signing keys into tickets, chat or Git.
 
@@ -65,10 +65,12 @@ Owner: infrastructure/backup owner
 Owner: Google Play Console account owner + Expo/EAS owner
 
 1. Verify the Play developer identity/payments profile and create the app with package `net.toeicgym.app`.
-2. In Expo/EAS, sign in to the owning organization and configure the project. Create/store Android upload credentials with `eas credentials`; do not export keys into the repo.
-3. Build a signed preview APK for device QA, then a production AAB with the production profile. Record the EAS build URLs, artifact SHA-256, app version and version code.
-4. Upload the first AAB to a draft Internal testing release. In **Setup → App integrity**, record both the upload-certificate SHA-1 and Play App Signing SHA-1.
-5. Keep the initial submission as draft/internal. Production promotion needs a separate explicit approval.
+2. If Play Console shows the device-verification task for a new personal account, the account owner must complete it in the Play Console mobile app on a non-rooted physical device running Android 10 or later.
+3. In Expo/EAS, sign in to the owning organization and configure the project. Create/store Android upload credentials with `eas credentials`; do not export keys into the repo.
+4. Build a signed preview APK for device QA, then a production AAB with the production profile. Record the EAS build URLs, artifact SHA-256, app version and version code.
+5. Create the Play app first, assign the Google service-account key to the Android application identifier in EAS, then use `eas submit --platform android` or upload manually. Keep the first release on the Internal testing track with draft status until setup is complete.
+6. In **Release → Setup → App integrity**, record both the upload-certificate SHA-1 and Play App Signing SHA-1.
+7. Keep the initial submission as draft/internal. Production promotion needs a separate explicit approval.
 
 The project targets Android API 36 through Expo SDK 57, matching Google Play's stated 31 August 2026 target requirement for app updates.
 
@@ -146,6 +148,7 @@ Owner: Play Console owner + product owner
 ## Official references
 
 - Google Play app setup: https://support.google.com/googleplay/android-developer/answer/9859152
+- New-account physical-device verification: https://support.google.com/googleplay/android-developer/answer/14316361
 - Target API level: https://support.google.com/googleplay/android-developer/answer/11926878
 - Personal-account testing requirement: https://support.google.com/googleplay/android-developer/answer/14151465
 - Data safety: https://support.google.com/googleplay/android-developer/answer/10787469
