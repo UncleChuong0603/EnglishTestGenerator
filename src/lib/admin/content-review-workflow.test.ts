@@ -43,6 +43,16 @@ describe("Admin content review workflow", () => {
     expect(batch).toContain("Không thể publish");
   });
 
+  it("requires a real reviewer attestation for AI-assisted batches and records it", () => {
+    expect(service).toContain("export async function markImportBatchReviewed");
+    expect(service).toContain('throw new ContentAdminError("REVIEW_ATTESTATION_REQUIRED")');
+    expect(service).toContain('action: "IMPORT_REVIEW_COMPLETED"');
+    expect(service).toContain('summary.sourceType === "AI_ASSISTED_ORIGINAL"');
+    expect(actions).toContain("markBatchReviewedAction");
+    expect(batch).toContain('name="reviewedAll"');
+    expect(batch).toContain("HUMAN_REVIEWED");
+  });
+
   it("requires admin permission for batch publish and protected export", () => {
     expect(actions).toContain('actor("CONTENT_MANAGE")');
     expect(exportRoute).toContain('requireAdmin("CONTENT_READ")');

@@ -126,6 +126,37 @@ describe("Task 53 release candidate configuration", () => {
     expect(read("eas.json")).toContain('"developmentClient": true');
   });
 
+  it("loads Android FCM configuration only from a private build-time file path", () => {
+    const config = read("app.config.ts");
+    expect(config).toContain("process.env.GOOGLE_SERVICES_JSON");
+    expect(config).toContain("googleServicesFile");
+    expect(config).not.toContain("EXPO_PUBLIC_GOOGLE_SERVICES");
+    expect(
+      execFileSync(
+        "git",
+        ["-C", "..", "ls-files", "--", "mobile/google-services.json"],
+        { encoding: "utf8" },
+      ).trim(),
+    ).toBe("");
+  });
+
+  it("keeps native Google and Play Billing behind server verification", () => {
+    const manifest = JSON.parse(read("package.json")) as {
+      dependencies: Record<string, string>;
+    };
+    const signIn = read("src/app/sign-in.tsx");
+    const auth = read("src/auth/auth-context.tsx");
+    const billing = read("src/components/android-billing-card.tsx");
+    expect(manifest.dependencies["react-native-nitro-google-signin"]).toBeTruthy();
+    expect(manifest.dependencies["expo-iap"]).toBeTruthy();
+    expect(signIn).toContain('signInBehavior="credentialManager"');
+    expect(auth).toContain("api.googleLogin(idToken, nonce)");
+    expect(signIn).toContain("api.googleLoginChallenge()");
+    expect(billing).toContain("api.verifyStorePurchase");
+    expect(billing).toMatch(/await api\.verifyStorePurchase[\s\S]+await finishTransaction/);
+    expect(billing).not.toMatch(/effectivePlan\s*[:=]\s*["']PREMIUM/);
+  });
+
   it.each(["vi", "en"])(
     "ships a Google Play %s feature graphic with exact dimensions and no alpha",
     (locale) => {

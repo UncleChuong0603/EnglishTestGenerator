@@ -54,7 +54,8 @@
         }
       ],
       "expo-asset",
-      "expo-sharing"
+      "expo-sharing",
+      "expo-iap"
     ],
     "experiments": {
       "typedRoutes": true,

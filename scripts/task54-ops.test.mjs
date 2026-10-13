@@ -25,9 +25,18 @@ describe("Task 54 backup and recovery controls", () => {
   it("backs up the media volume read-only with atomic checksums", () => {
     const media = read("scripts/backup-media.sh");
     expect(media).toContain("/var/lib/toeicgym/media");
-    expect(media).toContain("tar -czf -");
+    expect(media).toContain('tar -czf "/backup/$ARCHIVE_NAME"');
     expect(media).toContain("tar -tzf");
     expect(media).toContain("sha256sum");
+    expect(media).toContain(".manifest");
+  });
+
+  it("extracts media into an isolated directory and verifies the manifest", () => {
+    const restore = read("scripts/test-restore-media.sh");
+    expect(restore).toContain("mktemp -d /tmp/toeicgym-media-restore.XXXXXX");
+    expect(restore).toContain("--no-same-owner --no-same-permissions");
+    expect(restore).toContain('test "$actual_files" -eq "$expected_files"');
+    expect(restore).toContain('test "$actual_bytes" -eq "$expected_bytes"');
   });
 
   it("checks both schedulers, disk, HTTPS and backup freshness", () => {

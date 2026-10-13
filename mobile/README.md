@@ -51,9 +51,12 @@ bundle export. `npx expo-doctor` validates Expo package compatibility.
 - Practice create, answer and submit requests use a fresh idempotency key per
   user action and reuse that key for the automatic network/timeout retry.
 
-Google sign-in is intentionally deferred until the backend has a native PKCE
-exchange. The app does not use WebView login, browser-cookie scraping,
-Firebase or Supabase.
+Google sign-in uses Android Credential Manager through Nitro Google Sign-In.
+Before each attempt the backend issues a 10-minute one-use nonce; the backend
+then verifies the ID-token signature, audience, expiry, verified email and
+nonce before issuing an opaque TOEIC GYM session. Configure the public OAuth
+web client ID as `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`. The app does not use a
+WebView, scrape browser cookies or bundle an OAuth client secret.
 
 ## Current V1 surface
 
@@ -62,15 +65,16 @@ Firebase or Supabase.
 - Server-persisted answers and authoritative submit/results
 - Shared progress view
 - Mistake Bank/remediation, Vocabulary SRS, streak and bounded progress views
-- Settings, granular learning reminders, plan/trial status, logout and Account & Data entry
+- Settings, granular learning reminders, plan/trial status, Google Play purchase/restore, logout and Account & Data entry
 - 24-hour private listening-audio cache and vocabulary-only offline review queue
 
-Remote push delivery requires the EAS/APNs/FCM human actions documented in
+Remote push delivery requires the EAS/FCM human actions documented in
 `docs/task-48-native-retention.md`. Offline scored practice remains excluded;
-native store checkout and store submission are not part of this mobile release.
+store submission remains an owner-controlled release action.
 
-The mobile API now exposes server-owned Apple/Google product configuration and
-purchase/restore verification contracts. A later native StoreKit/Play Billing
-client must use the returned account binding and must never unlock Premium
-locally. Store console, credential, notification and sandbox actions are listed
-in `docs/task-49-cross-platform-billing.md`.
+The Android Play Billing client reads only server-approved product IDs and the
+server-generated obfuscated account binding. Purchases and restores are
+verified against Google Play on the backend before the client acknowledges the
+transaction or refreshes entitlement. It never unlocks Premium locally. Play
+Console products, service credentials and licensed-test builds are required for
+end-to-end validation.

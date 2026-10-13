@@ -14,6 +14,7 @@ import type {
   EntitlementsResponse,
   GetPracticeResponse,
   LoginResponse,
+  GoogleLoginChallengeResponse,
   MeResponse,
   MistakesResponse,
   NotificationPreferencesResponse,
@@ -161,6 +162,16 @@ export const api = {
     request<LoginResponse>("/auth/login", {
       method: "POST",
       body: { email, password },
+    }),
+  googleLoginChallenge: () =>
+    request<GoogleLoginChallengeResponse>("/auth/google/challenge", {
+      method: "POST",
+      body: {},
+    }),
+  googleLogin: (idToken: string, nonce: string) =>
+    request<LoginResponse>("/auth/google", {
+      method: "POST",
+      body: { idToken, nonce },
     }),
   logout: (token: string) =>
     request<{ data: { revoked: true } }>("/auth/logout", {

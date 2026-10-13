@@ -11,6 +11,7 @@ import { createSession, getCurrentUser } from "@/lib/auth/session";
 import { getServerEnv } from "@/lib/env";
 import { migrateGuestAttempts } from "@/lib/guest/migration";
 import { recordChallengeSignup } from "@/lib/challenge/acquisition";
+import { GUEST_AUTH_RETURN_COOKIE, safeAuthContinuation } from "@/lib/auth/redirect";
 
 export async function GET(request: NextRequest) {
   const env = getServerEnv();
@@ -61,7 +62,10 @@ export async function GET(request: NextRequest) {
       await tx.insert(securityEvents).values({ userId, eventType: "login_success", metadata: { method: "google" } });
     });
     await createSession(userId);
-    if (createdNewUser) try { await recordChallengeSignup(userId); } catch (error) { console.error("[challenge:analytics] Google signup", error); }
+    if (createdNewUser) try {
+      const continuation = safeAuthContinuation(cookieStore.get(GUEST_AUTH_RETURN_COOKIE)?.value ?? oauthState.returnTo);
+      await recordChallengeSignup(userId, continuation);
+    } catch (error) { console.error("[challenge:analytics] Google signup", error); }
     try { await migrateGuestAttempts(userId); } catch (migrationError) {
       console.error("[guest:migration] deferred after Google sign-in", { name: migrationError instanceof Error ? migrationError.name : "Unknown" });
     }

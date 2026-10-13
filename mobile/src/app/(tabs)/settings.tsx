@@ -1,11 +1,12 @@
 import { useCallback, useState } from "react";
 import { router, useFocusEffect, type Href } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, Text, View } from "react-native";
 import { api, MobileApiError } from "@/api/client";
 import type { EntitlementsResponse } from "@/api/types";
 import { useAuth } from "@/auth/auth-context";
 import { Card, ErrorBanner, Muted, PrimaryButton, Screen, Title } from "@/components/ui";
 import { colors } from "@/theme";
+import { AndroidBillingCard } from "@/components/android-billing-card";
 
 export default function SettingsTab() {
   const auth = useAuth();
@@ -61,6 +62,7 @@ export default function SettingsTab() {
           ? plan.membershipStatus === "REVOKED" ? (vi ? "Free · Quyền Premium đã bị thu hồi; xem chi tiết thanh toán trên web." : "Free · Premium was revoked; review billing details on the web.") : `${plan.effectivePlan}${plan.isTrial ? (vi ? " · Dùng thử" : " · Trial") : ""}${expiry ? (vi ? ` · Hết hạn ${expiry}` : ` · Expires ${expiry}`) : ""}`
           : (vi ? "Đang tải trạng thái gói…" : "Loading plan status…")}</Muted>
       </Card>
+      {Platform.OS === "android" && auth.token ? <AndroidBillingCard onEntitlementChange={load} token={auth.token} vi={vi} /> : null}
       <Card>
         <Text style={styles.title}>{vi ? "Nhắc học" : "Learning reminders"}</Text>
         <Muted>{vi ? "Chọn riêng Bài tập hôm nay, từ vựng, câu sai và xem lại tuần." : "Choose Today’s Workout, vocabulary, mistake and weekly reminders separately."}</Muted>
@@ -70,10 +72,6 @@ export default function SettingsTab() {
         <Text style={styles.title}>{vi ? "Tài khoản & dữ liệu" : "Account & data"}</Text>
         <Muted>{vi ? "Xuất bản sao dữ liệu hoặc xóa vĩnh viễn tài khoản ngay trong ứng dụng." : "Export a copy of your data or permanently delete your account in the app."}</Muted>
         <PrimaryButton label={vi ? "Mở Tài khoản & dữ liệu" : "Open Account & data"} onPress={() => router.push("/account-data" as Href)} />
-      </Card>
-      <Card>
-        <Text style={styles.title}>{vi ? "Đăng nhập Google" : "Google sign-in"}</Text>
-        <Muted>{vi ? "Đang tạm hoãn đến khi backend có PKCE exchange dành riêng cho native. Không dùng WebView hoặc cookie scraping." : "Deferred until the backend has a native PKCE exchange. The app does not use WebView or browser-cookie scraping."}</Muted>
       </Card>
       <PrimaryButton label={vi ? "Đăng xuất" : "Sign out"} onPress={() => void auth.signOut()} />
     </Screen>

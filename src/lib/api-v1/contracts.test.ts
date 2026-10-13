@@ -6,6 +6,7 @@ import {
   createPracticeRequestSchema,
   deleteAccountRequestSchema,
   getPracticeResponseSchema,
+  googleLoginRequestSchema,
   registerPushDeviceRequestSchema,
   reviewVocabularyRequestSchema,
   saveMistakeReasonRequestSchema,
@@ -18,6 +19,8 @@ describe("mobile API v1 contracts", () => {
   it("defines every supported endpoint under the versioned prefix", () => {
     expect(Object.values(apiV1Contracts).map((contract) => contract.path)).toEqual([
       "/api/v1/auth/login",
+      "/api/v1/auth/google",
+      "/api/v1/auth/google/challenge",
       "/api/v1/auth/logout",
       "/api/v1/me",
       "/api/v1/account/data-export",
@@ -49,6 +52,14 @@ describe("mobile API v1 contracts", () => {
       "/api/v1/dictation/:id/hint",
       "/api/v1/dictation/history",
     ]);
+  });
+
+  it("accepts only a native Google ID token and no client identity fields", () => {
+    const idToken = "x".repeat(100);
+    const nonce = "a".repeat(64);
+    expect(googleLoginRequestSchema.safeParse({ idToken, nonce }).success).toBe(true);
+    expect(googleLoginRequestSchema.safeParse({ idToken, nonce, email: "spoof@example.com" }).success).toBe(false);
+    expect(googleLoginRequestSchema.safeParse({ email: "spoof@example.com" }).success).toBe(false);
   });
 
   it("does not accept client-selected question IDs when starting practice", () => {

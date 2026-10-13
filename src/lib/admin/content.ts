@@ -298,10 +298,41 @@ export async function getImportBatchSummary(batchKey: string) {
   };
 }
 
+export async function markImportBatchReviewed(actorUserId: string, batchKey: string, reviewedAll: boolean) {
+  if (!reviewedAll) throw new ContentAdminError("REVIEW_ATTESTATION_REQUIRED");
+  return db.transaction(async (tx) => {
+    await assertManage(tx, actorUserId);
+    const [batch] = await tx.select().from(questionImportBatches)
+      .where(eq(questionImportBatches.batchKey, batchKey)).for("update").limit(1);
+    if (!batch) throw new ContentAdminError("BATCH_NOT_FOUND");
+    if (batch.status !== "COMMITTED") throw new ContentAdminError("BATCH_NOT_COMMITTED");
+    if (batch.reviewStatus === "HUMAN_REVIEWED") return false;
+    if (batch.reviewStatus !== "UNREVIEWED") throw new ContentAdminError("INVALID_REVIEW_STATUS");
+    await tx.update(questionImportBatches).set({ reviewStatus: "HUMAN_REVIEWED" })
+      .where(and(eq(questionImportBatches.id, batch.id), eq(questionImportBatches.reviewStatus, "UNREVIEWED")));
+    await tx.insert(adminAuditLogs).values({
+      actorUserId,
+      action: "IMPORT_REVIEW_COMPLETED",
+      metadata: {
+        importBatchId: batch.id,
+        batchKey,
+        sourceType: batch.sourceType,
+        itemCount: batch.itemCount,
+        questionCount: batch.questionCount,
+        previousReviewStatus: "UNREVIEWED",
+        newReviewStatus: "HUMAN_REVIEWED",
+        attestation: "ALL_QUESTIONS_ANSWERS_DISTRACTORS_EXPLANATIONS_AND_RIGHTS_REVIEWED_V1",
+      },
+    });
+    return true;
+  });
+}
+
 export async function publishImportBatch(actorUserId: string, batchKey: string) {
   await db.transaction(async (tx) => { await assertManage(tx, actorUserId); });
   const summary = await getImportBatchSummary(batchKey);
   if (!summary) throw new ContentAdminError("BATCH_NOT_FOUND");
+  if (summary.sourceType === "AI_ASSISTED_ORIGINAL" && summary.reviewStatus !== "HUMAN_REVIEWED") throw new ContentAdminError("HUMAN_REVIEW_REQUIRED");
   const drafts = summary.items.filter((item) => item.status === "draft");
   if (!drafts.length) return { published: 0 };
   const failures = summary.validations.filter((item) => item.issues.length);

@@ -3,6 +3,7 @@ import { and, asc, eq, gt, isNotNull } from "drizzle-orm";
 import { db } from "@/db";
 import { practiceSessions, productEvents } from "@/db/schema";
 import { getGuestOwnerHash } from "@/lib/guest/identity";
+import { guestContinuationResultId } from "@/lib/auth/redirect";
 import { recordProductEvent, type ProductActor } from "@/lib/product-analytics/service";
 
 const route = "/challenge/part-5";
@@ -19,11 +20,13 @@ export async function recordChallengeCompletion(actor: ProductActor, sessionId: 
   if (started) await recordProductEvent({ ...actor, eventName: "challenge_completed", sessionId, route: `${route}/result`, deduplicationKey: `challenge:complete:${sessionId}` });
 }
 
-export async function recordChallengeSignup(userId: string) {
+export async function recordChallengeSignup(userId: string, continuation?: string | null) {
   const guestReference = await getGuestOwnerHash();
-  if (!guestReference) return;
+  const resultId = guestContinuationResultId(continuation);
+  if (!guestReference || !resultId) return;
   const [completed] = await db.select({ sessionId: productEvents.sessionId }).from(productEvents).where(and(
-    eq(productEvents.eventName, "challenge_completed"), eq(productEvents.guestReference, guestReference), isNotNull(productEvents.sessionId),
+    eq(productEvents.eventName, "challenge_completed"), eq(productEvents.guestReference, guestReference),
+    eq(productEvents.sessionId, resultId), isNotNull(productEvents.sessionId),
   )).orderBy(asc(productEvents.occurredAt)).limit(1);
   if (completed?.sessionId) await recordProductEvent({ eventName: "signup_after_challenge", userId, sessionId: completed.sessionId, route: "/sign-up", deduplicationKey: `challenge:signup:${userId}` });
 }

@@ -34,6 +34,12 @@ export function safeGuestContinuation(value: string | null | undefined) {
   } catch { return null; }
 }
 
+export function guestContinuationResultId(value: string | null | undefined) {
+  const continuation = safeGuestContinuation(value);
+  if (!continuation) return null;
+  return new URL(continuation, "https://toeicgym.internal").searchParams.get("result");
+}
+
 /** Carry only known purchase, guest-result, and learner-preview destinations through account creation. */
 export function safeAuthContinuation(value: string | null | undefined) {
   const guest = safeGuestContinuation(value);

@@ -52,6 +52,17 @@ export const loginRequestSchema = z.strictObject({
   password: z.string().min(1).max(1024),
 });
 
+export const googleLoginRequestSchema = z.strictObject({
+  idToken: z.string().min(100).max(16_384),
+  nonce: z.string().regex(/^[0-9a-f]{64}$/),
+});
+export const googleLoginChallengeResponseSchema = z.strictObject({
+  data: z.strictObject({
+    nonce: z.string().regex(/^[0-9a-f]{64}$/),
+    expiresAt: isoDateTimeSchema,
+  }),
+});
+
 export const loginResponseSchema = z.strictObject({
   data: z.strictObject({
     token: z.string().min(32).max(256),
@@ -712,6 +723,19 @@ export const apiV1Contracts = {
     request: loginRequestSchema,
     response: loginResponseSchema,
   },
+  googleLogin: {
+    method: "POST",
+    path: "/api/v1/auth/google",
+    auth: "anonymous",
+    request: googleLoginRequestSchema,
+    response: loginResponseSchema,
+  },
+  googleLoginChallenge: {
+    method: "POST",
+    path: "/api/v1/auth/google/challenge",
+    auth: "anonymous",
+    response: googleLoginChallengeResponseSchema,
+  },
   logout: {
     method: "POST",
     path: "/api/v1/auth/logout",
@@ -917,6 +941,8 @@ export const apiV1Contracts = {
 
 export type ApiErrorResponse = z.infer<typeof apiErrorResponseSchema>;
 export type LoginResponse = z.infer<typeof loginResponseSchema>;
+export type GoogleLoginRequest = z.infer<typeof googleLoginRequestSchema>;
+export type GoogleLoginChallengeResponse = z.infer<typeof googleLoginChallengeResponseSchema>;
 export type MeResponse = z.infer<typeof meResponseSchema>;
 export type AccountDataExportResponse = z.infer<
   typeof accountDataExportResponseSchema

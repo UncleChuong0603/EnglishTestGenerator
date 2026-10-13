@@ -23,6 +23,7 @@ docker compose --env-file .env.production run --rm db-tools npm run verify:produ
 ./scripts/test-restore-db.sh /opt/toeic-app/backups/FILE.dump
 ./scripts/restore-db.sh /opt/toeic-app/backups/FILE.dump
 ./scripts/backup-media.sh /opt/toeicgym/media-backups
+./scripts/test-restore-media.sh /opt/toeicgym/media-backups/FILE.tar.gz
 
 # Lightweight production gate (returns nonzero on stale backups/disk/health)
 COMPOSE_PROJECT_NAME=toeic-gym-frontend-bhwkds sh ./scripts/ops-health-check.sh
