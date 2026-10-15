@@ -31,3 +31,4 @@ export const practicePart7 = [
 ];
 
 export const practiceReading = { part5: practicePart5, sets: [...practicePart6, ...practicePart7] };
+export const task60PracticeReadingRecovery = { part5: [], sets: [practicePart6Set(100)] };

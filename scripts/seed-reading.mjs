@@ -2,12 +2,15 @@ import { createHash } from "node:crypto";
 import { countIds, createPool, upsertRows } from "./lib/seed-pg.mjs";
 
 import { part5Questions, readingPassageSets } from "./reading-seed-data.mjs";
-import { practiceReading } from "./practice-reading-data.mjs";
+import { practiceReading, task60PracticeReadingRecovery } from "./practice-reading-data.mjs";
 import { formatReadingDistribution, validateReadingSeed } from "./validate-reading-seed.mjs";
 
 const practiceBank = process.argv.includes("--practice-bank");
-const SOURCE = practiceBank ? "toeicgym_practice_bank_10k" : "task_5_reading_development_seed";
-const selectedReading = practiceBank ? practiceReading : { part5: part5Questions, sets: readingPassageSets };
+const task60Recovery = process.argv.includes("--task60-recovery");
+if (practiceBank && task60Recovery) throw new Error("CONTENT_CORPUS_FLAGS_CONFLICT");
+const practicePool = practiceBank || task60Recovery;
+const SOURCE = task60Recovery ? "task_60_practice_capacity_recovery" : practiceBank ? "toeicgym_practice_bank_10k" : "task_5_reading_development_seed";
+const selectedReading = task60Recovery ? task60PracticeReadingRecovery : practiceBank ? practiceReading : { part5: part5Questions, sets: readingPassageSets };
 
 function stableUuid(value) {
   const hex = createHash("sha256").update(value).digest("hex").slice(0, 32).split("");
@@ -35,7 +38,7 @@ function buildRows() {
       question_text: q.text, passage_id: passageId, passage_set_id: passageSetId,
       question_order: order, audio_url: null, image_url: null,
       metadata: { seed_key: q.key, source: SOURCE, content_kind: "original_development" }, status: q.status,
-      bank_pool: practiceBank ? "PRACTICE" : "MOCK",
+      bank_pool: practicePool ? "PRACTICE" : "MOCK",
     });
     optionRows.push(...options);
     solutionRows.push({
@@ -164,7 +167,10 @@ async function verifyDatabase(client, rows) {
 }
 
 async function run() {
-  const validation = validateReadingSeed(selectedReading);
+  const validationCorpus = task60Recovery
+    ? { part5: practiceReading.part5, sets: [...practiceReading.sets, ...task60PracticeReadingRecovery.sets] }
+    : selectedReading;
+  const validation = validateReadingSeed(validationCorpus);
   if (validation.errors.length) throw new Error(validation.errors.join("\n"));
   console.log(`Local validation passed.\n\n${formatReadingDistribution(validation.report)}\n`);
   let rows = buildRows();
@@ -176,7 +182,7 @@ async function run() {
   const pool = createPool(); const client = await pool.connect();
   try {
     const existingPart5 = Number((await client.query(`select count(*)::int as count from questions where skill_area='READING' and toeic_part=5 and status='published'`)).rows[0].count);
-    if (!practiceBank && (process.argv.includes("--skip-part5") || (!process.argv.includes("--form25-only") && existingPart5 >= 300 && !process.argv.includes("--include-part5")))) {
+    if (!practicePool && (process.argv.includes("--skip-part5") || (!process.argv.includes("--form25-only") && existingPart5 >= 300 && !process.argv.includes("--include-part5")))) {
       rows = withoutPart5(rows);
       console.log(`Part 5 upsert skipped because the database already has ${existingPart5} published questions.`);
     }
@@ -194,6 +200,10 @@ async function run() {
       await upsertRows(client, "question_options", rows.optionRows, "id");
       await upsertRows(client, "question_solutions", rows.solutionRows, "question_id");
       await verifyDatabase(client, rows);
+      if (task60Recovery) await client.query(`insert into admin_audit_logs(action,metadata)
+        select 'CONTENT_REMEDIATED',$1::jsonb where not exists(
+          select 1 from admin_audit_logs where action='CONTENT_REMEDIATED' and metadata->>'operation'='PRACTICE_READING_CAPACITY_RESTORED')`,
+        [JSON.stringify({ operation: "PRACTICE_READING_CAPACITY_RESTORED", operator: "CODEX", task: 60, groups: 1, questions: 4, parts: { 6: 4 } })]);
       await client.query("commit");
       console.log("Idempotent Reading seed upsert completed.");
     } catch (error) {
