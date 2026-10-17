@@ -51,7 +51,15 @@ filesystem tạm bên trong container Dokploy.
 
 Mỗi archive phải có file `.sha256`, mode `0600` và qua restore test cô lập.
 Backup cùng ổ đĩa không thay thế bản sao mã hóa off-VPS. Cron chuẩn trong
-`ops/cron/toeicgym-production`: DB 02:00 UTC, media 03:00 UTC, health mỗi 15 phút.
+`ops/cron/toeicgym-production`: DB 02:00 UTC, media 03:00 UTC, storage maintenance
+04:30 UTC và health mỗi 15 phút. Media backup local giữ tối đa ba bộ hoàn chỉnh;
+đây chỉ là cache phục hồi nhanh trên VPS, không thay thế bản mã hóa off-VPS.
+
+Storage maintenance chỉ xóa stopped container cũ, dangling image cũ và BuildKit
+cache khi cần để hướng tới ít nhất 12 GB trống. Script không prune volume, không
+xóa image đang được container tham chiếu và vacuum system journal xuống 300 MB.
+`ops/logrotate/toeicgym` giới hạn log cron của ứng dụng; cấu hình journald tại
+`ops/journald/90-toeicgym-storage.conf` giữ journal bền vững tối đa 300 MB.
 
 Nếu health fail: xem `migrate` và `app` log, xác minh container Postgres healthy, dung lượng đĩa, DNS/certificate và biến bắt buộc theo tên (không echo giá trị). Không chạy reset schema, `DROP DATABASE`, seed development phá hủy dữ liệu hoặc xóa volume. Khi nghi ngờ compromise, giữ bằng chứng/log, chặn truy cập ở firewall nếu cần và rotate secrets qua một cửa sổ bảo trì.
 

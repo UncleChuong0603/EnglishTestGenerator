@@ -5,6 +5,15 @@ REPO_ROOT="${TOEICGYM_REPO_ROOT:-$(cd "$(dirname "$0")/.." && pwd -P)}"
 cd "$REPO_ROOT"
 . scripts/lib/compose-command.sh
 BACKUP_DIR="${1:-/opt/toeicgym/media-backups}"
+RETENTION_DAYS="${MEDIA_BACKUP_RETENTION_DAYS:-14}"
+RETENTION_COUNT="${MEDIA_BACKUP_RETENTION_COUNT:-3}"
+case "$RETENTION_DAYS:$RETENTION_COUNT" in
+  *[!0-9:]*) echo "Backup retention must use whole numbers" >&2; exit 1 ;;
+esac
+[ "$RETENTION_COUNT" -ge 1 ] || {
+  echo "MEDIA_BACKUP_RETENTION_COUNT must be at least 1" >&2
+  exit 1
+}
 umask 077
 mkdir -p "$BACKUP_DIR"
 BACKUP_DIR="$(cd "$BACKUP_DIR" && pwd -P)"
@@ -44,9 +53,18 @@ mv "$MANIFEST.partial" "$MANIFEST"
 mv "$CHECKSUM.partial" "$CHECKSUM"
 chmod 600 "$FINAL" "$CHECKSUM" "$MANIFEST"
 
-find "$BACKUP_DIR" -type f -name 'toeicgym-media-*.tar.gz' -mtime +14 -print |
+find "$BACKUP_DIR" -type f -name 'toeicgym-media-*.tar.gz' -mtime "+$RETENTION_DAYS" -print |
   while IFS= read -r expired; do rm -f "$expired" "$expired.sha256" "$expired.manifest"; done
-find "$BACKUP_DIR" -type f -name 'toeicgym-media-*.tar.gz.sha256' -mtime +14 -delete
-find "$BACKUP_DIR" -type f -name 'toeicgym-media-*.tar.gz.manifest' -mtime +14 -delete
+find "$BACKUP_DIR" -type f -name 'toeicgym-media-*.tar.gz.sha256' -mtime "+$RETENTION_DAYS" -delete
+find "$BACKUP_DIR" -type f -name 'toeicgym-media-*.tar.gz.manifest' -mtime "+$RETENTION_DAYS" -delete
+
+# Day-only retention can exhaust a small production host after manual backups.
+# Keep the newest complete sets as a second bound. This runs only after the new
+# archive has passed checksum and readability validation.
+find "$BACKUP_DIR" -maxdepth 1 -type f -name 'toeicgym-media-*.tar.gz' \
+  -printf '%T@ %p\n' | sort -nr | tail -n "+$((RETENTION_COUNT + 1))" | \
+  cut -d ' ' -f 2- | while IFS= read -r expired; do
+    [ -n "$expired" ] && rm -f "$expired" "$expired.sha256" "$expired.manifest"
+  done
 trap - EXIT HUP INT TERM
 echo "$FINAL"

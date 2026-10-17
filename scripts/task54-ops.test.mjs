@@ -29,6 +29,20 @@ describe("Task 54 backup and recovery controls", () => {
     expect(media).toContain("tar -tzf");
     expect(media).toContain("sha256sum");
     expect(media).toContain(".manifest");
+    expect(media).toContain("MEDIA_BACKUP_RETENTION_COUNT");
+    expect(media).toContain('tail -n "+$((RETENTION_COUNT + 1))"');
+  });
+
+  it("maintains host storage without pruning volumes or active images", () => {
+    const maintenance = read("scripts/maintain-host-storage.sh");
+    expect(maintenance).toContain("docker container prune");
+    expect(maintenance).toContain("docker image prune");
+    expect(maintenance).toContain("docker builder prune");
+    expect(maintenance).toContain("--min-free-space");
+    expect(maintenance).toContain("label=com.docker.compose.project");
+    expect(maintenance).toContain('docker image rm "$MIGRATOR_IMAGE"');
+    expect(maintenance).not.toContain("docker volume prune");
+    expect(maintenance).not.toContain("docker image prune --all");
   });
 
   it("extracts media into an isolated directory and verifies the manifest", () => {
