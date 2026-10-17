@@ -45,7 +45,7 @@ export function Part3Sample() {
     <audio className="mt-6 w-full" controls preload="metadata" src="/seo/toeic-part-3-sample.mp3">Trình duyệt của bạn không hỗ trợ phát audio.</audio>
     <div className="mt-7 space-y-7">{questions.map((question, index) => <fieldset className="border-t border-slate-200 pt-5" key={question.text}>
       <legend className="font-bold leading-7">{index + 1}. {question.text}</legend>
-      <div className="mt-3 grid gap-2 sm:grid-cols-2">{question.options.map((option, optionIndex) => <label className={`flex cursor-pointer gap-3 rounded-lg border p-3 ${answers[index] === optionIndex ? "border-teal-700 bg-teal-50" : "border-slate-200"}`} key={option}>
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">{question.options.map((option, optionIndex) => <label className={`flex min-h-12 cursor-pointer gap-3 rounded-lg border p-3 focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-teal-800 ${answers[index] === optionIndex ? "border-teal-700 bg-teal-50" : "border-slate-200"}`} key={option}>
         <input checked={answers[index] === optionIndex} name={`part3-sample-${index}`} onChange={() => { setAnswers(answers.map((answer, answerIndex) => answerIndex === index ? optionIndex : answer)); setSubmitted(false); setError(""); }} type="radio" value={optionIndex} />
         <span>{String.fromCharCode(65 + optionIndex)}. {option}</span>
       </label>)}</div>
@@ -53,11 +53,11 @@ export function Part3Sample() {
         <strong>{answers[index] === question.correct ? "Đúng." : `Đáp án đúng: ${String.fromCharCode(65 + question.correct)}. ${question.options[question.correct]}.`}</strong> {question.explanation}
       </p>}
     </fieldset>)}</div>
-    <button className="mt-7 min-h-12 rounded-lg bg-teal-800 px-6 font-bold text-white" onClick={checkAnswers} type="button">Kiểm tra đáp án</button>
+    <button className="mt-7 min-h-12 rounded-lg bg-teal-800 px-6 font-bold text-white outline-offset-4 hover:bg-teal-900 focus-visible:outline-3 focus-visible:outline-teal-800" onClick={checkAnswers} type="button">Kiểm tra đáp án</button>
     {error && <p aria-live="polite" className="mt-4 font-semibold text-amber-800">{error}</p>}
     {submitted && <p aria-live="polite" className="mt-4 font-bold text-teal-900">Bạn đúng {score}/3 câu. Xem lời giải dưới từng câu.</p>}
     <details className="mt-7 rounded-lg border border-slate-200 bg-slate-50 p-5">
-      <summary className="cursor-pointer font-bold">Mở transcript để nghe lại và đối chiếu bằng chứng</summary>
+      <summary className="flex min-h-11 cursor-pointer items-center font-bold outline-offset-4 focus-visible:outline-3 focus-visible:outline-teal-800">Mở transcript để nghe lại và đối chiếu bằng chứng</summary>
       <div className="mt-4 space-y-3 leading-7 text-slate-700">
         <p><strong>Man:</strong> Have the invitations for the awards dinner been mailed yet?</p>
         <p><strong>Woman:</strong> Not yet. The printer delivered them this morning, but the envelopes have the old office address.</p>

@@ -1,0 +1,75 @@
+[
+  {
+    "width": 375,
+    "status": 200,
+    "h1": 1,
+    "overflow": 0,
+    "audio": 4,
+    "schemaAudio": 4,
+    "quizQuestions": 4,
+    "ctaHeight": 48,
+    "ctaOutline": "none",
+    "ctaFocusedOutline": "solid"
+  },
+  {
+    "width": 768,
+    "status": 200,
+    "h1": 1,
+    "overflow": 0,
+    "audio": 4,
+    "schemaAudio": 4,
+    "quizQuestions": 4,
+    "ctaHeight": 48,
+    "ctaOutline": "none",
+    "ctaFocusedOutline": "solid"
+  },
+  {
+    "width": 1024,
+    "status": 200,
+    "h1": 1,
+    "overflow": 0,
+    "audio": 4,
+    "schemaAudio": 4,
+    "quizQuestions": 4,
+    "ctaHeight": 48,
+    "ctaOutline": "none",
+    "ctaFocusedOutline": "solid"
+  },
+  {
+    "width": 1440,
+    "status": 200,
+    "h1": 1,
+    "overflow": 0,
+    "audio": 4,
+    "schemaAudio": 4,
+    "quizQuestions": 4,
+    "ctaHeight": 48,
+    "ctaOutline": "none",
+    "ctaFocusedOutline": "solid"
+  },
+  {
+    "localeAndInteraction": {
+      "emptyError": "Hãy trả lời đủ 1 câu trước khi kiểm tra.",
+      "lang": "en",
+      "articleLang": "vi",
+      "home": true,
+      "statuses": [
+        "Bạn đúng 1/1 câu. Đây là kết quả bài luyện, không phải điểm TOEIC chính thức.",
+        "Bạn đúng 1/1 câu. Đây là kết quả bài luyện, không phải điểm TOEIC chính thức.",
+        "Bạn đúng 1/1 câu. Đây là kết quả bài luyện, không phải điểm TOEIC chính thức.",
+        "Bạn đúng 1/1 câu. Đây là kết quả bài luyện, không phải điểm TOEIC chính thức."
+      ],
+      "explanationsOpen": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "transcriptOpen": true,
+      "hiddenContent": false
+    }
+  },
+  {
+    "landscapeOverflow": 0
+  }
+]

@@ -9,11 +9,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = getSiteUrl();
   const staticPaths = STATIC_PUBLIC_PATHS;
   const staticPageRevisions = new Map<string, Date>([
+    ["/luyen-thi-toeic-online", new Date("2026-10-16T00:00:00.000Z")],
+    ["/thi-thu-toeic-online", new Date("2026-10-16T00:00:00.000Z")],
     ["/toeic/listening", new Date("2026-10-16T00:00:00.000Z")],
     ["/ngu-phap", new Date("2026-10-02T06:00:00.000Z")],
-    ["/toeic/part-1", new Date("2026-10-02T00:00:00.000Z")],
-    ["/toeic/part-2", new Date("2026-10-02T00:00:00.000Z")],
-    ["/toeic/part-4", new Date("2026-10-02T00:00:00.000Z")],
+    ["/toeic/part-1", new Date("2026-10-16T00:00:00.000Z")],
+    ["/toeic/part-2", new Date("2026-10-16T00:00:00.000Z")],
+    ["/toeic/part-3", new Date("2026-10-16T00:00:00.000Z")],
+    ["/toeic/part-4", new Date("2026-10-16T00:00:00.000Z")],
     ["/toeic/part-6/dien-tu-va-cum-tu", new Date("2026-10-04T00:00:00.000Z")],
     ["/toeic/part-7/cau-hoi-suy-luan", new Date("2026-10-04T00:00:00.000Z")],
     ["/toeic/part-7/doan-tin-nhan", new Date("2026-10-04T00:00:00.000Z")],
@@ -29,6 +32,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     ...staticPages,
-    ...posts.map((post) => ({ url: `${base}${post.path}`, lastModified: post.updatedAt })),
+    ...posts.map((post) => ({ url: `${base}${post.path}`, lastModified: staticPageRevisions.get(post.path) ?? post.updatedAt })),
   ];
 }
