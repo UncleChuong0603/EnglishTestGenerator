@@ -30,7 +30,9 @@ docker container prune --force --filter 'until=24h' \
 if ! docker ps -a --quiet --filter "ancestor=$MIGRATOR_IMAGE" | grep -q .; then
   docker image rm "$MIGRATOR_IMAGE" >/dev/null 2>&1 || true
 fi
-docker image prune --force --filter 'until=168h' >/dev/null
+# Dangling images have no tag and no container reference. Removing them on each
+# maintenance run prevents repeated Dokploy deployments accumulating ~1 GB each.
+docker image prune --force >/dev/null
 
 if docker builder prune --help 2>&1 | grep -q -- '--min-free-space'; then
   docker builder prune --force \

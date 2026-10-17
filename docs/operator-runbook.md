@@ -55,7 +55,7 @@ Backup cùng ổ đĩa không thay thế bản sao mã hóa off-VPS. Cron chuẩ
 04:30 UTC và health mỗi 15 phút. Media backup local giữ tối đa ba bộ hoàn chỉnh;
 đây chỉ là cache phục hồi nhanh trên VPS, không thay thế bản mã hóa off-VPS.
 
-Storage maintenance chỉ xóa stopped container cũ, dangling image cũ và BuildKit
+Storage maintenance chỉ xóa stopped container cũ, dangling image không được dùng và BuildKit
 cache khi cần để hướng tới ít nhất 12 GB trống. Script không prune volume, không
 xóa image đang được container tham chiếu và vacuum system journal xuống 300 MB.
 `ops/logrotate/toeicgym` giới hạn log cron của ứng dụng; cấu hình journald tại
