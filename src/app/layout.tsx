@@ -8,6 +8,7 @@ import { MotionOrchestrator } from "@/components/motion/motion-orchestrator";
 import { getCookieLanguage } from "@/lib/i18n/get-translations";
 import { getTranslations } from "@/lib/i18n/runtime";
 import { getSiteUrl } from "@/lib/seo/site-url";
+import { INDEXABLE_ROBOTS } from "@/lib/seo/search-robots";
 import "./globals.css";
 
 const beVietnamPro = Be_Vietnam_Pro({
@@ -28,6 +29,7 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL(getSiteUrl()),
     title: { default: t.metadata.title, template: `%s | ${t.common.brand}` },
     description: t.metadata.description,
+    robots: INDEXABLE_ROBOTS,
     openGraph: {
       title: t.metadata.title,
       description: t.metadata.description,

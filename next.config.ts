@@ -40,6 +40,7 @@ const noindexPaths = [
   "/reset-password",
   "/sign-in",
   "/sign-up",
+  "/delete-account",
   "/ranking/:path*",
   "/challenge/part-5/:sessionId/:path*",
   "/diagnostic/:runId/:path*",

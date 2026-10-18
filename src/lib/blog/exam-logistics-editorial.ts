@@ -6,8 +6,10 @@ const dates = {
   updatedAt: new Date("2026-10-10T03:00:00.000Z"),
 };
 
-function logisticsPost(input: Omit<EditorialPost, "status" | "coverMediaId" | "noindex" | "createdBy" | "updatedBy" | "contentOrigin" | "publishedAt" | "createdAt" | "updatedAt">): EditorialPost {
-  return { ...input, ...dates, status: "PUBLISHED", coverMediaId: null, noindex: false, createdBy: "editorial", updatedBy: "editorial", contentOrigin: "AI_ASSISTED" };
+type LogisticsPostInput = Omit<EditorialPost, "status" | "coverMediaId" | "noindex" | "createdBy" | "updatedBy" | "contentOrigin" | "publishedAt" | "createdAt" | "updatedAt"> & { updatedAt?: Date };
+
+function logisticsPost(input: LogisticsPostInput): EditorialPost {
+  return { ...input, ...dates, updatedAt: input.updatedAt ?? dates.updatedAt, status: "PUBLISHED", coverMediaId: null, noindex: false, createdBy: "editorial", updatedBy: "editorial", contentOrigin: "AI_ASSISTED" };
 }
 
 export const EXAM_LOGISTICS_POSTS: EditorialPost[] = [
@@ -101,11 +103,11 @@ Trước khi chốt, ghi một dòng cho mỗi câu: Tôi đã thử cả hai tr
   logisticsPost({
     id: "editorial-toeic-result-timeline",
     slug: "thi-toeic-bao-lau-co-ket-qua",
-    title: "Thi TOEIC bao lâu có kết quả? Phân biệt điểm, phiếu điểm và chuyển phát",
-    excerpt: "Mốc trả kết quả TOEIC phụ thuộc bài thi, hình thức và địa điểm. Phân biệt điểm hiện sau thi với giấy tờ bản cứng để tính ngược deadline hồ sơ.",
+    title: "Thi TOEIC bao lâu có kết quả? Mốc IIG cho thi giấy, máy và S&W",
+    excerpt: "IIG nêu Listening & Reading sau 5 ngày làm việc tại Trung Yên hoặc 7–10 ngày ở nơi khác; Speaking & Writing sau 16–21 ngày. Thi máy có thể hiện điểm sớm hơn phiếu điểm.",
     category: "EXAM_TIPS",
-    seoTitle: "Thi TOEIC bao lâu có kết quả và nhận ở đâu?",
-    seoDescription: "TOEIC bao lâu có kết quả? Xem mốc IIG công bố cho L&R, Speaking & Writing, cách tính ngày làm việc và biên an toàn khi nhận phiếu điểm.",
+    seoTitle: "Thi TOEIC bao lâu có kết quả? Mốc IIG 5–21 ngày",
+    seoDescription: "Thi TOEIC bao lâu có kết quả? IIG nêu L&R sau 5 ngày làm việc tại Trung Yên, 7–10 ngày nơi khác; S&W sau 16–21 ngày, chuyển phát thêm 2–3 ngày.",
     canonicalPath: "/blog/thi-toeic-bao-lau-co-ket-qua",
     coverAlt: "Lịch tính ngày thi, ngày có điểm và ngày nhận phiếu TOEIC",
     editorialCover: "/blog/cover/exam_tips",
@@ -114,12 +116,18 @@ Trước khi chốt, ghi một dòng cho mỗi câu: Tôi đã thử cả hai tr
     authorName: "TOEIC GYM Editorial",
     targetTopic: "thi TOEIC bao lâu có kết quả",
     searchIntent: "TOEIC_RESULT_TIMELINE",
+    updatedAt: new Date("2026-10-18T10:00:00.000Z"),
     tags: [{ name: "Kết quả TOEIC", slug: "ket-qua-toeic" }, { name: "Thi TOEIC", slug: "thi-toeic" }],
-    content: `## Câu trả lời nhanh theo thông tin IIG đang công bố
+    content: `## Thi TOEIC bao lâu có kết quả theo thông tin IIG?
 
-Trang hỏi đáp TOEIC của IIG nêu mốc Listening & Reading sau **5 ngày làm việc** tại văn phòng Trung Yên – Hà Nội và **7–10 ngày làm việc** tại chi nhánh TP.HCM/Đà Nẵng cùng các test site khác. Speaking & Writing được nêu là **16 ngày** tại Trung Yên và **21 ngày** tại các địa điểm còn lại; chuyển phiếu về nhà có thể lâu hơn **2–3 ngày**. Xem [bảng gốc của IIG](https://toeic.iigvietnam.com/faq_toeic/bao-gio-co-ket-qua-thi-toeic/).
+- **Listening & Reading tại Trung Yên – Hà Nội:** sau 5 ngày làm việc.
+- **Listening & Reading tại TP.HCM, Đà Nẵng và test site khác:** sau 7–10 ngày làm việc.
+- **Speaking & Writing:** sau 16 ngày tại Trung Yên hoặc 21 ngày tại nơi khác.
+- **Chuyển phiếu điểm về nhà:** có thể cộng thêm 2–3 ngày so với nhận trực tiếp.
 
-Trang nguồn này mang ngày đăng 19/08/2023, còn bài của TOEIC GYM được đối chiếu lại ngày **10/10/2026**. Vì lịch, địa điểm, hình thức và dịch vụ có thể đổi, mốc ghi trên đơn đăng ký/email xác nhận của ca thi mới là thông tin ưu tiên. [FAQ IIG hiện tại](https://iigvietnam.com/faq/) cũng cho biết một số bài TOEIC trên máy tính có thể cho thí sinh biết điểm ngay sau khi hoàn thành, nhưng giấy tờ bản cứng vẫn được nhận sau.
+Đây là các mốc trên [bảng trả kết quả TOEIC của IIG](https://toeic.iigvietnam.com/faq_toeic/bao-gio-co-ket-qua-thi-toeic/). Nếu thi TOEIC Listening & Reading trên máy tính, một số ca có thể cho biết điểm ngay sau khi hoàn thành; đó chưa mặc nhiên là lúc phiếu điểm bản cứng sẵn sàng.
+
+Trang nguồn này mang ngày đăng 19/08/2023, còn bài của TOEIC GYM được đối chiếu lại ngày **18/10/2026**. Vì lịch, địa điểm, hình thức và dịch vụ có thể đổi, mốc ghi trên đơn đăng ký/email xác nhận của ca thi mới là thông tin ưu tiên. [FAQ IIG hiện tại](https://iigvietnam.com/faq/) cũng cho biết một số bài TOEIC trên máy tính có thể cho thí sinh biết điểm ngay sau khi hoàn thành, nhưng giấy tờ bản cứng vẫn được nhận sau.
 
 Vì vậy, câu “có kết quả” phải được tách thành ba mốc: biết con số, giấy tờ sẵn sàng và giấy tờ đến tay.
 

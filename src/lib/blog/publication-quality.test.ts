@@ -32,6 +32,21 @@ describe("publication quality gate", () => {
     expect(checkPublication({ ...article, content: "## Ví dụ\n![](/missing.png)" }, []).errors)
       .toContain("IMAGE_REFERENCE_INVALID");
   });
+  it("flags weak search metadata and missing intent before publication", () => {
+    const result = checkPublication({
+      ...article,
+      title: "Short title",
+      excerpt: "Short description",
+      targetTopic: undefined,
+      searchIntent: undefined,
+    }, []);
+    expect(result.warnings).toEqual(expect.arrayContaining([
+      "SEO_TITLE_TOO_SHORT",
+      "SEO_DESCRIPTION_TOO_SHORT",
+      "TARGET_TOPIC_MISSING",
+      "SEARCH_INTENT_MISSING",
+    ]));
+  });
   it("does not redirect archived content to a noindex article", () => {
     expect(validRedirectDestination("/blog/noindex-guide", "old-guide", [{ slug: "noindex-guide", title: "Guide", noindex: true }])).toBe(false);
     expect(validRedirectDestination("/toeic/part-5", "old-guide", [{ slug: "seo-part5", title: "Part 5", noindex: false }])).toBe(true);

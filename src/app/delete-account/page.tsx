@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   description:
     "Cách xóa tài khoản TOEIC GYM và dữ liệu học tập trên web hoặc ứng dụng di động.",
   alternates: { canonical: "/delete-account" },
+  robots: { index: false, follow: true },
 };
 
 export default async function DeleteAccountPage() {

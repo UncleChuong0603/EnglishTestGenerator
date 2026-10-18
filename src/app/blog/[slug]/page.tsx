@@ -11,6 +11,8 @@ import { getPreferences } from "@/lib/i18n/get-translations";
 import { getSiteUrl } from "@/lib/seo/site-url";
 import { articleStructuredData } from "@/lib/seo/article-structured-data";
 import { serializeStructuredData } from "@/lib/seo/structured-data";
+import { INDEXABLE_ROBOTS } from "@/lib/seo/search-robots";
+import { selectRelatedPosts } from "@/lib/blog/related-posts";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -29,13 +31,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: titleIncludesBrand ? { absolute: title } : title,
     description,
-    robots: post.noindex ? { index: false, follow: true } : undefined,
+    robots: post.noindex ? { index: false, follow: true } : INDEXABLE_ROBOTS,
     alternates:{canonical},
     openGraph: {
       title: socialTitle,
       description: socialDescription,
       type: "article",
       locale: "vi_VN",
+      siteName: "TOEIC GYM",
       publishedTime: post.publishedAt?.toISOString(),
       modifiedTime: post.updatedAt.toISOString(),
       url: canonical,
@@ -55,9 +58,8 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   const user = await getCurrentUser();
   const [prefs, storedImage, posts] = await Promise.all([getPreferences(user?.id), coverUrl(post.coverMediaId), listPublishedPosts(200)]);
   const image = storedImage || grammarImageForSlug(post.slug) || ("editorialCover" in post && typeof post.editorialCover === "string" ? post.editorialCover : null) || `/blog/cover/${post.category.toLowerCase()}`;
-  const publishedBySlug = new Map(posts.map(item => [item.slug, item]));
-  const grammarRelated = post.category === "GRAMMAR" ? relatedGrammarLessons(post.slug).map(lesson => publishedBySlug.get(lesson.slug)).filter((item): item is (typeof posts)[number] => Boolean(item)) : [];
-  const related = grammarRelated.length ? grammarRelated.slice(0, 2) : posts.filter(item => item.slug !== post.slug && item.category === post.category).slice(0, 2);
+  const grammarRelatedSlugs = post.category === "GRAMMAR" ? relatedGrammarLessons(post.slug).map(lesson => lesson.slug) : [];
+  const related = selectRelatedPosts(post, posts, grammarRelatedSlugs, 3);
   const base = getSiteUrl();
   const url = new URL(post.canonicalPath || `/blog/${post.slug}`, base).toString();
   const jsonLd = articleStructuredData({

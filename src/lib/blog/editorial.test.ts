@@ -210,14 +210,16 @@ describe("editorial TOEIC library", () => {
     ];
     for (const slug of logisticsSlugs) {
       const post = getEditorialPost(slug);
+      const revisedFromSearchData = slug === "thi-toeic-bao-lau-co-ket-qua";
       expect(post, slug).toBeDefined();
       expect(post?.content.trim().split(/\s+/).length, slug).toBeGreaterThan(900);
       expect(post?.content.match(/^## /gm)?.length ?? 0, slug).toBeGreaterThanOrEqual(8);
       expect(post?.content.match(/\]\(\//g)?.length ?? 0, slug).toBeGreaterThanOrEqual(6);
-      expect(post?.content).toContain("10/10/2026");
+      expect(post?.content).toContain(revisedFromSearchData ? "18/10/2026" : "10/10/2026");
       expect(post?.content).toContain("https://");
       expect(practiceForSlug(slug), slug).toHaveLength(4);
-      expect(post!.updatedAt.getTime(), slug).toBe(post!.publishedAt.getTime());
+      if (revisedFromSearchData) expect(post!.updatedAt.getTime(), slug).toBeGreaterThan(post!.publishedAt!.getTime());
+      else expect(post!.updatedAt.getTime(), slug).toBe(post!.publishedAt!.getTime());
       const publicationInput = { ...post!, coverMediaId: undefined, tags: post!.tags.map(tag => tag.name) };
       expect(checkPublication(publicationInput, EDITORIAL_POSTS.filter(peer => peer.slug !== slug)).errors, slug).toEqual([]);
     }
@@ -380,6 +382,8 @@ describe("editorial TOEIC library", () => {
     expect(getEditorialPost("sua-de-mau-ets-toeic-2025-reading-part-5-6-7")?.content).toContain("ETS TOEIC 2025” có phải tên một đề mẫu chính thức?");
     expect(getEditorialPost("hien-tai-hoan-thanh-va-qua-khu-don")?.content).toContain("Yesterday dùng since hay for?");
     expect(getEditorialPost("cau-tuong-thuat-tieng-anh-said-told-asked")?.content).toContain("Said và told khác nhau thế nào?");
+    expect(getEditorialPost("cau-tuong-thuat-tieng-anh-said-told-asked")?.content).toContain("Told đi với to V hay V-ing?");
+    expect(getEditorialPost("thi-toeic-bao-lau-co-ket-qua")?.seoTitle).toContain("Mốc IIG 5–21 ngày");
     expect(getEditorialPost("used-to-be-used-to-get-used-to")?.content).toContain("Bảng chọn nhanh used to");
     const listening = getEditorialPost("cach-luyen-nghe-toeic-part-3-4");
     expect(listening?.content).toContain("Part 3 và Part 4 TOEIC khác nhau ở đâu?");

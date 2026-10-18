@@ -4,13 +4,18 @@ import { contentPath } from "./routes";
 
 const revisedAt = new Date("2026-09-26T18:00:00.000Z");
 const listeningReleaseAt = new Date("2026-09-29T17:00:00.000Z");
+const managedSeoDescriptions: Partial<Record<string, string>> = {
+  "seo-toeic": "Cấu trúc đề TOEIC Listening & Reading gồm 7 Part, 200 câu trong khoảng 120 phút. Xem nhiệm vụ từng Part và chọn bài luyện phù hợp với điểm yếu.",
+  "seo-part5": "TOEIC Part 5 kiểm tra hoàn thành câu về ngữ pháp và từ vựng. Xem các dạng thường gặp, cách nhận diện và làm bài tập có lời giải.",
+  "seo-part7": "TOEIC Part 7 kiểm tra đọc hiểu tài liệu đơn, đôi và ba văn bản. Xem dạng câu hỏi, cách tìm bằng chứng và chọn bài luyện có lời giải.",
+};
 function document(slug: string, title: string, excerpt: string, content: string, intent = "LEARN"): EditorialPost {
   const updatedAt = slug === "seo-part5" || slug === "seo-toeic" ? new Date("2026-10-02T00:00:00.000Z") : slug === "seo-online" ? listeningReleaseAt
     : slug === "seo-part6" ? new Date("2026-10-04T00:00:00.000Z") : slug === "seo-part7" ? new Date("2026-10-02T00:00:00.000Z") : revisedAt;
   const category = slug === "seo-toeic" || slug === "seo-online" ? "TOEIC_STRATEGY"
     : slug === "seo-part6" || slug === "seo-part7" ? "READING" : "GRAMMAR";
   return { id: slug, slug, title, excerpt, content, status: "PUBLISHED", category,
-    seoTitle: title, seoDescription: excerpt, canonicalPath: contentPath(slug), coverMediaId: null,
+    seoTitle: title, seoDescription: managedSeoDescriptions[slug] ?? excerpt, canonicalPath: contentPath(slug), coverMediaId: null,
     coverAlt: "", editorialCover: "/brand/toeic-gym-social.png", socialTitle: title, socialDescription: excerpt,
     contentOrigin: "AI_ASSISTED", authorName: "TOEICGym", targetTopic: title, searchIntent: intent, noindex: false,
     createdAt: revisedAt, updatedAt, publishedAt: revisedAt, createdBy: "editorial", updatedBy: "editorial", tags: [],

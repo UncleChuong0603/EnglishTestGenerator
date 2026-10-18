@@ -36,6 +36,8 @@ export function checkPublication(input: PostInput, peers: PublicationPeer[]): Pu
   const warnings: string[] = [];
   const self = contentPath(input.slug);
   const canonical = input.canonicalPath || self;
+  const seoTitle = (input.seoTitle || input.title).trim();
+  const seoDescription = (input.seoDescription || input.excerpt).trim();
   if (publicRoutes.has(self)) errors.push("RESERVED_ROUTE");
   if (input.canonicalPath && canonical !== self) errors.push("CANONICAL_NOT_SELF");
   if (peers.some((peer) => peer.slug === input.slug)) errors.push("SLUG_TAKEN");
@@ -47,6 +49,12 @@ export function checkPublication(input: PostInput, peers: PublicationPeer[]): Pu
   }
   if (/^#\s+/m.test(input.content)) errors.push("SECOND_H1");
   if (!/^##\s+\S/m.test(input.content)) warnings.push("NO_SECTION_HEADINGS");
+  if (seoTitle.length < 30) warnings.push("SEO_TITLE_TOO_SHORT");
+  if (seoTitle.length > 65) warnings.push("SEO_TITLE_TOO_LONG");
+  if (seoDescription.length < 110) warnings.push("SEO_DESCRIPTION_TOO_SHORT");
+  if (seoDescription.length > 165) warnings.push("SEO_DESCRIPTION_TOO_LONG");
+  if (!input.targetTopic?.trim()) warnings.push("TARGET_TOPIC_MISSING");
+  if (!input.searchIntent?.trim()) warnings.push("SEARCH_INTENT_MISSING");
   if (/\b(?:todo|lorem ipsum|placeholder)\b/i.test(input.content)) errors.push("PLACEHOLDER_CONTENT");
   if (/<\/?[a-z][^>]*>/i.test(input.content) || (input.content.match(/```/g)?.length ?? 0) % 2) errors.push("UNSUPPORTED_OR_BROKEN_MARKUP");
   if (/\uFFFD|Ã[\u0080-\u00ff]|Â[\u0080-\u00ff]/.test(`${input.title} ${input.content}`)) errors.push("TEXT_ENCODING_INVALID");

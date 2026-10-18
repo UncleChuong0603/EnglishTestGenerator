@@ -1,6 +1,6 @@
 import type { EditorialPost } from "./editorial";
 
-type Draft = Pick<EditorialPost, "slug" | "title" | "excerpt" | "seoTitle" | "seoDescription" | "targetTopic" | "content">;
+type Draft = Pick<EditorialPost, "slug" | "title" | "excerpt" | "seoTitle" | "seoDescription" | "targetTopic" | "content"> & { updatedAt?: Date };
 
 const publishedAt = new Date("2026-09-26T04:00:00.000Z");
 
@@ -21,7 +21,7 @@ function post(draft: Draft): EditorialPost {
     noindex: false,
     publishedAt,
     createdAt: publishedAt,
-    updatedAt: publishedAt,
+    updatedAt: draft.updatedAt ?? publishedAt,
     createdBy: "editorial",
     updatedBy: "editorial",
     tags: [{ name: "Ngữ pháp tiếng Anh", slug: "ngu-phap-tieng-anh" }, { name: "TOEIC", slug: "toeic" }],
@@ -98,11 +98,12 @@ Trong giao tiếp công việc, *Could you tell me when the meeting starts?* là
   }),
   post({
     slug: "cau-tuong-thuat-tieng-anh-said-told-asked",
-    title: "Câu tường thuật tiếng Anh: said, told, asked và đổi mốc thời gian",
-    excerpt: "Chuyển lời nói trực tiếp sang gián tiếp, phân biệt said/told/asked và hiểu khi nào thì có thể lùi thì.",
-    seoTitle: "Câu tường thuật tiếng Anh: said, told, asked",
-    seoDescription: "Học câu tường thuật với said, told, asked, câu hỏi gián tiếp, lùi thì và đổi đại từ hoặc mốc thời gian qua ví dụ công việc rõ nghĩa.",
-    targetTopic: "câu tường thuật tiếng Anh",
+    title: "Said và told khác nhau thế nào? Told + to V hay V-ing?",
+    excerpt: "Phân biệt said, told và asked; nhớ told + người + to V hoặc told + người + that, rồi đổi thì, đại từ và mốc thời gian theo ngữ cảnh.",
+    seoTitle: "Said và told khác nhau thế nào? Told + to V hay V-ing?",
+    seoDescription: "Khi nào dùng said, told, asked? Told đi với người + to V hoặc that + mệnh đề, không dùng told + V-ing trong cấu trúc yêu cầu; kèm ví dụ và bài tập.",
+    targetTopic: "said told khác nhau và told to V",
+    updatedAt: new Date("2026-10-18T10:00:00.000Z"),
     content: `## Tường thuật là kể lại lời người khác theo góc nhìn mới
 
 Lời trực tiếp: *The manager said, “I will call you tomorrow.”* Nếu kể lại ngày hôm sau, ta có thể nói: *The manager said that she would call me the next day*. Đại từ và mốc thời gian đổi theo người kể, thời điểm kể. Không nên đổi máy móc *tomorrow* thành *the next day* nếu người kể vẫn đang nói trong cùng ngày.
@@ -117,6 +118,12 @@ Lời trực tiếp: *The manager said, “I will call you tomorrow.”* Nếu k
 - Kể lại yêu cầu: **told/asked + người + to + V** — *Mai asked us to check the schedule.*
 
 Không viết *said me*; dùng *said to me* hoặc tự nhiên hơn là *told me*. Không viết *told that...* nếu thiếu người nghe. Quyết định đầu tiên là câu gốc đang cung cấp thông tin, đặt câu hỏi hay đưa ra yêu cầu.
+
+## Told đi với to V hay V-ing?
+
+Trong cấu trúc kể lại một yêu cầu hoặc mệnh lệnh, dùng **told + người + to V**: *The manager told us to wait*. Dạng phủ định là **told + người + not to V**: *She told me not to share the file*. Khi chuyển sang bị động, vẫn dùng **be told to V**: *We were told to wait*.
+
+Không dùng *told + V-ing* để thay cho cấu trúc này. *She told me waiting* là sai. Nếu kể lại một thông tin thay vì yêu cầu hành động, dùng **told + người + that + mệnh đề**: *She told me that the meeting was canceled*. Vì vậy, hãy nhìn phần sau *told*: một hành động cần làm dùng *to V*; một thông tin đầy đủ dùng *that + chủ ngữ + động từ*.
 
 ## Lùi thì khi phù hợp với thời điểm kể
 

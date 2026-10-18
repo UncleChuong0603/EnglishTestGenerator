@@ -9,6 +9,11 @@ describe("public page titles", () => {
     expect(metadata.openGraph?.title).toBe(title);
     expect(metadata.twitter?.title).toBe(title);
     expect(metadata.alternates?.canonical).toBe("/ve-toeic-gym");
+    expect(metadata.robots).toMatchObject({
+      index: true,
+      follow: true,
+      googleBot: { "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 },
+    });
   });
   it("retains the layout title template for topic titles and supports editorial social titles", () => {
     const metadata = publicPageMetadata({ title: "Luyện TOEIC Part 5", description: "Bài luyện", canonical: "/toeic/part-5", socialTitle: "Thử câu hỏi Part 5 | TOEIC GYM" });

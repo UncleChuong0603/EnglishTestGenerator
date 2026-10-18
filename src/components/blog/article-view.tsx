@@ -9,6 +9,7 @@ import { practiceForSlug } from "@/lib/seo/mini-practice";
 import { ReadingTimePlanner } from "@/components/seo/reading-time-planner";
 import { isToeicGymAuthor } from "@/lib/seo/article-author";
 import { articleDateLabels } from "@/lib/seo/article-dates";
+import { articleHub, articleNextStep } from "@/lib/blog/article-navigation";
 
 type Article = { slug?: string; title: string; excerpt: string; content: string; category: string; publishedAt: Date | null; updatedAt: Date; authorName?:string|null; coverAlt?:string|null; tags: { name: string; slug: string }[] };
 type Related = { id: string; slug: string; title: string; excerpt: string; category: string; content: string; publishedAt: Date | null };
@@ -18,6 +19,8 @@ export function ArticleView({ post, locale, coverUrl, preview = false, signedIn 
   const questions = practiceForSlug(post.slug ?? "");
   const authorName = post.authorName || "TOEIC GYM";
   const dateLabels = articleDateLabels(post.publishedAt, post.updatedAt, locale);
+  const nextStep = articleNextStep(post.category as PostCategory, locale, signedIn);
+  const hub = articleHub(post.category as PostCategory, locale);
   return <>
     <article className="mx-auto max-w-3xl px-5 pb-12 pt-9 sm:px-6 sm:pb-16 sm:pt-12" lang="vi">
       {preview && <p className="mb-6 rounded-xl bg-amber-100 p-4 text-center font-black text-amber-900">Bản xem trước — không công khai, không lập chỉ mục</p>}
@@ -30,13 +33,13 @@ export function ArticleView({ post, locale, coverUrl, preview = false, signedIn 
         <div className="mt-5 flex flex-wrap gap-x-2 gap-y-1 text-sm text-slate-500">{post.publishedAt && dateLabels.published ? <time dateTime={post.publishedAt.toISOString()}>{dateLabels.published}</time> : <span>{locale === "vi" ? "Bản nháp" : "Draft"}</span>}{dateLabels.updated && <><span aria-hidden="true">·</span><time dateTime={post.updatedAt.toISOString()}>{dateLabels.updated}</time></>}<span aria-hidden="true">·</span><span>{readingMinutes(post.content)} {locale === "vi" ? "phút đọc" : "min read"}</span></div>
       </header>
       {coverUrl && <Image alt={post.coverAlt||""} className="mt-8 aspect-[16/9] max-h-[32rem] w-full rounded-2xl object-cover" height={675} preload src={coverUrl} unoptimized width={1200} />}
-      {questions.length > 0 && <MiniPractice questions={questions} locale={locale} />}
       {post.slug === "quan-ly-thoi-gian-toeic-reading-75-phut" && <ReadingTimePlanner locale={locale} />}
       <div className="mt-9"><Markdown content={post.content} /></div>
-      {post.category === "GRAMMAR" && <p className="mt-9 rounded-xl border border-teal-200 bg-teal-50 p-4 text-sm leading-7"><Link className="font-bold text-teal-800 underline" href="/ngu-phap">{locale === "vi" ? "Xem toàn bộ Ngữ pháp TOEIC A–Z" : "Browse TOEIC Grammar A–Z"}</Link>{locale === "vi" ? " để chọn bài trước hoặc sau chủ điểm này và xem cách áp dụng vào Part 1–7." : " to find adjacent lessons and see how grammar supports Parts 1–7."}</p>}
+      {questions.length > 0 && <MiniPractice questions={questions} locale={locale} />}
+      <p className="mt-9 rounded-xl border border-teal-200 bg-teal-50 p-4 text-sm leading-7"><Link className="font-bold text-teal-800 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700" href={hub.href}>{locale === "vi" ? "Xem tiếp " : "Explore "}{hub.label}</Link>{` ${hub.description}.`}</p>
       {post.tags.length > 0 && <div aria-label={locale === "vi" ? "Thẻ bài viết" : "Article tags"} className="mt-9 flex flex-wrap gap-2">{post.tags.map(tag => <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm font-semibold text-slate-700" key={tag.slug}>#{tag.name}</span>)}</div>}
-      <aside className="mt-12 rounded-3xl bg-slate-900 p-7 text-white sm:p-9"><h2 className="text-2xl font-black">{locale === "vi" ? "Luyện ngay nội dung vừa học" : "Put what you learned into practice"}</h2><p className="mt-3 max-w-xl leading-7 text-slate-200">{locale === "vi" ? "Thử một bài luyện ngắn và áp dụng kiến thức vào câu hỏi TOEIC." : "Try a short practice and apply what you learned to TOEIC questions."}</p><Link className="mt-5 inline-flex min-h-12 items-center rounded-xl bg-teal-300 px-5 font-black text-slate-950 hover:bg-teal-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-300" href={signedIn ? "/practice" : "/try"}>{locale === "vi" ? "Bắt đầu luyện tập" : "Start practicing"} <span aria-hidden="true" className="ml-2">→</span></Link></aside>
+      <aside className="mt-12 rounded-3xl bg-slate-900 p-7 text-white sm:p-9"><h2 className="text-2xl font-black">{nextStep.title}</h2><p className="mt-3 max-w-xl leading-7 text-slate-200">{nextStep.body}</p><Link className="mt-5 inline-flex min-h-12 items-center rounded-xl bg-teal-300 px-5 font-black text-slate-950 hover:bg-teal-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-300" href={nextStep.href}>{nextStep.label} <span aria-hidden="true" className="ml-2">→</span></Link></aside>
     </article>
-    {related.length > 0 && <section aria-labelledby="related-title" className="mx-auto max-w-7xl px-5 pb-14 sm:px-6"><h2 className="mb-6 text-2xl font-black" id="related-title">{locale === "vi" ? "Đọc tiếp" : "Keep reading"}</h2><div className="grid gap-6 md:grid-cols-2">{related.map(item => <ArticleCard image={null} key={item.id} locale={locale} post={item} />)}</div></section>}
+    {related.length > 0 && <section aria-labelledby="related-title" className="mx-auto max-w-7xl px-5 pb-14 sm:px-6"><h2 className="mb-6 text-2xl font-black" id="related-title">{locale === "vi" ? "Đọc tiếp theo đúng chủ đề" : "Keep reading on this topic"}</h2><div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">{related.map(item => <ArticleCard image={null} key={item.id} locale={locale} post={item} />)}</div></section>}
   </>;
 }

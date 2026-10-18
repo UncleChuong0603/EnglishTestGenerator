@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { INDEXABLE_ROBOTS } from "./search-robots";
 
 type PublicPageMetadata = {
   title: string;
@@ -23,6 +24,7 @@ export function publicPageMetadata({
   return {
     title: titleIncludesBrand ? { absolute: title } : title,
     description,
+    robots: INDEXABLE_ROBOTS,
     alternates: { canonical },
     openGraph: {
       title: shareTitle,
