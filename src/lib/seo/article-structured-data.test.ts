@@ -54,4 +54,20 @@ describe("article structured data", () => {
     });
     expect(data["@graph"][0]).toMatchObject({ author: { "@type": "Person", name: "Lan Nguyen" } });
   });
+
+  it("links an embedded practice quiz without exposing answer data", () => {
+    const data = articleStructuredData({
+      base: "https://toeicgym.net",
+      url: "https://toeicgym.net/blog/word-form",
+      title: "Word form TOEIC",
+      description: "Practice word forms",
+      publishedAt: new Date("2026-10-01T00:00:00.000Z"),
+      updatedAt: new Date("2026-10-02T00:00:00.000Z"),
+      image: null,
+      breadcrumbs: [],
+      practiceQuestionCount: 6,
+    });
+    expect(data["@graph"][0]).toMatchObject({ hasPart: { "@id": "https://toeicgym.net/blog/word-form#practice" } });
+    expect(data["@graph"]).toContainEqual(expect.objectContaining({ "@type": "Quiz", numberOfQuestions: 6, isAccessibleForFree: true }));
+  });
 });

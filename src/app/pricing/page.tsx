@@ -14,6 +14,7 @@ import { PUBLIC_ACTIVATION_HREF } from "@/lib/public-product";
 import { publicPageMetadata } from "@/lib/seo/public-metadata";
 import { getTrialEligibility } from "@/lib/premium/trial";
 import { TrialCta } from "@/components/premium/trial-cta";
+import { TRIAL_DURATION_DAYS } from "@/lib/premium/trial-policy";
 
 export const metadata = publicPageMetadata({
   title: "Bảng giá",
@@ -38,7 +39,7 @@ export default async function PricingPage() {
         </p>
         <h1 className="mt-3 max-w-4xl text-3xl font-black tracking-tight sm:text-5xl">
           {account?.isTrial
-            ? locale === "vi" ? "Bạn đang dùng thử Premium 3 ngày." : "You're on a 3-day Premium trial."
+            ? locale === "vi" ? `Bạn đang dùng thử Premium ${TRIAL_DURATION_DAYS} ngày.` : `You're on a ${TRIAL_DURATION_DAYS}-day Premium trial.`
             : account?.isPremium
             ? locale === "vi"
               ? "Bạn đang dùng Premium. Gia hạn khi cần."
@@ -102,7 +103,7 @@ export default async function PricingPage() {
       {preview ? (
         <PersonalizedPremiumSummary locale={locale} preview={preview} />
       ) : null}
-      {trialEligibility?.eligible ? <div className="mx-auto mt-8 max-w-5xl px-5 sm:px-6"><TrialCta locale={locale} /></div> : null}
+      {trialEligibility?.eligible || !user ? <div className="mx-auto mt-8 max-w-5xl px-5 sm:px-6"><TrialCta locale={locale} canActivate={Boolean(user)} /></div> : null}
       <PricingSection
         locale={locale}
         mockReady={Boolean(mockReadiness?.listening.ready || mockReadiness?.full.ready)}

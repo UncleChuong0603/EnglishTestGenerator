@@ -3,15 +3,15 @@ import { and, eq, gt, isNull, lte, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { productEvents, userPlanMemberships } from "@/db/schema";
 import { recordProductEvent } from "@/lib/product-analytics/service";
-import { hasMeaningfulLearning, trialEndsAt } from "./trial-policy";
+import { trialEndsAt } from "./trial-policy";
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
-export type TrialEligibility = { eligible: boolean; learningDays: number; answeredQuestions: number; reason: "ELIGIBLE" | "ACCOUNT" | "PREMIUM" | "PREVIOUS_TRIAL" | "PENDING_PAYMENT" | "INSUFFICIENT_DATA" };
+export type TrialEligibility = { eligible: boolean; learningDays: number; answeredQuestions: number; reason: "ELIGIBLE" | "ACCOUNT" | "PREMIUM" | "PREVIOUS_TRIAL" | "PENDING_PAYMENT" };
 
 function eligibilityQuery(userId: string, now: Date) {
   return sql`
     select
-      exists(select 1 from users u where u.id=${userId} and u.status='active' and u.email_verified_at is not null
+      exists(select 1 from users u where u.id=${userId} and u.status='active' and u.deleted_at is null and u.email_verified_at is not null
         and not exists(select 1 from user_roles r where r.user_id=u.id and r.role='ADMIN' and r.revoked_at is null)) as account_ok,
       exists(select 1 from user_plan_memberships m where m.user_id=${userId} and m.source='TRIAL') as previous_trial,
       exists(select 1 from user_plan_memberships m where m.user_id=${userId} and m.plan_key='PREMIUM'
@@ -29,7 +29,7 @@ function eligibilityQuery(userId: string, now: Date) {
 function eligibilityFrom(row: Record<string, unknown>): TrialEligibility {
   const learningDays = Number(row.learning_days ?? 0);
   const answeredQuestions = Number(row.answered_questions ?? 0);
-  const reason = !row.account_ok ? "ACCOUNT" : row.previous_trial ? "PREVIOUS_TRIAL" : row.premium ? "PREMIUM" : row.pending_payment ? "PENDING_PAYMENT" : !hasMeaningfulLearning(learningDays, answeredQuestions) ? "INSUFFICIENT_DATA" : "ELIGIBLE";
+  const reason = !row.account_ok ? "ACCOUNT" : row.previous_trial ? "PREVIOUS_TRIAL" : row.premium ? "PREMIUM" : row.pending_payment ? "PENDING_PAYMENT" : "ELIGIBLE";
   return { eligible: reason === "ELIGIBLE", learningDays, answeredQuestions, reason };
 }
 
@@ -43,10 +43,10 @@ export async function getTrialEligibility(userId: string, now = new Date()): Pro
 export async function activateTrial(userId: string) {
   return db.transaction(async (tx: Tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${userId}:plan`}, 0))`);
-    const [previous] = await tx.select({ id: userPlanMemberships.id, startsAt: userPlanMemberships.startsAt, endsAt: userPlanMemberships.endsAt })
+    const [previous] = await tx.select({ id: userPlanMemberships.id, startsAt: userPlanMemberships.startsAt, endsAt: userPlanMemberships.endsAt, revokedAt: userPlanMemberships.revokedAt })
       .from(userPlanMemberships).where(and(eq(userPlanMemberships.userId, userId), eq(userPlanMemberships.source, "TRIAL"))).limit(1);
     const now = new Date();
-    if (previous) return { status: previous.endsAt && previous.endsAt > now ? "ALREADY_STARTED" as const : "ALREADY_USED" as const, endsAt: previous.endsAt };
+    if (previous) return { status: !previous.revokedAt && previous.startsAt <= now && previous.endsAt && previous.endsAt > now ? "ALREADY_STARTED" as const : "ALREADY_USED" as const, endsAt: previous.endsAt };
     const result = await tx.execute(eligibilityQuery(userId, now));
     const eligibility = eligibilityFrom(result.rows[0] as Record<string, unknown>);
     if (!eligibility.eligible) return { status: "INELIGIBLE" as const, reason: eligibility.reason, endsAt: null };

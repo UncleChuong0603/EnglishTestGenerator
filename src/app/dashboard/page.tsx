@@ -661,7 +661,7 @@ export default async function DashboardPage() {
             </Link>
           </aside>
         ) : null}
-        {trialEligibility.eligible && freeLimitReached ? (
+        {trialEligibility.eligible ? (
           <TrialCta locale={locale} />
         ) : null}
 

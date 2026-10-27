@@ -13,6 +13,7 @@ import { articleStructuredData } from "@/lib/seo/article-structured-data";
 import { serializeStructuredData } from "@/lib/seo/structured-data";
 import { INDEXABLE_ROBOTS } from "@/lib/seo/search-robots";
 import { selectRelatedPosts } from "@/lib/blog/related-posts";
+import { practiceForSlug } from "@/lib/seo/mini-practice";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -71,6 +72,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
     updatedAt: post.updatedAt,
     image: image ? new URL(image, base).toString() : null,
     authorName: post.authorName,
+    practiceQuestionCount: practiceForSlug(post.slug).length || undefined,
     breadcrumbs: [
       ...(post.category === "GRAMMAR"
         ? [{ name: "Ngữ pháp TOEIC A–Z", url: new URL("/ngu-phap", base).toString() }]

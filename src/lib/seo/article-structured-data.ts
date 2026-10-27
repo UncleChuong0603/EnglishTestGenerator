@@ -16,10 +16,12 @@ type ArticleStructuredDataInput = {
   image: string | null;
   authorName?: string | null;
   breadcrumbs: readonly ArticleBreadcrumb[];
+  practiceQuestionCount?: number;
 };
 
 export function articleStructuredData(input: ArticleStructuredDataInput) {
   const organizationId = `${input.base}#organization`;
+  const practiceId = `${input.url}#practice`;
   const author = isToeicGymAuthor(input.authorName)
     ? { "@id": organizationId }
     : { "@type": "Person", name: input.authorName };
@@ -40,6 +42,7 @@ export function articleStructuredData(input: ArticleStructuredDataInput) {
         image: input.image,
         author,
         publisher: { "@id": organizationId },
+        hasPart: input.practiceQuestionCount ? { "@id": practiceId } : undefined,
       },
       {
         "@type": "BreadcrumbList",
@@ -50,6 +53,15 @@ export function articleStructuredData(input: ArticleStructuredDataInput) {
           item: item.url,
         })),
       },
+      ...(input.practiceQuestionCount ? [{
+        "@type": "Quiz",
+        "@id": practiceId,
+        name: `Bài tự kiểm tra: ${input.title}`,
+        about: input.title,
+        inLanguage: ["vi", "en"],
+        isAccessibleForFree: true,
+        numberOfQuestions: input.practiceQuestionCount,
+      }] : []),
       toeicGymOrganizationStructuredData(input.base),
     ],
   };

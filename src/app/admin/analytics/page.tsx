@@ -40,6 +40,12 @@ export default async function AnalyticsPage({
     getProductActivityTrend(period),
   ]);
   const challengeFunnel = challengeFunnelRows(challengeCounts);
+  const seoPracticeFunnel = [
+    data.events.seo_practice_viewed ?? 0,
+    data.events.seo_practice_started ?? 0,
+    data.events.seo_practice_completed ?? 0,
+    data.events.seo_practice_signup_clicked ?? 0,
+  ];
   const funnel = funnelRows(data.events, data.activated);
   const recommendations = analyticsRecommendations(data);
   const labels = vi
@@ -140,6 +146,26 @@ export default async function AnalyticsPage({
             <span className="rounded-full bg-teal-50 px-3 py-1.5 text-xs font-black text-teal-800">Asia/Ho_Chi_Minh</span>
           </div>
           <ActivityLineChart points={activityTrend} locale={vi ? "vi" : "en"} title={vi ? "Xu hướng hoạt động sản phẩm" : "Product activity trend"} />
+        </section>
+        <section className="mt-6 rounded-3xl border border-teal-200 bg-white p-5 sm:p-7" aria-labelledby="seo-practice-funnel-title">
+          <p className="text-xs font-black uppercase tracking-[.16em] text-teal-700">SEO product-led</p>
+          <h2 className="mt-2 text-xl font-black" id="seo-practice-funnel-title">{vi ? "Phễu mini practice trên các trang SEO" : "SEO mini-practice funnel"}</h2>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{vi ? "Đo hành trình từ trang nội dung có bài tập đến lúc người học nhận kết quả và nhấp tạo tài khoản. Mỗi bước được khử trùng lặp theo URL trong một phiên trình duyệt." : "Tracks content-page practice from view through result and the create-account click. Each step is deduplicated per URL within a browser session."}</p>
+          <ol className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {seoPracticeFunnel.map((count, index) => {
+              const previous = index ? seoPracticeFunnel[index - 1] : 0;
+              return <li className="rounded-2xl bg-slate-50 p-4" key={index}>
+                <p className="text-sm font-bold text-slate-600">{[
+                  vi ? "Xem bài luyện" : "Viewed practice",
+                  vi ? "Bắt đầu trả lời" : "Started answering",
+                  vi ? "Nhận kết quả" : "Received result",
+                  vi ? "Nhấp tạo tài khoản" : "Clicked create account",
+                ][index]}</p>
+                <p className="mt-2 text-3xl font-black text-teal-800">{count}</p>
+                <p className="mt-2 text-xs text-slate-600">{index ? (previous >= 20 ? `${pct(count, previous)} · n=${previous}` : (vi ? "— · mẫu bước trước dưới 20" : "— · prior step under 20")) : (vi ? "Điểm vào" : "Entry step")}</p>
+              </li>;
+            })}
+          </ol>
         </section>
         <section
           className="mt-6 rounded-3xl border border-teal-200 bg-white p-5 sm:p-7"

@@ -62,7 +62,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
               {vi ? "Chưa thể bắt đầu thanh toán. Vui lòng thử lại sau hoặc chọn gói khác." : "Payment could not be started. Please try again later or choose another plan."}
             </div>
           ) : null}
-          {(await searchParams).trial === "unavailable" ? <p className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm" role="alert">{vi ? "Chưa thể bắt đầu dùng thử. Điều kiện tài khoản hoặc dữ liệu học đã thay đổi." : "The trial could not start because account or learning eligibility changed."}</p> : null}
+          {(await searchParams).trial === "unavailable" ? <p className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm" role="alert">{vi ? "Chưa thể bắt đầu dùng thử. Bạn cần xác minh email, chưa từng dùng thử và không có gói Premium hoặc giao dịch đang chờ xác nhận." : "The trial could not start. Verify your email and make sure you have not used a trial and have no active Premium plan or pending payment."}</p> : null}
           {trialEligibility.eligible ? <TrialCta locale={prefs.interfaceLanguage} /> : null}
           {account.membershipStatus === "EXPIRED" ? (
             <section className="rounded-[20px] border border-slate-300 bg-white p-6" aria-label={vi ? "Premium đã hết hạn" : "Premium expired"}>
