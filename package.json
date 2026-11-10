@@ -78,7 +78,14 @@
     "plan:revoke": "node --conditions=react-server --env-file=.env.local --import tsx scripts/plan-operator.ts revoke",
     "admin:inspect": "node --conditions=react-server --env-file=.env.local --import tsx scripts/admin-operator.ts inspect",
     "admin:grant": "node --conditions=react-server --env-file=.env.local --import tsx scripts/admin-operator.ts grant",
-    "admin:revoke": "node --conditions=react-server --env-file=.env.local --import tsx scripts/admin-operator.ts revoke"
+    "admin:revoke": "node --conditions=react-server --env-file=.env.local --import tsx scripts/admin-operator.ts revoke",
+    "video:prepare": "node remotion/prepare-assets.mjs",
+    "video:typecheck": "tsc --noEmit -p remotion/tsconfig.json",
+    "video:previews": "node remotion/render.mjs --previews",
+    "video:verify": "node remotion/verify.mjs",
+    "video:studio": "remotion studio",
+    "video:render": "remotion render ToeicGymIntro out/toeic-gym-intro.mp4 --concurrency=4",
+    "video:render:vertical": "remotion render ToeicGymIntroVertical out/toeic-gym-intro-vertical.mp4 --concurrency=4"
   },
   "dependencies": {
     "@apple/app-store-server-library": "^3.1.0",
@@ -99,6 +106,7 @@
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",
     "@playwright/test": "^1.63.0",
+    "@remotion/cli": "4.0.542",
     "@tailwindcss/postcss": "^4.0.0",
     "@types/node": "^22.0.0",
     "@types/nodemailer": "^8.0.1",
@@ -111,6 +119,7 @@
     "eslint-config-next": "16.4.0",
     "ffmpeg-static": "^5.3.0",
     "node-edge-tts": "^1.2.10",
+    "remotion": "4.0.542",
     "tailwindcss": "^4.0.0",
     "tsx": "^4.23.13",
     "typescript": "^5.0.0",

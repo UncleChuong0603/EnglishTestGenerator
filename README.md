@@ -1,5 +1,7 @@
 # English Test Generator
 
+Video giới thiệu TOEIC GYM bằng Remotion: xem [hướng dẫn dựng và xuất video](remotion/README.md).
+
 Ứng dụng Next.js 16 tự host dành cho luyện TOEIC Reading. PostgreSQL là nguồn dữ liệu duy nhất; Google chỉ là nhà cung cấp danh tính OAuth.
 
 ## Chạy local

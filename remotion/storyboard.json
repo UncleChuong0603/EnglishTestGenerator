@@ -1,0 +1,47 @@
+{
+  "fps": 30,
+  "scenes": [
+    {
+      "id": "promise",
+      "seconds": 8,
+      "chapter": "LUYỆN TẬP CÓ ĐỊNH HƯỚNG",
+      "narration": "TOEIC Gym. Luyện đúng lỗi sai. Mỗi ngày, biết mình nên học gì."
+    },
+    {
+      "id": "start",
+      "seconds": 9,
+      "chapter": "BẮT ĐẦU THẬT ĐƠN GIẢN",
+      "narration": "Bắt đầu với mười câu Part năm, không cần tài khoản. Nộp bài, xem đáp án và hiểu vì sao mình sai."
+    },
+    {
+      "id": "path",
+      "seconds": 8,
+      "chapter": "BÀI HÔM NAY · LỘ TRÌNH TUẦN",
+      "narration": "Từ kết quả luyện, TOEIC Gym gợi ý bài nên học hôm nay và điều chỉnh lộ trình mỗi tuần theo mục tiêu, nhịp học của bạn."
+    },
+    {
+      "id": "mistakes",
+      "seconds": 9,
+      "chapter": "BIẾN LỖI SAI THÀNH KIẾN THỨC",
+      "narration": "Câu trả lời sai được gom lại để ôn. Nhìn ra lỗi lặp, đọc lời giải, rồi luyện lại đến khi hiểu vững hơn."
+    },
+    {
+      "id": "listening",
+      "seconds": 9,
+      "chapter": "NGHE HIỂU TỪNG CÂU",
+      "narration": "Luyện nghe với transcript. Theo dõi từng câu, ẩn lời để tự nghe và điều chỉnh tốc độ phù hợp với mình."
+    },
+    {
+      "id": "practice",
+      "seconds": 9,
+      "chapter": "HỌC ĐÚNG PHẦN CẦN LUYỆN",
+      "narration": "Luyện riêng từng Part, từ một đến bảy. Bổ sung từ vựng trong ngữ cảnh và ngữ pháp liên quan, rồi quay lại thực hành."
+    },
+    {
+      "id": "cta",
+      "seconds": 7,
+      "chapter": "BƯỚC TIẾP THEO CỦA BẠN",
+      "narration": "Bắt đầu bằng mười câu miễn phí tại TOEIC Gym chấm nét. TOEIC Gym lo bước tiếp theo."
+    }
+  ]
+}
